@@ -1,9 +1,8 @@
-
-use std::path::Path;
-use std::io::{self, ErrorKind};
+use execution::run;
 use std::env;
 use std::fs;
-use execution::run;
+use std::io::{self, ErrorKind};
+use std::path::Path;
 
 fn _read_files() -> Result<Vec<String>, io::Error> {
     let args: Vec<String> = env::args().collect();
