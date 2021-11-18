@@ -1,0 +1,8 @@
+[package]
+name = "assembly_simulator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { version = "1.0", default-features = false }
+execution = { path = "./execution" }
