@@ -1,21 +1,31 @@
 use wasmer::{RuntimeError, Val};
-use super::types::Address;
-use std::string::String;
-use std::collections::BTreeMap;
+use crate::types::Address;
+
+use super::types::{Bytecode, Ledger};
+use std::sync::Mutex;
+use std::io::{Error, ErrorKind};
 
 lazy_static::lazy_static! {
-   static ref MEM: BTreeMap<Address, String> = BTreeMap::new();
+   pub static ref MEM: Mutex::<Ledger> = Mutex::new(Ledger::new());
+}
+
+pub fn get_module(address: &Address) -> Result<Bytecode, Error>{
+   match MEM.lock().unwrap().clone().get(address) {
+      Some(address) => Ok(address.to_string()),
+      _ => Err(Error::new(ErrorKind::InvalidData, format!("Cannot find module for address {}", address)))
+   }
 }
 
 pub fn call(args: &[Val]) -> Result::<Vec<Val>, RuntimeError> {
    let address = args[0].i64().unwrap() as u64; //todo : remove this cast
-   match MEM.contains_key(&address) {
-      true => {
-         match super::run(&MEM.get(&address).unwrap(), &args[1].to_string(), vec![]) {
-            Ok(_) => Ok(vec![]),
-            Err(_) => Err(RuntimeError::new("Run call error"))
+   
+   match get_module(&address) {
+      Ok(module_wat) => {
+         match super::run(&module_wat, &args[1].to_string(), vec![]) {
+            Ok(_) => Ok(vec![]), // todo
+            Err(_) => Err(RuntimeError::new("Run call error")) // todo
          }
       },
-      false => Err(RuntimeError::new("Address not found"))
+      Err(err) => Err(RuntimeError::new(err.to_string()))
    }
 }
