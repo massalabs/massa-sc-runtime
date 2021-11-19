@@ -23,6 +23,9 @@ pub fn run(module_wat: &str, fnc: &str, params: Vec<Val>) -> Result<Box<[Val]>, 
     }
 }
 
+// Exporting a function not named "main" in a module result to store
+// the module in the ledger
+// Adding a module to execute in his own address
 pub fn insert(address: Address, module_wat: &str) -> Result<(), Box<dyn std::error::Error>>{
     api::MEM.lock().unwrap().insert(address, module_wat.to_string());
     match run(module_wat, "main", vec![]) {
