@@ -2,34 +2,60 @@ use wasmer::{Function, FunctionType, ImportObject, Instance, Module, RuntimeErro
 use crate::api;
 use crate::types::Address;
 
-lazy_static::lazy_static! {
-    static ref STORE: Store = Store::default();
-}
-
-pub fn run(module_wat: &str, fnc: &str, params: Vec<Val>) -> Result<Box<[Val]>, Box<dyn std::error::Error>> {
+fn create_instance(module: &str) -> Result<Instance, Box<dyn std::error::Error>> {
+    let store = Store::default();
     let resolver: ImportObject = imports! {
         "env" => {
-            "call" => Function::new(&STORE, &FunctionType::new(vec![Type::I32], vec![Type::I32]), api::call),
+            "call" => Function::new(&store, &FunctionType::new(vec![Type::I32], vec![Type::I32]), api::call),
         },
     };
-    let module = Module::new(&STORE, &module_wat)?;
-    let instance = Instance::new(&module, &resolver)?;
-    for exp in instance.exports.iter() {
-        println!("{}", exp.0);
-    }
+    let module = Module::new(&store, &module)?;
+    Ok(Instance::new(&module, &resolver)?)
+}
+
+pub fn exec(address: Address, instance: Option<Instance>, module: &str, fnc: &str, params: Vec<Val>) -> Result<Box<[Val]>, Box<dyn std::error::Error>> {
+    let instance = match instance {
+        Some(instance) => instance,
+        None => create_instance(module)?
+    };
     match instance.exports.get_function(fnc)?.call(&params) {
         Ok(value) => Ok(value),
         Err(error) => Err(Box::new(std::io::Error::new::<RuntimeError>(std::io::ErrorKind::InvalidData, error)))
     }
 }
 
-// Exporting a function not named "main" in a module result to store
-// the module in the ledger
-// Adding a module to execute in his own address
-pub fn insert(address: Address, module_wat: &str) -> Result<(), Box<dyn std::error::Error>>{
-    api::MEM.lock().unwrap().insert(address, module_wat.to_string());
-    match run(module_wat, "main", vec![]) {
-        Ok(_) => Ok(()),
-        Err(err) => Err(err)
+/// External access to run a module sended by an address
+/// Is run could be split write_sc_to_ledger -> Address then exec(Address, function) ?!
+///
+/// - do we want to be able to execute a sSCc without save it to the ledger? -> is it still a SC how do we name it?
+/// - do we want to save a SC to the ledger without execute it?
+pub fn run(address: Address, module: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let instance = create_instance(module)?;
+    // Insert module in the ledger if another function
+    // than "main" is exported
+
+    // todo: load is_pub instead of this bellow to store in the ledger
+    for exp in instance.exports.iter() {
+        if !exp.0.eq("main") {
+            let scaddress = api::insert_module(address, module);
+            break;
+        }
     }
+
+    if instance.exports.contains("main") {
+        return match exec() {
+            Ok(value) => Ok(()),
+            Err(error) => Err(Box::new(std::io::Error::new::<RuntimeError>(std::io::ErrorKind::InvalidData, error)))
+        }
+    }
+    Ok(())
 }
+
+// --- What does the LEDGER look like? ---
+// How do I know what's belong to me in the ledger User <-> [SC]
+
+// --- What is lacking here before merging with @greg skelton / ask review from @damip? ---
+// What subset of this code could be re-use as execution engine in massa-node? all the `execution` lib!
+
+// --- Purpose of the main? ---
+// Mock the blockchain behavior to be able to simulate SC wasm chunck without dealing with the blockchain
