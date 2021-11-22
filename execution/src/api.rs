@@ -1,17 +1,16 @@
-use wasmer::{RuntimeError, Val};
 use crate::types::Address;
 use super::types::{Bytecode, Ledger};
 use std::sync::Mutex;
-use std::io::{Error, ErrorKind};
+use anyhow::{bail, Result};
 
 lazy_static::lazy_static! {
    pub static ref MEM: Mutex::<Ledger> = Mutex::new(Ledger::new());
 }
 
-pub fn get_module(address: &Address) -> Result<Bytecode, Error>{
+pub fn get_module(address: &Address) -> Result<Bytecode> {
    match MEM.lock().unwrap().clone().get(address) {
       Some(address) => Ok(address.to_string()),
-      _ => Err(Error::new(ErrorKind::InvalidData, format!("Cannot find module for address {}", address)))
+      _ => bail!("Cannot find module for address {}", address)
    }
 }
 
@@ -22,15 +21,8 @@ pub fn insert_module(address: Address, module_wat: &str) {
    MEM.lock().unwrap().insert(address, module_wat.to_string());
 }
 
-pub fn call(args: &[Val]) -> Result::<Vec<Val>, RuntimeError> {
-   let address = args[0].i64().unwrap() as u64; //todo : remove this cast
-   match get_module(&address) {
-      Ok(module_wat) => {
-         match (&module_wat, &args[1].to_string(), vec![]) {
-            Ok(_) => Ok(vec![]), // todo
-            Err(_) => Err(RuntimeError::new("Run call error")) // todo
-         }
-      },
-      Err(err) => Err(RuntimeError::new(err.to_string()))
-   }
+pub fn call(address: Address) -> Address {
+   let module = get_module(&address).unwrap();
+   super::execution_impl::exec(None, &module, "", vec![]).unwrap()[0].to_string(); // TODO change exec
+   0
 }

@@ -1,40 +1,45 @@
+use anyhow::{bail, Result};
 use execution::run;
 use std::env;
 use std::fs;
-use std::io::{self, ErrorKind};
 use std::path::Path;
 
-fn _read_files() -> Result<Vec<String>, io::Error> {
+fn _read_files() -> Result<Vec<String>> {
+    // TODO: should be or use a read_files(filename: Path) -> String
     let args: Vec<String> = env::args().collect();
     let mut ret = vec![];
     for name in args {
         let path = Path::new(&name);
         if !path.is_file() {
-            return Err(io::Error::new(
-                ErrorKind::InvalidInput,
-                format!("{} isn't file", name),
-            ));
+            bail!("{} isn't file", name)
         }
+        // TODO: should also handle binary WASM file?!
         if path.extension().unwrap() != "wat" {
-            return Err(io::Error::new(
-                ErrorKind::InvalidInput,
-                format!("{} should be in webassembly", name),
-            ));
+            bail!("{} should be in webassembly", name)
         }
         ret.push(fs::read_to_string(path)?);
     }
     Ok(ret)
 }
 
-fn main() -> anyhow::Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<()> {
     let module_wat = r#"
-    ;; TODO: put some Python interpreter here!
     (module
-    (type $t0 (func (param i32) (result i32)))
-    (func $add_one (export "add_one") (type $t0) (param $p0 i32) (result i32)
-        get_local $p0
-        i32.const 1
-        i32.add))
-    "#;
-    run(module_wat)
+        (type $i32_i32_=>_i32 (func (param i32 i32) (result i32)))
+        (type $none_=>_i32 (func (result i32)))
+        (memory $0 0)
+        (export "add" (func $assembly/index/add))
+        (export "main" (func $assembly/index/main))
+        (export "memory" (memory $0))
+        (func $assembly/index/add (param $0 i32) (param $1 i32) (result i32)
+         local.get $0
+         local.get $1
+         i32.add
+        )
+        (func $assembly/index/main (result i32)
+         i32.const 12
+        )
+       )
+       "#;
+    run(1, module_wat)
 }
