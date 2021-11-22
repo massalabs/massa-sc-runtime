@@ -17,8 +17,10 @@ pub fn get_module(address: &Address) -> Result<Bytecode> {
 // Exporting a function not named "main" in a module result to store
 // the module in the ledger
 // Adding a module to execute in his own address
-pub fn insert_module(address: Address, module_wat: &str) {
-   MEM.lock().unwrap().insert(address, module_wat.to_string());
+pub fn insert_module(address: Address, module: &str) -> Address {
+   let key = address + 1; // todo insert the logic of address creation
+   MEM.lock().unwrap().insert(key, module.to_string());
+   key
 }
 
 pub fn call(address: Address) -> Address {

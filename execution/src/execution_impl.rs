@@ -7,7 +7,7 @@ use api::call;
 fn create_instance(module: &str) -> Result<Instance> {
     let store = Store::default();
     let resolver: ImportObject = imports! {
-        "env" => {
+        "massa" => {
             "call" => Function::new_native(&store, call)
         },
     };
@@ -22,6 +22,7 @@ pub fn exec(instance: Option<Instance>, module: &str, fnc: &str, params: Vec<Val
         Some(instance) => instance,
         None => create_instance(module)?
     };
+    // todo: return an error if the function exported isn't public
     match instance.exports.get_function(fnc)?.call(&params) {
         Ok(value) => Ok(value),
         Err(error) => bail!(error)
@@ -35,21 +36,11 @@ pub fn exec(instance: Option<Instance>, module: &str, fnc: &str, params: Vec<Val
 /// - do we want to save a SC to the ledger without execute it?
 pub fn run(address: Address, module: &str) -> Result<()> {
     let instance = create_instance(module)?;
-    // Insert module in the ledger if another function
-    // than "main" is exported
-
-    // todo: load is_pub instead of this bellow to store in the ledger
-    //for exp in instance.exports.iter() {
-    //    if !exp.0.eq("main") {
-    //        let scaddress = api::insert_module(address, module);
-    //        break;
-    //    }
-    //}
-
+    println!("Module inserted at {} by {}", api::insert_module(address, module), address);
     if instance.exports.contains("main") {
         return match exec(Some(instance), module, "main", vec![]) {
             Ok(value) => {
-                println!("{:?}", value[0]);
+                println!("Main function dumped {:?}", value[0]);
                 Ok(())
             },
             Err(error) => bail!(error)
