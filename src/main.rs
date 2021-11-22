@@ -4,7 +4,7 @@ use std::env;
 use std::fs;
 use std::path::Path;
 
-fn read_files() -> Result<Vec<String>> {
+fn read_files() -> Result<Vec<Vec<u8>>> {
     // TODO: should be or use a read_files(filename: Path) -> String
     let args: Vec<String> = env::args().collect();
     println!("{:?}", args);
@@ -17,10 +17,11 @@ fn read_files() -> Result<Vec<String>> {
             bail!("{} isn't file", name)
         }
         // TODO: should also handle binary WASM file?!
-        if path.extension().unwrap() != "wat" {
+        let extention = path.extension().unwrap_or_default();
+        if extention != "wat" && extention != "wasm" {
             bail!("{} should be in webassembly", name)
         }
-        ret.push(fs::read_to_string(path)?);
+        ret.push(fs::read(path)?);
     }
     Ok(ret)
 }

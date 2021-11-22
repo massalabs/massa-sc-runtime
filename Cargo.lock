@@ -252,6 +252,7 @@ dependencies = [
  "anyhow",
  "lazy_static",
  "wasmer",
+ "wasmer-as",
 ]
 
 [[package]]
@@ -866,6 +867,13 @@ dependencies = [
  "wasmer-vm",
  "wat",
  "winapi",
+]
+
+[[package]]
+name = "wasmer-as"
+version = "0.1.0"
+dependencies = [
+ "wasmer",
 ]
 
 [[package]]

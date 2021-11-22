@@ -3,12 +3,14 @@ use crate::api;
 use crate::types::Address;
 use anyhow::{bail, Result};
 use api::call;
+use wasmer_as::{Env, abort};
 
-fn create_instance(module: &str) -> Result<Instance> {
+fn create_instance(module: &[u8]) -> Result<Instance> {
     let store = Store::default();
     let resolver: ImportObject = imports! {
-        "massa" => {
-            "call" => Function::new_native(&store, call)
+        "env" => {
+            "call" => Function::new_native(&store, call),
+            "abort" =>  Function::new_native_with_env(&store, Env::default(), abort)
         },
     };
     let module = Module::new(&store, &module)?;
@@ -17,7 +19,7 @@ fn create_instance(module: &str) -> Result<Instance> {
 
 /// fnc: function name
 /// params: function arguments
-pub fn exec(instance: Option<Instance>, module: &str, fnc: &str, params: Vec<Val>) -> Result<Box<[Val]>> {
+pub fn exec(instance: Option<Instance>, module: &[u8], fnc: &str, params: Vec<Val>) -> Result<Box<[Val]>> {
     let instance = match instance {
         Some(instance) => instance,
         None => create_instance(module)?
@@ -34,9 +36,10 @@ pub fn exec(instance: Option<Instance>, module: &str, fnc: &str, params: Vec<Val
 ///
 /// - do we want to be able to execute a sSCc without save it to the ledger? -> is it still a SC how do we name it?
 /// - do we want to save a SC to the ledger without execute it?
-pub fn run(address: Address, module: &str) -> Result<()> {
+pub fn run(address: Address, module: &[u8]) -> Result<()> {
     let instance = create_instance(module)?;
-    println!("Module inserted at {} by {}", api::insert_module(address, module), address);
+    println!("Module inserted at {} by {}",
+        api::insert_module(address, module), address);
     if instance.exports.contains("main") {
         return match exec(Some(instance), module, "main", vec![]) {
             Ok(value) => {
@@ -56,4 +59,4 @@ pub fn run(address: Address, module: &str) -> Result<()> {
 // What subset of this code could be re-use as execution engine in massa-node? all the `execution` lib!
 
 // --- Purpose of the main? ---
-// Mock the blockchain behavior to be able to simulate SC wasm chunck without dealing with the blockchain
+// Mock the blockchain behavior to be able to simulate SC wasm chunck without dealing with the blockchainmessage
