@@ -1,0 +1,2 @@
+status = [ "success" ]
+delete_merged_branches = true
