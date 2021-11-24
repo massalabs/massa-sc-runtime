@@ -1,16 +1,67 @@
-use wasmer::{Function, ImportObject, Instance, Module, Store, Val, imports};
+use wasmer::{Function, ImportObject, Memory, MemoryType, MemoryView, Instance, Module, Store, Val, imports, Type, FunctionType, Value};
 use crate::api;
 use crate::types::Address;
 use anyhow::{bail, Result};
-use api::call;
 use wasmer_as::{Env, abort};
+use std::cell::Cell;
+/*
 
+
+index.tx
+
+// The entry file of your WebAssembly module.
+
+export declare function call(arg: string): string
+
+export function add(a: i32, b: i32): i32 {
+  return a + b;
+}
+
+export function main(): i32 {
+  //console.log(call("hello"))
+  let hello = "hello world";
+  call(hello);
+  return hello.length;
+}
+
+
+===> optimized.wasm or optimized.wat (same code)
+
+
+
+*/
 fn create_instance(module: &[u8]) -> Result<Instance> {
     let store = Store::default();
+    let signature = FunctionType::new(vec![Type::I32], vec![Type::I32]);
+    let memory = Memory::new(&store, MemoryType::new(1, None, true)).unwrap();
     let resolver: ImportObject = imports! {
         "env" => {
-            "call" => Function::new_native(&store, call),
             "abort" =>  Function::new_native_with_env(&store, Env::default(), abort)
+        },
+        "index" => {
+            "call" => Function::new(&store, signature, move |args: &[Value]| {
+                // the call function is ran like this:
+                // export function main(): i32 {
+                //   let hello = "hello world";
+                //   call(hello);
+                //  return hello.length;
+                //}
+                //
+
+
+                // Now print the hello world here with `println!(hello)`
+
+
+                // I tried this... doesn't do anything
+                //for arg in args {
+                //    println!("arg: {}", arg.i32().unwrap());
+                //}
+                //let view: MemoryView<u8> = memory.view();
+                //for byte in view[0x1056..0x1065].iter().map(Cell::get) {
+                //    println!("byte: {}", byte);
+                //}
+                Ok(args.to_vec())
+            }),
         },
     };
     let module = Module::new(&store, &module)?;
@@ -20,6 +71,7 @@ fn create_instance(module: &[u8]) -> Result<Instance> {
 /// fnc: function name
 /// params: function arguments
 pub fn exec(instance: Option<Instance>, module: &[u8], fnc: &str, params: Vec<Val>) -> Result<Box<[Val]>> {
+
     let instance = match instance {
         Some(instance) => instance,
         None => create_instance(module)?
