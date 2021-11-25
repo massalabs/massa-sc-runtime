@@ -1,12 +1,10 @@
-use wasmer::{Function, ImportObject, Memory, MemoryType, MemoryView, Instance, Module, Store, Val, imports, Type, FunctionType, Value};
+use wasmer::{Function, ImportObject, Memory, MemoryType, Instance, Module, Store, Val, imports, Type, FunctionType};
 use crate::api;
 use crate::types::Address;
 use anyhow::{bail, Result};
-use wasmer_as::{Env, abort};
+use wasmer_as::{Env, abort, AsmScriptStringPtr, AsmScriptRead};
 use std::cell::Cell;
 /*
-
-
 index.tx
 
 // The entry file of your WebAssembly module.
@@ -24,42 +22,23 @@ export function main(): i32 {
   return hello.length;
 }
 
-
-===> optimized.wasm or optimized.wat (same code)
-
-
-
 */
+
 fn create_instance(module: &[u8]) -> Result<Instance> {
     let store = Store::default();
-    let signature = FunctionType::new(vec![Type::I32], vec![Type::I32]);
     let memory = Memory::new(&store, MemoryType::new(1, None, true)).unwrap();
+    let call_signature = FunctionType::new(vec![Type::I32], vec![Type::I32]);
     let resolver: ImportObject = imports! {
         "env" => {
             "abort" =>  Function::new_native_with_env(&store, Env::default(), abort)
         },
         "index" => {
-            "call" => Function::new(&store, signature, move |args: &[Value]| {
-                // the call function is ran like this:
-                // export function main(): i32 {
-                //   let hello = "hello world";
-                //   call(hello);
-                //  return hello.length;
-                //}
-                //
-
-
-                // Now print the hello world here with `println!(hello)`
-
-
-                // I tried this... doesn't do anything
-                //for arg in args {
-                //    println!("arg: {}", arg.i32().unwrap());
-                //}
-                //let view: MemoryView<u8> = memory.view();
-                //for byte in view[0x1056..0x1065].iter().map(Cell::get) {
-                //    println!("byte: {}", byte);
-                //}
+            "call" => Function::new_with_env(&store, call_signature, Env::default(), move |env, args| {
+                let fn_name_ptr = AsmScriptStringPtr::new(args[0].i32().unwrap() as u32);
+                // TODO: get arguments from a structure
+                let memory = env.memory.get_ref().expect("initialized memory");
+                let fn_name = fn_name_ptr.read(memory).unwrap();
+                //api::call(&address, &fn_name, None);
                 Ok(args.to_vec())
             }),
         },

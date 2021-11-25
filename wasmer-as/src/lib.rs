@@ -27,6 +27,7 @@ impl WasmerEnv for Env {
     }
 }
 
+// This is the main
 pub fn abort(
     env: &Env,
     message: AsmScriptStringPtr,

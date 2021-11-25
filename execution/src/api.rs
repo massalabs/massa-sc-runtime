@@ -23,8 +23,7 @@ pub fn insert_module(address: Address, module: &[u8]) -> Address {
    key
 }
 
-//pub fn call(input: &[u64]) -> Result<Vec::<u64>> {
-//   let module = get_module(&address).unwrap();
-//   super::execution_impl::exec(None, &module, "", vec![]).unwrap()[0].to_string(); // TODO change exec
-//   vec![]
+//pub fn call(address: &str, fn_name: &str, args: Option<Vec::<std::string::String>>) -> Result<Vec::<std::string::String>> {
+//   let module = get_module(&address.into()).unwrap();
+//   super::execution_impl::exec(None, &module, "", vec![]).unwrap()[0].to_string()?
 //}
