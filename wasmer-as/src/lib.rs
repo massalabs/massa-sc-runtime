@@ -1,7 +1,7 @@
 use std::fmt;
 use wasmer::{Array, Memory, WasmPtr, WasmerEnv, Instance, HostEnvInitError, LazyInit};
 
-pub type AsmScriptStringPtr = WasmPtr<u16, Array>;
+pub type AsmScriptStringPtr = WasmPtr<u8, Array>;
 
 #[derive(Clone)]
 pub struct Env {
@@ -42,32 +42,30 @@ pub fn abort(
 }
 
 pub trait AsmScriptRead<T> {
-    fn read(self, memory: &Memory) -> Result<T, Error>;
-
-    fn size(offset: u32, memory: &Memory) -> Result<u32, Error>;
+    fn read(&self, memory: &Memory) -> Result<T, Error>;
+    fn size(&self, memory: &Memory) -> Result<u32, Error>;
 }
 
 impl AsmScriptRead<String> for AsmScriptStringPtr {
-    fn read(self, memory: &Memory) -> Result<String, Error> {
-        let offset = self.offset();
-        let size = Self::size(offset, memory)?;
-
-        // we need size / 2 because assemblyscript counts bytes
-        // while deref considers u16 elements
-        if let Some(buf) = self.deref(memory, 0, size / 2) {
-            let input: Vec<u16> = buf.iter().map(|b| b.get()).collect();
-            Ok(String::from_utf16_lossy(&input))
+    fn read(&self, memory: &Memory) -> Result<String, Error> {
+        let size = self.size(memory)?;
+        println!("offset: {}, size: {}", self.offset(), size);
+        if let Some(buf) = self.deref(memory, 0, size) {
+            let input: Vec<u8> = buf.iter().map(|b| b.get()).collect();
+            println!("{:?}", input);
+            Ok(String::from_utf8_lossy(&input).to_string())
         } else {
             Err(Error::Mem("Wrong offset: can't read buf"))
         }
     }
 
-    fn size(offset: u32, memory: &Memory) -> Result<u32, Error> {
+    fn size(&self, memory: &Memory) -> Result<u32, Error> {
+        let offset = self.offset();
         if offset < 4 {
-            return Err(Error::Mem("Wrong offset: less than 2"));
+            return Err(Error::Mem("Wrong offset: less than 4"));
         }
-
         // read -4 offset
+        // assemblyscript counts bytes
         // https://www.assemblyscript.org/memory.html#internals
         if let Some(cell) = memory.view::<u32>().get(offset as usize / (32 / 8) - 1) {
             Ok(cell.get())
@@ -76,6 +74,14 @@ impl AsmScriptRead<String> for AsmScriptStringPtr {
         }
     }
 }
+
+//pub fn allocate_string(memory: &Memory, string: &str) -> AsmScriptStringPtr {
+//    //let atomic_view = memory.view().atomically();
+//    //for byte in atomic_view[0x1000 .. 0x1010].iter().map(|atom| atom.load(Ordering::SeqCst)) {
+//    //    println!("byte: {}", byte);
+//    //}
+//    todo!()
+//}
 
 #[derive(Debug)]
 pub enum Error {

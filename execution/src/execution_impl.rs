@@ -1,46 +1,69 @@
-use wasmer::{Function, ImportObject, Memory, MemoryType, Instance, Module, Store, Val, imports, Type, FunctionType};
+use wasmer::{Function, ImportObject, Memory, MemoryType, Instance, Module, Store, Val, imports, Type, FunctionType, MemoryView};
 use crate::api;
 use crate::types::Address;
 use anyhow::{bail, Result};
 use wasmer_as::{Env, abort, AsmScriptStringPtr, AsmScriptRead};
-use std::cell::Cell;
+use std::{cell::Cell, io::{Bytes, Read}};
 /*
 index.tx
 
 // The entry file of your WebAssembly module.
 
-export declare function call(arg: string): string
+export declare function print(arg: string): void;
+export declare function concat_world(arg: string): string;
 
-export function add(a: i32, b: i32): i32 {
-  return a + b;
-}
-
-export function main(): i32 {
+export function main(): void {
   //console.log(call("hello"))
-  let hello = "hello world";
-  call(hello);
-  return hello.length;
+  let hello = "hello";
+  hello = concat_world(hello);
+  print(hello);
 }
 
 */
 
 fn create_instance(module: &[u8]) -> Result<Instance> {
     let store = Store::default();
-    let memory = Memory::new(&store, MemoryType::new(1, None, true)).unwrap();
-    let call_signature = FunctionType::new(vec![Type::I32], vec![Type::I32]);
+    let memory = Memory::new(&store, MemoryType::new(1, None, false)).unwrap();
+    memory.size();
+    fn print(env: &Env, arg: i32) {
+        let str_ptr = AsmScriptStringPtr::new(arg as u32);
+        let memory = env.memory.get_ref().expect("initialized memory");
+        let str_val = str_ptr.read(memory).unwrap();
+        println!("Mem size: {}", memory.data_size());
+        println!(">>> {}", str_val);
+    }
+
+    fn concat_world(env: &Env, arg: i32) -> i32 {
+        let str_ptr = AsmScriptStringPtr::new(arg as u32);
+        let mut memory = env.memory.get_ref().expect("initialized memory");
+        let mut str_val = str_ptr.read(memory).unwrap();
+        println!("offset: {}, header: {}", arg, arg / 4 - 1);
+        println!("val red {}", str_val);
+        let view: MemoryView<u32> = memory.view();
+
+        let world = "world".bytes();
+        let mut inject = vec![];
+        for byte in world {
+            inject.push(byte);
+            inject.push(0);
+        }
+        let view8: MemoryView<u8> = memory.view();
+        for (byte, cell) in inject.bytes().zip(view8[1000 as usize..(1000 + inject.len()) as usize].iter()) {
+            cell.set(byte.unwrap());
+        }
+        let c = view.get(1000 as usize / 4 - 1).unwrap();
+        c.set(10);
+        return 1000;
+    }
+
     let resolver: ImportObject = imports! {
         "env" => {
             "abort" =>  Function::new_native_with_env(&store, Env::default(), abort)
         },
         "index" => {
-            "call" => Function::new_with_env(&store, call_signature, Env::default(), move |env, args| {
-                let fn_name_ptr = AsmScriptStringPtr::new(args[0].i32().unwrap() as u32);
-                // TODO: get arguments from a structure
-                let memory = env.memory.get_ref().expect("initialized memory");
-                let fn_name = fn_name_ptr.read(memory).unwrap();
-                //api::call(&address, &fn_name, None);
-                Ok(args.to_vec())
-            }),
+            "print" => Function::new_native_with_env(&store, Env::default(), print),
+            "concat_world" => Function::new_native_with_env(&store, Env::default(), concat_world),
+            
         },
     };
     let module = Module::new(&store, &module)?;
