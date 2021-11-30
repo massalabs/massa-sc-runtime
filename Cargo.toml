@@ -1,0 +1,12 @@
+[package]
+name = "witx"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+wasmer = "2.0.0"
+wasmer-compiler-cranelift = "2.0.0"
+wasmer-engine-universal = "2.0.0"
+wasmer-wasi = "2.0.0"
