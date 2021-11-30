@@ -13,7 +13,7 @@ use wasmer_engine_universal::Universal;
 use wasmer_wasi::WasiState;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let wasm_path = concat!(env!("CARGO_MANIFEST_DIR"), "/sc.wasm");
+    let wasm_path = concat!(env!("CARGO_MANIFEST_DIR"), "/static/qjs.wasm");
 
     // Let's declare the Wasm module with the text representation.
     let wasm_bytes = std::fs::read(wasm_path)?;
@@ -31,8 +31,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Creating `WasiEnv`...");
     // First, we create the `WasiEnv`
     let mut wasi_env = WasiState::new("hello")
-        .args(&["world"])
-        .env("KEY", "Value")
+        // TODO: .stdin()
+        // https://docs.rs/wasmer-wasi/2.0.0/wasmer_wasi/struct.WasiStateBuilder.html#method.stdin
+        // https://docs.rs/wasmer-wasi/2.0.0/wasmer_wasi/struct.WasiFs.html#method.stdin
+        .args(&["examples/hello.js"])
+        .preopen_dir("examples")?
         .finalize()?;
 
     println!("Instantiating module with WASI imports...");
