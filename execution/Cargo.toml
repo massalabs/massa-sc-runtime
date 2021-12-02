@@ -7,4 +7,4 @@ edition = "2021"
 anyhow = "1.0"
 lazy_static = "1"
 wasmer = "2.0.0"
-wasmer-as = { path = "../wasmer-as" }
+wasmer-as = { git = "https://github.com/adrien-zinger/wasmer-as" }

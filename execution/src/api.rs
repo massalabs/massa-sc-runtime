@@ -8,7 +8,7 @@ lazy_static::lazy_static! {
 }
 
 pub fn get_module(address: &Address) -> Result<Bytecode> {
-   match MEM.lock().unwrap().clone().get(address) {
+   match MEM.lock().unwrap().clone().get(&address.clone()) {
       Some(module) => Ok(module.clone()),
       _ => bail!("Cannot find module for address {}", address)
    }
@@ -18,12 +18,6 @@ pub fn get_module(address: &Address) -> Result<Bytecode> {
 // the module in the ledger
 // Adding a module to execute in his own address
 pub fn insert_module(address: Address, module: &[u8]) -> Address {
-   let key = address + 1; // todo insert the logic of address creation
-   MEM.lock().unwrap().insert(key, module.to_vec());
-   key
+   MEM.lock().unwrap().insert(address.clone(), module.to_vec());
+   address
 }
-
-//pub fn call(address: &str, fn_name: &str, args: Option<Vec::<std::string::String>>) -> Result<Vec::<std::string::String>> {
-//   let module = get_module(&address.into()).unwrap();
-//   super::execution_impl::exec(None, &module, "", vec![]).unwrap()[0].to_string()?
-//}

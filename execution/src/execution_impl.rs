@@ -1,69 +1,40 @@
-use wasmer::{Function, ImportObject, Memory, MemoryType, Instance, Module, Store, Val, imports, Type, FunctionType, MemoryView};
+use wasmer::{Function, ImportObject, Instance, Module, Store, Val, imports};
 use crate::api;
 use crate::types::Address;
 use anyhow::{bail, Result};
-use wasmer_as::{Env, abort, AsmScriptStringPtr, AsmScriptRead};
-use std::{cell::Cell, io::{Bytes, Read}};
-/*
-index.tx
+use wasmer_as::{Env, abort, StringPtr, Read as ASRead, Write as ASWrite};
 
-// The entry file of your WebAssembly module.
+const MAIN: &str = "main";
 
-export declare function print(arg: string): void;
-export declare function concat_world(arg: string): string;
-
-export function main(): void {
-  //console.log(call("hello"))
-  let hello = "hello";
-  hello = concat_world(hello);
-  print(hello);
+fn print(env: &Env, arg: i32) {
+    let str_ptr = StringPtr::new(arg as u32);
+    // May be in wasmer-as create a pointer that keep memory?
+    println!("\n{}", str_ptr.read(env.memory.get_ref().expect("initialized memory")).unwrap());
 }
 
-*/
+fn call(env: &Env, address: i32, function: i32) -> i32 {
+    let memory = env.memory.get_ref().expect("initialized memory");
+    let addr_ptr = StringPtr::new(address as u32);
+    let func_ptr = StringPtr::new(function as u32);
+
+    let address = &addr_ptr.read(memory).unwrap();
+    let fnc = &func_ptr.read(memory).unwrap();
+    let module = &api::get_module(address).unwrap();
+
+    let value = super::execution_impl::exec(None, module, fnc, &vec![]).unwrap();
+    let ret = StringPtr::alloc(&value, env).unwrap();
+    ret.offset() as i32
+}
 
 fn create_instance(module: &[u8]) -> Result<Instance> {
     let store = Store::default();
-    let memory = Memory::new(&store, MemoryType::new(1, None, false)).unwrap();
-    memory.size();
-    fn print(env: &Env, arg: i32) {
-        let str_ptr = AsmScriptStringPtr::new(arg as u32);
-        let memory = env.memory.get_ref().expect("initialized memory");
-        let str_val = str_ptr.read(memory).unwrap();
-        println!("Mem size: {}", memory.data_size());
-        println!(">>> {}", str_val);
-    }
-
-    fn concat_world(env: &Env, arg: i32) -> i32 {
-        let str_ptr = AsmScriptStringPtr::new(arg as u32);
-        let mut memory = env.memory.get_ref().expect("initialized memory");
-        let mut str_val = str_ptr.read(memory).unwrap();
-        println!("offset: {}, header: {}", arg, arg / 4 - 1);
-        println!("val red {}", str_val);
-        let view: MemoryView<u32> = memory.view();
-
-        let world = "world".bytes();
-        let mut inject = vec![];
-        for byte in world {
-            inject.push(byte);
-            inject.push(0);
-        }
-        let view8: MemoryView<u8> = memory.view();
-        for (byte, cell) in inject.bytes().zip(view8[1000 as usize..(1000 + inject.len()) as usize].iter()) {
-            cell.set(byte.unwrap());
-        }
-        let c = view.get(1000 as usize / 4 - 1).unwrap();
-        c.set(10);
-        return 1000;
-    }
-
     let resolver: ImportObject = imports! {
         "env" => {
             "abort" =>  Function::new_native_with_env(&store, Env::default(), abort)
         },
         "index" => {
             "print" => Function::new_native_with_env(&store, Env::default(), print),
-            "concat_world" => Function::new_native_with_env(&store, Env::default(), concat_world),
-            
+            "call" => Function::new_native_with_env(&store, Env::default(), call),
         },
     };
     let module = Module::new(&store, &module)?;
@@ -72,32 +43,38 @@ fn create_instance(module: &[u8]) -> Result<Instance> {
 
 /// fnc: function name
 /// params: function arguments
-pub fn exec(instance: Option<Instance>, module: &[u8], fnc: &str, params: Vec<Val>) -> Result<Box<[Val]>> {
-
+pub fn exec(instance: Option<Instance>, module: &[u8], fnc: &str, params: &[i32]) -> Result<String> {
     let instance = match instance {
         Some(instance) => instance,
         None => create_instance(module)?
     };
-    // todo: return an error if the function exported isn't public
-    match instance.exports.get_function(fnc)?.call(&params) {
-        Ok(value) => Ok(value),
+    let mut p = vec![];
+    for param in params {
+        p.push(Val::I32(*param));
+    }
+    // todo: return an error if the function exported isn't public?
+    match instance.exports.get_function(fnc)?.call(&p) {
+        Ok(value) => {
+            // todo: clean and define wat should be return by the main
+            if fnc.eq(MAIN) {
+                return Ok("0".to_string());
+            }
+            let str_ptr = StringPtr::new(value.get(0).unwrap().i32().unwrap() as u32);
+            let memory = instance.exports.get_memory("memory")?;
+            Ok(str_ptr.read(memory)?)
+        },
         Err(error) => bail!(error)
     }
 }
 
-/// External access to run a module sended by an address
-/// Is run could be split write_sc_to_ledger -> Address then exec(Address, function) ?!
-///
-/// - do we want to be able to execute a sSCc without save it to the ledger? -> is it still a SC how do we name it?
-/// - do we want to save a SC to the ledger without execute it?
 pub fn run(address: Address, module: &[u8]) -> Result<()> {
     let instance = create_instance(module)?;
+    // todo: what to export?
     println!("Module inserted at {} by {}",
-        api::insert_module(address, module), address);
-    if instance.exports.contains("main") {
-        return match exec(Some(instance), module, "main", vec![]) {
-            Ok(value) => {
-                println!("Main function dumped {:?}", value[0]);
+        api::insert_module(address.clone(), module), address);
+    if instance.exports.contains(MAIN) {
+        return match exec(Some(instance), module, MAIN, &[]) {
+            Ok(_) => {
                 Ok(())
             },
             Err(error) => bail!(error)
@@ -105,12 +82,3 @@ pub fn run(address: Address, module: &[u8]) -> Result<()> {
     }
     Ok(())
 }
-
-// --- What does the LEDGER look like? ---
-// How do I know what's belong to me in the ledger User <-> [SC]
-
-// --- What is lacking here before merging with @greg skelton / ask review from @damip? ---
-// What subset of this code could be re-use as execution engine in massa-node? all the `execution` lib!
-
-// --- Purpose of the main? ---
-// Mock the blockchain behavior to be able to simulate SC wasm chunck without dealing with the blockchainmessage
