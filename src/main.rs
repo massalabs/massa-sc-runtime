@@ -28,7 +28,7 @@ fn read_files() -> Result<Vec<(String, Vec<u8>)>> {
 fn main() -> Result<()> {
     let modules = read_files()?;
     for (address, module) in modules.into_iter() {
-        run(address, &module)?;
+        run(address, &module, 20_000)?;
     }
     Ok(())
 }
