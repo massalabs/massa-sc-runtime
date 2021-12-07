@@ -1,6 +1,5 @@
-use crate::api;
 use crate::env::{abort, get_remaining_points, Env};
-use crate::types::{Address, Response};
+use crate::types::{Address, Bytecode, Interface, Response};
 use anyhow::{bail, Result};
 use std::sync::Arc;
 use wasmer::wasmparser::Operator;
@@ -28,28 +27,36 @@ fn call(env: &Env, address: i32, function: i32) -> i32 {
     let memory = env.wasm_env.memory.get_ref().expect("initialized memory");
     let addr_ptr = StringPtr::new(address as u32);
     let func_ptr = StringPtr::new(function as u32);
-
     let address = &addr_ptr.read(memory).unwrap();
     let fnc = &func_ptr.read(memory).unwrap();
-    let module = &api::get_module(address).unwrap();
-    let value =
-        super::execution_impl::exec(env.remaining_points, None, module, fnc, &vec![]).unwrap();
+    type GmSign = fn(&Address) -> Result<Bytecode>;
+    let get_module: GmSign = env.interface.get_module;
+    let module = &get_module(address).unwrap();
+    let value = exec(
+        env.remaining_points,
+        None,
+        module,
+        fnc,
+        &vec![],
+        &env.interface,
+    )
+    .unwrap();
     let ret = StringPtr::alloc(&value.ret, &env.wasm_env).unwrap();
     ret.offset() as i32
 }
 
-fn create_instance(limit: u64, module: &[u8]) -> Result<Instance> {
+fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<Instance> {
     let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
     let mut compiler_config = Cranelift::default();
     compiler_config.push_middleware(metering);
     let store = Store::new(&Universal::new(compiler_config).engine());
     let resolver: ImportObject = imports! {
         "env" => {
-            "abort" =>  Function::new_native_with_env(&store, Env::default(), abort)
+            "abort" =>  Function::new_native_with_env(&store, Env::new(interface), abort)
         },
         "index" => {
-            "print" => Function::new_native_with_env(&store, Env::default(), print),
-            "call" => Function::new_native_with_env(&store, Env::default(), call),
+            "print" => Function::new_native_with_env(&store, Env::new(interface), print),
+            "call" => Function::new_native_with_env(&store, Env::new(interface), call),
         },
     };
     let module = Module::new(&store, &module)?;
@@ -64,10 +71,11 @@ pub fn exec(
     module: &[u8],
     fnc: &str,
     params: &[i32],
+    interface: &Interface,
 ) -> Result<Response> {
     let instance = match instance {
         Some(instance) => instance,
-        None => create_instance(limit, module)?,
+        None => create_instance(limit, module, interface)?,
     };
     let mut p = vec![];
     for param in params {
@@ -94,16 +102,15 @@ pub fn exec(
     }
 }
 
-pub fn run(address: Address, module: &[u8], limit: u64) -> Result<()> {
-    let instance = create_instance(limit, module)?;
+pub fn run(address: Address, module: &[u8], limit: u64, interface: &Interface) -> Result<()> {
+    let instance = create_instance(limit, module, interface)?;
     // todo: what to export?
-    println!(
-        "Module inserted at {} by {}",
-        api::insert_module(address.clone(), module),
-        address
-    );
+    type UmSignature = fn(address: &Address, module: &Bytecode) -> Result<()>;
+    let update_module: UmSignature = interface.update_module;
+    update_module(&address, &module.to_vec())?;
+    println!("Module inserted by {}", address);
     if instance.exports.contains(MAIN) {
-        return match exec(limit, Some(instance), module, MAIN, &[]) {
+        return match exec(limit, Some(instance), module, MAIN, &[], interface) {
             Ok(_) => Ok(()),
             Err(error) => bail!(error),
         };
