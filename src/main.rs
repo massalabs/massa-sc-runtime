@@ -3,6 +3,7 @@ use execution::run;
 use std::env;
 use std::fs;
 use std::path::Path;
+mod interface;
 
 fn read_files() -> Result<Vec<(String, Vec<u8>)>> {
     // TODO: should be or use a read_files(filename: Path) -> String
@@ -28,7 +29,7 @@ fn read_files() -> Result<Vec<(String, Vec<u8>)>> {
 fn main() -> Result<()> {
     let modules = read_files()?;
     for (address, module) in modules.into_iter() {
-        run(address, &module, 20_000)?;
+        run(address, &module, 20000, &interface::new())?;
     }
     Ok(())
 }

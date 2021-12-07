@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0"
 execution = { path = "execution" }
+lazy_static = "1"

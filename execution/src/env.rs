@@ -1,3 +1,5 @@
+use crate::types::Interface;
+use anyhow::Result;
 /// Extends the env of wasmer-as
 ///
 ///
@@ -5,10 +7,21 @@ use wasmer::{HostEnvInitError, Instance, WasmerEnv};
 use wasmer_as::{Read, StringPtr};
 use wasmer_middlewares::metering::{self, MeteringPoints};
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Env {
     pub wasm_env: wasmer_as::Env,
     pub remaining_points: u64,
+    pub interface: Interface,
+}
+
+impl Env {
+    pub fn new(interface: &Interface) -> Env {
+        Env {
+            wasm_env: Default::default(),
+            remaining_points: Default::default(),
+            interface: interface.clone(),
+        }
+    }
 }
 
 impl WasmerEnv for Env {
