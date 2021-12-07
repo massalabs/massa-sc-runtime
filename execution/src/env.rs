@@ -1,10 +1,9 @@
 /// Extends the env of wasmer-as
-/// 
 ///
-
+///
 use wasmer::{HostEnvInitError, Instance, WasmerEnv};
+use wasmer_as::{Read, StringPtr};
 use wasmer_middlewares::metering::{self, MeteringPoints};
-use wasmer_as::{StringPtr, Read};
 
 #[derive(Clone, Default)]
 pub struct Env {

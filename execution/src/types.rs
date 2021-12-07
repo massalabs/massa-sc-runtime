@@ -1,5 +1,5 @@
 pub type Address = String;
-pub type Bytecode = Vec::<u8>;
+pub type Bytecode = Vec<u8>;
 pub type Ledger = std::collections::BTreeMap<Address, Bytecode>; // Byttecode instead of String
 
 /// That's what is returned when a module is executed correctly since the end
