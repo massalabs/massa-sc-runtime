@@ -16,7 +16,7 @@ pub struct Response {
 pub struct Interface {
     pub get_module: fn(address: &Address) -> Result<Bytecode>,
     pub update_module: fn(address: &Address, module: &Bytecode) -> Result<()>,
-    pub create_module: fn(address: &Address) -> Result<Bytecode>,
+    pub create_module: fn(module: &Bytecode) -> Result<Address>,
 }
 
 impl Default for Interface {
