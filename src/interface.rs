@@ -16,6 +16,6 @@ pub fn new() -> Interface {
             MEM.lock().unwrap().insert(address.clone(), module.to_vec());
             Ok(())
         },
-        create_module: |_| todo!(),
+        ..Default::default()
     }
 }
