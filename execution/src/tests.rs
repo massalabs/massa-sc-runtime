@@ -1,10 +1,10 @@
-use anyhow::bail;
-use std::sync::Mutex;
+use crate::run;
+use crate::settings::METERING;
 use crate::types::Interface;
 use crate::types::Ledger;
 use crate::update_and_run;
-use crate::run;
-use crate::settings::METERING;
+use anyhow::bail;
+use std::sync::Mutex;
 
 lazy_static::lazy_static! {
    pub static ref MEM: Mutex::<Ledger> = Mutex::new(Ledger::new());
@@ -27,7 +27,10 @@ pub fn new() -> Interface {
 #[test]
 fn test_caller() {
     let interface = &new();
-    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/../wasm/get_string.wat"));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../wasm/get_string.wat"
+    ));
     update_and_run("get_string.wat".to_string(), module, 100, interface)
         .expect("Failed to run get_string.wat");
     let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/../wasm/caller.wat"));

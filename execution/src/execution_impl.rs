@@ -1,6 +1,8 @@
-use crate::env::{abort, get_remaining_points, Env, sub_remaining_point, get_remaining_points_instance};
-use crate::types::{Address, Bytecode, Interface, Response};
+use crate::env::{
+    abort, get_remaining_points, get_remaining_points_instance, sub_remaining_point, Env,
+};
 use crate::settings;
+use crate::types::{Address, Bytecode, Interface, Response};
 use anyhow::{bail, Result};
 use std::sync::Arc;
 use wasmer::wasmparser::Operator;
@@ -14,7 +16,8 @@ use wasmer_middlewares::Metering;
 /// `Print` ABI called by the webassembly VM
 fn print(env: &Env, arg: i32) {
     let str_ptr = StringPtr::new(arg as u32);
-    println!("{}",
+    println!(
+        "{}",
         str_ptr
             .read(env.wasm_env.memory.get_ref().expect("initialized memory"))
             .unwrap()
@@ -50,7 +53,7 @@ fn call(env: &Env, address: i32, function: i32) -> i32 {
 
 /// Create an instance of VM from a module with a
 /// given intefrace, an operation number limit and a webassembly module
-/// 
+///
 fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<Instance> {
     let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
     let mut compiler_config = Cranelift::default();
@@ -108,7 +111,12 @@ pub fn exec(
     }
 }
 
-pub fn update_and_run(address: Address, module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
+pub fn update_and_run(
+    address: Address,
+    module: &[u8],
+    limit: u64,
+    interface: &Interface,
+) -> Result<u64> {
     type UmSignature = fn(address: &Address, module: &Bytecode) -> Result<()>;
     let update_module: UmSignature = interface.update_module;
     update_module(&address, &module.to_vec())?;
@@ -119,7 +127,14 @@ pub fn update_and_run(address: Address, module: &[u8], limit: u64, interface: &I
 pub fn run(module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
     let instance = create_instance(limit, module, interface)?;
     if instance.exports.contains(settings::MAIN) {
-        return match exec(limit, Some(instance), module, settings::MAIN, &[], interface) {
+        return match exec(
+            limit,
+            Some(instance),
+            module,
+            settings::MAIN,
+            &[],
+            interface,
+        ) {
             Ok(result) => Ok(result.remaining_points),
             Err(error) => bail!(error),
         };

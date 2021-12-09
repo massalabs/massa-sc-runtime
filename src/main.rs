@@ -30,7 +30,10 @@ fn main() -> Result<()> {
     let modules = read_files()?;
     for (address, module) in modules.into_iter() {
         println!("run {}", address);
-        println!("remaining points: {}", update_and_run(address, &module, 20000, &interface::new())?);
+        println!(
+            "remaining points: {}",
+            update_and_run(address, &module, 20000, &interface::new())?
+        );
     }
     Ok(())
 }

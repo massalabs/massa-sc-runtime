@@ -5,7 +5,7 @@ use anyhow::Result;
 ///
 use wasmer::{HostEnvInitError, Instance, WasmerEnv};
 use wasmer_as::{Read, StringPtr};
-use wasmer_middlewares::metering::{self, MeteringPoints, set_remaining_points};
+use wasmer_middlewares::metering::{self, set_remaining_points, MeteringPoints};
 
 #[derive(Clone)]
 pub struct Env {
@@ -19,7 +19,7 @@ impl Env {
         Env {
             wasm_env: Default::default(),
             interface: interface.clone(),
-            instance: None
+            instance: None,
         }
     }
 }

@@ -14,7 +14,9 @@ struct PrivMetering {
 
 impl Default for PrivMetering {
     fn default() -> Self {
-        Self { call_price: DEFAULT_CALL_PRICE }
+        Self {
+            call_price: DEFAULT_CALL_PRICE,
+        }
     }
 }
 
