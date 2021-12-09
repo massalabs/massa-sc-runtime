@@ -1,6 +1,13 @@
 pub(crate) const MAIN: &str = "main"; // main function name in the webassembly module
+
+// Definition of default value
+
+/// Default price in operations of the `call` ABI
 const DEFAULT_CALL_PRICE: u64 = 200;
 
+// End of default definition
+
+// Metering private implementation
 struct PrivMetering {
     pub call_price: u64,
 }
