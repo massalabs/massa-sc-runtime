@@ -3,6 +3,11 @@ name = "assembly_simulator"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+members = [
+    "execution",
+]
+
 [dependencies]
 anyhow = "1.0"
 execution = { path = "execution" }

@@ -1,5 +1,6 @@
-use crate::env::{abort, get_remaining_points, Env};
+use crate::env::{abort, get_remaining_points, Env, sub_remaining_point, get_remaining_points_instance};
 use crate::types::{Address, Bytecode, Interface, Response};
+use crate::settings;
 use anyhow::{bail, Result};
 use std::sync::Arc;
 use wasmer::wasmparser::Operator;
@@ -10,19 +11,20 @@ use wasmer::{
 use wasmer_as::{Read as ASRead, StringPtr, Write as ASWrite};
 use wasmer_middlewares::Metering;
 
-const MAIN: &str = "main";
-
+/// `Print` ABI called by the webassembly VM
 fn print(env: &Env, arg: i32) {
     let str_ptr = StringPtr::new(arg as u32);
-    // May be in wasmer-as create a pointer that keep memory?
-    println!(
-        "\n{}",
+    println!("{}",
         str_ptr
             .read(env.wasm_env.memory.get_ref().expect("initialized memory"))
             .unwrap()
     );
 }
 
+/// `Call` ABI called by the webassembly VM
+/// It take in argument the environment defined in env.rs
+/// this environment is automatically filled by the wasmer library
+/// And two pointers of string. (look at the readme in the wasm folder)
 fn call(env: &Env, address: i32, function: i32) -> i32 {
     let memory = env.wasm_env.memory.get_ref().expect("initialized memory");
     let addr_ptr = StringPtr::new(address as u32);
@@ -32,12 +34,13 @@ fn call(env: &Env, address: i32, function: i32) -> i32 {
     type GmSign = fn(&Address) -> Result<Bytecode>;
     let get_module: GmSign = env.interface.get_module;
     let module = &get_module(address).unwrap();
+    sub_remaining_point(env, settings::METERING.call_price()).unwrap();
     let value = exec(
-        env.remaining_points,
+        get_remaining_points(env),
         None,
         module,
         fnc,
-        &vec![],
+        &[],
         &env.interface,
     )
     .unwrap();
@@ -45,6 +48,9 @@ fn call(env: &Env, address: i32, function: i32) -> i32 {
     ret.offset() as i32
 }
 
+/// Create an instance of VM from a module with a
+/// given intefrace, an operation number limit and a webassembly module
+/// 
 fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<Instance> {
     let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
     let mut compiler_config = Cranelift::default();
@@ -85,17 +91,17 @@ pub fn exec(
     match instance.exports.get_function(fnc)?.call(&p) {
         Ok(value) => {
             // todo: clean and define wat should be return by the main
-            if fnc.eq(MAIN) {
+            if fnc.eq(crate::settings::MAIN) {
                 return Ok(Response {
                     ret: "0".to_string(),
-                    remaining_points: get_remaining_points(&instance),
+                    remaining_points: get_remaining_points_instance(&instance),
                 });
             }
             let str_ptr = StringPtr::new(value.get(0).unwrap().i32().unwrap() as u32);
             let memory = instance.exports.get_memory("memory")?;
             Ok(Response {
                 ret: str_ptr.read(memory)?,
-                remaining_points: get_remaining_points(&instance),
+                remaining_points: get_remaining_points_instance(&instance),
             })
         }
         Err(error) => bail!(error),
@@ -112,8 +118,8 @@ pub fn update_and_run(address: Address, module: &[u8], limit: u64, interface: &I
 
 pub fn run(module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
     let instance = create_instance(limit, module, interface)?;
-    if instance.exports.contains(MAIN) {
-        return match exec(limit, Some(instance), module, MAIN, &[], interface) {
+    if instance.exports.contains(settings::MAIN) {
+        return match exec(limit, Some(instance), module, settings::MAIN, &[], interface) {
             Ok(result) => Ok(result.remaining_points),
             Err(error) => bail!(error),
         };
