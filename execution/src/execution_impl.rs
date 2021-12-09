@@ -88,7 +88,7 @@ pub fn exec(
             if fnc.eq(MAIN) {
                 return Ok(Response {
                     ret: "0".to_string(),
-                    remaining_points: 0,
+                    remaining_points: get_remaining_points(&instance),
                 });
             }
             let str_ptr = StringPtr::new(value.get(0).unwrap().i32().unwrap() as u32);
@@ -102,18 +102,21 @@ pub fn exec(
     }
 }
 
-pub fn run(address: Address, module: &[u8], limit: u64, interface: &Interface) -> Result<()> {
-    let instance = create_instance(limit, module, interface)?;
-    // todo: what to export?
+pub fn update_and_run(address: Address, module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
     type UmSignature = fn(address: &Address, module: &Bytecode) -> Result<()>;
     let update_module: UmSignature = interface.update_module;
     update_module(&address, &module.to_vec())?;
     println!("Module inserted by {}", address);
+    run(module, limit, interface)
+}
+
+pub fn run(module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
+    let instance = create_instance(limit, module, interface)?;
     if instance.exports.contains(MAIN) {
         return match exec(limit, Some(instance), module, MAIN, &[], interface) {
-            Ok(_) => Ok(()),
+            Ok(result) => Ok(result.remaining_points),
             Err(error) => bail!(error),
         };
     }
-    Ok(())
+    Ok(limit)
 }

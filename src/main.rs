@@ -1,5 +1,5 @@
 use anyhow::{bail, Result};
-use execution::run;
+use execution::update_and_run;
 use std::env;
 use std::fs;
 use std::path::Path;
@@ -29,7 +29,8 @@ fn read_files() -> Result<Vec<(String, Vec<u8>)>> {
 fn main() -> Result<()> {
     let modules = read_files()?;
     for (address, module) in modules.into_iter() {
-        run(address, &module, 20000, &interface::new())?;
+        println!("run {}", address);
+        println!("remaining points: {}", update_and_run(address, &module, 20000, &interface::new())?);
     }
     Ok(())
 }
