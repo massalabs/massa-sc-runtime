@@ -28,27 +28,37 @@ fn print(env: &Env, arg: i32) {
 /// It take in argument the environment defined in env.rs
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
-fn call(env: &Env, address: i32, function: i32) -> i32 {
+fn call(env: &Env, address: i32, function: i32, param: i32) -> i32 {
     let memory = env.wasm_env.memory.get_ref().expect("initialized memory");
     let addr_ptr = StringPtr::new(address as u32);
     let func_ptr = StringPtr::new(function as u32);
     let address = &addr_ptr.read(memory).unwrap();
     let fnc = &func_ptr.read(memory).unwrap();
+
     type GmSign = fn(&Address) -> Result<Bytecode>;
     let get_module: GmSign = env.interface.get_module;
     let module = &get_module(address).unwrap();
+
+
     sub_remaining_point(env, settings::METERING.call_price()).unwrap();
+
+
     let value = exec(
         get_remaining_points(env),
         None,
         module,
         fnc,
-        &[],
+        Some(StringPtr::new(param as u32)),
         &env.interface,
     )
     .unwrap();
     let ret = StringPtr::alloc(&value.ret, &env.wasm_env).unwrap();
     ret.offset() as i32
+}
+
+fn how_many(env: &Env) -> i32 {
+    sub_remaining_point(env, 15);
+    get_remaining_points(env)
 }
 
 /// Create an instance of VM from a module with a
@@ -66,6 +76,7 @@ fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<I
         "index" => {
             "print" => Function::new_native_with_env(&store, Env::new(interface), print),
             "call" => Function::new_native_with_env(&store, Env::new(interface), call),
+            "how_many" => Function::new_native_with_env(&store, Env::new(interface), how_many),
         },
     };
     let module = Module::new(&store, &module)?;
@@ -79,19 +90,15 @@ pub fn exec(
     instance: Option<Instance>,
     module: &[u8],
     fnc: &str,
-    params: &[i32],
+    param: Option<StringPtr>,
     interface: &Interface,
 ) -> Result<Response> {
     let instance = match instance {
         Some(instance) => instance,
         None => create_instance(limit, module, interface)?,
     };
-    let mut p = vec![];
-    for param in params {
-        p.push(Val::I32(*param));
-    }
     // todo: return an error if the function exported isn't public?
-    match instance.exports.get_function(fnc)?.call(&p) {
+    match instance.exports.get_function(fnc)?.call(&[Val::I32(param.offset() as i32)]) {
         Ok(value) => {
             // todo: clean and define wat should be return by the main
             if fnc.eq(crate::settings::MAIN) {
@@ -100,6 +107,7 @@ pub fn exec(
                     remaining_points: get_remaining_points_instance(&instance),
                 });
             }
+            // todo ecrire une issue sur ce unwrap.
             let str_ptr = StringPtr::new(value.get(0).unwrap().i32().unwrap() as u32);
             let memory = instance.exports.get_memory("memory")?;
             Ok(Response {
@@ -132,7 +140,7 @@ pub fn run(module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
             Some(instance),
             module,
             settings::MAIN,
-            &[],
+            None,
             interface,
         ) {
             Ok(result) => Ok(result.remaining_points),
