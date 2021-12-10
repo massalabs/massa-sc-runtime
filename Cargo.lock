@@ -39,8 +39,12 @@ name = "assembly_simulator"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "execution",
  "lazy_static",
+ "wasmer",
+ "wasmer-as",
+ "wasmer-compiler-cranelift",
+ "wasmer-engine-universal",
+ "wasmer-middlewares",
 ]
 
 [[package]]
@@ -282,19 +286,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "execution"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "lazy_static",
- "wasmer",
- "wasmer-as",
- "wasmer-compiler-cranelift",
- "wasmer-engine-universal",
- "wasmer-middlewares",
 ]
 
 [[package]]
@@ -991,7 +982,7 @@ dependencies = [
 [[package]]
 name = "wasmer-as"
 version = "0.4.1-alpha.0"
-source = "git+https://github.com/adrien-zinger/wasmer-as#8ab64392ac8ad1a70243ef494e9cd5a187df8602"
+source = "git+https://github.com/adrien-zinger/wasmer-as?tag=v0.1.0#8ab64392ac8ad1a70243ef494e9cd5a187df8602"
 dependencies = [
  "anyhow",
  "wasmer",

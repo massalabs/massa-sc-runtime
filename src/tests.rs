@@ -29,11 +29,11 @@ fn test_caller() {
     let interface = &new();
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../wasm/get_string.wat"
+        "/wasm/get_string.wat"
     ));
     update_and_run("get_string.wat".to_string(), module, 100, interface)
         .expect("Failed to run get_string.wat");
-    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/../wasm/caller.wat"));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/caller.wat"));
     let a = run(module, 20_000, interface).expect("Failed to run caller.wat");
     let prev_call_price = METERING.call_price();
     METERING._reset(0);
