@@ -27,10 +27,7 @@ pub fn new() -> Interface {
 #[test]
 fn test_caller() {
     let interface = &new();
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/get_string.wat"
-    ));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/get_string.wat"));
     update_and_run("get_string.wat".to_string(), module, 100, interface)
         .expect("Failed to run get_string.wat");
     let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/caller.wat"));
