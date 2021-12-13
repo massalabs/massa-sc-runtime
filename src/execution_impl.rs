@@ -57,8 +57,8 @@ fn call(env: &Env, address: i32, function: i32, param: i32) -> i32 {
 }
 
 fn how_many(env: &Env) -> i32 {
-    sub_remaining_point(env, 15);
-    get_remaining_points(env)
+    sub_remaining_point(env, 15).expect("could not sub remaining points in how many");
+    get_remaining_points(env) as i32
 }
 
 /// Create an instance of VM from a module with a
@@ -98,7 +98,7 @@ pub fn exec(
         None => create_instance(limit, module, interface)?,
     };
     // todo: return an error if the function exported isn't public?
-    match instance.exports.get_function(fnc)?.call(&[Val::I32(param.offset() as i32)]) {
+    match instance.exports.get_function(fnc)?.call(&[Val::I32(param.unwrap_or(StringPtr::new(0)).offset() as i32)]) {
         Ok(value) => {
             // todo: clean and define wat should be return by the main
             if fnc.eq(crate::settings::MAIN) {
