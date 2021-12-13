@@ -17,7 +17,7 @@ export function getString(name: string): string {
 
 - caller.wat
 ```ts
-export declare function call(address: string, func:string): string
+export declare function call(address: string, func:string, params:string): string
 export declare function print(message: string): void
 export declare function how_many(): i32
 
