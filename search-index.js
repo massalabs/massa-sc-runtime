@@ -1,0 +1,4 @@
+var searchIndex = JSON.parse('{\
+"assembly_simulator":{"doc":"","t":[0,5,5,3,12,11,11,11,11,11,11,11,11,11,11,5,11,11,11,11],"n":["interface","main","read_files","MEM","__private_field","borrow","borrow_mut","deref","deref","deref_mut","deserialize","drop","from","init","into","new","pointer_metadata","try_from","try_into","type_id"],"q":["assembly_simulator","","","assembly_simulator::interface","","","","","","","","","","","","","","","",""],"d":["","","","","","","","","","","","","","","","","","","",""],"i":[0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1],"f":[null,[[],["result",6]],[[],["result",6,[["vec",3]]]],null,null,[[]],[[]],[[["usize",15]]],[[],["mutex",3]],[[["usize",15]]],[[],["result",4,[["with",3]]]],[[["usize",15]]],[[]],[[],["usize",15]],[[]],[[],["interface",3]],[[]],[[],["result",4]],[[],["result",4]],[[],["typeid",3]]],"p":[[3,"MEM"]]}\
+}');
+if (window.initSearch) {window.initSearch(searchIndex)};

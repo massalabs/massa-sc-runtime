@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["assembly_simulator"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/marker/trait.Send.html\" title=\"trait core::marker::Send\">Send</a> for <a class=\"struct\" href=\"assembly_simulator/interface/struct.MEM.html\" title=\"struct assembly_simulator::interface::MEM\">MEM</a>","synthetic":true,"types":["assembly_simulator::interface::MEM"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
