@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -34,6 +36,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -50,26 +54,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
         with:
-          profile: minimal
-          toolchain: nightly
-          override: true
-      - uses: Swatinem/rust-cache@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build # needed by assert_cmd based tests
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --lib
-
-  doctest:
-    if: github.ref != 'refs/heads/staging'
-    needs: check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+          submodules: 'recursive'
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -79,7 +65,6 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --doc
 
   clippy:
     if: github.ref != 'refs/heads/staging'
@@ -87,7 +72,9 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -114,6 +101,8 @@ jobs:
           - windows-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -127,18 +116,21 @@ jobs:
         with:
           command: test
 
-  success: # quick hack because bors wrongly detect matrix jobs status
+  build: # quick hack because bors wrongly detect matrix jobs status
     if: github.ref == 'refs/heads/staging'
     needs: full
     runs-on: ubuntu-latest
     steps:
       - run: exit 0
 
+  # Code documentation and coverage will be run only on main branch
   coverage:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -164,3 +156,25 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ${{ steps.coverage.outputs.report }}
+
+  doc:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          components: rustfmt
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --no-deps
+      - uses: JamesIves/github-pages-deploy-action@4.1.7
+        with:
+          branch: gh-pages
+          folder: target/doc
