@@ -21,6 +21,13 @@ pub fn new() -> Interface {
             MEM.lock().unwrap().insert(address.clone(), module.to_vec());
             Ok(())
         },
+        print: |message| {
+            println!("{}", message);
+            MEM.lock()
+                .unwrap()
+                .insert("output".to_string(), message.as_bytes().to_vec());
+            Ok(())
+        },
         ..Default::default()
     }
 }
@@ -42,9 +49,11 @@ fn test_caller() {
     ));
     let a = run(module, 20_000, interface).expect("Failed to run caller.wat");
 
-    
     let prev_call_price = METERING.call_price();
     METERING._reset(0);
     let b = run(module, 20_000, interface).expect("Failed to run caller.wat");
     assert_eq!(a + prev_call_price, b);
+    let mem = MEM.lock().unwrap();
+    let output = std::str::from_utf8(mem.get("output").unwrap()).unwrap();
+    assert_eq!(output, "hello test helllow");
 }

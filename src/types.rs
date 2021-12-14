@@ -36,6 +36,8 @@ pub struct Interface {
     pub get_time: fn() -> Result<Instant>,
     /// Requires a random number
     pub get_random: fn() -> Result<u64>,
+    /// Print function
+    pub print: fn(message: &str) -> Result<()>,
 }
 
 impl Default for Interface {
@@ -48,6 +50,7 @@ impl Default for Interface {
             set_data: |_, _, _| bail!("unimplemented function set_data in interface"),
             get_time: || bail!("unimplemented function get_time in interface"),
             get_random: || bail!("unimplemented function get_random in interface"),
+            print: |_| bail!("unimplemented function print in interface"),
         }
     }
 }

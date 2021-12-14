@@ -32,8 +32,8 @@ pub fn typed_call<T: Serialize, R: DeserializeOwned>(
     _function: &str,
     _args: T, // TODO: @adrien-zinger how do we pass function args in AssemblyScript?
 ) -> Result<R> {
-//    let value = call_module(env, address, function, _args);
-//    Ok(serde_json::from_str::<R>(&value.ret)?)
+    //    let value = call_module(env, address, function, _args);
+    //    Ok(serde_json::from_str::<R>(&value.ret)?)
     todo!()
 }
 
@@ -88,17 +88,22 @@ fn how_many(env: &Env) -> i32 {
 /// An utility print function to write on stdout directly from AssemblyScript:
 pub fn assembly_script_print(env: &Env, arg: i32) {
     let str_ptr = StringPtr::new(arg as u32);
-    println!(
-        "{}",
-        str_ptr
+    let print: fn(&str) -> Result<()> = env.interface.print;
+    print(
+        &str_ptr
             .read(env.wasm_env.memory.get_ref().expect("uninitialized memory"))
-            .unwrap()
-    );
+            .unwrap(),
+    )
+    .unwrap();
 }
 
 /// Create an instance of VM from a module with a given interface, an operation
 /// number limit and a webassembly module
-pub fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<(Instance, Env)> {
+pub fn create_instance(
+    limit: u64,
+    module: &[u8],
+    interface: &Interface,
+) -> Result<(Instance, Env)> {
     let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
     let mut compiler_config = Cranelift::default();
     compiler_config.push_middleware(metering);
@@ -126,13 +131,26 @@ pub fn exec(
     param: &str,
     interface: &Interface,
 ) -> Result<Response> {
-    let (instance, env) = match instance {
+    let (instance, _) = match instance {
         Some(instance) => instance,
         None => create_instance(limit, module, interface)?,
     };
-    let p = *StringPtr::alloc(param, env)?;
+    // TODO find  way to get an env from instance
+    let memory = instance.exports.get_memory("memory").unwrap();
+    let env = wasmer_as::Env::new(
+        memory.clone(),
+        match instance.exports.get_function("__new") {
+            Ok(func) => Some(func.clone()),
+            _ => None,
+        },
+    );
+    let p = *StringPtr::alloc(param, &env)?;
     // todo: return an error if the function exported isn't public?
-    match instance.exports.get_function(function)?.call(&[Val::I32(p.offset() as i32)]) {
+    match instance
+        .exports
+        .get_function(function)?
+        .call(&[Val::I32(p.offset() as i32)])
+    {
         Ok(value) => {
             // TODO: clean and define wat should be return by the main
             if function.eq(crate::settings::MAIN) {
@@ -156,14 +174,7 @@ pub fn exec(
 pub fn run(module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
     let instance = create_instance(limit, module, interface)?;
     if instance.0.exports.contains(settings::MAIN) {
-        return match exec(
-            limit,
-            Some(instance),
-            module,
-            settings::MAIN,
-            "",
-            interface,
-        ) {
+        return match exec(limit, Some(instance), module, settings::MAIN, "", interface) {
             Ok(result) => Ok(result.remaining_points),
             Err(error) => bail!(error),
         };
