@@ -207,9 +207,9 @@
         <span class="string">&quot;env&quot;</span> =&gt; {
             <span class="string">&quot;abort&quot;</span> =&gt;  <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">Env::new</span>(<span class="ident">interface</span>), <span class="ident">abort</span>)
         },
-        <span class="string">&quot;index&quot;</span> =&gt; {
-            <span class="string">&quot;print&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">Env::new</span>(<span class="ident">interface</span>), <span class="ident">print</span>),
-            <span class="string">&quot;call&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">Env::new</span>(<span class="ident">interface</span>), <span class="ident">call</span>),
+        <span class="string">&quot;massa&quot;</span> =&gt; {
+            <span class="string">&quot;assembly_script_print&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">Env::new</span>(<span class="ident">interface</span>), <span class="ident">print</span>),
+            <span class="string">&quot;assembly_script_call&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">Env::new</span>(<span class="ident">interface</span>), <span class="ident">call</span>),
         },
     };
     <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="ident">Module::new</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="kw-2">&amp;</span><span class="ident">module</span>)<span class="question-mark">?</span>;
