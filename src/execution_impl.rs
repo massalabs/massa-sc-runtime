@@ -145,22 +145,6 @@ pub fn exec(
     }
 }
 
-// TODO: @adrien-zinger the difference between `update_and_run`, `run` and
-// `exec` was not obvious for me ... could we consider a better naming/add doc
-// comments?
-pub fn update_and_run(
-    address: Address,
-    module: &[u8],
-    limit: u64,
-    interface: &Interface,
-) -> Result<u64> {
-    let update_module: fn(address: &Address, module: &Bytecode) -> Result<()> =
-        interface.update_module;
-    update_module(&address, &module.to_vec())?;
-    println!("Module inserted by {}", address);
-    run(module, limit, interface)
-}
-
 pub fn run(module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
     let instance = create_instance(limit, module, interface)?;
     if instance.exports.contains(settings::MAIN) {
