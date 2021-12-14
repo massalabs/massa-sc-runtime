@@ -63,9 +63,9 @@ fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<I
         "env" => {
             "abort" =>  Function::new_native_with_env(&store, Env::new(interface), abort)
         },
-        "index" => {
-            "print" => Function::new_native_with_env(&store, Env::new(interface), print),
-            "call" => Function::new_native_with_env(&store, Env::new(interface), call),
+        "massa" => {
+            "assembly_script_print" => Function::new_native_with_env(&store, Env::new(interface), print),
+            "assembly_script_call" => Function::new_native_with_env(&store, Env::new(interface), call),
         },
     };
     let module = Module::new(&store, &module)?;

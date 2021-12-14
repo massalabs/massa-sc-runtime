@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "asbuild:untouched": "asc assembly/index.ts --target debug",
-    "asbuild:optimized": "asc assembly/index.ts --target release",
-    "build": "yarn run asbuild:untouched --exportRuntime",
+    "get_string": "asc assembly/get_string.ts --target release --exportRuntime --textFile build/get_string.wat --binaryFile build/get_string.wasm",
+    "caller": "asc assembly/caller.ts --target release --exportRuntime --textFile build/caller.wat --binaryFile build/caller.wasm",
+    "build": "yarn run get_string && yarn run caller",
     "clean": "rm -rf build",
     "start": "tsc index.ts ; node index.js"
   },
