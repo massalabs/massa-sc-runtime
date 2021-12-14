@@ -4,15 +4,18 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node tests",
     "asbuild:untouched": "asc assembly/index.ts --target debug",
     "asbuild:optimized": "asc assembly/index.ts --target release",
-    "asbuild": "npm run asbuild:untouched && npm run asbuild:optimized"
+    "build": "yarn run asbuild:untouched --exportRuntime",
+    "clean": "rm -rf build",
+    "start": "tsc index.ts ; node index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@assemblyscript/loader": "^0.19.20"
+    "@assemblyscript/loader": "^0.19.22",
+    "@types/node": "^16.11.12",
+    "typescript": "^4.5.4"
   },
   "devDependencies": {
     "assemblyscript": "^0.19.20"
