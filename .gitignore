@@ -1,4 +1,4 @@
-/target
 .direnv/*
 .envrc
+/target
 shell.nix
