@@ -1,12 +1,12 @@
-# Folder webassembly
-
-## Tests binaries
+## How to build WASM test binaries
 
 Code dumped from AssemblyScript with the command line
-```
-npm run asbuild:untouched -- --exportRuntime
+
+```shell
+yarn build
 ```
 
+<<<<<<< HEAD
 - get_string.wat
 ```ts
 export function getString(name: string): string {
@@ -29,5 +29,25 @@ export function main(): i32 {
   let string_from = call("get_string.wat", "getString", JSON.stringify(a))
   print(string_from)
   return 0;
+=======
+-   `get_string.wat`
+
+```typescript
+export function getString(): string {
+    return "hello test";
+}
+```
+
+-   `caller.wat`
+
+```typescript
+export declare function call_module(address: string, func: string): string;
+export declare function print(message: string): void;
+
+export function main(): i32 {
+    let string_from = call_module("get_string.wat", "getString");
+    print(string_from);
+    return 0;
+>>>>>>> tmp-typed
 }
 ```

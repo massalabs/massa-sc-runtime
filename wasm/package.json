@@ -1,0 +1,17 @@
+{
+  "name": "wasm",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "get_string": "asc assembly/get_string.ts --target release --exportRuntime --textFile build/get_string.wat --binaryFile build/get_string.wasm",
+    "caller": "asc assembly/caller.ts --target release --exportRuntime --textFile build/caller.wat --binaryFile build/caller.wasm",
+    "build": "yarn run get_string && yarn run caller",
+    "clean": "rm -rf build"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "assemblyscript": "^0.19.20"
+  }
+}
