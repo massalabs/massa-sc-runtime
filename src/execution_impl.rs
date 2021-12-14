@@ -79,11 +79,10 @@ pub fn assembly_script_call_module(env: &Env, address: i32, function: i32) -> i3
 /// An utility print function to write on stdout directly from AssemblyScript:
 pub fn assembly_script_print(env: &Env, arg: i32) {
     let str_ptr = StringPtr::new(arg as u32);
-    // TODO: may be in wasmer-as create a pointer that keep memory?
     println!(
         "{}",
         str_ptr
-            .read(env.wasm_env.memory.get_ref().expect("initialized memory"))
+            .read(env.wasm_env.memory.get_ref().expect("uninitialized memory"))
             .unwrap()
     );
 }
