@@ -2,7 +2,7 @@ use crate::env::{
     abort, get_remaining_points, get_remaining_points_instance, sub_remaining_point, Env,
 };
 use crate::settings;
-use crate::types::{Address, Bytecode, Interface, Response};
+use crate::types::{Address, Interface, Response};
 use anyhow::{bail, Result};
 use std::sync::Arc;
 use wasmer::wasmparser::Operator;
@@ -34,9 +34,7 @@ fn call(env: &Env, address: i32, function: i32) -> i32 {
     let func_ptr = StringPtr::new(function as u32);
     let address = &addr_ptr.read(memory).unwrap();
     let fnc = &func_ptr.read(memory).unwrap();
-    type GmSign = fn(&Address) -> Result<Bytecode>;
-    let get_module: GmSign = env.interface.get_module;
-    let module = &get_module(address).unwrap();
+    let module = &env.interface.get_module(address).unwrap();
     sub_remaining_point(env, settings::METERING.call_price()).unwrap();
     let value = exec(
         get_remaining_points(env),
@@ -54,18 +52,18 @@ fn call(env: &Env, address: i32, function: i32) -> i32 {
 /// Create an instance of VM from a module with a
 /// given intefrace, an operation number limit and a webassembly module
 ///
-fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<Instance> {
+fn create_instance(limit: u64, module: &[u8], interface: &Box<dyn Interface>) -> Result<Instance> {
     let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
     let mut compiler_config = Cranelift::default();
     compiler_config.push_middleware(metering);
     let store = Store::new(&Universal::new(compiler_config).engine());
     let resolver: ImportObject = imports! {
         "env" => {
-            "abort" =>  Function::new_native_with_env(&store, Env::new(interface), abort)
+            "abort" =>  Function::new_native_with_env(&store, Env::new(interface.clone_box()), abort)
         },
         "massa" => {
-            "assembly_script_print" => Function::new_native_with_env(&store, Env::new(interface), print),
-            "assembly_script_call" => Function::new_native_with_env(&store, Env::new(interface), call),
+            "assembly_script_print" => Function::new_native_with_env(&store, Env::new(interface.clone_box()), print),
+            "assembly_script_call" => Function::new_native_with_env(&store, Env::new(interface.clone_box()), call),
         },
     };
     let module = Module::new(&store, &module)?;
@@ -80,7 +78,7 @@ pub fn exec(
     module: &[u8],
     fnc: &str,
     params: &[i32],
-    interface: &Interface,
+    interface: &Box<dyn Interface>,
 ) -> Result<Response> {
     let instance = match instance {
         Some(instance) => instance,
@@ -115,16 +113,14 @@ pub fn update_and_run(
     address: Address,
     module: &[u8],
     limit: u64,
-    interface: &Interface,
+    interface: &Box<dyn Interface>,
 ) -> Result<u64> {
-    type UmSignature = fn(address: &Address, module: &Bytecode) -> Result<()>;
-    let update_module: UmSignature = interface.update_module;
-    update_module(&address, &module.to_vec())?;
+    interface.update_module(&address, &module.to_vec())?;
     println!("Module inserted by {}", address);
     run(module, limit, interface)
 }
 
-pub fn run(module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
+pub fn run(module: &[u8], limit: u64, interface: &Box<dyn Interface>) -> Result<u64> {
     let instance = create_instance(limit, module, interface)?;
     if instance.exports.contains(settings::MAIN) {
         return match exec(
