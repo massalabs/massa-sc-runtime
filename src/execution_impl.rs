@@ -5,8 +5,6 @@ use crate::env::{
 use crate::settings;
 use crate::types::{Address, Bytecode, Interface, Response};
 use anyhow::{bail, Result};
-use serde::de::DeserializeOwned;
-use serde::Serialize;
 use std::sync::Arc;
 use wasmer::wasmparser::Operator;
 use wasmer::{
@@ -15,27 +13,6 @@ use wasmer::{
 };
 use wasmer_as::{Read as ASRead, StringPtr, Write as ASWrite};
 use wasmer_middlewares::Metering;
-
-/// Utility function to call a WASM module (compiled from AssemblyScript) using
-/// high-level Rust types (by de/serializing a String).
-///
-/// The intend is to be able to expose any kind of function as an ABI:
-///
-/// ```ignore
-/// fn get_status() -> Result<NodeStatus> {
-///     Ok(typed_call(env, "0xAddressOfSCInLedger", "get_status", ())?)
-/// }
-/// ```
-pub fn _typed_call<T: Serialize, R: DeserializeOwned>(
-    _env: &Env,
-    _address: &Address,
-    _function: &str,
-    _args: T, // TODO: @adrien-zinger how do we pass function args in AssemblyScript?
-) -> Result<R> {
-    //    let value = call_module(env, address, function, _args);
-    //    Ok(serde_json::from_str::<R>(&value.ret)?)
-    todo!()
-}
 
 /// `Call` ABI called by the webassembly VM
 ///
