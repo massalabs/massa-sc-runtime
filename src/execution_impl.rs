@@ -3,7 +3,7 @@ use crate::env::{
     sub_remaining_point, Env,
 };
 use crate::settings;
-use crate::types::{Address, Bytecode, Interface, Response};
+use crate::types::{Address, Interface, Response};
 use anyhow::{bail, Result};
 use std::sync::Arc;
 use wasmer::wasmparser::Operator;
@@ -22,16 +22,15 @@ use wasmer_middlewares::Metering;
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
 fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Result<Response> {
-    let get_module: fn(&Address) -> Result<Bytecode> = env.interface.get_module;
-    sub_remaining_point(env, settings::METERING.call_price())?;
-    let module = &get_module(address)?;
+    sub_remaining_point(env, settings::METERING.call_price()).unwrap();
+    let module = &env.interface.get_module(address).unwrap();
     exec(
         get_remaining_points_for_env(env),
         None,
         module,
         function,
         param,
-        &env.interface,
+        &*env.interface,
     )
 }
 
@@ -65,18 +64,18 @@ fn get_remaining_points(env: &Env) -> i32 {
 /// An utility print function to write on stdout directly from AssemblyScript:
 fn assembly_script_print(env: &Env, arg: i32) {
     let str_ptr = StringPtr::new(arg as u32);
-    let print: fn(&str) -> Result<()> = env.interface.print;
-    print(
-        &str_ptr
-            .read(env.wasm_env.memory.get_ref().expect("uninitialized memory"))
-            .unwrap(),
-    )
-    .unwrap();
+    env.interface
+        .print(
+            &str_ptr
+                .read(env.wasm_env.memory.get_ref().expect("uninitialized memory"))
+                .unwrap(),
+        )
+        .unwrap();
 }
 
 /// Create an instance of VM from a module with a given interface, an operation
 /// number limit and a webassembly module
-fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<Instance> {
+fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Result<Instance> {
     let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
     let mut compiler_config = Cranelift::default();
     compiler_config.push_middleware(metering);
@@ -102,7 +101,7 @@ fn exec(
     module: &[u8],
     function: &str,
     param: &str,
-    interface: &Interface,
+    interface: &dyn Interface,
 ) -> Result<Response> {
     let instance = match instance {
         Some(instance) => instance,
@@ -142,7 +141,8 @@ fn exec(
         Err(error) => bail!(error),
     }
 }
-pub fn run(module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
+
+pub fn run(module: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
     let instance = create_instance(limit, module, interface)?;
     if instance.exports.contains(settings::MAIN) {
         Ok(exec(limit, Some(instance), module, settings::MAIN, "", interface)?.remaining_points)
