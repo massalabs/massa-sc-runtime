@@ -64,7 +64,7 @@ fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Res
 ///
 #[doc = include_str!("../wasm/README.md")]
 fn assembly_script_call_module(env: &Env, address: i32, function: i32, param: i32) -> i32 {
-    let memory = env.wasm_env.memory.get_ref().expect("initialized memory");
+    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
     // TODO: replace all unwrap() by expect()
     let addr_ptr = StringPtr::new(address as u32);
     let func_ptr = StringPtr::new(function as u32);
