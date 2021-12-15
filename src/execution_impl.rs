@@ -1,5 +1,5 @@
 use crate::env::{
-    assembly_script_abort, get_remaining_points, get_remaining_points_instance,
+    assembly_script_abort, get_remaining_points_for_env, get_remaining_points_for_instance,
     sub_remaining_point, Env,
 };
 use crate::settings;
@@ -26,7 +26,7 @@ fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Res
     sub_remaining_point(env, settings::METERING.call_price()).unwrap();
     let module = &get_module(address).unwrap();
     exec(
-        get_remaining_points(env),
+        get_remaining_points_for_env(env),
         None,
         module,
         function,
@@ -53,9 +53,9 @@ fn assembly_script_call_module(env: &Env, address: i32, function: i32, param: i3
     ret.offset() as i32
 }
 
-fn how_many(env: &Env) -> i32 {
+fn get_remaining_points(env: &Env) -> i32 {
     sub_remaining_point(env, 15).expect("could not sub remaining points in how many");
-    get_remaining_points(env) as i32
+    get_remaining_points_for_env(env) as i32
 }
 
 /// Create an instance of VM from a module with a
@@ -88,7 +88,7 @@ fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<I
         "massa" => {
             "assembly_script_print" => Function::new_native_with_env(&store, env.clone(), assembly_script_print),
             "assembly_script_call" => Function::new_native_with_env(&store, env.clone(), assembly_script_call_module),
-            "how_many" => Function::new_native_with_env(&store, env, how_many),
+            "get_remaining_points" => Function::new_native_with_env(&store, env, get_remaining_points),
         },
     };
     let module = Module::new(&store, &module)?;
@@ -128,14 +128,14 @@ fn exec(
             if function.eq(crate::settings::MAIN) {
                 return Ok(Response {
                     ret: "0".to_string(),
-                    remaining_points: get_remaining_points_instance(&instance),
+                    remaining_points: get_remaining_points_for_instance(&instance),
                 });
             }
             let str_ptr = StringPtr::new(value.get(0).unwrap().i32().unwrap() as u32);
             let memory = instance.exports.get_memory("memory")?;
             Ok(Response {
                 ret: str_ptr.read(memory)?,
-                remaining_points: get_remaining_points_instance(&instance),
+                remaining_points: get_remaining_points_for_instance(&instance),
             })
         }
         Err(error) => bail!(error),
