@@ -54,7 +54,8 @@ fn assembly_script_call_module(env: &Env, address: i32, function: i32, param: i3
 }
 
 fn get_remaining_points(env: &Env) -> i32 {
-    sub_remaining_point(env, 15).expect("could not sub remaining points in how many");
+    sub_remaining_point(env, settings::METERING.call_price())
+        .expect("could not sub remaining points in how many");
     get_remaining_points_for_env(env) as i32
 }
 
