@@ -47,7 +47,8 @@ fn assembly_script_call_module(env: &Env, address: i32, function: i32, param: i3
     let address = &addr_ptr.read(memory).unwrap();
     let function = &func_ptr.read(memory).unwrap();
     let p = StringPtr::new(param as u32);
-    let value = call_module(env, address, function, &p.read(memory).unwrap()).unwrap();
+    let value = call_module(env, address, function, &p.read(memory).unwrap())
+        .expect("could not call module in assembly_script_call_module");
     let ret = StringPtr::alloc(&value.ret, &env.wasm_env).unwrap();
     ret.offset() as i32
 }
