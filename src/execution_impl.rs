@@ -21,7 +21,7 @@ use wasmer_middlewares::Metering;
 /// It take in argument the environment defined in env.rs
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
-fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Response {
+fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Result<Response> {
     let get_module: fn(&Address) -> Result<Bytecode> = env.interface.get_module;
     sub_remaining_point(env, settings::METERING.call_price()).unwrap();
     let module = &get_module(address).unwrap();
@@ -33,7 +33,6 @@ fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Res
         param,
         &env.interface,
     )
-    .unwrap() // TODO: Should return a Result<Response>
 }
 
 /// Raw call that have the right type signature to be able to be call a module
@@ -48,7 +47,8 @@ fn assembly_script_call_module(env: &Env, address: i32, function: i32, param: i3
     let address = &addr_ptr.read(memory).unwrap();
     let function = &func_ptr.read(memory).unwrap();
     let p = StringPtr::new(param as u32);
-    let value = call_module(env, address, function, &p.read(memory).unwrap());
+    let value = call_module(env, address, function, &p.read(memory).unwrap())
+        .expect("could not call module in assembly_script_call_module");
     let ret = StringPtr::alloc(&value.ret, &env.wasm_env).unwrap();
     ret.offset() as i32
 }
