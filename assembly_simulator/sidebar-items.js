@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["run",""],["update_and_run",""]],"mod":[["types",""]]});
+initSidebarItems({"mod":[["env","Extends the env of wasmer-as"],["execution_impl",""],["settings",""],["types",""]]});
