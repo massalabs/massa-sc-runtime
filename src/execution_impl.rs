@@ -99,11 +99,7 @@ pub fn assembly_script_print(env: &Env, arg: i32) {
 
 /// Create an instance of VM from a module with a given interface, an operation
 /// number limit and a webassembly module
-pub fn create_instance(
-    limit: u64,
-    module: &[u8],
-    interface: &Interface,
-) -> Result<(Instance, Env)> {
+pub fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<Instance> {
     let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
     let mut compiler_config = Cranelift::default();
     compiler_config.push_middleware(metering);
@@ -116,26 +112,26 @@ pub fn create_instance(
         "massa" => {
             "assembly_script_print" => Function::new_native_with_env(&store, env.clone(), assembly_script_print),
             "assembly_script_call" => Function::new_native_with_env(&store, env.clone(), assembly_script_call_module),
-            "how_many" => Function::new_native_with_env(&store, env.clone(), how_many),
+            "how_many" => Function::new_native_with_env(&store, env, how_many),
         },
     };
     let module = Module::new(&store, &module)?;
-    Ok((Instance::new(&module, &resolver)?, env))
+    Ok(Instance::new(&module, &resolver)?)
 }
 
 pub fn exec(
     limit: u64,
-    instance: Option<(Instance, Env)>,
+    instance: Option<Instance>,
     module: &[u8],
     function: &str,
     param: &str,
     interface: &Interface,
 ) -> Result<Response> {
-    let (instance, _) = match instance {
+    let instance = match instance {
         Some(instance) => instance,
         None => create_instance(limit, module, interface)?,
     };
-    // TODO find  way to get an env from instance
+    // TODO find a way to get an env from instance, or to allocate from instance in wasmer-as.
     let memory = instance.exports.get_memory("memory").unwrap();
     let env = wasmer_as::Env::new(
         memory.clone(),
@@ -144,12 +140,12 @@ pub fn exec(
             _ => None,
         },
     );
-    let p = *StringPtr::alloc(param, &env)?;
+    let param_ptr = *StringPtr::alloc(param, &env)?;
     // todo: return an error if the function exported isn't public?
     match instance
         .exports
         .get_function(function)?
-        .call(&[Val::I32(p.offset() as i32)])
+        .call(&[Val::I32(param_ptr.offset() as i32)])
     {
         Ok(value) => {
             // TODO: clean and define wat should be return by the main
@@ -159,7 +155,6 @@ pub fn exec(
                     remaining_points: get_remaining_points_instance(&instance),
                 });
             }
-            // todo ecrire une issue sur ce unwrap.
             let str_ptr = StringPtr::new(value.get(0).unwrap().i32().unwrap() as u32);
             let memory = instance.exports.get_memory("memory")?;
             Ok(Response {
@@ -173,7 +168,7 @@ pub fn exec(
 
 pub fn run(module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
     let instance = create_instance(limit, module, interface)?;
-    if instance.0.exports.contains(settings::MAIN) {
+    if instance.exports.contains(settings::MAIN) {
         return match exec(limit, Some(instance), module, settings::MAIN, "", interface) {
             Ok(result) => Ok(result.remaining_points),
             Err(error) => bail!(error),
