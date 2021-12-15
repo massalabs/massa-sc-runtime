@@ -6,48 +6,20 @@ Code dumped from AssemblyScript with the command line
 yarn build
 ```
 
-<<<<<<< HEAD
 - get_string.wat
 ```ts
-export function getString(name: string): string {
-  let a = JSON.parse(name)
-  return "hello " + a.world;
+export function getString(param: string): string {
+    return "hello test " + param;
 }
 ```
 
 - caller.wat
 ```ts
-export declare function call(address: string, func:string, params:string): string
-export declare function print(message: string): void
-export declare function how_many(): i32
+import { print, call } from "./massa";
 
-export function main(): i32 {
-  let a = {
-    hello: "hello",
-    world: "world"
-  }
-  let string_from = call("get_string.wat", "getString", JSON.stringify(a))
-  print(string_from)
+export function main(_args: string): i32 {
+  let string_from = call("get_string.wat", "getString", "helllow");
+  print(string_from);
   return 0;
-=======
--   `get_string.wat`
-
-```typescript
-export function getString(): string {
-    return "hello test";
-}
-```
-
--   `caller.wat`
-
-```typescript
-export declare function call_module(address: string, func: string): string;
-export declare function print(message: string): void;
-
-export function main(): i32 {
-    let string_from = call_module("get_string.wat", "getString");
-    print(string_from);
-    return 0;
->>>>>>> tmp-typed
 }
 ```
