@@ -4,7 +4,7 @@ use crate::env::{
 };
 use crate::settings;
 use crate::types::{Address, Bytecode, Interface, Response};
-use anyhow::{bail, Result};
+use anyhow::Result;
 use std::sync::Arc;
 use wasmer::wasmparser::Operator;
 use wasmer::{
@@ -21,10 +21,10 @@ use wasmer_middlewares::Metering;
 /// It take in argument the environment defined in env.rs
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
-fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Response {
+fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Result<Response> {
     let get_module: fn(&Address) -> Result<Bytecode> = env.interface.get_module;
-    sub_remaining_point(env, settings::METERING.call_price()).unwrap();
-    let module = &get_module(address).unwrap();
+    sub_remaining_point(env, settings::METERING.call_price())?;
+    let module = &get_module(address)?;
     exec(
         get_remaining_points(env),
         None,
@@ -33,7 +33,6 @@ fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Res
         param,
         &env.interface,
     )
-    .unwrap() // TODO: Should return a Result<Response>
 }
 
 /// Raw call that have the right type signature to be able to be call a module
@@ -48,7 +47,7 @@ fn assembly_script_call_module(env: &Env, address: i32, function: i32, param: i3
     let address = &addr_ptr.read(memory).unwrap();
     let function = &func_ptr.read(memory).unwrap();
     let p = StringPtr::new(param as u32);
-    let value = call_module(env, address, function, &p.read(memory).unwrap());
+    let value = call_module(env, address, function, &p.read(memory).unwrap()).unwrap();
     let ret = StringPtr::alloc(&value.ret, &env.wasm_env).unwrap();
     ret.offset() as i32
 }
@@ -108,7 +107,7 @@ fn exec(
         None => create_instance(limit, module, interface)?,
     };
     // TODO find a way to get an env from instance, or to allocate from instance in wasmer-as.
-    let memory = instance.exports.get_memory("memory").unwrap();
+    let memory = instance.exports.get_memory("memory")?;
     let env = wasmer_as::Env::new(
         memory.clone(),
         match instance.exports.get_function("__new") {
@@ -118,37 +117,31 @@ fn exec(
     );
     let param_ptr = *StringPtr::alloc(param, &env)?;
     // todo: return an error if the function exported isn't public?
-    match instance
+    let value = instance
         .exports
         .get_function(function)?
-        .call(&[Val::I32(param_ptr.offset() as i32)])
-    {
-        Ok(value) => {
-            // TODO: clean and define wat should be return by the main
-            if function.eq(crate::settings::MAIN) {
-                return Ok(Response {
-                    ret: "0".to_string(),
-                    remaining_points: get_remaining_points_instance(&instance),
-                });
-            }
-            let str_ptr = StringPtr::new(value.get(0).unwrap().i32().unwrap() as u32);
-            let memory = instance.exports.get_memory("memory")?;
-            Ok(Response {
-                ret: str_ptr.read(memory)?,
-                remaining_points: get_remaining_points_instance(&instance),
-            })
-        }
-        Err(error) => bail!(error),
+        .call(&[Val::I32(param_ptr.offset() as i32)])?;
+
+    // TODO: clean and define wat should be return by the main
+    if function.eq(crate::settings::MAIN) {
+        return Ok(Response {
+            ret: "0".to_string(),
+            remaining_points: get_remaining_points_instance(&instance),
+        });
     }
+    let str_ptr = StringPtr::new(value.get(0).unwrap().i32().unwrap() as u32);
+    let memory = instance.exports.get_memory("memory")?;
+    Ok(Response {
+        ret: str_ptr.read(memory)?,
+        remaining_points: get_remaining_points_instance(&instance),
+    })
 }
 
 pub fn run(module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
     let instance = create_instance(limit, module, interface)?;
     if instance.exports.contains(settings::MAIN) {
-        return match exec(limit, Some(instance), module, settings::MAIN, "", interface) {
-            Ok(result) => Ok(result.remaining_points),
-            Err(error) => bail!(error),
-        };
+        Ok(exec(limit, Some(instance), module, settings::MAIN, "", interface)?.remaining_points)
+    } else {
+        Ok(limit)
     }
-    Ok(limit)
 }
