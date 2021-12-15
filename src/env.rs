@@ -1,8 +1,7 @@
+//! Extends the env of wasmer-as
+
 use crate::types::Interface;
 use anyhow::Result;
-/// Extends the env of wasmer-as
-///
-///
 use wasmer::{HostEnvInitError, Instance, WasmerEnv};
 use wasmer_as::{Read, StringPtr};
 use wasmer_middlewares::metering::{self, set_remaining_points, MeteringPoints};
@@ -53,8 +52,14 @@ pub fn sub_remaining_point(env: &Env, points: u64) -> anyhow::Result<()> {
     Ok(())
 }
 
-// if get_string throws an exception abort for some reason is being called
-pub fn abort(env: &Env, message: StringPtr, filename: StringPtr, line: i32, col: i32) {
+/// if get_string throws an exception abort for some reason is being called
+pub fn assembly_script_abort(
+    env: &Env,
+    message: StringPtr,
+    filename: StringPtr,
+    line: i32,
+    col: i32,
+) {
     let memory = env.wasm_env.memory.get_ref().expect("initialized memory");
     let message = message.read(memory).unwrap();
     let filename = filename.read(memory).unwrap();

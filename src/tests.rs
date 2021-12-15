@@ -1,8 +1,9 @@
-use crate::run;
+use crate::execution_impl::run;
 use crate::settings::METERING;
+use crate::types::Address;
+use crate::types::Bytecode;
 use crate::types::Interface;
 use crate::types::Ledger;
-use crate::update_and_run;
 use anyhow::bail;
 use std::sync::Mutex;
 
@@ -31,8 +32,10 @@ fn test_caller() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/get_string.wat"
     ));
-    update_and_run("get_string.wat".to_string(), module, 100, interface)
-        .expect("Failed to run get_string.wat");
+    let update_module: fn(address: &Address, module: &Bytecode) -> anyhow::Result<()> =
+        interface.update_module;
+    update_module(&"get_string.wat".to_string(), &module.to_vec()).unwrap();
+    run(module, 100, interface).expect("Failed to run get_string.wat");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/caller.wat"

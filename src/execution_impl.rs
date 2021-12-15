@@ -1,9 +1,12 @@
 use crate::env::{
-    abort, get_remaining_points, get_remaining_points_instance, sub_remaining_point, Env,
+    assembly_script_abort, get_remaining_points, get_remaining_points_instance,
+    sub_remaining_point, Env,
 };
 use crate::settings;
 use crate::types::{Address, Bytecode, Interface, Response};
 use anyhow::{bail, Result};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 use std::sync::Arc;
 use wasmer::wasmparser::Operator;
 use wasmer::{
@@ -13,73 +16,103 @@ use wasmer::{
 use wasmer_as::{Read as ASRead, StringPtr, Write as ASWrite};
 use wasmer_middlewares::Metering;
 
-/// `Print` ABI called by the webassembly VM
-fn print(env: &Env, arg: i32) {
-    let str_ptr = StringPtr::new(arg as u32);
-    println!(
-        "{}",
-        str_ptr
-            .read(env.wasm_env.memory.get_ref().expect("initialized memory"))
-            .unwrap()
-    );
+/// Utility function to call a WASM module (compiled from AssemblyScript) using
+/// high-level Rust types (by de/serializing a String).
+///
+/// The intend is to be able to expose any kind of function as an ABI:
+///
+/// ```ignore
+/// fn get_status() -> Result<NodeStatus> {
+///     Ok(typed_call(env, "0xAddressOfSCInLedger", "get_status", ())?)
+/// }
+/// ```
+pub fn typed_call<T: Serialize, R: DeserializeOwned>(
+    env: &Env,
+    address: &Address,
+    function: &str,
+    _args: T, // TODO: @adrien-zinger how do we pass function args in AssemblyScript?
+) -> Result<R> {
+    let value = call_module(env, address, function);
+    Ok(serde_json::from_str::<R>(&value.ret)?)
 }
 
 /// `Call` ABI called by the webassembly VM
+///
+/// Call an exported function in a WASM module at a given address
+///
 /// It take in argument the environment defined in env.rs
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
-fn call(env: &Env, address: i32, function: i32) -> i32 {
-    let memory = env.wasm_env.memory.get_ref().expect("initialized memory");
-    let addr_ptr = StringPtr::new(address as u32);
-    let func_ptr = StringPtr::new(function as u32);
-    let address = &addr_ptr.read(memory).unwrap();
-    let fnc = &func_ptr.read(memory).unwrap();
-    type GmSign = fn(&Address) -> Result<Bytecode>;
-    let get_module: GmSign = env.interface.get_module;
-    let module = &get_module(address).unwrap();
+pub fn call_module(env: &Env, address: &Address, function: &str) -> Response {
+    let get_module: fn(&Address) -> Result<Bytecode> = env.interface.get_module;
     sub_remaining_point(env, settings::METERING.call_price()).unwrap();
-    let value = exec(
+    let module = &get_module(address).unwrap();
+    exec(
         get_remaining_points(env),
         None,
         module,
-        fnc,
+        function,
         &[],
         &env.interface,
     )
-    .unwrap();
+    .unwrap() // TODO: Should return a Result<Response>
+}
+
+/// Raw call that have the right type signature to be able to be call a module
+/// directly form AssemblyScript:
+///
+#[doc = include_str!("../wasm/README.md")]
+pub fn assembly_script_call_module(env: &Env, address: i32, function: i32) -> i32 {
+    let memory = env.wasm_env.memory.get_ref().expect("initialized memory");
+    // TODO: replace all unwrap() by expect()
+    let addr_ptr = StringPtr::new(address as u32);
+    let func_ptr = StringPtr::new(function as u32);
+    let address = &addr_ptr.read(memory).unwrap();
+    let function = &func_ptr.read(memory).unwrap();
+    let value = call_module(env, address, function);
     let ret = StringPtr::alloc(&value.ret, &env.wasm_env).unwrap();
     ret.offset() as i32
 }
 
-/// Create an instance of VM from a module with a
-/// given intefrace, an operation number limit and a webassembly module
+/// `Print` ABI called by the webassembly VM
 ///
-fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<Instance> {
+/// An utility print function to write on stdout directly from AssemblyScript:
+pub fn assembly_script_print(env: &Env, arg: i32) {
+    let str_ptr = StringPtr::new(arg as u32);
+    println!(
+        "{}",
+        str_ptr
+            .read(env.wasm_env.memory.get_ref().expect("uninitialized memory"))
+            .unwrap()
+    );
+}
+
+/// Create an instance of VM from a module with a given interface, an operation
+/// number limit and a webassembly module
+pub fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<Instance> {
     let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
     let mut compiler_config = Cranelift::default();
     compiler_config.push_middleware(metering);
     let store = Store::new(&Universal::new(compiler_config).engine());
     let resolver: ImportObject = imports! {
         "env" => {
-            "abort" =>  Function::new_native_with_env(&store, Env::new(interface), abort)
+            "abort" =>  Function::new_native_with_env(&store, Env::new(interface), assembly_script_abort),
         },
         "massa" => {
-            "assembly_script_print" => Function::new_native_with_env(&store, Env::new(interface), print),
-            "assembly_script_call" => Function::new_native_with_env(&store, Env::new(interface), call),
+            "assembly_script_print" => Function::new_native_with_env(&store, Env::new(interface), assembly_script_print),
+            "assembly_script_call" => Function::new_native_with_env(&store, Env::new(interface), assembly_script_call_module),
         },
     };
     let module = Module::new(&store, &module)?;
     Ok(Instance::new(&module, &resolver)?)
 }
 
-/// fnc: function name
-/// params: function arguments
 pub fn exec(
     limit: u64,
     instance: Option<Instance>,
     module: &[u8],
-    fnc: &str,
-    params: &[i32],
+    function: &str,
+    args: &[i32],
     interface: &Interface,
 ) -> Result<Response> {
     let instance = match instance {
@@ -87,14 +120,14 @@ pub fn exec(
         None => create_instance(limit, module, interface)?,
     };
     let mut p = vec![];
-    for param in params {
+    for param in args {
         p.push(Val::I32(*param));
     }
-    // todo: return an error if the function exported isn't public?
-    match instance.exports.get_function(fnc)?.call(&p) {
+    // TODO: return an error if the function exported isn't public?
+    match instance.exports.get_function(function)?.call(&p) {
         Ok(value) => {
-            // todo: clean and define wat should be return by the main
-            if fnc.eq(crate::settings::MAIN) {
+            // TODO: clean and define wat should be return by the main
+            if function.eq(crate::settings::MAIN) {
                 return Ok(Response {
                     ret: "0".to_string(),
                     remaining_points: get_remaining_points_instance(&instance),
@@ -109,19 +142,6 @@ pub fn exec(
         }
         Err(error) => bail!(error),
     }
-}
-
-pub fn update_and_run(
-    address: Address,
-    module: &[u8],
-    limit: u64,
-    interface: &Interface,
-) -> Result<u64> {
-    type UmSignature = fn(address: &Address, module: &Bytecode) -> Result<()>;
-    let update_module: UmSignature = interface.update_module;
-    update_module(&address, &module.to_vec())?;
-    println!("Module inserted by {}", address);
-    run(module, limit, interface)
 }
 
 pub fn run(module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
