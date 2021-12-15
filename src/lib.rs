@@ -1,7 +1,10 @@
-pub mod env;
-pub mod execution_impl;
-pub mod settings;
-pub mod types;
+mod env;
+mod execution_impl;
+mod settings;
+mod types;
+
+pub use execution_impl::run;
+pub use types::*;
 
 #[cfg(test)]
 mod tests;

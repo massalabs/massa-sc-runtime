@@ -3,9 +3,10 @@ use crate::settings::METERING;
 use crate::types::Address;
 use crate::types::Bytecode;
 use crate::types::Interface;
-use crate::types::Ledger;
 use anyhow::bail;
 use std::sync::Mutex;
+
+pub type Ledger = std::collections::BTreeMap<Address, Bytecode>; // Byttecode instead of String
 
 lazy_static::lazy_static! {
    pub static ref MEM: Mutex::<Ledger> = Mutex::new(Ledger::new());
@@ -21,6 +22,13 @@ pub fn new() -> Interface {
             MEM.lock().unwrap().insert(address.clone(), module.to_vec());
             Ok(())
         },
+        print: |message| {
+            println!("{}", message);
+            MEM.lock()
+                .unwrap()
+                .insert("output".to_string(), message.as_bytes().to_vec());
+            Ok(())
+        },
         ..Default::default()
     }
 }
@@ -34,15 +42,19 @@ fn test_caller() {
     ));
     let update_module: fn(address: &Address, module: &Bytecode) -> anyhow::Result<()> =
         interface.update_module;
-    update_module(&"get_string.wat".to_string(), &module.to_vec()).unwrap();
+    update_module(&"get_string".to_string(), &module.to_vec()).unwrap();
     run(module, 100, interface).expect("Failed to run get_string.wat");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/caller.wat"
     ));
     let a = run(module, 20_000, interface).expect("Failed to run caller.wat");
+
     let prev_call_price = METERING.call_price();
     METERING._reset(0);
     let b = run(module, 20_000, interface).expect("Failed to run caller.wat");
     assert_eq!(a + prev_call_price, b);
+    let mem = MEM.lock().unwrap();
+    let output = std::str::from_utf8(mem.get("output").unwrap()).unwrap();
+    assert_eq!(output, "hello you");
 }

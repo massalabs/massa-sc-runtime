@@ -3,10 +3,9 @@ use std::time::Instant;
 
 pub type Address = String;
 pub type Bytecode = Vec<u8>;
-pub type Ledger = std::collections::BTreeMap<Address, Bytecode>; // Byttecode instead of String
 
 /// That's what is returned when a module is executed correctly since the end
-pub struct Response {
+pub(crate) struct Response {
     /// returned value from the module call
     pub ret: String,
     /// number of points that remain after the execution (metering)
@@ -36,6 +35,8 @@ pub struct Interface {
     pub get_time: fn() -> Result<Instant>,
     /// Requires a random number
     pub get_random: fn() -> Result<u64>,
+    /// Print function
+    pub print: fn(message: &str) -> Result<()>,
 }
 
 impl Default for Interface {
@@ -48,6 +49,7 @@ impl Default for Interface {
             set_data: |_, _, _| bail!("unimplemented function set_data in interface"),
             get_time: || bail!("unimplemented function get_time in interface"),
             get_random: || bail!("unimplemented function get_random in interface"),
+            print: |_| bail!("unimplemented function print in interface"),
         }
     }
 }

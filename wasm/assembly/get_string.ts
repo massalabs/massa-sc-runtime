@@ -1,3 +1,3 @@
-export function getString(): string {
-    return "hello test";
+export function helloName(name: string): string {
+    return `hello ${name}`;
 }

@@ -6,23 +6,22 @@ Code dumped from AssemblyScript with the command line
 yarn build
 ```
 
--   `get_string.wat`
-
-```typescript
-export function getString(): string {
-    return "hello test";
+- get_string.wat
+```ts
+export function helloName(name: string): string {
+    return `hello ${name}`;
 }
+
 ```
 
--   `caller.wat`
+- caller.wat
+```ts
+import { print, call } from "./massa";
 
-```typescript
-export declare function call_module(address: string, func: string): string;
-export declare function print(message: string): void;
-
-export function main(): i32 {
-    let string_from = call_module("get_string.wat", "getString");
-    print(string_from);
-    return 0;
+export function main(_args: string): i32 {
+  let string_from = call("get_string", "helloName", "you");
+  print(string_from);
+  return 0;
 }
+
 ```
