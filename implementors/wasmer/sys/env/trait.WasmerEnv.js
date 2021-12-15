@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["assembly_simulator"] = [{"text":"impl WasmerEnv for <a class=\"struct\" href=\"assembly_simulator/env/struct.Env.html\" title=\"struct assembly_simulator::env::Env\">Env</a>","synthetic":false,"types":["assembly_simulator::env::Env"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

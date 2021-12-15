@@ -153,15 +153,6 @@
 <span id="152">152</span>
 <span id="153">153</span>
 <span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
-<span id="163">163</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::env</span>::{
     <span class="ident">assembly_script_abort</span>, <span class="ident">get_remaining_points</span>, <span class="ident">get_remaining_points_instance</span>,
     <span class="ident">sub_remaining_point</span>, <span class="ident">Env</span>,
@@ -169,8 +160,6 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::settings</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">Address</span>, <span class="ident">Bytecode</span>, <span class="ident">Interface</span>, <span class="ident">Response</span>};
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">bail</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="ident">serde::de::DeserializeOwned</span>;
-<span class="kw">use</span> <span class="ident">serde::Serialize</span>;
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 <span class="kw">use</span> <span class="ident">wasmer::wasmparser::Operator</span>;
 <span class="kw">use</span> <span class="ident">wasmer</span>::{
@@ -180,26 +169,6 @@
 <span class="kw">use</span> <span class="ident">wasmer_as</span>::{<span class="ident">Read</span> <span class="kw">as</span> <span class="ident">ASRead</span>, <span class="ident">StringPtr</span>, <span class="ident">Write</span> <span class="kw">as</span> <span class="ident">ASWrite</span>};
 <span class="kw">use</span> <span class="ident">wasmer_middlewares::Metering</span>;
 
-<span class="doccomment">/// Utility function to call a WASM module (compiled from AssemblyScript) using</span>
-<span class="doccomment">/// high-level Rust types (by de/serializing a String).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The intend is to be able to expose any kind of function as an ABI:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```ignore</span>
-<span class="doccomment">/// fn get_status() -&gt; Result&lt;NodeStatus&gt; {</span>
-<span class="doccomment">///     Ok(typed_call(env, &quot;0xAddressOfSCInLedger&quot;, &quot;get_status&quot;, ())?)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typed_call</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Serialize</span>, <span class="ident">R</span>: <span class="ident">DeserializeOwned</span><span class="op">&gt;</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>,
-    <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">Address</span>,
-    <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">_args</span>: <span class="ident">T</span>, <span class="comment">// TODO: @adrien-zinger how do we pass function args in AssemblyScript?</span>
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">call_module</span>(<span class="ident">env</span>, <span class="ident">address</span>, <span class="ident">function</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">serde_json::from_str</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">ret</span>)<span class="question-mark">?</span>)
-}
-
 <span class="doccomment">/// `Call` ABI called by the webassembly VM</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Call an exported function in a WASM module at a given address</span>
@@ -207,7 +176,7 @@
 <span class="doccomment">/// It take in argument the environment defined in env.rs</span>
 <span class="doccomment">/// this environment is automatically filled by the wasmer library</span>
 <span class="doccomment">/// And two pointers of string. (look at the readme in the wasm folder)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_module</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">Address</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Response</span> {
+<span class="kw">fn</span> <span class="ident">call_module</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">Address</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">param</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Response</span> {
     <span class="kw">let</span> <span class="ident">get_module</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">Address</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Bytecode</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">get_module</span>;
     <span class="ident">sub_remaining_point</span>(<span class="ident">env</span>, <span class="ident">settings::METERING</span>.<span class="ident">call_price</span>()).<span class="ident">unwrap</span>();
     <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">get_module</span>(<span class="ident">address</span>).<span class="ident">unwrap</span>();
@@ -216,7 +185,7 @@
         <span class="prelude-val">None</span>,
         <span class="ident">module</span>,
         <span class="ident">function</span>,
-        <span class="kw-2">&amp;</span>[],
+        <span class="ident">param</span>,
         <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">interface</span>,
     )
     .<span class="ident">unwrap</span>() <span class="comment">// TODO: Should return a Result&lt;Response&gt;</span>
@@ -226,69 +195,89 @@
 <span class="doccomment">/// directly form AssemblyScript:</span>
 <span class="doccomment">///</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="macro">include_str!</span>(<span class="string">&quot;../wasm/README.md&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assembly_script_call_module</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">address</span>: <span class="ident">i32</span>, <span class="ident">function</span>: <span class="ident">i32</span>) -&gt; <span class="ident">i32</span> {
-    <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">wasm_env</span>.<span class="ident">memory</span>.<span class="ident">get_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;initialized memory&quot;</span>);
+<span class="kw">fn</span> <span class="ident">assembly_script_call_module</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">address</span>: <span class="ident">i32</span>, <span class="ident">function</span>: <span class="ident">i32</span>, <span class="ident">param</span>: <span class="ident">i32</span>) -&gt; <span class="ident">i32</span> {
+    <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">wasm_env</span>.<span class="ident">memory</span>.<span class="ident">get_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;uninitialized memory&quot;</span>);
     <span class="comment">// TODO: replace all unwrap() by expect()</span>
     <span class="kw">let</span> <span class="ident">addr_ptr</span> <span class="op">=</span> <span class="ident">StringPtr::new</span>(<span class="ident">address</span> <span class="kw">as</span> <span class="ident">u32</span>);
     <span class="kw">let</span> <span class="ident">func_ptr</span> <span class="op">=</span> <span class="ident">StringPtr::new</span>(<span class="ident">function</span> <span class="kw">as</span> <span class="ident">u32</span>);
     <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">addr_ptr</span>.<span class="ident">read</span>(<span class="ident">memory</span>).<span class="ident">unwrap</span>();
     <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">func_ptr</span>.<span class="ident">read</span>(<span class="ident">memory</span>).<span class="ident">unwrap</span>();
-    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">call_module</span>(<span class="ident">env</span>, <span class="ident">address</span>, <span class="ident">function</span>);
+    <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">StringPtr::new</span>(<span class="ident">param</span> <span class="kw">as</span> <span class="ident">u32</span>);
+    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">call_module</span>(<span class="ident">env</span>, <span class="ident">address</span>, <span class="ident">function</span>, <span class="kw-2">&amp;</span><span class="ident">p</span>.<span class="ident">read</span>(<span class="ident">memory</span>).<span class="ident">unwrap</span>());
     <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">ret</span>, <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">wasm_env</span>).<span class="ident">unwrap</span>();
     <span class="ident">ret</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">i32</span>
 }
 
-<span class="doccomment">/// `Print` ABI called by the webassembly VM</span>
+<span class="kw">fn</span> <span class="ident">how_many</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="ident">i32</span> {
+    <span class="ident">sub_remaining_point</span>(<span class="ident">env</span>, <span class="number">15</span>).<span class="ident">expect</span>(<span class="string">&quot;could not sub remaining points in how many&quot;</span>);
+    <span class="ident">get_remaining_points</span>(<span class="ident">env</span>) <span class="kw">as</span> <span class="ident">i32</span>
+}
+
+<span class="doccomment">/// Create an instance of VM from a module with a</span>
+<span class="doccomment">/// given intefrace, an operation number limit and a webassembly module</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// An utility print function to write on stdout directly from AssemblyScript:</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assembly_script_print</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">arg</span>: <span class="ident">i32</span>) {
+<span class="kw">fn</span> <span class="ident">assembly_script_print</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">arg</span>: <span class="ident">i32</span>) {
     <span class="kw">let</span> <span class="ident">str_ptr</span> <span class="op">=</span> <span class="ident">StringPtr::new</span>(<span class="ident">arg</span> <span class="kw">as</span> <span class="ident">u32</span>);
-    <span class="macro">println!</span>(
-        <span class="string">&quot;{}&quot;</span>,
-        <span class="ident">str_ptr</span>
+    <span class="kw">let</span> <span class="ident">print</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">print</span>;
+    <span class="ident">print</span>(
+        <span class="kw-2">&amp;</span><span class="ident">str_ptr</span>
             .<span class="ident">read</span>(<span class="ident">env</span>.<span class="ident">wasm_env</span>.<span class="ident">memory</span>.<span class="ident">get_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;uninitialized memory&quot;</span>))
-            .<span class="ident">unwrap</span>()
-    );
+            .<span class="ident">unwrap</span>(),
+    )
+    .<span class="ident">unwrap</span>();
 }
 
 <span class="doccomment">/// Create an instance of VM from a module with a given interface, an operation</span>
 <span class="doccomment">/// number limit and a webassembly module</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_instance</span>(<span class="ident">limit</span>: <span class="ident">u64</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">interface</span>: <span class="kw-2">&amp;</span><span class="ident">Interface</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">create_instance</span>(<span class="ident">limit</span>: <span class="ident">u64</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">interface</span>: <span class="kw-2">&amp;</span><span class="ident">Interface</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">metering</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Metering::new</span>(<span class="ident">limit</span>, <span class="op">|</span><span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Operator</span><span class="op">|</span> -&gt; <span class="ident">u64</span> { <span class="number">1</span> }));
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compiler_config</span> <span class="op">=</span> <span class="ident">Cranelift::default</span>();
     <span class="ident">compiler_config</span>.<span class="ident">push_middleware</span>(<span class="ident">metering</span>);
     <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">Store::new</span>(<span class="kw-2">&amp;</span><span class="ident">Universal::new</span>(<span class="ident">compiler_config</span>).<span class="ident">engine</span>());
+    <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">Env::new</span>(<span class="ident">interface</span>);
     <span class="kw">let</span> <span class="ident">resolver</span>: <span class="ident">ImportObject</span> <span class="op">=</span> <span class="macro">imports!</span> {
         <span class="string">&quot;env&quot;</span> =&gt; {
-            <span class="string">&quot;abort&quot;</span> =&gt;  <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">Env::new</span>(<span class="ident">interface</span>), <span class="ident">assembly_script_abort</span>),
+            <span class="string">&quot;abort&quot;</span> =&gt;  <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_abort</span>),
         },
         <span class="string">&quot;massa&quot;</span> =&gt; {
-            <span class="string">&quot;assembly_script_print&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">Env::new</span>(<span class="ident">interface</span>), <span class="ident">assembly_script_print</span>),
-            <span class="string">&quot;assembly_script_call&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">Env::new</span>(<span class="ident">interface</span>), <span class="ident">assembly_script_call_module</span>),
+            <span class="string">&quot;assembly_script_print&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_print</span>),
+            <span class="string">&quot;assembly_script_call&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_call_module</span>),
+            <span class="string">&quot;how_many&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>, <span class="ident">how_many</span>),
         },
     };
     <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="ident">Module::new</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="kw-2">&amp;</span><span class="ident">module</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">Instance::new</span>(<span class="kw-2">&amp;</span><span class="ident">module</span>, <span class="kw-2">&amp;</span><span class="ident">resolver</span>)<span class="question-mark">?</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exec</span>(
+<span class="kw">fn</span> <span class="ident">exec</span>(
     <span class="ident">limit</span>: <span class="ident">u64</span>,
     <span class="ident">instance</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span>,
     <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">i32</span>],
+    <span class="ident">param</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">interface</span>: <span class="kw-2">&amp;</span><span class="ident">Interface</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">instance</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">instance</span> {
         <span class="prelude-val">Some</span>(<span class="ident">instance</span>) =&gt; <span class="ident">instance</span>,
         <span class="prelude-val">None</span> =&gt; <span class="ident">create_instance</span>(<span class="ident">limit</span>, <span class="ident">module</span>, <span class="ident">interface</span>)<span class="question-mark">?</span>,
     };
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-    <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">args</span> {
-        <span class="ident">p</span>.<span class="ident">push</span>(<span class="ident">Val::I32</span>(<span class="kw-2">*</span><span class="ident">param</span>));
-    }
-    <span class="comment">// TODO: return an error if the function exported isn&#39;t public?</span>
-    <span class="kw">match</span> <span class="ident">instance</span>.<span class="ident">exports</span>.<span class="ident">get_function</span>(<span class="ident">function</span>)<span class="question-mark">?</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">p</span>) {
+    <span class="comment">// TODO find a way to get an env from instance, or to allocate from instance in wasmer-as.</span>
+    <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="ident">instance</span>.<span class="ident">exports</span>.<span class="ident">get_memory</span>(<span class="string">&quot;memory&quot;</span>).<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">wasmer_as::Env::new</span>(
+        <span class="ident">memory</span>.<span class="ident">clone</span>(),
+        <span class="kw">match</span> <span class="ident">instance</span>.<span class="ident">exports</span>.<span class="ident">get_function</span>(<span class="string">&quot;__new&quot;</span>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">func</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">func</span>.<span class="ident">clone</span>()),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        },
+    );
+    <span class="kw">let</span> <span class="ident">param_ptr</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">StringPtr::alloc</span>(<span class="ident">param</span>, <span class="kw-2">&amp;</span><span class="ident">env</span>)<span class="question-mark">?</span>;
+    <span class="comment">// todo: return an error if the function exported isn&#39;t public?</span>
+    <span class="kw">match</span> <span class="ident">instance</span>
+        .<span class="ident">exports</span>
+        .<span class="ident">get_function</span>(<span class="ident">function</span>)<span class="question-mark">?</span>
+        .<span class="ident">call</span>(<span class="kw-2">&amp;</span>[<span class="ident">Val::I32</span>(<span class="ident">param_ptr</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">i32</span>)])
+    {
         <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; {
             <span class="comment">// TODO: clean and define wat should be return by the main</span>
             <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">eq</span>(<span class="ident"><span class="kw">crate</span>::settings::MAIN</span>) {
@@ -311,14 +300,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">limit</span>: <span class="ident">u64</span>, <span class="ident">interface</span>: <span class="kw-2">&amp;</span><span class="ident">Interface</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">instance</span> <span class="op">=</span> <span class="ident">create_instance</span>(<span class="ident">limit</span>, <span class="ident">module</span>, <span class="ident">interface</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">instance</span>.<span class="ident">exports</span>.<span class="ident">contains</span>(<span class="ident">settings::MAIN</span>) {
-        <span class="kw">return</span> <span class="kw">match</span> <span class="ident">exec</span>(
-            <span class="ident">limit</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">instance</span>),
-            <span class="ident">module</span>,
-            <span class="ident">settings::MAIN</span>,
-            <span class="kw-2">&amp;</span>[],
-            <span class="ident">interface</span>,
-        ) {
+        <span class="kw">return</span> <span class="kw">match</span> <span class="ident">exec</span>(<span class="ident">limit</span>, <span class="prelude-val">Some</span>(<span class="ident">instance</span>), <span class="ident">module</span>, <span class="ident">settings::MAIN</span>, <span class="string">&quot;&quot;</span>, <span class="ident">interface</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">result</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">result</span>.<span class="ident">remaining_points</span>),
             <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; <span class="macro">bail!</span>(<span class="ident">error</span>),
         };

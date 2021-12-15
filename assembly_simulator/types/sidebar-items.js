@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Interface",""],["Response","That’s what is returned when a module is executed correctly since the end"]],"type":[["Address",""],["Bytecode",""],["Ledger",""]]});

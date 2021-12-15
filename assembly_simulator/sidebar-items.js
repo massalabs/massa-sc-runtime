@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["env","Extends the env of wasmer-as"],["execution_impl",""],["settings",""],["types",""]]});
+initSidebarItems({"fn":[["run",""]],"struct":[["Interface",""]],"type":[["Address",""],["Bytecode",""]]});

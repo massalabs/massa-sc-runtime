@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["assembly_script_abort","if get_string throws an exception abort for some reason is being called"],["get_remaining_points",""],["get_remaining_points_instance",""],["sub_remaining_point",""]],"struct":[["Env",""]]});
