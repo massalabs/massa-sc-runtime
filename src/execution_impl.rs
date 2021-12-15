@@ -26,7 +26,7 @@ use wasmer_middlewares::Metering;
 ///     Ok(typed_call(env, "0xAddressOfSCInLedger", "get_status", ())?)
 /// }
 /// ```
-pub fn typed_call<T: Serialize, R: DeserializeOwned>(
+pub fn _typed_call<T: Serialize, R: DeserializeOwned>(
     _env: &Env,
     _address: &Address,
     _function: &str,
@@ -44,8 +44,7 @@ pub fn typed_call<T: Serialize, R: DeserializeOwned>(
 /// It take in argument the environment defined in env.rs
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
-
-pub fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Response {
+fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Response {
     let get_module: fn(&Address) -> Result<Bytecode> = env.interface.get_module;
     sub_remaining_point(env, settings::METERING.call_price()).unwrap();
     let module = &get_module(address).unwrap();
@@ -64,7 +63,7 @@ pub fn call_module(env: &Env, address: &Address, function: &str, param: &str) ->
 /// directly form AssemblyScript:
 ///
 #[doc = include_str!("../wasm/README.md")]
-pub fn assembly_script_call_module(env: &Env, address: i32, function: i32, param: i32) -> i32 {
+fn assembly_script_call_module(env: &Env, address: i32, function: i32, param: i32) -> i32 {
     let memory = env.wasm_env.memory.get_ref().expect("initialized memory");
     // TODO: replace all unwrap() by expect()
     let addr_ptr = StringPtr::new(address as u32);
@@ -86,7 +85,7 @@ fn how_many(env: &Env) -> i32 {
 /// given intefrace, an operation number limit and a webassembly module
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
-pub fn assembly_script_print(env: &Env, arg: i32) {
+fn assembly_script_print(env: &Env, arg: i32) {
     let str_ptr = StringPtr::new(arg as u32);
     let print: fn(&str) -> Result<()> = env.interface.print;
     print(
@@ -99,7 +98,7 @@ pub fn assembly_script_print(env: &Env, arg: i32) {
 
 /// Create an instance of VM from a module with a given interface, an operation
 /// number limit and a webassembly module
-pub fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<Instance> {
+fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<Instance> {
     let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
     let mut compiler_config = Cranelift::default();
     compiler_config.push_middleware(metering);
@@ -119,7 +118,7 @@ pub fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Resu
     Ok(Instance::new(&module, &resolver)?)
 }
 
-pub fn exec(
+fn exec(
     limit: u64,
     instance: Option<Instance>,
     module: &[u8],

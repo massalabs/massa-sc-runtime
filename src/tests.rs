@@ -3,9 +3,10 @@ use crate::settings::METERING;
 use crate::types::Address;
 use crate::types::Bytecode;
 use crate::types::Interface;
-use crate::types::Ledger;
 use anyhow::bail;
 use std::sync::Mutex;
+
+pub type Ledger = std::collections::BTreeMap<Address, Bytecode>; // Byttecode instead of String
 
 lazy_static::lazy_static! {
    pub static ref MEM: Mutex::<Ledger> = Mutex::new(Ledger::new());
