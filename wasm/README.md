@@ -8,9 +8,10 @@ yarn build
 
 - get_string.wat
 ```ts
-export function getString(param: string): string {
-    return "hello test " + param;
+export function helloName(name: string): string {
+    return `hello ${name}`;
 }
+
 ```
 
 - caller.wat
@@ -18,8 +19,9 @@ export function getString(param: string): string {
 import { print, call } from "./massa";
 
 export function main(_args: string): i32 {
-  let string_from = call("get_string.wat", "getString", "helllow");
+  let string_from = call("get_string", "helloName", "you");
   print(string_from);
   return 0;
 }
+
 ```

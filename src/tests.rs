@@ -42,7 +42,7 @@ fn test_caller() {
     ));
     let update_module: fn(address: &Address, module: &Bytecode) -> anyhow::Result<()> =
         interface.update_module;
-    update_module(&"get_string.wat".to_string(), &module.to_vec()).unwrap();
+    update_module(&"get_string".to_string(), &module.to_vec()).unwrap();
     run(module, 100, interface).expect("Failed to run get_string.wat");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -56,5 +56,5 @@ fn test_caller() {
     assert_eq!(a + prev_call_price, b);
     let mem = MEM.lock().unwrap();
     let output = std::str::from_utf8(mem.get("output").unwrap()).unwrap();
-    assert_eq!(output, "hello test helllow");
+    assert_eq!(output, "hello you");
 }
