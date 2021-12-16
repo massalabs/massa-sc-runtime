@@ -31,7 +31,7 @@ impl WasmerEnv for Env {
     }
 }
 
-pub fn get_remaining_points(env: &Env) -> u64 {
+pub fn get_remaining_points_for_env(env: &Env) -> u64 {
     let instance = &env.instance.clone().unwrap();
     match metering::get_remaining_points(instance) {
         MeteringPoints::Remaining(point) => point,
@@ -39,7 +39,7 @@ pub fn get_remaining_points(env: &Env) -> u64 {
     }
 }
 
-pub fn get_remaining_points_instance(instance: &Instance) -> u64 {
+pub fn get_remaining_points_for_instance(instance: &Instance) -> u64 {
     match metering::get_remaining_points(instance) {
         MeteringPoints::Remaining(point) => point,
         MeteringPoints::Exhausted => 0,
@@ -48,7 +48,7 @@ pub fn get_remaining_points_instance(instance: &Instance) -> u64 {
 
 pub fn sub_remaining_point(env: &Env, points: u64) -> anyhow::Result<()> {
     let instance = &env.instance.clone().unwrap();
-    set_remaining_points(instance, get_remaining_points(env) - points);
+    set_remaining_points(instance, get_remaining_points_for_env(env) - points);
     Ok(())
 }
 
