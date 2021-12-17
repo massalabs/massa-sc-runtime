@@ -1,10 +1,10 @@
 use crate::env::{
-    assembly_script_abort, get_remaining_points, get_remaining_points_instance,
+    assembly_script_abort, get_remaining_points_for_env, get_remaining_points_for_instance,
     sub_remaining_point, Env,
 };
 use crate::settings;
 use crate::types::{Address, Bytecode, Interface, Response};
-use anyhow::Result;
+use anyhow::{bail, Result};
 use std::sync::Arc;
 use wasmer::wasmparser::Operator;
 use wasmer::{
@@ -26,7 +26,7 @@ fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Res
     sub_remaining_point(env, settings::METERING.call_price())?;
     let module = &get_module(address)?;
     exec(
-        get_remaining_points(env),
+        get_remaining_points_for_env(env),
         None,
         module,
         function,
@@ -53,9 +53,10 @@ fn assembly_script_call_module(env: &Env, address: i32, function: i32, param: i3
     ret.offset() as i32
 }
 
-fn how_many(env: &Env) -> i32 {
-    sub_remaining_point(env, 15).expect("could not sub remaining points in how many");
-    get_remaining_points(env) as i32
+fn get_remaining_points(env: &Env) -> i32 {
+    sub_remaining_point(env, settings::METERING.call_price())
+        .expect("could not sub remaining points in how many");
+    get_remaining_points_for_env(env) as i32
 }
 
 /// Create an instance of VM from a module with a
@@ -88,7 +89,7 @@ fn create_instance(limit: u64, module: &[u8], interface: &Interface) -> Result<I
         "massa" => {
             "assembly_script_print" => Function::new_native_with_env(&store, env.clone(), assembly_script_print),
             "assembly_script_call" => Function::new_native_with_env(&store, env.clone(), assembly_script_call_module),
-            "how_many" => Function::new_native_with_env(&store, env, how_many),
+            "get_remaining_points" => Function::new_native_with_env(&store, env, get_remaining_points),
         },
     };
     let module = Module::new(&store, &module)?;
@@ -108,7 +109,7 @@ fn exec(
         None => create_instance(limit, module, interface)?,
     };
     // TODO find a way to get an env from instance, or to allocate from instance in wasmer-as.
-    let memory = instance.exports.get_memory("memory")?;
+    let memory = instance.exports.get_memory("memory").unwrap();
     let env = wasmer_as::Env::new(
         memory.clone(),
         match instance.exports.get_function("__new") {
@@ -118,26 +119,29 @@ fn exec(
     );
     let param_ptr = *StringPtr::alloc(param, &env)?;
     // todo: return an error if the function exported isn't public?
-    let value = instance
+    match instance
         .exports
         .get_function(function)?
-        .call(&[Val::I32(param_ptr.offset() as i32)])?;
-
-    // TODO: clean and define wat should be return by the main
-    if function.eq(crate::settings::MAIN) {
-        return Ok(Response {
-            ret: "0".to_string(),
-            remaining_points: get_remaining_points_instance(&instance),
-        });
+        .call(&[Val::I32(param_ptr.offset() as i32)])
+    {
+        Ok(value) => {
+            // TODO: clean and define wat should be return by the main
+            if function.eq(crate::settings::MAIN) {
+                return Ok(Response {
+                    ret: "0".to_string(),
+                    remaining_points: get_remaining_points_for_instance(&instance),
+                });
+            }
+            let str_ptr = StringPtr::new(value.get(0).unwrap().i32().unwrap() as u32);
+            let memory = instance.exports.get_memory("memory")?;
+            Ok(Response {
+                ret: str_ptr.read(memory)?,
+                remaining_points: get_remaining_points_for_instance(&instance),
+            })
+        }
+        Err(error) => bail!(error),
     }
-    let str_ptr = StringPtr::new(value.get(0).unwrap().i32().unwrap() as u32);
-    let memory = instance.exports.get_memory("memory")?;
-    Ok(Response {
-        ret: str_ptr.read(memory)?,
-        remaining_points: get_remaining_points_instance(&instance),
-    })
 }
-
 pub fn run(module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
     let instance = create_instance(limit, module, interface)?;
     if instance.exports.contains(settings::MAIN) {
