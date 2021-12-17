@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["run",""]],"struct":[["Interface",""]],"type":[["Address",""],["Bytecode",""]]});
+initSidebarItems({"fn":[["run",""]],"trait":[["Interface",""],["InterfaceClone",""]],"type":[["Address",""],["Bytecode",""]]});

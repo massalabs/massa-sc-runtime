@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["assembly_simulator"] = [{"text":"impl Freeze for <a class=\"struct\" href=\"assembly_simulator/struct.Interface.html\" title=\"struct assembly_simulator::Interface\">Interface</a>","synthetic":true,"types":["assembly_simulator::types::Interface"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
