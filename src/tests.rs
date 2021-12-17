@@ -61,7 +61,7 @@ fn test_caller() {
 
 #[test]
 #[should_panic]
-fn test_foo_caller() {
+fn test_local_hello_name_caller() {
     let interface = &new();
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -73,7 +73,7 @@ fn test_foo_caller() {
     run(module, 100, interface).expect("Failed to run get_string.wat");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/foo_caller.wat"
+        "/wasm/build/local_hello_name_caller.wat"
     ));
-    run(module, 20_000, interface).expect_err("Succeeded to run foo_caller.wat");
+    run(module, 20_000, interface).expect_err("Succeeded to run local_hello_name_caller.wat");
 }
