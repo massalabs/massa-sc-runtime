@@ -9,15 +9,15 @@ use wasmer_middlewares::metering::{self, set_remaining_points, MeteringPoints};
 #[derive(Clone)]
 pub struct Env {
     pub wasm_env: wasmer_as::Env,
-    pub interface: Interface,
+    pub interface: Box<dyn Interface>,
     pub instance: Option<Instance>,
 }
 
 impl Env {
-    pub fn new(interface: &Interface) -> Env {
+    pub fn new(interface: &dyn Interface) -> Env {
         Env {
             wasm_env: Default::default(),
-            interface: interface.clone(),
+            interface: interface.clone_box(),
             instance: None,
         }
     }
