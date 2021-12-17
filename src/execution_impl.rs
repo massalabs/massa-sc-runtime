@@ -23,8 +23,8 @@ use wasmer_middlewares::Metering;
 /// And two pointers of string. (look at the readme in the wasm folder)
 fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Result<Response> {
     let get_module: fn(&Address) -> Result<Bytecode> = env.interface.get_module;
-    sub_remaining_point(env, settings::METERING.call_price()).unwrap();
-    let module = &get_module(address).unwrap();
+    sub_remaining_point(env, settings::METERING.call_price())?;
+    let module = &get_module(address)?;
     exec(
         get_remaining_points_for_env(env),
         None,
@@ -142,14 +142,11 @@ fn exec(
         Err(error) => bail!(error),
     }
 }
-
 pub fn run(module: &[u8], limit: u64, interface: &Interface) -> Result<u64> {
     let instance = create_instance(limit, module, interface)?;
     if instance.exports.contains(settings::MAIN) {
-        return match exec(limit, Some(instance), module, settings::MAIN, "", interface) {
-            Ok(result) => Ok(result.remaining_points),
-            Err(error) => bail!(error),
-        };
+        Ok(exec(limit, Some(instance), module, settings::MAIN, "", interface)?.remaining_points)
+    } else {
+        Ok(limit)
     }
-    Ok(limit)
 }

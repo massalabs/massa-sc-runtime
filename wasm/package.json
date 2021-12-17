@@ -6,7 +6,8 @@
   "scripts": {
     "get_string": "asc assembly/get_string.ts --target release --exportRuntime --textFile build/get_string.wat --binaryFile build/get_string.wasm",
     "caller": "asc assembly/caller.ts --target release --exportRuntime --textFile build/caller.wat --binaryFile build/caller.wasm",
-    "build": "yarn run get_string && yarn run caller",
+    "local_hello_name_caller": "asc assembly/local_hello_name_caller.ts --target release --exportRuntime --textFile build/local_hello_name_caller.wat --binaryFile build/local_hello_name_caller.wasm",
+    "build": "yarn run get_string && yarn run caller && yarn run local_hello_name_caller",
     "clean": "rm -rf build"
   },
   "author": "",

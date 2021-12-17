@@ -58,3 +58,22 @@ fn test_caller() {
     let output = std::str::from_utf8(mem.get("output").unwrap()).unwrap();
     assert_eq!(output, "hello you");
 }
+
+#[test]
+#[should_panic]
+fn test_local_hello_name_caller() {
+    let interface = &new();
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/get_string.wat"
+    ));
+    let update_module: fn(address: &Address, module: &Bytecode) -> anyhow::Result<()> =
+        interface.update_module;
+    update_module(&"get_string".to_string(), &module.to_vec()).unwrap();
+    run(module, 100, interface).expect("Failed to run get_string.wat");
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/local_hello_name_caller.wat"
+    ));
+    run(module, 20_000, interface).expect_err("Succeeded to run local_hello_name_caller.wat");
+}
