@@ -52,7 +52,15 @@ pub fn sub_remaining_point(env: &Env, points: u64) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// if get_string throws an exception abort for some reason is being called
+/// Called by the instance when an error popped. It print the filename where the error
+/// had pop up, an error message and more stacktrace information as line and column
+///
+/// This function is automatically exported by AssemblyScript on build and allow assemblyscript
+/// to log what appened when a smartcontract crashed inside the instance.
+///
+/// Because AssemblyScript require this to be imported:
+/// - To create an instance, this function has to be in the ImportObject in the "env" namespace.
+/// - We can take advantage of the behaviours printing the assemblyscript error
 pub fn assembly_script_abort(
     env: &Env,
     message: StringPtr,
