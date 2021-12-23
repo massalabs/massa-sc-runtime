@@ -22,7 +22,7 @@ use wasmer_middlewares::Metering;
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
 fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Result<Response> {
-    sub_remaining_point(env, settings::METERING.call_price()).unwrap();
+    sub_remaining_point(env, settings::call_price()).unwrap();
     let module = &env.interface.get_module(address).unwrap();
     exec(
         get_remaining_points_for_env(env),
@@ -53,7 +53,7 @@ fn assembly_script_call_module(env: &Env, address: i32, function: i32, param: i3
 }
 
 fn get_remaining_points(env: &Env) -> i32 {
-    sub_remaining_point(env, settings::METERING.call_price())
+    sub_remaining_point(env, settings::call_price())
         .expect("could not sub remaining points in how many");
     get_remaining_points_for_env(env) as i32
 }

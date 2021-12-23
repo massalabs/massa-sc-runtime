@@ -1,49 +1,21 @@
-pub(crate) const MAIN: &str = "main"; // main function name in the webassembly module
+use cornetto::Cornetto;
 
-// Definition of default value
-
-/// Default price in operations of the `call` ABI
-const DEFAULT_CALL_PRICE: u64 = 200;
-
-// End of default definition
+// main function name in the webassembly module
+pub(crate) const MAIN: &str = "main";
 
 // Metering private implementation
-#[cfg(test)]
-struct PrivMetering {
+#[allow(dead_code)]
+#[derive(Cornetto)]
+struct Metering {
+    #[cornetto(mut, 200)]
     pub call_price: u64,
 }
 
+pub(crate) fn call_price() -> u64 {
+    METERING.call_price()
+}
+
 #[cfg(test)]
-impl Default for PrivMetering {
-    fn default() -> Self {
-        Self {
-            call_price: DEFAULT_CALL_PRICE,
-        }
-    }
-}
-
-#[derive(Default)]
-pub(crate) struct Metering {
-    #[cfg(test)]
-    p_impl: std::sync::Mutex<PrivMetering>,
-}
-
-impl Metering {
-    #[cfg(not(test))]
-    pub fn call_price(&self) -> u64 {
-        DEFAULT_CALL_PRICE
-    }
-    #[cfg(test)]
-    pub fn call_price(&self) -> u64 {
-        self.p_impl.lock().unwrap().call_price
-    }
-    #[cfg(test)]
-    pub fn _reset(&self, call_price: u64) {
-        let mut lock = self.p_impl.lock().unwrap();
-        lock.call_price = call_price;
-    }
-}
-
-lazy_static::lazy_static! {
-    pub(crate) static ref METERING: Metering = Metering::default();
+pub(crate) fn reset_metering(call_price: u64) {
+    METERING._reset(call_price);
 }

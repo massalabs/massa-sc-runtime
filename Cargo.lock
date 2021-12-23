@@ -39,6 +39,7 @@ name = "assembly_simulator"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "cornetto",
  "lazy_static",
  "serde",
  "serde_json",
@@ -114,6 +115,19 @@ name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
+name = "cornetto"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a47c2a04089d9de013f44c298c551919be450885957facba37c7831826fc63f"
+dependencies = [
+ "anyhow",
+ "lazy_static",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "cranelift-bforest"
@@ -552,9 +566,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.33"
+version = "1.0.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb37d2df5df740e582f28f8560cf425f52bb267d872fe58358eadb554909f07a"
+checksum = "2f84e92c0f7c9d58328b85a78557813e4bd845130db68d7184635344399423b1"
 dependencies = [
  "unicode-xid",
 ]
