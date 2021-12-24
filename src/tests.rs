@@ -66,7 +66,7 @@ fn test_caller() {
         "/wasm/build/caller.wat"
     ));
     let a = run(module, 20_000, &*interface).expect("Failed to run caller.wat");
-    let prev_call_price = settings::call_price();
+    let prev_call_price = settings::metering_call();
     settings::reset_metering(0);
     let b = run(module, 20_000, &*interface).expect("Failed to run caller.wat");
     assert_eq!(a + prev_call_price, b);

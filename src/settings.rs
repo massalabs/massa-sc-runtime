@@ -8,11 +8,17 @@ pub(crate) const MAIN: &str = "main";
 #[derive(Cornetto)]
 struct Metering {
     #[cornetto(mut, 200)]
-    pub call_price: u64,
+    pub call: u64,
+    #[cornetto(const, 200)]
+    pub set_data: u64,
+    #[cornetto(const, 200)]
+    pub get_data: u64,
+    #[cornetto(const, 200)]
+    pub create_sc: u64,
 }
 
-pub(crate) fn call_price() -> u64 {
-    METERING.call_price()
+pub(crate) fn metering_call() -> u64 {
+    METERING.call()
 }
 
 #[cfg(test)]
