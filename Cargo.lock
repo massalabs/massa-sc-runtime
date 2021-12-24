@@ -35,16 +35,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b26702f315f53b6071259e15dd9d64528213b44d61de1ec926eca7715d62203"
 
 [[package]]
+name = "as-ffi-bindings"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f20b1ac80a9cabe565f3f079586f0c3de015de3d9e4a50b5033e0903d62638c8"
+dependencies = [
+ "anyhow",
+ "wasmer",
+]
+
+[[package]]
 name = "assembly_simulator"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "as-ffi-bindings",
  "cornetto",
  "lazy_static",
  "serde",
  "serde_json",
  "wasmer",
- "wasmer-as",
  "wasmer-compiler-cranelift",
  "wasmer-engine-universal",
  "wasmer-middlewares",
@@ -1016,15 +1026,6 @@ dependencies = [
  "wasmer-vm",
  "wat",
  "winapi",
-]
-
-[[package]]
-name = "wasmer-as"
-version = "0.4.1-alpha.0"
-source = "git+https://github.com/adrien-zinger/wasmer-as?tag=v0.1.0#8ab64392ac8ad1a70243ef494e9cd5a187df8602"
-dependencies = [
- "anyhow",
- "wasmer",
 ]
 
 [[package]]

@@ -3,13 +3,13 @@ use crate::env::{assembly_script_abort, get_remaining_points_for_instance, Env};
 use crate::settings;
 use crate::types::{Interface, Response};
 use anyhow::{bail, Result};
+use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
 use std::sync::Arc;
 use wasmer::wasmparser::Operator;
 use wasmer::{
     imports, CompilerConfig, Cranelift, Function, ImportObject, Instance, Module, Store, Universal,
     Val,
 };
-use wasmer_as::{Read as ASRead, StringPtr, Write as ASWrite};
 use wasmer_middlewares::Metering;
 
 /// Create an instance of VM from a module with a given interface, an operation
@@ -47,17 +47,9 @@ pub(crate) fn exec(
         Some(instance) => instance,
         None => create_instance(limit, module, interface)?,
     };
-    // TODO find a way to get an env from instance, or to allocate from instance in wasmer-as.
-    let memory = instance.exports.get_memory("memory").unwrap();
-    let env = wasmer_as::Env::new(
-        memory.clone(),
-        match instance.exports.get_function("__new") {
-            Ok(func) => Some(func.clone()),
-            _ => None,
-        },
-    );
-    let param_ptr = *StringPtr::alloc(param, &env)?;
-    // todo: return an error if the function exported isn't public?
+    let mut env = as_ffi_bindings::Env::default();
+    env.init(&instance)?;
+    let param_ptr = *StringPtr::alloc(&param.to_string(), &env)?;
     match instance
         .exports
         .get_function(function)?

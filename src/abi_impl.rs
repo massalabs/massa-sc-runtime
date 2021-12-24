@@ -2,7 +2,7 @@ use crate::env::{get_remaining_points_for_env, sub_remaining_point, Env};
 use crate::settings;
 use crate::types::{Address, Response};
 use anyhow::Result;
-use wasmer_as::{Read as ASRead, StringPtr, Write as ASWrite};
+use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
 
 /// `Call` ABI called by the webassembly VM
 ///
