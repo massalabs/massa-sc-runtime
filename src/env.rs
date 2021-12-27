@@ -73,11 +73,11 @@ pub fn assembly_script_abort(
     line: i32,
     col: i32,
 ) {
-    let memory = env.wasm_env.memory.get_ref().expect("initialized memory");
+    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
     let message = message.read(memory);
     let filename = filename.read(memory);
     if message.is_err() || filename.is_err() {
-        abi_bail!("Aborting failed to load massage or filename")
+        abi_bail!("Aborting failed to load message or filename")
     }
     eprintln!(
         "Error: {} at {}:{} col: {}",
