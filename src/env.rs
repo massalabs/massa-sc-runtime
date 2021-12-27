@@ -2,13 +2,13 @@
 
 use crate::types::Interface;
 use anyhow::Result;
+use as_ffi_bindings::{Read, StringPtr};
 use wasmer::{HostEnvInitError, Instance, WasmerEnv};
-use wasmer_as::{Read, StringPtr};
 use wasmer_middlewares::metering::{self, set_remaining_points, MeteringPoints};
 
 #[derive(Clone)]
 pub struct Env {
-    pub wasm_env: wasmer_as::Env,
+    pub wasm_env: as_ffi_bindings::Env,
     pub interface: Box<dyn Interface>,
     pub instance: Option<Instance>,
 }

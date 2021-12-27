@@ -1,5 +1,5 @@
 use crate::execution_impl::run;
-use crate::settings::METERING;
+use crate::settings;
 use crate::types::{Address, Bytecode};
 use crate::types::{Interface, InterfaceClone};
 use anyhow::{bail, Result};
@@ -33,6 +33,7 @@ impl Interface for TestInterface {
     }
 
     fn print(&self, message: &str) -> Result<()> {
+        println!("{}", message);
         self.0
             .lock()
             .unwrap()
@@ -65,8 +66,8 @@ fn test_caller() {
         "/wasm/build/caller.wat"
     ));
     let a = run(module, 20_000, &*interface).expect("Failed to run caller.wat");
-    let prev_call_price = METERING.call_price();
-    METERING._reset(0);
+    let prev_call_price = settings::metering_call();
+    settings::reset_metering(0);
     let b = run(module, 20_000, &*interface).expect("Failed to run caller.wat");
     assert_eq!(a + prev_call_price, b);
     // todo Test with set_data & get_data

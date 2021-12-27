@@ -14,5 +14,9 @@
   "license": "ISC",
   "devDependencies": {
     "assemblyscript": "^0.19.20"
+  },
+  "dependencies": {
+    "json-as": "^0.2.6",
+    "visitor-as": "^0.6.0"
   }
 }

@@ -1,1 +1,7 @@
 node_modules
+build/*
+!build/caller.wat
+!build/get_string.wat
+!build/caller_json.wasm
+!build/local_hello_name_caller.wat
+
