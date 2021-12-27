@@ -22,6 +22,11 @@ pub(crate) fn metering_call() -> u64 {
 }
 
 #[cfg(test)]
-pub(crate) fn reset_metering(call_price: u64) {
+pub(crate) fn set_metering(call_price: u64) {
     METERING._reset(call_price);
+}
+
+#[cfg(test)]
+pub(crate) fn reset_metering() {
+    METERING._reset(DEFAULT_METERING_CALL);
 }

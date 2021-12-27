@@ -51,6 +51,7 @@ impl Interface for TestInterface {
 
 #[test]
 fn test_caller() {
+    settings::reset_metering();
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
@@ -60,6 +61,7 @@ fn test_caller() {
     interface
         .update_module(&"get_string".to_string(), &module.to_vec())
         .unwrap();
+    // test only if the module is valid
     run(module, 20_000, &*interface).expect("Failed to run get_string.wat");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -67,17 +69,21 @@ fn test_caller() {
     ));
     let a = run(module, 20_000, &*interface).expect("Failed to run caller.wat");
     let prev_call_price = settings::metering_call();
-    settings::reset_metering(0);
+    settings::set_metering(0);
     let b = run(module, 20_000, &*interface).expect("Failed to run caller.wat");
     assert_eq!(a + prev_call_price, b);
-    // todo Test with set_data & get_data
     let v_out = interface.get_data(&String::new(), &String::new()).unwrap();
     let output = std::str::from_utf8(&v_out).unwrap();
     assert_eq!(output, "hello you");
+
+    // Test now if we failed if metering is too hight
+    settings::set_metering(15_000);
+    run(module, 20_000, &*interface).expect_err("Expected to be out of operation points");
 }
 
 #[test]
 fn test_local_hello_name_caller() {
+    settings::reset_metering();
     // This test should verify that even if we failed to load a module,
     // we should never panic and just stop the call stack
     let interface: Box<dyn Interface> =

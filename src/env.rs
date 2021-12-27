@@ -50,7 +50,11 @@ pub fn get_remaining_points_for_instance(instance: &Instance) -> u64 {
 pub fn sub_remaining_point(env: &Env, points: u64) {
     let instance = &env.instance.clone().unwrap();
     let remaining_points = get_remaining_points_for_env(env);
-    set_remaining_points(instance, remaining_points.saturating_sub(points));
+    if let Some(remaining_points) = remaining_points.checked_sub(points) {
+        set_remaining_points(instance, remaining_points);
+    } else {
+        abi_bail!("Remaining point reach zero");
+    }
 }
 
 /// Called by the instance when an error popped. It print the filename where the error
