@@ -27,7 +27,6 @@ pub(crate) use abi_bail;
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
 fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Result<Response> {
-    sub_remaining_point(env, settings::metering_call());
     let module = &env.interface.get_module(address)?;
     crate::execution_impl::exec(
         get_remaining_points_for_env(env),
@@ -49,6 +48,7 @@ pub(crate) fn assembly_script_call_module(
     function: i32,
     param: i32,
 ) -> i32 {
+    sub_remaining_point(env, settings::metering_call());
     let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
     let addr_ptr = StringPtr::new(address as u32);
     let func_ptr = StringPtr::new(function as u32);
@@ -78,7 +78,7 @@ pub(crate) fn assembly_script_call_module(
 }
 
 pub(crate) fn get_remaining_points(env: &Env) -> i32 {
-    sub_remaining_point(env, settings::metering_call());
+    sub_remaining_point(env, settings::metering_remaining_points());
     get_remaining_points_for_env(env) as i32
 }
 
@@ -87,6 +87,7 @@ pub(crate) fn get_remaining_points(env: &Env) -> i32 {
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
 pub(crate) fn assembly_script_print(env: &Env, arg: i32) {
+    sub_remaining_point(env, settings::metering_print());
     let str_ptr = StringPtr::new(arg as u32);
     let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
     if let Ok(message) = &str_ptr.read(memory) {
