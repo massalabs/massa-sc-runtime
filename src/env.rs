@@ -1,5 +1,6 @@
 //! Extends the env of wasmer-as
 
+use crate::abi_impl::abi_bail;
 use crate::types::Interface;
 use anyhow::Result;
 use as_ffi_bindings::{Read, StringPtr};
@@ -46,10 +47,14 @@ pub fn get_remaining_points_for_instance(instance: &Instance) -> u64 {
     }
 }
 
-pub fn sub_remaining_point(env: &Env, points: u64) -> anyhow::Result<()> {
+pub fn sub_remaining_point(env: &Env, points: u64) {
     let instance = &env.instance.clone().unwrap();
-    set_remaining_points(instance, get_remaining_points_for_env(env) - points);
-    Ok(())
+    let remaining_points = get_remaining_points_for_env(env);
+    if let Some(remaining_points) = remaining_points.checked_sub(points) {
+        set_remaining_points(instance, remaining_points);
+    } else {
+        abi_bail!("Remaining point reach zero");
+    }
 }
 
 /// Called by the instance when an error popped. It print the filename where the error
@@ -68,8 +73,17 @@ pub fn assembly_script_abort(
     line: i32,
     col: i32,
 ) {
-    let memory = env.wasm_env.memory.get_ref().expect("initialized memory");
-    let message = message.read(memory).unwrap();
-    let filename = filename.read(memory).unwrap();
-    eprintln!("Error: {} at {}:{} col: {}", message, filename, line, col);
+    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let message = message.read(memory);
+    let filename = filename.read(memory);
+    if message.is_err() || filename.is_err() {
+        abi_bail!("Aborting failed to load message or filename")
+    }
+    eprintln!(
+        "Error: {} at {}:{} col: {}",
+        message.unwrap(),
+        filename.unwrap(),
+        line,
+        col
+    );
 }

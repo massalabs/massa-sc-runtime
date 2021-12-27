@@ -63,10 +63,19 @@ pub(crate) fn exec(
                     remaining_points: get_remaining_points_for_instance(&instance),
                 });
             }
-            let str_ptr = StringPtr::new(value.get(0).unwrap().i32().unwrap() as u32);
-            let memory = instance.exports.get_memory("memory")?;
+            let ret = if let Some(offset) = value.get(0) {
+                if let Some(offset) = offset.i32() {
+                    let str_ptr = StringPtr::new(offset as u32);
+                    let memory = instance.exports.get_memory("memory")?;
+                    str_ptr.read(memory)?
+                } else {
+                    abi_bail!("Execution wasn't in capacity to read the return value")
+                }
+            } else {
+                String::new()
+            };
             Ok(Response {
-                ret: str_ptr.read(memory)?,
+                ret,
                 remaining_points: get_remaining_points_for_instance(&instance),
             })
         }
