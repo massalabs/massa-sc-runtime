@@ -1,7 +1,7 @@
 use crate::env::{get_remaining_points_for_env, sub_remaining_point, Env};
 use crate::settings;
 use crate::types::{Address, Response};
-use anyhow::{bail, Result};
+use anyhow::Result;
 use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
 
 #[derive(Debug, Clone)]
@@ -27,21 +27,16 @@ pub(crate) use abi_bail;
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
 fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Result<Response> {
-    if sub_remaining_point(env, settings::metering_call()).is_err() {
-        bail!("Cannot substract remaining points")
-    };
-    if let Ok(module) = &env.interface.get_module(address) {
-        crate::execution_impl::exec(
-            get_remaining_points_for_env(env),
-            None,
-            module,
-            function,
-            param,
-            &*env.interface,
-        )
-    } else {
-        bail!("Cannot reach the target module at the address {}", address)
-    }
+    sub_remaining_point(env, settings::metering_call());
+    let module = &env.interface.get_module(address)?;
+    crate::execution_impl::exec(
+        get_remaining_points_for_env(env),
+        None,
+        module,
+        function,
+        param,
+        &*env.interface,
+    )
 }
 
 /// Raw call that have the right type signature to be able to be call a module
@@ -83,9 +78,7 @@ pub(crate) fn assembly_script_call_module(
 }
 
 pub(crate) fn get_remaining_points(env: &Env) -> i32 {
-    if sub_remaining_point(env, settings::metering_call()).is_err() {
-        abi_bail!("Cannot substract remaining points")
-    };
+    sub_remaining_point(env, settings::metering_call());
     get_remaining_points_for_env(env) as i32
 }
 
