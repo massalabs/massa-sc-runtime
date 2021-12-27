@@ -1,7 +1,7 @@
 use crate::env::{get_remaining_points_for_env, sub_remaining_point, Env};
 use crate::settings;
 use crate::types::{Address, Response};
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
 
 #[derive(Debug, Clone)]
@@ -17,7 +17,7 @@ macro_rules! abi_bail {
         wasmer::RuntimeError::raise(Box::new(crate::abi_impl::ExitCode($err.to_string())))
     };
 }
-pub(crate) use abi_bail; 
+pub(crate) use abi_bail;
 
 /// `Call` ABI called by the webassembly VM
 ///
@@ -75,7 +75,10 @@ pub(crate) fn assembly_script_call_module(
     if let Ok(ret) = StringPtr::alloc(&value.unwrap().ret, &env.wasm_env) {
         ret.offset() as i32
     } else {
-        abi_bail!(format!("Cannot allocate response in call {}::{}", address, function))
+        abi_bail!(format!(
+            "Cannot allocate response in call {}::{}",
+            address, function
+        ))
     }
 }
 
