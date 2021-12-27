@@ -27,6 +27,23 @@
 <span id="25">25</span>
 <span id="26">26</span>
 <span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">cornetto::Cornetto</span>;
 
 <span class="comment">// main function name in the webassembly module</span>
@@ -44,15 +61,32 @@
     <span class="kw">pub</span> <span class="ident">get_data</span>: <span class="ident">u64</span>,
     <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">200</span>)]</span>
     <span class="kw">pub</span> <span class="ident">create_sc</span>: <span class="ident">u64</span>,
+    <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">200</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">print</span>: <span class="ident">u64</span>,
+    <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">200</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">remaining_points</span>: <span class="ident">u64</span>,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_call</span>() -&gt; <span class="ident">u64</span> {
     <span class="ident">METERING</span>.<span class="ident">call</span>()
 }
 
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_print</span>() -&gt; <span class="ident">u64</span> {
+    <span class="ident">METERING</span>.<span class="ident">print</span>()
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_remaining_points</span>() -&gt; <span class="ident">u64</span> {
+    <span class="ident">METERING</span>.<span class="ident">remaining_points</span>()
+}
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reset_metering</span>(<span class="ident">call_price</span>: <span class="ident">u64</span>) {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_metering</span>(<span class="ident">call_price</span>: <span class="ident">u64</span>) {
     <span class="ident">METERING</span>.<span class="ident">_reset</span>(<span class="ident">call_price</span>);
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reset_metering</span>() {
+    <span class="ident">METERING</span>.<span class="ident">_reset</span>(<span class="ident">DEFAULT_METERING_CALL</span>);
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="assembly_simulator" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (f8abed9ed 2021-12-26)" ></div>

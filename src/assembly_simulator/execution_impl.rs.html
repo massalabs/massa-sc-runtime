@@ -84,6 +84,15 @@
 <span id="82">82</span>
 <span id="83">83</span>
 <span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::abi_impl</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::env</span>::{<span class="ident">assembly_script_abort</span>, <span class="ident">get_remaining_points_for_instance</span>, <span class="ident">Env</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::settings</span>;
@@ -149,10 +158,19 @@
                     <span class="ident">remaining_points</span>: <span class="ident">get_remaining_points_for_instance</span>(<span class="kw-2">&amp;</span><span class="ident">instance</span>),
                 });
             }
-            <span class="kw">let</span> <span class="ident">str_ptr</span> <span class="op">=</span> <span class="ident">StringPtr::new</span>(<span class="ident">value</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">i32</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u32</span>);
-            <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="ident">instance</span>.<span class="ident">exports</span>.<span class="ident">get_memory</span>(<span class="string">&quot;memory&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="ident">offset</span>.<span class="ident">i32</span>() {
+                    <span class="kw">let</span> <span class="ident">str_ptr</span> <span class="op">=</span> <span class="ident">StringPtr::new</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u32</span>);
+                    <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="ident">instance</span>.<span class="ident">exports</span>.<span class="ident">get_memory</span>(<span class="string">&quot;memory&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="ident">str_ptr</span>.<span class="ident">read</span>(<span class="ident">memory</span>)<span class="question-mark">?</span>
+                } <span class="kw">else</span> {
+                    <span class="macro">abi_bail!</span>(<span class="string">&quot;Execution wasn&#39;t in capacity to read the return value&quot;</span>)
+                }
+            } <span class="kw">else</span> {
+                <span class="ident">String::new</span>()
+            };
             <span class="prelude-val">Ok</span>(<span class="ident">Response</span> {
-                <span class="ident">ret</span>: <span class="ident">str_ptr</span>.<span class="ident">read</span>(<span class="ident">memory</span>)<span class="question-mark">?</span>,
+                <span class="ident">ret</span>,
                 <span class="ident">remaining_points</span>: <span class="ident">get_remaining_points_for_instance</span>(<span class="kw-2">&amp;</span><span class="ident">instance</span>),
             })
         }
