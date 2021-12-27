@@ -77,8 +77,9 @@ fn test_caller() {
 }
 
 #[test]
-#[should_panic]
 fn test_local_hello_name_caller() {
+    // This test should verify that even if we failed to load a module,
+    // we should never panic and just stop the call stack
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
