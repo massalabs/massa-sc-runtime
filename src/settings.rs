@@ -29,6 +29,10 @@ pub(crate) fn metering_print() -> u64 {
     METERING.print()
 }
 
+pub(crate) fn metering_create_sc() -> u64 {
+    METERING.create_sc()
+}
+
 pub(crate) fn metering_remaining_points() -> u64 {
     METERING.remaining_points()
 }

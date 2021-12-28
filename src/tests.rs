@@ -18,6 +18,7 @@ impl InterfaceClone for TestInterface {
 
 impl Interface for TestInterface {
     fn get_module(&self, address: &Address) -> Result<Bytecode> {
+        println!("get_module {}", address);
         match self.0.lock().unwrap().clone().get(&address.clone()) {
             Some(module) => Ok(module.clone()),
             _ => bail!("Cannot find module for address {}", address),
@@ -46,6 +47,17 @@ impl Interface for TestInterface {
             Some(bytes) => Ok(bytes.clone()),
             _ => bail!("Cannot find data"),
         }
+    }
+
+    fn create_module(&self, module: &Bytecode) -> Result<Address> {
+        let address = String::from("get_string");
+        println!("module created");
+        std::fs::write("new_get_string.wasm", module).unwrap();
+        self.0
+            .lock()
+            .unwrap()
+            .insert(address.clone(), module.clone());
+        Ok(address)
     }
 }
 
@@ -101,4 +113,22 @@ fn test_local_hello_name_caller() {
         "/wasm/build/local_hello_name_caller.wat"
     ));
     run(module, 20_000, &*interface).expect_err("Succeeded to run local_hello_name_caller.wat");
+}
+
+#[test]
+fn test_module_creation() {
+    settings::reset_metering();
+    // This test should create a smartcontract module and call it
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/create_sc.wasm"
+    ));
+    run(module, 500_000, &*interface).expect("Failed to run create_sc.wat");
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/caller.wat"
+    ));
+    run(module, 20_000, &*interface).expect("Failed to run caller.wat");
 }

@@ -1,8 +1,8 @@
 use crate::env::{get_remaining_points_for_env, sub_remaining_point, Env};
-use crate::settings;
+use crate::{settings, Bytecode};
 use crate::types::{Address, Response};
 use anyhow::Result;
-use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
+use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite, BufferPtr};
 
 #[derive(Debug, Clone)]
 pub(crate) struct ExitCode(pub(crate) String);
@@ -36,6 +36,10 @@ fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Res
         param,
         &*env.interface,
     )
+}
+
+fn create_sc(env: &Env, bytecode: &Bytecode) -> Result<Address> {
+    env.interface.create_module(bytecode)
 }
 
 /// Raw call that have the right type signature to be able to be call a module
@@ -96,5 +100,25 @@ pub(crate) fn assembly_script_print(env: &Env, arg: i32) {
         }
     } else {
         abi_bail!("Cannot read message pointer in memory");
+    }
+}
+
+pub(crate) fn assembly_script_create_sc(env: &Env, bytecode: i32) -> i32 {
+    sub_remaining_point(env, settings::metering_create_sc());
+    let bytecode_ptr = BufferPtr::new(bytecode as u32);
+    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let address = if let Ok(bytecode) = &bytecode_ptr.read(memory) {
+        if let Ok(address) = create_sc(env, bytecode) {
+            address
+        } else {
+            abi_bail!("Failed to create module smart contract");
+        }
+    } else {
+        abi_bail!("Cannot read bytecode pointer in memory");
+    };
+    if let Ok(address_ptr) = StringPtr::alloc(&address, &env.wasm_env) {
+        address_ptr.offset() as i32
+    } else {
+        abi_bail!("Cannot allocate address in memory")
     }
 }
