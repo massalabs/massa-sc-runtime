@@ -136,3 +136,78 @@ pub(crate) fn assembly_script_create_sc(env: &Env, bytecode: i32) -> i32 {
         abi_bail!("Cannot allocate address in memory")
     }
 }
+
+pub(crate) fn assembly_script_set_data(env: &Env, key: i32, value: i32) {
+    sub_remaining_point(env, settings::metering_set_data());
+    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let key = StringPtr::new(key as u32).read(memory);
+    let value = StringPtr::new(value as u32).read(memory);
+    if key.is_err() || value.is_err() {
+        abi_bail!("Invalid pointer of key or value");
+    }
+    if let Err(err) = env
+        .interface
+        .set_data(&key.unwrap(), &value.unwrap().as_bytes().to_vec())
+    {
+        abi_bail!(err)
+    }
+}
+
+pub(crate) fn assembly_script_get_data(env: &Env, key: i32) -> i32 {
+    sub_remaining_point(env, settings::metering_get_data());
+    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let key = StringPtr::new(key as u32).read(memory);
+    if key.is_err() {
+        abi_bail!("Invalid pointer of key");
+    }
+    let data = env.interface.get_data(&key.unwrap());
+    if data.is_err() {
+        abi_bail!("Failed to get data from ledger");
+    }
+    pointer_from_utf8(env, &data.unwrap()).offset() as i32
+}
+
+pub(crate) fn assembly_script_set_data_for(env: &Env, address: i32, key: i32, value: i32) {
+    sub_remaining_point(env, settings::metering_set_data());
+    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let address = StringPtr::new(address as u32).read(memory);
+    let key = StringPtr::new(key as u32).read(memory);
+    let value = StringPtr::new(value as u32).read(memory);
+    if key.is_err() || value.is_err() || address.is_err() {
+        abi_bail!("Invalid pointer of key, value or address");
+    }
+    if let Err(err) = env.interface.set_data_for(
+        &address.unwrap(),
+        &key.unwrap(),
+        &value.unwrap().as_bytes().to_vec(),
+    ) {
+        abi_bail!(err)
+    }
+}
+
+pub(crate) fn assembly_script_get_data_for(env: &Env, address: i32, key: i32) -> i32 {
+    sub_remaining_point(env, settings::metering_get_data());
+    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let address = StringPtr::new(address as u32).read(memory);
+    let key = StringPtr::new(key as u32).read(memory);
+    if key.is_err() || address.is_err() {
+        abi_bail!("Invalid pointer of key or address");
+    }
+    let data = env.interface.get_data_for(&address.unwrap(), &key.unwrap());
+    if data.is_err() {
+        abi_bail!("Failed to get data from ledger");
+    }
+    pointer_from_utf8(env, &data.unwrap()).offset() as i32
+}
+
+/// Tooling, return a StringPtr allocated from a bytecode with utf8 parsing
+///
+fn pointer_from_utf8(env: &Env, bytecode: &Bytecode) -> StringPtr {
+    match std::str::from_utf8(bytecode) {
+        Ok(data) => match StringPtr::alloc(&data.to_string(), &env.wasm_env) {
+            Ok(ptr) => *ptr,
+            Err(err) => abi_bail!(err),
+        },
+        Err(err) => abi_bail!(err),
+    }
+}

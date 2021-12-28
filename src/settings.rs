@@ -37,6 +37,14 @@ pub(crate) fn metering_remaining_points() -> u64 {
     METERING.remaining_points()
 }
 
+pub(crate) fn metering_set_data() -> u64 {
+    METERING.set_data()
+}
+
+pub(crate) fn metering_get_data() -> u64 {
+    METERING.get_data()
+}
+
 #[cfg(test)]
 pub(crate) fn set_metering(call_price: u64) {
     METERING._reset(call_price);

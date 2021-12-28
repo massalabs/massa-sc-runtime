@@ -6,6 +6,96 @@ export declare function assembly_script_print(message: string): void
 export declare function assembly_script_create_sc(bytecode: string): string
 export declare function get_remaining_points(): u64
 
+export declare function assembly_script_set_data(key: string, value: string): void;
+export declare function assembly_script_get_data(key: string): string;
+
+export declare function assembly_script_set_data_for(address: string, key: string, value: string): void;
+export declare function assembly_script_get_data_for(address: string, key: string): string;
+
+/**
+ * Set data in the creator of operation ledger entry database.
+ * 
+ * ```js
+ * // Each ledger entry contains this object.
+ * {
+ *  sce_balance, // Amount
+ *  database, // HashMap<Hash, Vec<u8>>
+ *  program_data, // Vec<u8>
+ * }
+ * ```
+ * @param key key address of the data
+ * @param value value to put in the DB
+ */
+export function set_data(key: string, value: string): void {
+    assembly_script_set_data(key, value);
+}
+
+/**
+ * Get data in the creator of operation ledger entry database.
+ * 
+ * ```js
+ * // Each ledger entry contains this object.
+ * {
+ *  sce_balance, // Amount
+ *  database, // HashMap<Hash, Vec<u8>>
+ *  program_data, // Vec<u8>
+ * }
+ * ```
+ * @param key key address of the data
+ * @param value value if the key
+ */
+export function get_data(key: string): string {
+    return assembly_script_get_data(key);
+}
+
+/**
+ * Set data in the creator of operation ledger entry database in a specified address. \
+ * You won't be able to insert a value if you're not the direct creator of the entry \
+ * or the owner of the address.
+ * 
+ * ```js
+ * // Each ledger entry contains this object.
+ * {
+ *  sce_balance, // Amount
+ *  database, // HashMap<Hash, Vec<u8>>
+ *  program_data, // Vec<u8>
+ * }
+ * ```
+ * @param address address of a smart contract or user hash
+ * @param key key address of the data
+ * @param value value to put in the DB
+ */
+ export function set_data_for(address: string, key: string, value: string): void {
+    assembly_script_set_data_for(address, key, value);
+}
+
+/**
+ * Get data in the creator of operation ledger entry database in a specified address.
+ * 
+ * ```js
+ * // Each ledger entry contains this object.
+ * {
+ *  sce_balance, // Amount
+ *  database, // HashMap<Hash, Vec<u8>>
+ *  program_data, // Vec<u8>
+ * }
+ * ```
+ * @param address address of a smart contract or user hash
+ * @param key key address of the data
+ * @param value value if the key
+ */
+export function get_data_for(address: string, key: string): string {
+    return assembly_script_get_data_for(address, key);
+}
+
+/**
+ * Retreive a module in the ledger at the given address and call a function
+ * 
+ * @param address Address hash in format string
+ * @param func Function name exported in the module
+ * @param param String input parameters
+ * @returns String output of the function called
+ */
 export function call(address: string, func: string, param: string): string {
     return assembly_script_call(address, func, param);
 }
@@ -14,6 +104,10 @@ export function print(message: string): void {
     assembly_script_print(message);
 }
 
+/**
+ * Return the remaining operation available
+ * @returns Number of operation available
+ */
 export function get_remaining_gas(): u64 {
     return get_remaining_points();
 }

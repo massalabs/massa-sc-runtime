@@ -43,8 +43,8 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     /// Requires the data at the address
-    fn get_data(&self, _address: &Address, _key: &str) -> Result<Bytecode> {
-        bail!("unimplemented function get_data in interface")
+    fn get_data_for(&self, _address: &Address, _key: &str) -> Result<Bytecode> {
+        bail!("unimplemented function get_data_for in interface")
     }
 
     /// Print function for examples
@@ -60,7 +60,15 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ///
     /// Note:
     /// The execution lib will allways use the current context address for the update
-    fn set_data(&self, _address: &Address, _key: &str, _value: &Bytecode) -> Result<Bytecode> {
+    fn set_data_for(&self, _address: &Address, _key: &str, _value: &Bytecode) -> Result<()> {
+        bail!("unimplemented function set_data_for in interface")
+    }
+
+    fn get_data(&self, _key: &str) -> Result<Bytecode> {
+        bail!("unimplemented function get_data in interface")
+    }
+
+    fn set_data(&self, _key: &str, _value: &Bytecode) -> Result<()> {
         bail!("unimplemented function set_data in interface")
     }
 
