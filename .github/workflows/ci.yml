@@ -65,6 +65,13 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 17.1.0
+      - run: |
+          cd wasm
+          yarn install
+          yarn test
 
   clippy:
     if: github.ref != 'refs/heads/staging'
