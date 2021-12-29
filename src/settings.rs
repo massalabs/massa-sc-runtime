@@ -9,12 +9,12 @@ pub(crate) const MAIN: &str = "main";
 struct Metering {
     #[cornetto(mut, 200)]
     pub call: u64,
-    #[cornetto(const, 200)]
-    pub set_data: u64,
-    #[cornetto(const, 200)]
-    pub get_data: u64,
-    #[cornetto(const, 200)]
-    pub create_sc: u64,
+    #[cornetto(const, 20)]
+    pub set_data_ratio: usize,
+    #[cornetto(const, 20)]
+    pub get_data_ratio: usize,
+    #[cornetto(const, 20)]
+    pub create_sc_ratio: usize,
     #[cornetto(const, 200)]
     pub print: u64,
     #[cornetto(const, 200)]
@@ -29,20 +29,20 @@ pub(crate) fn metering_print() -> u64 {
     METERING.print()
 }
 
-pub(crate) fn metering_create_sc() -> u64 {
-    METERING.create_sc()
+pub(crate) fn metering_create_sc_ratio() -> usize {
+    METERING.create_sc_ratio()
 }
 
 pub(crate) fn metering_remaining_points() -> u64 {
     METERING.remaining_points()
 }
 
-pub(crate) fn metering_set_data() -> u64 {
-    METERING.set_data()
+pub(crate) fn metering_set_data_ratio() -> usize {
+    METERING.set_data_ratio()
 }
 
-pub(crate) fn metering_get_data() -> u64 {
-    METERING.get_data()
+pub(crate) fn metering_get_data_ratio() -> usize {
+    METERING.get_data_ratio()
 }
 
 #[cfg(test)]

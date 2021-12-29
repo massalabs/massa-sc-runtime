@@ -57,6 +57,15 @@ pub fn sub_remaining_point(env: &Env, points: u64) {
     }
 }
 
+/// Try to substract remaining point computing the points with a/b and ceiling
+/// the result.
+pub fn sub_remaining_points_with_ratio(env: &Env, a: usize, b: usize) {
+    match a.checked_div(b) {
+        Some(points) => sub_remaining_point(env, points as u64),
+        None => abi_bail!("Failed to substract points"),
+    };
+}
+
 /// Called by the instance when an error popped. It print the filename where the error
 /// had pop up, an error message and more stacktrace information as line and column
 ///
