@@ -17,7 +17,16 @@ macro_rules! abi_bail {
         wasmer::RuntimeError::raise(Box::new(crate::abi_impl::ExitCode($err.to_string())))
     };
 }
+macro_rules! get_memory {
+    ($env:ident) => {
+        match $env.wasm_env.memory.get_ref() {
+            Some(mem) => mem,
+            _ => abi_bail!("uninitialized memory"),
+        }
+    };
+}
 pub(crate) use abi_bail;
+pub(crate) use get_memory;
 
 /// `Call` ABI called by the webassembly VM
 ///
@@ -53,7 +62,7 @@ pub(crate) fn assembly_script_call_module(
     param: i32,
 ) -> i32 {
     sub_remaining_point(env, settings::metering_call());
-    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let memory = get_memory!(env);
     let addr_ptr = StringPtr::new(address as u32);
     let func_ptr = StringPtr::new(function as u32);
     let param_ptr = StringPtr::new(param as u32);
@@ -93,7 +102,7 @@ pub(crate) fn get_remaining_points(env: &Env) -> i32 {
 pub(crate) fn assembly_script_print(env: &Env, arg: i32) {
     sub_remaining_point(env, settings::metering_print());
     let str_ptr = StringPtr::new(arg as u32);
-    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let memory = get_memory!(env);
     if let Ok(message) = &str_ptr.read(memory) {
         if env.interface.print(message).is_err() {
             abi_bail!("Failed to print message");
@@ -106,7 +115,7 @@ pub(crate) fn assembly_script_print(env: &Env, arg: i32) {
 pub(crate) fn assembly_script_create_sc(env: &Env, bytecode: i32) -> i32 {
     sub_remaining_point(env, settings::metering_create_sc());
     let bytecode_ptr = StringPtr::new(bytecode as u32);
-    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let memory = get_memory!(env);
     let address = if let Ok(bytecode) = &bytecode_ptr.read(memory) {
         // Base64 to Binary
         let bytecode = base64::decode(bytecode);
