@@ -92,30 +92,19 @@ pub(crate) fn assembly_script_call_module(
 ) -> i32 {
     sub_remaining_point(env, settings::metering_call());
     let memory = get_memory!(env);
-    let addr_ptr = StringPtr::new(address as u32);
-    let func_ptr = StringPtr::new(function as u32);
-    let param_ptr = StringPtr::new(param as u32);
-
-    let address = addr_ptr.read(memory);
-    let function = func_ptr.read(memory);
-    let param = param_ptr.read(memory);
-    if address.is_err() || function.is_err() || param.is_err() {
-        abi_bail!("Cannot read address, function or param in memory in call module request ABI")
-    }
-    let address = &address.unwrap();
-    let function = &function.unwrap();
-    let param = &param.unwrap();
+    let address = &get_string(memory, address);
+    let function = &get_string(memory, function);
+    let param = &get_string(memory, param);
     let value = call_module(env, address, function, param);
     if value.is_err() {
         abi_bail!(value.err().unwrap())
     }
-    if let Ok(ret) = StringPtr::alloc(&value.unwrap().ret, &env.wasm_env) {
-        ret.offset() as i32
-    } else {
-        abi_bail!(format!(
+    match StringPtr::alloc(&value.unwrap().ret, &env.wasm_env) {
+        Ok(ret) => ret.offset() as i32,
+        _ => abi_bail!(format!(
             "Cannot allocate response in call {}::{}",
             address, function
-        ))
+        )),
     }
 }
 
@@ -130,14 +119,9 @@ pub(crate) fn get_remaining_points(env: &Env) -> i32 {
 /// An utility print function to write on stdout directly from AssemblyScript:
 pub(crate) fn assembly_script_print(env: &Env, arg: i32) {
     sub_remaining_point(env, settings::metering_print());
-    let str_ptr = StringPtr::new(arg as u32);
     let memory = get_memory!(env);
-    if let Ok(message) = &str_ptr.read(memory) {
-        if env.interface.print(message).is_err() {
-            abi_bail!("Failed to print message");
-        }
-    } else {
-        abi_bail!("Cannot read message pointer in memory");
+    if env.interface.print(&get_string(memory, arg)).is_err() {
+        abi_bail!("Failed to print message");
     }
 }
 
@@ -167,26 +151,17 @@ pub(crate) fn assembly_script_create_sc(env: &Env, bytecode: i32) -> i32 {
 
 pub(crate) fn assembly_script_set_data(env: &Env, key: i32, value: i32) {
     let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
-    let key = StringPtr::new(key as u32).read(memory);
     let value = read_string_and_sub_points(env, memory, value, settings::metering_set_data_ratio());
-    if key.is_err() {
-        abi_bail!("Invalid pointer of key");
-    }
-    if let Err(err) = env
-        .interface
-        .set_data(&key.unwrap(), &value.as_bytes().to_vec())
-    {
+    let key = get_string(memory, key);
+    if let Err(err) = env.interface.set_data(&key, &value.as_bytes().to_vec()) {
         abi_bail!(err)
     }
 }
 
 pub(crate) fn assembly_script_get_data(env: &Env, key: i32) -> i32 {
     let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
-    let key = StringPtr::new(key as u32).read(memory);
-    if key.is_err() {
-        abi_bail!("Invalid pointer of key");
-    }
-    match env.interface.get_data(&key.unwrap()) {
+    let key = get_string(memory, key);
+    match env.interface.get_data(&key) {
         Ok(data) => {
             sub_remaining_points_with_ratio(env, data.len(), settings::metering_get_data_ratio());
             pointer_from_utf8(env, &data).offset() as i32
@@ -198,14 +173,11 @@ pub(crate) fn assembly_script_get_data(env: &Env, key: i32) -> i32 {
 pub(crate) fn assembly_script_set_data_for(env: &Env, address: i32, key: i32, value: i32) {
     let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
     let value = read_string_and_sub_points(env, memory, value, settings::metering_set_data_ratio());
-    let address = StringPtr::new(address as u32).read(memory);
-    let key = StringPtr::new(key as u32).read(memory);
-    if key.is_err() || address.is_err() {
-        abi_bail!("Invalid pointer of key, value or address");
-    }
-    if let Err(err) =
-        env.interface
-            .set_data_for(&address.unwrap(), &key.unwrap(), &value.as_bytes().to_vec())
+    let address = get_string(memory, address);
+    let key = get_string(memory, key);
+    if let Err(err) = env
+        .interface
+        .set_data_for(&address, &key, &value.as_bytes().to_vec())
     {
         abi_bail!(err)
     }
@@ -213,12 +185,9 @@ pub(crate) fn assembly_script_set_data_for(env: &Env, address: i32, key: i32, va
 
 pub(crate) fn assembly_script_get_data_for(env: &Env, address: i32, key: i32) -> i32 {
     let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
-    let address = StringPtr::new(address as u32).read(memory);
-    let key = StringPtr::new(key as u32).read(memory);
-    if key.is_err() || address.is_err() {
-        abi_bail!("Invalid pointer of key or address");
-    }
-    match env.interface.get_data_for(&address.unwrap(), &key.unwrap()) {
+    let address = get_string(memory, address);
+    let key = get_string(memory, key);
+    match env.interface.get_data_for(&address, &key) {
         Ok(data) => {
             sub_remaining_points_with_ratio(env, data.len(), settings::metering_get_data_ratio());
             pointer_from_utf8(env, &data).offset() as i32
@@ -252,6 +221,14 @@ fn read_string_and_sub_points(env: &Env, memory: &Memory, offset: i32, ratio: us
             sub_remaining_points_with_ratio(env, value.len(), ratio);
             value
         }
+        Err(err) => abi_bail!(err),
+    }
+}
+
+/// Tooling, return a string from a given offset
+fn get_string(memory: &Memory, ptr: i32) -> String {
+    match StringPtr::new(ptr as u32).read(memory) {
+        Ok(str) => str,
         Err(err) => abi_bail!(err),
     }
 }
