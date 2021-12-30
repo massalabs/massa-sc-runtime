@@ -31,18 +31,8 @@ use crate::types::{Address, Response};
 use crate::{settings, Bytecode};
 use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
 use wasmer::Memory;
-use wasmer::RuntimeError;
 
-pub type ABIResult<T, E = RuntimeError> = core::result::Result<T, E>;
-
-#[derive(Debug, Clone)]
-pub(crate) struct ExitCode(pub(crate) String);
-impl std::fmt::Display for ExitCode {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-impl std::error::Error for ExitCode {}
+pub type ABIResult<T, E = wasmer::RuntimeError> = core::result::Result<T, E>;
 macro_rules! abi_bail {
     ($err:expr) => {
         return Err(wasmer::RuntimeError::new($err.to_string()))
@@ -66,24 +56,29 @@ pub(crate) use get_memory;
 /// It take in argument the environment defined in env.rs
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
-fn call_module(
-    env: &Env,
-    address: &Address,
-    function: &str,
-    param: &str,
-) -> anyhow::Result<Response> {
-    let module = &env.interface.get_module(address)?;
-    crate::execution_impl::exec(
+fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> ABIResult<Response> {
+    let module = &match env.interface.get_module(address) {
+        Ok(module) => module,
+        Err(err) => abi_bail!(err),
+    };
+    let res = match crate::execution_impl::exec(
         get_remaining_points_for_env(env),
         None,
         module,
         function,
         param,
         &*env.interface,
-    )
+    ) {
+        Ok(response) => response,
+        Err(err) => abi_bail!(err),
+    };
+    match env.interface.module_called() {
+        Ok(_) => Ok(res),
+        Err(err) => abi_bail!(err),
+    }
 }
 
-fn create_sc(env: &Env, bytecode: &Bytecode) -> Result<Address, RuntimeError> {
+fn create_sc(env: &Env, bytecode: &Bytecode) -> ABIResult<Address> {
     match env.interface.create_module(bytecode) {
         Ok(address) => Ok(address),
         Err(err) => abi_bail!(err),
@@ -92,30 +87,25 @@ fn create_sc(env: &Env, bytecode: &Bytecode) -> Result<Address, RuntimeError> {
 
 /// Raw call that have the right type signature to be able to be call a module
 /// directly form AssemblyScript:
-///
 #[doc = include_str!("../wasm/README.md")]
 pub(crate) fn assembly_script_call_module(
     env: &Env,
     address: i32,
     function: i32,
     param: i32,
-) -> Result<i32, RuntimeError> {
+) -> ABIResult<i32> {
     sub_remaining_point(env, settings::metering_call())?;
     let memory = get_memory!(env);
     let address = &get_string(memory, address)?;
     let function = &get_string(memory, function)?;
     let param = &get_string(memory, param)?;
-    let value = call_module(env, address, function, param);
-    let value = match value {
-        Ok(value) => value,
-        Err(err) => abi_bail!(err),
-    };
-    match StringPtr::alloc(&value.ret, &env.wasm_env) {
+    let response = call_module(env, address, function, param)?;
+    match StringPtr::alloc(&response.ret, &env.wasm_env) {
         Ok(ret) => Ok(ret.offset() as i32),
-        _ => Err(RuntimeError::new(format!(
+        _ => abi_bail!(format!(
             "Cannot allocate response in call {}::{}",
             address, function
-        ))),
+        )),
     }
 }
 
@@ -132,7 +122,7 @@ pub(crate) fn assembly_script_print(env: &Env, arg: i32) -> ABIResult<()> {
     sub_remaining_point(env, settings::metering_print())?;
     let memory = get_memory!(env);
     if let Err(err) = env.interface.print(&get_string(memory, arg)?) {
-        return Err(RuntimeError::new(err.to_string()));
+        abi_bail!(err);
     }
     Ok(())
 }

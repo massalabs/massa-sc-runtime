@@ -81,4 +81,8 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn get_random(&self) -> Result<u64> {
         bail!("unimplemented function get_random in interface")
     }
+
+    fn module_called(&self) -> Result<()> {
+        bail!("unimplemented function module_called in interface")
+    }
 }
