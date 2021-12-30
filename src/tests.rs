@@ -59,7 +59,7 @@ impl Interface for TestInterface {
 }
 
 #[test]
-#[serial(one)]
+#[serial]
 fn test_caller() {
     settings::reset_metering();
     let interface: Box<dyn Interface> =
@@ -92,7 +92,7 @@ fn test_caller() {
 }
 
 #[test]
-#[serial(two)]
+#[serial]
 fn test_local_hello_name_caller() {
     settings::reset_metering();
     // This test should verify that even if we failed to load a module,
@@ -115,7 +115,7 @@ fn test_local_hello_name_caller() {
 }
 
 #[test]
-#[serial(two)]
+#[serial]
 fn test_module_creation() {
     settings::reset_metering();
     // This test should create a smartcontract module and call it
