@@ -67,7 +67,7 @@ pub(crate) fn exec(
             if function.eq(crate::settings::MAIN) {
                 return Ok(Response {
                     ret: "0".to_string(),
-                    remaining_points: get_remaining_points_for_instance(&instance),
+                    remaining_gas: get_remaining_points_for_instance(&instance),
                 });
             }
             let ret = if let Some(offset) = value.get(0) {
@@ -83,7 +83,7 @@ pub(crate) fn exec(
             };
             Ok(Response {
                 ret,
-                remaining_points: get_remaining_points_for_instance(&instance),
+                remaining_gas: get_remaining_points_for_instance(&instance),
             })
         }
         Err(error) => bail!(error),
@@ -93,7 +93,7 @@ pub(crate) fn exec(
 pub fn run(module: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
     let instance = create_instance(limit, module, interface)?;
     if instance.exports.contains(settings::MAIN) {
-        Ok(exec(limit, Some(instance), module, settings::MAIN, "", interface)?.remaining_points)
+        Ok(exec(limit, Some(instance), module, settings::MAIN, "", interface)?.remaining_gas)
     } else {
         Ok(limit)
     }
