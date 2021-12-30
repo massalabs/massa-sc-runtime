@@ -63,7 +63,7 @@ pub fn sub_remaining_point(env: &Env, points: u64) -> ABIResult<()> {
 pub fn sub_remaining_points_with_mult(env: &Env, a: usize, b: usize) -> ABIResult<()> {
     match a.checked_mul(b) {
         Some(points) => sub_remaining_point(env, points as u64),
-        None => abi_bail!("Failed to substract points"),
+        None => abi_bail!(format!("Multiplication overflow {} {}", a, b)),
     }
 }
 
