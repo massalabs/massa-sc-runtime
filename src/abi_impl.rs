@@ -1,6 +1,6 @@
 use crate::env::{get_remaining_points_for_env, sub_remaining_point, Env};
-use crate::settings;
 use crate::types::{Address, Response};
+use crate::{settings, Bytecode};
 use anyhow::Result;
 use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
 
@@ -17,7 +17,16 @@ macro_rules! abi_bail {
         wasmer::RuntimeError::raise(Box::new(crate::abi_impl::ExitCode($err.to_string())))
     };
 }
+macro_rules! get_memory {
+    ($env:ident) => {
+        match $env.wasm_env.memory.get_ref() {
+            Some(mem) => mem,
+            _ => abi_bail!("uninitialized memory"),
+        }
+    };
+}
 pub(crate) use abi_bail;
+pub(crate) use get_memory;
 
 /// `Call` ABI called by the webassembly VM
 ///
@@ -38,6 +47,10 @@ fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Res
     )
 }
 
+fn create_sc(env: &Env, bytecode: &Bytecode) -> Result<Address> {
+    env.interface.create_module(bytecode)
+}
+
 /// Raw call that have the right type signature to be able to be call a module
 /// directly form AssemblyScript:
 ///
@@ -49,7 +62,7 @@ pub(crate) fn assembly_script_call_module(
     param: i32,
 ) -> i32 {
     sub_remaining_point(env, settings::metering_call());
-    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let memory = get_memory!(env);
     let addr_ptr = StringPtr::new(address as u32);
     let func_ptr = StringPtr::new(function as u32);
     let param_ptr = StringPtr::new(param as u32);
@@ -89,12 +102,37 @@ pub(crate) fn get_remaining_points(env: &Env) -> i32 {
 pub(crate) fn assembly_script_print(env: &Env, arg: i32) {
     sub_remaining_point(env, settings::metering_print());
     let str_ptr = StringPtr::new(arg as u32);
-    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let memory = get_memory!(env);
     if let Ok(message) = &str_ptr.read(memory) {
         if env.interface.print(message).is_err() {
             abi_bail!("Failed to print message");
         }
     } else {
         abi_bail!("Cannot read message pointer in memory");
+    }
+}
+
+pub(crate) fn assembly_script_create_sc(env: &Env, bytecode: i32) -> i32 {
+    sub_remaining_point(env, settings::metering_create_sc());
+    let bytecode_ptr = StringPtr::new(bytecode as u32);
+    let memory = get_memory!(env);
+    let address = if let Ok(bytecode) = &bytecode_ptr.read(memory) {
+        // Base64 to Binary
+        let bytecode = base64::decode(bytecode);
+        if bytecode.is_err() {
+            abi_bail!("Failed to decode module");
+        }
+        if let Ok(address) = create_sc(env, &bytecode.unwrap()) {
+            address
+        } else {
+            abi_bail!("Failed to create module smart contract");
+        }
+    } else {
+        abi_bail!("Cannot read bytecode pointer in memory");
+    };
+    if let Ok(address_ptr) = StringPtr::alloc(&address, &env.wasm_env) {
+        address_ptr.offset() as i32
+    } else {
+        abi_bail!("Cannot allocate address in memory")
     }
 }

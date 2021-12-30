@@ -3,8 +3,8 @@ use crate::settings;
 use crate::types::{Address, Bytecode};
 use crate::types::{Interface, InterfaceClone};
 use anyhow::{bail, Result};
+use serial_test::serial;
 use std::sync::{Arc, Mutex};
-
 pub type Ledger = std::collections::BTreeMap<Address, Bytecode>; // Byttecode instead of String
 
 #[derive(Clone)]
@@ -47,9 +47,19 @@ impl Interface for TestInterface {
             _ => bail!("Cannot find data"),
         }
     }
+
+    fn create_module(&self, module: &Bytecode) -> Result<Address> {
+        let address = String::from("get_string");
+        self.0
+            .lock()
+            .unwrap()
+            .insert(address.clone(), module.clone());
+        Ok(address)
+    }
 }
 
 #[test]
+#[serial]
 fn test_caller() {
     settings::reset_metering();
     let interface: Box<dyn Interface> =
@@ -82,6 +92,7 @@ fn test_caller() {
 }
 
 #[test]
+#[serial]
 fn test_local_hello_name_caller() {
     settings::reset_metering();
     // This test should verify that even if we failed to load a module,
@@ -101,4 +112,23 @@ fn test_local_hello_name_caller() {
         "/wasm/build/local_hello_name_caller.wat"
     ));
     run(module, 20_000, &*interface).expect_err("Succeeded to run local_hello_name_caller.wat");
+}
+
+#[test]
+#[serial]
+fn test_module_creation() {
+    settings::reset_metering();
+    // This test should create a smartcontract module and call it
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/create_sc.wasm"
+    ));
+    run(module, 10_000, &*interface).expect("Failed to run create_sc.wat");
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/caller.wat"
+    ));
+    run(module, 20_000, &*interface).expect("Failed to run caller.wat");
 }

@@ -28,7 +28,8 @@ fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Resu
         "massa" => {
             "assembly_script_print" => Function::new_native_with_env(&store, env.clone(), assembly_script_print),
             "assembly_script_call" => Function::new_native_with_env(&store, env.clone(), assembly_script_call_module),
-            "get_remaining_points" => Function::new_native_with_env(&store, env, get_remaining_points),
+            "get_remaining_points" => Function::new_native_with_env(&store, env.clone(), get_remaining_points),
+            "assembly_script_create_sc" => Function::new_native_with_env(&store, env, assembly_script_create_sc),
         },
     };
     let module = Module::new(&store, &module)?;

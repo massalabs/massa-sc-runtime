@@ -5,15 +5,18 @@
   "main": "index.js",
   "scripts": {
     "get_string": "asc assembly/get_string.ts --target release --exportRuntime --textFile build/get_string.wat --binaryFile build/get_string.wasm",
+    "create_sc": "node massa_tools/include_base64.js assembly/create_sc.ts && asc assembly/create_sc.m.ts --target release --exportRuntime --textFile build/create_sc.wat --binaryFile build/create_sc.wasm && rm assembly/create_sc.m.ts",
     "caller": "asc assembly/caller.ts --target release --exportRuntime --textFile build/caller.wat --binaryFile build/caller.wasm",
     "local_hello_name_caller": "asc assembly/local_hello_name_caller.ts --target release --exportRuntime --textFile build/local_hello_name_caller.wat --binaryFile build/local_hello_name_caller.wasm",
-    "build": "yarn run get_string && yarn run caller && yarn run local_hello_name_caller",
-    "clean": "rm -rf build"
+    "test": "jest",
+    "build": "yarn run get_string && yarn run caller && yarn run local_hello_name_caller && yarn run create_sc",
+    "clean": "rm -rf build && rm assembly/*.m.ts"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "assemblyscript": "^0.19.20"
+    "assemblyscript": "^0.19.20",
+    "jest": "^27.4.5"
   },
   "dependencies": {
     "json-as": "^0.2.6",

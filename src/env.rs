@@ -1,6 +1,6 @@
 //! Extends the env of wasmer-as
 
-use crate::abi_impl::abi_bail;
+use crate::abi_impl::{abi_bail, get_memory};
 use crate::types::Interface;
 use anyhow::Result;
 use as_ffi_bindings::{Read, StringPtr};
@@ -73,7 +73,7 @@ pub fn assembly_script_abort(
     line: i32,
     col: i32,
 ) {
-    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let memory = get_memory!(env);
     let message = message.read(memory);
     let filename = filename.read(memory);
     if message.is_err() || filename.is_err() {
