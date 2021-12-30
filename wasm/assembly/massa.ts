@@ -12,6 +12,9 @@ export declare function assembly_script_get_data(key: string): string;
 export declare function assembly_script_set_data_for(address: string, key: string, value: string): void;
 export declare function assembly_script_get_data_for(address: string, key: string): string;
 
+export declare function assembly_script_get_call_stack(): string;
+export declare function assembly_script_get_owned_addresses(): string;
+
 /**
  * Set data in the creator of operation ledger entry database.
  * 
@@ -138,4 +141,27 @@ export function create_sc(bytecode: string): string {
 export function include_base64(_path: string): string {
     /* NOT IMPLEMENTED HERE */
     abort('Please use massa tool *include_base64* compilation')
+}
+
+/**
+ * Get context current call stack
+ * 
+ * The call stack is stack of called module. You can look all previous \
+ * addresses since the address of the operation sender.
+ * 
+ * @returns JSON formated list of addresses containing the call stack
+ */
+export function get_call_stack(): string {
+    return assembly_script_get_call_stack();
+}
+
+/**
+ * Get context current owned addresses.
+ * 
+ * You can check your own address or check the addresses of the smart contract you've created during the current execution.
+ * 
+ * @returns JSON formated list of addresses containing the owned addresses
+ */
+export function get_owned_addresses(): string {
+    return assembly_script_get_owned_addresses();
 }

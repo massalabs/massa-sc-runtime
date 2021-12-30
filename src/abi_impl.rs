@@ -152,7 +152,7 @@ pub(crate) fn assembly_script_create_sc(env: &Env, bytecode: i32) -> ABIResult<i
 }
 
 pub(crate) fn assembly_script_set_data(env: &Env, key: i32, value: i32) -> ABIResult<()> {
-    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let memory = get_memory!(env);
     let value = read_string_and_sub_points(env, memory, value, settings::metering_set_data_mult())?;
     let key = get_string(memory, key)?;
     if let Err(err) = env.interface.set_data(&key, &value.as_bytes().to_vec()) {
@@ -162,7 +162,7 @@ pub(crate) fn assembly_script_set_data(env: &Env, key: i32, value: i32) -> ABIRe
 }
 
 pub(crate) fn assembly_script_get_data(env: &Env, key: i32) -> ABIResult<i32> {
-    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let memory = get_memory!(env);
     let key = get_string(memory, key)?;
     match env.interface.get_data(&key) {
         Ok(data) => {
@@ -179,7 +179,7 @@ pub(crate) fn assembly_script_set_data_for(
     key: i32,
     value: i32,
 ) -> ABIResult<()> {
-    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let memory = get_memory!(env);
     let value = read_string_and_sub_points(env, memory, value, settings::metering_set_data_mult())?;
     let address = get_string(memory, address)?;
     let key = get_string(memory, key)?;
@@ -193,7 +193,7 @@ pub(crate) fn assembly_script_set_data_for(
 }
 
 pub(crate) fn assembly_script_get_data_for(env: &Env, address: i32, key: i32) -> ABIResult<i32> {
-    let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
+    let memory = get_memory!(env);
     let address = get_string(memory, address)?;
     let key = get_string(memory, key)?;
     match env.interface.get_data_for(&address, &key) {
@@ -201,6 +201,20 @@ pub(crate) fn assembly_script_get_data_for(env: &Env, address: i32, key: i32) ->
             sub_remaining_points_with_mult(env, data.len(), settings::metering_get_data_mult())?;
             Ok(pointer_from_utf8(env, &data)?.offset() as i32)
         }
+        Err(err) => abi_bail!(err),
+    }
+}
+
+pub(crate) fn assembly_script_get_owned_addresses(env: &Env) -> ABIResult<i32> {
+    match env.interface.get_owned_addresses() {
+        Ok(data) => alloc_string_array(env, &data),
+        Err(err) => abi_bail!(err),
+    }
+}
+
+pub(crate) fn assembly_script_get_call_stack(env: &Env) -> ABIResult<i32> {
+    match env.interface.get_call_stack() {
+        Ok(data) => alloc_string_array(env, &data),
         Err(err) => abi_bail!(err),
     }
 }
@@ -242,6 +256,18 @@ fn read_string_and_sub_points(
 fn get_string(memory: &Memory, ptr: i32) -> ABIResult<String> {
     match StringPtr::new(ptr as u32).read(memory) {
         Ok(str) => Ok(str),
+        Err(err) => abi_bail!(err),
+    }
+}
+
+/// Tooling, return a pointer offset of a serialized list in json
+fn alloc_string_array(env: &Env, vec: &[String]) -> ABIResult<i32> {
+    let addresses = match serde_json::to_string(vec) {
+        Ok(list) => list,
+        Err(err) => abi_bail!(err),
+    };
+    match StringPtr::alloc(&addresses, &env.wasm_env) {
+        Ok(ptr) => Ok(ptr.offset() as i32),
         Err(err) => abi_bail!(err),
     }
 }
