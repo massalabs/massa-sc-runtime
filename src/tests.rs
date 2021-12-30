@@ -56,6 +56,10 @@ impl Interface for TestInterface {
             .insert(address.clone(), module.clone());
         Ok(address)
     }
+
+    fn exit_success(&self) -> Result<()> {
+        Ok(())
+    }
 }
 
 #[test]

@@ -72,7 +72,7 @@ fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> ABI
         Ok(response) => response,
         Err(err) => abi_bail!(err),
     };
-    match env.interface.module_called() {
+    match env.interface.exit_success() {
         Ok(_) => Ok(res),
         Err(err) => abi_bail!(err),
     }

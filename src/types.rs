@@ -52,10 +52,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
         bail!("unimplemented function print in interface")
     }
 
-    fn get_my_address(&self) -> Result<Address> {
-        bail!("unimplemented function get_my_address in interface")
-    }
-
     /// Requires to replace the data in the current address
     ///
     /// Note:
@@ -84,5 +80,17 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     fn module_called(&self) -> Result<()> {
         bail!("unimplemented function module_called in interface")
+    }
+
+    fn exit_success(&self) -> Result<()> {
+        bail!("unimplemented function exit_success in interface")
+    }
+
+    fn get_owned_addresses(&self) -> Result<Vec<Address>> {
+        bail!("unimplemented function get_owned_addresses in interface")
+    }
+
+    fn get_call_stack(&self) -> Result<Vec<Address>> {
+        bail!("unimplemented function get_call_stack in interface")
     }
 }
