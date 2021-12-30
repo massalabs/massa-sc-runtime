@@ -25,13 +25,15 @@
 ///! };
 ///! ```
 use crate::env::{
-    get_remaining_points_for_env, sub_remaining_point, sub_remaining_points_with_ratio, Env,
+    get_remaining_points_for_env, sub_remaining_point, sub_remaining_points_with_mult, Env,
 };
 use crate::types::{Address, Response};
 use crate::{settings, Bytecode};
-use anyhow::Result;
 use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
 use wasmer::Memory;
+use wasmer::RuntimeError;
+
+pub type ABIResult<T, E = RuntimeError> = core::result::Result<T, E>;
 
 #[derive(Debug, Clone)]
 pub(crate) struct ExitCode(pub(crate) String);
@@ -43,7 +45,7 @@ impl std::fmt::Display for ExitCode {
 impl std::error::Error for ExitCode {}
 macro_rules! abi_bail {
     ($err:expr) => {
-        wasmer::RuntimeError::raise(Box::new(crate::abi_impl::ExitCode($err.to_string())))
+        return Err(wasmer::RuntimeError::new($err.to_string()))
     };
 }
 macro_rules! get_memory {
@@ -64,7 +66,12 @@ pub(crate) use get_memory;
 /// It take in argument the environment defined in env.rs
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
-fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Result<Response> {
+fn call_module(
+    env: &Env,
+    address: &Address,
+    function: &str,
+    param: &str,
+) -> anyhow::Result<Response> {
     let module = &env.interface.get_module(address)?;
     crate::execution_impl::exec(
         get_remaining_points_for_env(env),
@@ -76,8 +83,11 @@ fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> Res
     )
 }
 
-fn create_sc(env: &Env, bytecode: &Bytecode) -> Result<Address> {
-    env.interface.create_module(bytecode)
+fn create_sc(env: &Env, bytecode: &Bytecode) -> Result<Address, RuntimeError> {
+    match env.interface.create_module(bytecode) {
+        Ok(address) => Ok(address),
+        Err(err) => abi_bail!(err),
+    }
 }
 
 /// Raw call that have the right type signature to be able to be call a module
@@ -89,53 +99,55 @@ pub(crate) fn assembly_script_call_module(
     address: i32,
     function: i32,
     param: i32,
-) -> i32 {
-    sub_remaining_point(env, settings::metering_call());
+) -> Result<i32, RuntimeError> {
+    sub_remaining_point(env, settings::metering_call())?;
     let memory = get_memory!(env);
-    let address = &get_string(memory, address);
-    let function = &get_string(memory, function);
-    let param = &get_string(memory, param);
+    let address = &get_string(memory, address)?;
+    let function = &get_string(memory, function)?;
+    let param = &get_string(memory, param)?;
     let value = call_module(env, address, function, param);
-    if value.is_err() {
-        abi_bail!(value.err().unwrap())
-    }
-    match StringPtr::alloc(&value.unwrap().ret, &env.wasm_env) {
-        Ok(ret) => ret.offset() as i32,
-        _ => abi_bail!(format!(
+    let value = match value {
+        Ok(value) => value,
+        Err(err) => abi_bail!(err),
+    };
+    match StringPtr::alloc(&value.ret, &env.wasm_env) {
+        Ok(ret) => Ok(ret.offset() as i32),
+        _ => Err(RuntimeError::new(format!(
             "Cannot allocate response in call {}::{}",
             address, function
-        )),
+        ))),
     }
 }
 
-pub(crate) fn get_remaining_points(env: &Env) -> i32 {
-    sub_remaining_point(env, settings::metering_remaining_points());
-    get_remaining_points_for_env(env) as i32
+pub(crate) fn get_remaining_points(env: &Env) -> ABIResult<i32> {
+    sub_remaining_point(env, settings::metering_remaining_points())?;
+    Ok(get_remaining_points_for_env(env) as i32)
 }
 
 /// Create an instance of VM from a module with a
 /// given intefrace, an operation number limit and a webassembly module
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
-pub(crate) fn assembly_script_print(env: &Env, arg: i32) {
-    sub_remaining_point(env, settings::metering_print());
+pub(crate) fn assembly_script_print(env: &Env, arg: i32) -> ABIResult<()> {
+    sub_remaining_point(env, settings::metering_print())?;
     let memory = get_memory!(env);
-    if env.interface.print(&get_string(memory, arg)).is_err() {
-        abi_bail!("Failed to print message");
+    if let Err(err) = env.interface.print(&get_string(memory, arg)?) {
+        return Err(RuntimeError::new(err.to_string()));
     }
+    Ok(())
 }
 
 /// Read a bytecode string, representing the webassembly module binary encoded
 /// with in base64.
-pub(crate) fn assembly_script_create_sc(env: &Env, bytecode: i32) -> i32 {
+pub(crate) fn assembly_script_create_sc(env: &Env, bytecode: i32) -> ABIResult<i32> {
     let memory = get_memory!(env);
     // Base64 to Binary
     let bytecode = match base64::decode(read_string_and_sub_points(
         env,
         memory,
         bytecode,
-        settings::metering_create_sc_ratio(),
-    )) {
+        settings::metering_create_sc_mult(),
+    )?) {
         Ok(bytecode) => bytecode,
         Err(err) => abi_bail!(err),
     };
@@ -144,64 +156,70 @@ pub(crate) fn assembly_script_create_sc(env: &Env, bytecode: i32) -> i32 {
         Err(err) => abi_bail!(err),
     };
     match StringPtr::alloc(&address, &env.wasm_env) {
-        Ok(ptr) => ptr.offset() as i32,
+        Ok(ptr) => Ok(ptr.offset() as i32),
         Err(err) => abi_bail!(err),
     }
 }
 
-pub(crate) fn assembly_script_set_data(env: &Env, key: i32, value: i32) {
+pub(crate) fn assembly_script_set_data(env: &Env, key: i32, value: i32) -> ABIResult<()> {
     let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
-    let value = read_string_and_sub_points(env, memory, value, settings::metering_set_data_ratio());
-    let key = get_string(memory, key);
+    let value = read_string_and_sub_points(env, memory, value, settings::metering_set_data_mult())?;
+    let key = get_string(memory, key)?;
     if let Err(err) = env.interface.set_data(&key, &value.as_bytes().to_vec()) {
         abi_bail!(err)
     }
+    Ok(())
 }
 
-pub(crate) fn assembly_script_get_data(env: &Env, key: i32) -> i32 {
+pub(crate) fn assembly_script_get_data(env: &Env, key: i32) -> ABIResult<i32> {
     let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
-    let key = get_string(memory, key);
+    let key = get_string(memory, key)?;
     match env.interface.get_data(&key) {
         Ok(data) => {
-            sub_remaining_points_with_ratio(env, data.len(), settings::metering_get_data_ratio());
-            pointer_from_utf8(env, &data).offset() as i32
+            sub_remaining_points_with_mult(env, data.len(), settings::metering_get_data_mult())?;
+            Ok(pointer_from_utf8(env, &data)?.offset() as i32)
         }
         Err(err) => abi_bail!(err),
     }
 }
 
-pub(crate) fn assembly_script_set_data_for(env: &Env, address: i32, key: i32, value: i32) {
+pub(crate) fn assembly_script_set_data_for(
+    env: &Env,
+    address: i32,
+    key: i32,
+    value: i32,
+) -> ABIResult<()> {
     let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
-    let value = read_string_and_sub_points(env, memory, value, settings::metering_set_data_ratio());
-    let address = get_string(memory, address);
-    let key = get_string(memory, key);
+    let value = read_string_and_sub_points(env, memory, value, settings::metering_set_data_mult())?;
+    let address = get_string(memory, address)?;
+    let key = get_string(memory, key)?;
     if let Err(err) = env
         .interface
         .set_data_for(&address, &key, &value.as_bytes().to_vec())
     {
         abi_bail!(err)
     }
+    Ok(())
 }
 
-pub(crate) fn assembly_script_get_data_for(env: &Env, address: i32, key: i32) -> i32 {
+pub(crate) fn assembly_script_get_data_for(env: &Env, address: i32, key: i32) -> ABIResult<i32> {
     let memory = env.wasm_env.memory.get_ref().expect("uninitialized memory");
-    let address = get_string(memory, address);
-    let key = get_string(memory, key);
+    let address = get_string(memory, address)?;
+    let key = get_string(memory, key)?;
     match env.interface.get_data_for(&address, &key) {
         Ok(data) => {
-            sub_remaining_points_with_ratio(env, data.len(), settings::metering_get_data_ratio());
-            pointer_from_utf8(env, &data).offset() as i32
+            sub_remaining_points_with_mult(env, data.len(), settings::metering_get_data_mult())?;
+            Ok(pointer_from_utf8(env, &data)?.offset() as i32)
         }
         Err(err) => abi_bail!(err),
     }
 }
 
 /// Tooling, return a StringPtr allocated from a bytecode with utf8 parsing
-///
-fn pointer_from_utf8(env: &Env, bytecode: &Bytecode) -> StringPtr {
+fn pointer_from_utf8(env: &Env, bytecode: &Bytecode) -> ABIResult<StringPtr> {
     match std::str::from_utf8(bytecode) {
         Ok(data) => match StringPtr::alloc(&data.to_string(), &env.wasm_env) {
-            Ok(ptr) => *ptr,
+            Ok(ptr) => Ok(*ptr),
             Err(err) => abi_bail!(err),
         },
         Err(err) => abi_bail!(err),
@@ -209,26 +227,31 @@ fn pointer_from_utf8(env: &Env, bytecode: &Bytecode) -> StringPtr {
 }
 
 /// Tooling that take read a String in memory and substract remaining points
-/// with a ratio String.len / ratio.
+/// with a multiplicator (String.len * mult).
 ///
 /// Sub funtion of `assembly_script_set_data_for`, `assembly_script_set_data`
 /// and `assembly_script_create_sc`
 ///
 /// Return the string value in the StringPtr
-fn read_string_and_sub_points(env: &Env, memory: &Memory, offset: i32, ratio: usize) -> String {
+fn read_string_and_sub_points(
+    env: &Env,
+    memory: &Memory,
+    offset: i32,
+    mult: usize,
+) -> ABIResult<String> {
     match StringPtr::new(offset as u32).read(memory) {
         Ok(value) => {
-            sub_remaining_points_with_ratio(env, value.len(), ratio);
-            value
+            sub_remaining_points_with_mult(env, value.len(), mult)?;
+            Ok(value)
         }
         Err(err) => abi_bail!(err),
     }
 }
 
 /// Tooling, return a string from a given offset
-fn get_string(memory: &Memory, ptr: i32) -> String {
+fn get_string(memory: &Memory, ptr: i32) -> ABIResult<String> {
     match StringPtr::new(ptr as u32).read(memory) {
-        Ok(str) => str,
+        Ok(str) => Ok(str),
         Err(err) => abi_bail!(err),
     }
 }

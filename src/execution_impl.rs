@@ -74,7 +74,7 @@ pub(crate) fn exec(
                     let memory = instance.exports.get_memory("memory")?;
                     str_ptr.read(memory)?
                 } else {
-                    abi_bail!("Execution wasn't in capacity to read the return value")
+                    bail!("Execution wasn't in capacity to read the return value")
                 }
             } else {
                 String::new()

@@ -125,7 +125,7 @@ fn test_module_creation() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/create_sc.wasm"
     ));
-    run(module, 10_000, &*interface).expect("Failed to run create_sc.wat");
+    run(module, 100_000, &*interface).expect("Failed to run create_sc.wat");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/caller.wat"
