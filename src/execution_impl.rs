@@ -29,7 +29,13 @@ fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Resu
             "assembly_script_print" => Function::new_native_with_env(&store, env.clone(), assembly_script_print),
             "assembly_script_call" => Function::new_native_with_env(&store, env.clone(), assembly_script_call_module),
             "get_remaining_points" => Function::new_native_with_env(&store, env.clone(), get_remaining_points),
-            "assembly_script_create_sc" => Function::new_native_with_env(&store, env, assembly_script_create_sc),
+            "assembly_script_create_sc" => Function::new_native_with_env(&store, env.clone(), assembly_script_create_sc),
+            "assembly_script_set_data" => Function::new_native_with_env(&store, env.clone(), assembly_script_set_data),
+            "assembly_script_set_data_for" => Function::new_native_with_env(&store, env.clone(), assembly_script_set_data_for),
+            "assembly_script_get_data" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_data),
+            "assembly_script_get_data_for" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_data_for),
+            "assembly_script_get_owned_addresses" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_owned_addresses),
+            "assembly_script_get_call_stack" => Function::new_native_with_env(&store, env, assembly_script_get_call_stack),
         },
     };
     let module = Module::new(&store, &module)?;
@@ -70,7 +76,7 @@ pub(crate) fn exec(
                     let memory = instance.exports.get_memory("memory")?;
                     str_ptr.read(memory)?
                 } else {
-                    abi_bail!("Execution wasn't in capacity to read the return value")
+                    bail!("Execution wasn't in capacity to read the return value")
                 }
             } else {
                 String::new()

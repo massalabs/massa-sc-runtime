@@ -41,7 +41,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn get_data(&self, _: &Address, _: &str) -> Result<Bytecode> {
+    fn get_data(&self, _: &str) -> Result<Bytecode> {
         match self.0.lock().unwrap().clone().get(&"print".to_string()) {
             Some(bytes) => Ok(bytes.clone()),
             _ => bail!("Cannot find data"),
@@ -55,6 +55,10 @@ impl Interface for TestInterface {
             .unwrap()
             .insert(address.clone(), module.clone());
         Ok(address)
+    }
+
+    fn exit_success(&self) -> Result<()> {
+        Ok(())
     }
 }
 
@@ -82,7 +86,7 @@ fn test_caller() {
     settings::set_metering(0);
     let b = run(module, 20_000, &*interface).expect("Failed to run caller.wat");
     assert_eq!(a + prev_call_price, b);
-    let v_out = interface.get_data(&String::new(), &String::new()).unwrap();
+    let v_out = interface.get_data(&String::new()).unwrap();
     let output = std::str::from_utf8(&v_out).unwrap();
     assert_eq!(output, "hello you");
 
@@ -125,7 +129,7 @@ fn test_module_creation() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/create_sc.wasm"
     ));
-    run(module, 10_000, &*interface).expect("Failed to run create_sc.wat");
+    run(module, 100_000, &*interface).expect("Failed to run create_sc.wat");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/caller.wat"

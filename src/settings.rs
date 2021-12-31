@@ -9,12 +9,12 @@ pub(crate) const MAIN: &str = "main";
 struct Metering {
     #[cornetto(mut, 200)]
     pub call: u64,
-    #[cornetto(const, 200)]
-    pub set_data: u64,
-    #[cornetto(const, 200)]
-    pub get_data: u64,
-    #[cornetto(const, 200)]
-    pub create_sc: u64,
+    #[cornetto(const, 1)]
+    pub set_data_mult: usize,
+    #[cornetto(const, 1)]
+    pub get_data_mult: usize,
+    #[cornetto(const, 1)]
+    pub create_sc_mult: usize,
     #[cornetto(const, 200)]
     pub print: u64,
     #[cornetto(const, 200)]
@@ -29,12 +29,20 @@ pub(crate) fn metering_print() -> u64 {
     METERING.print()
 }
 
-pub(crate) fn metering_create_sc() -> u64 {
-    METERING.create_sc()
+pub(crate) fn metering_create_sc_mult() -> usize {
+    METERING.create_sc_mult()
 }
 
 pub(crate) fn metering_remaining_points() -> u64 {
     METERING.remaining_points()
+}
+
+pub(crate) fn metering_set_data_mult() -> usize {
+    METERING.set_data_mult()
+}
+
+pub(crate) fn metering_get_data_mult() -> usize {
+    METERING.get_data_mult()
 }
 
 #[cfg(test)]

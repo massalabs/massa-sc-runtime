@@ -43,8 +43,8 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     /// Requires the data at the address
-    fn get_data(&self, _address: &Address, _key: &str) -> Result<Bytecode> {
-        bail!("unimplemented function get_data in interface")
+    fn get_data_for(&self, _address: &Address, _key: &str) -> Result<Bytecode> {
+        bail!("unimplemented function get_data_for in interface")
     }
 
     /// Print function for examples
@@ -52,15 +52,19 @@ pub trait Interface: Send + Sync + InterfaceClone {
         bail!("unimplemented function print in interface")
     }
 
-    fn get_my_address(&self) -> Result<Address> {
-        bail!("unimplemented function get_my_address in interface")
-    }
-
     /// Requires to replace the data in the current address
     ///
     /// Note:
     /// The execution lib will allways use the current context address for the update
-    fn set_data(&self, _address: &Address, _key: &str, _value: &Bytecode) -> Result<Bytecode> {
+    fn set_data_for(&self, _address: &Address, _key: &str, _value: &Bytecode) -> Result<()> {
+        bail!("unimplemented function set_data_for in interface")
+    }
+
+    fn get_data(&self, _key: &str) -> Result<Bytecode> {
+        bail!("unimplemented function get_data in interface")
+    }
+
+    fn set_data(&self, _key: &str, _value: &Bytecode) -> Result<()> {
         bail!("unimplemented function set_data in interface")
     }
 
@@ -72,5 +76,21 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Returns a random number
     fn get_random(&self) -> Result<u64> {
         bail!("unimplemented function get_random in interface")
+    }
+
+    fn module_called(&self) -> Result<()> {
+        bail!("unimplemented function module_called in interface")
+    }
+
+    fn exit_success(&self) -> Result<()> {
+        bail!("unimplemented function exit_success in interface")
+    }
+
+    fn get_owned_addresses(&self) -> Result<Vec<Address>> {
+        bail!("unimplemented function get_owned_addresses in interface")
+    }
+
+    fn get_call_stack(&self) -> Result<Vec<Address>> {
+        bail!("unimplemented function get_call_stack in interface")
     }
 }

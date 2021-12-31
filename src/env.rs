@@ -1,6 +1,6 @@
 //! Extends the env of wasmer-as
 
-use crate::abi_impl::{abi_bail, get_memory};
+use crate::abi_impl::{abi_bail, get_memory, ABIResult};
 use crate::types::Interface;
 use anyhow::Result;
 use as_ffi_bindings::{Read, StringPtr};
@@ -47,13 +47,23 @@ pub fn get_remaining_points_for_instance(instance: &Instance) -> u64 {
     }
 }
 
-pub fn sub_remaining_point(env: &Env, points: u64) {
+pub fn sub_remaining_point(env: &Env, points: u64) -> ABIResult<()> {
     let instance = &env.instance.clone().unwrap();
     let remaining_points = get_remaining_points_for_env(env);
     if let Some(remaining_points) = remaining_points.checked_sub(points) {
         set_remaining_points(instance, remaining_points);
     } else {
-        abi_bail!("Remaining point reach zero");
+        abi_bail!("Remaining point reach zero")
+    }
+    Ok(())
+}
+
+/// Try to substract remaining point computing the points with a*b and ceiling
+/// the result.
+pub fn sub_remaining_points_with_mult(env: &Env, a: usize, b: usize) -> ABIResult<()> {
+    match a.checked_mul(b) {
+        Some(points) => sub_remaining_point(env, points as u64),
+        None => abi_bail!(format!("Multiplication overflow {} {}", a, b)),
     }
 }
 
@@ -72,7 +82,7 @@ pub fn assembly_script_abort(
     filename: StringPtr,
     line: i32,
     col: i32,
-) {
+) -> ABIResult<()> {
     let memory = get_memory!(env);
     let message = message.read(memory);
     let filename = filename.read(memory);
@@ -86,4 +96,5 @@ pub fn assembly_script_abort(
         line,
         col
     );
+    Ok(())
 }
