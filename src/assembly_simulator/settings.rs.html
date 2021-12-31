@@ -48,6 +48,14 @@
 <span id="46">46</span>
 <span id="47">47</span>
 <span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">cornetto::Cornetto</span>;
 
 <span class="comment">// main function name in the webassembly module</span>
@@ -59,12 +67,12 @@
 <span class="kw">struct</span> <span class="ident">Metering</span> {
     <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw-2">mut</span>, <span class="number">200</span>)]</span>
     <span class="kw">pub</span> <span class="ident">call</span>: <span class="ident">u64</span>,
-    <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">200</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">set_data</span>: <span class="ident">u64</span>,
-    <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">200</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">get_data</span>: <span class="ident">u64</span>,
-    <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">200</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">create_sc</span>: <span class="ident">u64</span>,
+    <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">1</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">set_data_mult</span>: <span class="ident">usize</span>,
+    <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">1</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">get_data_mult</span>: <span class="ident">usize</span>,
+    <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">1</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">create_sc_mult</span>: <span class="ident">usize</span>,
     <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">200</span>)]</span>
     <span class="kw">pub</span> <span class="ident">print</span>: <span class="ident">u64</span>,
     <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">200</span>)]</span>
@@ -79,12 +87,20 @@
     <span class="ident">METERING</span>.<span class="ident">print</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_create_sc</span>() -&gt; <span class="ident">u64</span> {
-    <span class="ident">METERING</span>.<span class="ident">create_sc</span>()
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_create_sc_mult</span>() -&gt; <span class="ident">usize</span> {
+    <span class="ident">METERING</span>.<span class="ident">create_sc_mult</span>()
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_remaining_points</span>() -&gt; <span class="ident">u64</span> {
     <span class="ident">METERING</span>.<span class="ident">remaining_points</span>()
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_set_data_mult</span>() -&gt; <span class="ident">usize</span> {
+    <span class="ident">METERING</span>.<span class="ident">set_data_mult</span>()
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_get_data_mult</span>() -&gt; <span class="ident">usize</span> {
+    <span class="ident">METERING</span>.<span class="ident">get_data_mult</span>()
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -97,5 +113,5 @@
     <span class="ident">METERING</span>.<span class="ident">_reset</span>(<span class="ident">DEFAULT_METERING_CALL</span>);
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="assembly_simulator" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (78fd0f633 2021-12-29)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="assembly_simulator" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (b60e32c82 2021-12-30)" ></div>
 </body></html>
