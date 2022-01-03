@@ -25,7 +25,7 @@
 ///! };
 ///! ```
 use crate::env::{
-    get_remaining_points_for_env, sub_remaining_point, sub_remaining_points_with_mult, Env,
+    get_remaining_points_for_env, sub_remaining_gas, sub_remaining_gas_with_mult, Env,
 };
 use crate::types::{Address, Response};
 use crate::{settings, Bytecode};
@@ -94,7 +94,7 @@ pub(crate) fn assembly_script_call_module(
     function: i32,
     param: i32,
 ) -> ABIResult<i32> {
-    sub_remaining_point(env, settings::metering_call())?;
+    sub_remaining_gas(env, settings::metering_call())?;
     let memory = get_memory!(env);
     let address = &get_string(memory, address)?;
     let function = &get_string(memory, function)?;
@@ -110,7 +110,7 @@ pub(crate) fn assembly_script_call_module(
 }
 
 pub(crate) fn get_remaining_points(env: &Env) -> ABIResult<i32> {
-    sub_remaining_point(env, settings::metering_remaining_points())?;
+    sub_remaining_gas(env, settings::metering_remaining_gas())?;
     Ok(get_remaining_points_for_env(env) as i32)
 }
 
@@ -119,7 +119,7 @@ pub(crate) fn get_remaining_points(env: &Env) -> ABIResult<i32> {
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
 pub(crate) fn assembly_script_print(env: &Env, arg: i32) -> ABIResult<()> {
-    sub_remaining_point(env, settings::metering_print())?;
+    sub_remaining_gas(env, settings::metering_print())?;
     let memory = get_memory!(env);
     if let Err(err) = env.interface.print(&get_string(memory, arg)?) {
         abi_bail!(err);
@@ -132,7 +132,7 @@ pub(crate) fn assembly_script_print(env: &Env, arg: i32) -> ABIResult<()> {
 pub(crate) fn assembly_script_create_sc(env: &Env, bytecode: i32) -> ABIResult<i32> {
     let memory = get_memory!(env);
     // Base64 to Binary
-    let bytecode = match base64::decode(read_string_and_sub_points(
+    let bytecode = match base64::decode(read_string_and_sub_gas(
         env,
         memory,
         bytecode,
@@ -153,7 +153,7 @@ pub(crate) fn assembly_script_create_sc(env: &Env, bytecode: i32) -> ABIResult<i
 
 pub(crate) fn assembly_script_set_data(env: &Env, key: i32, value: i32) -> ABIResult<()> {
     let memory = get_memory!(env);
-    let value = read_string_and_sub_points(env, memory, value, settings::metering_set_data_mult())?;
+    let value = read_string_and_sub_gas(env, memory, value, settings::metering_set_data_mult())?;
     let key = get_string(memory, key)?;
     if let Err(err) = env.interface.set_data(&key, &value.as_bytes().to_vec()) {
         abi_bail!(err)
@@ -166,7 +166,7 @@ pub(crate) fn assembly_script_get_data(env: &Env, key: i32) -> ABIResult<i32> {
     let key = get_string(memory, key)?;
     match env.interface.get_data(&key) {
         Ok(data) => {
-            sub_remaining_points_with_mult(env, data.len(), settings::metering_get_data_mult())?;
+            sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_mult())?;
             Ok(pointer_from_utf8(env, &data)?.offset() as i32)
         }
         Err(err) => abi_bail!(err),
@@ -180,7 +180,7 @@ pub(crate) fn assembly_script_set_data_for(
     value: i32,
 ) -> ABIResult<()> {
     let memory = get_memory!(env);
-    let value = read_string_and_sub_points(env, memory, value, settings::metering_set_data_mult())?;
+    let value = read_string_and_sub_gas(env, memory, value, settings::metering_set_data_mult())?;
     let address = get_string(memory, address)?;
     let key = get_string(memory, key)?;
     if let Err(err) = env
@@ -198,7 +198,7 @@ pub(crate) fn assembly_script_get_data_for(env: &Env, address: i32, key: i32) ->
     let key = get_string(memory, key)?;
     match env.interface.get_data_for(&address, &key) {
         Ok(data) => {
-            sub_remaining_points_with_mult(env, data.len(), settings::metering_get_data_mult())?;
+            sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_mult())?;
             Ok(pointer_from_utf8(env, &data)?.offset() as i32)
         }
         Err(err) => abi_bail!(err),
@@ -230,14 +230,14 @@ fn pointer_from_utf8(env: &Env, bytecode: &Bytecode) -> ABIResult<StringPtr> {
     }
 }
 
-/// Tooling that take read a String in memory and substract remaining points
+/// Tooling that take read a String in memory and substract remaining gas
 /// with a multiplicator (String.len * mult).
 ///
 /// Sub funtion of `assembly_script_set_data_for`, `assembly_script_set_data`
 /// and `assembly_script_create_sc`
 ///
 /// Return the string value in the StringPtr
-fn read_string_and_sub_points(
+fn read_string_and_sub_gas(
     env: &Env,
     memory: &Memory,
     offset: i32,
@@ -245,7 +245,7 @@ fn read_string_and_sub_points(
 ) -> ABIResult<String> {
     match StringPtr::new(offset as u32).read(memory) {
         Ok(value) => {
-            sub_remaining_points_with_mult(env, value.len(), mult)?;
+            sub_remaining_gas_with_mult(env, value.len(), mult)?;
             Ok(value)
         }
         Err(err) => abi_bail!(err),

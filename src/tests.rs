@@ -92,7 +92,7 @@ fn test_caller() {
 
     // Test now if we failed if metering is too hight
     settings::set_metering(15_000);
-    run(module, 20_000, &*interface).expect_err("Expected to be out of operation points");
+    run(module, 20_000, &*interface).expect_err("Expected to be out of operation gas");
 }
 
 #[test]

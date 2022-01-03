@@ -8,8 +8,8 @@ pub type Bytecode = Vec<u8>;
 pub(crate) struct Response {
     /// returned value from the module call
     pub ret: String,
-    /// number of points that remain after the execution (metering)
-    pub remaining_points: u64,
+    /// number of gas that remain after the execution (metering)
+    pub remaining_gas: u64,
 }
 
 pub trait InterfaceClone {

@@ -17,7 +17,7 @@ export declare function assembly_script_get_owned_addresses(): string;
 
 /**
  * Set data in the creator of operation ledger entry database.
- * 
+ *
  * ```js
  * // Each ledger entry contains this object.
  * {
@@ -35,7 +35,7 @@ export function set_data(key: string, value: string): void {
 
 /**
  * Get data in the creator of operation ledger entry database.
- * 
+ *
  * ```js
  * // Each ledger entry contains this object.
  * {
@@ -55,7 +55,7 @@ export function get_data(key: string): string {
  * Set data in the creator of operation ledger entry database in a specified address. \
  * You won't be able to insert a value if you're not the direct creator of the entry \
  * or the owner of the address.
- * 
+ *
  * ```js
  * // Each ledger entry contains this object.
  * {
@@ -74,7 +74,7 @@ export function get_data(key: string): string {
 
 /**
  * Get data in the creator of operation ledger entry database in a specified address.
- * 
+ *
  * ```js
  * // Each ledger entry contains this object.
  * {
@@ -93,7 +93,7 @@ export function get_data_for(address: string, key: string): string {
 
 /**
  * Retreive a module in the ledger at the given address and call a function
- * 
+ *
  * @param address Address hash in format string
  * @param func Function name exported in the module
  * @param param String input parameters
@@ -111,17 +111,17 @@ export function print(message: string): void {
  * Return the remaining operation available
  * @returns Number of operation available
  */
-export function get_remaining_gas(): u64 {
+export function get_remaining_points(): u64 {
     return get_remaining_points();
 }
 
 /**
  * Take a base64 string representing the module binary and create an entry in
  * the ledger.
- * 
+ *
  * The context allow you to write in this smart contract while you're executing
  * the current bytecode.
- * 
+ *
  * @param bytecode string base64 of the ledger
  * @returns Created entry address
  */
@@ -132,11 +132,11 @@ export function create_sc(bytecode: string): string {
 /**
  * Empty function that can be replaced before the compilation with
  * include_base64.js.
- * 
+ *
  * ```bash
  * node massa_tools/include_base64.js assembly/create_sc.ts && asc assembly/create_sc.m.ts --target release --exportRuntime
  * ```
- * @param _path 
+ * @param _path
  */
 export function include_base64(_path: string): string {
     /* NOT IMPLEMENTED HERE */
@@ -145,10 +145,10 @@ export function include_base64(_path: string): string {
 
 /**
  * Get context current call stack
- * 
+ *
  * The call stack is stack of called module. You can look all previous \
  * addresses since the address of the operation sender.
- * 
+ *
  * @returns JSON formated list of addresses containing the call stack
  */
 export function get_call_stack(): string {
@@ -157,9 +157,9 @@ export function get_call_stack(): string {
 
 /**
  * Get context current owned addresses.
- * 
+ *
  * You can check your own address or check the addresses of the smart contract you've created during the current execution.
- * 
+ *
  * @returns JSON formated list of addresses containing the owned addresses
  */
 export function get_owned_addresses(): string {

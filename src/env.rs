@@ -35,34 +35,34 @@ impl WasmerEnv for Env {
 pub fn get_remaining_points_for_env(env: &Env) -> u64 {
     let instance = &env.instance.clone().unwrap();
     match metering::get_remaining_points(instance) {
-        MeteringPoints::Remaining(point) => point,
+        MeteringPoints::Remaining(gas) => gas,
         MeteringPoints::Exhausted => 0,
     }
 }
 
 pub fn get_remaining_points_for_instance(instance: &Instance) -> u64 {
     match metering::get_remaining_points(instance) {
-        MeteringPoints::Remaining(point) => point,
+        MeteringPoints::Remaining(gas) => gas,
         MeteringPoints::Exhausted => 0,
     }
 }
 
-pub fn sub_remaining_point(env: &Env, points: u64) -> ABIResult<()> {
+pub fn sub_remaining_gas(env: &Env, gas: u64) -> ABIResult<()> {
     let instance = &env.instance.clone().unwrap();
-    let remaining_points = get_remaining_points_for_env(env);
-    if let Some(remaining_points) = remaining_points.checked_sub(points) {
-        set_remaining_points(instance, remaining_points);
+    let remaining_gas = get_remaining_points_for_env(env);
+    if let Some(remaining_gas) = remaining_gas.checked_sub(gas) {
+        set_remaining_points(instance, remaining_gas);
     } else {
-        abi_bail!("Remaining point reach zero")
+        abi_bail!("Remaining gas reach zero")
     }
     Ok(())
 }
 
-/// Try to substract remaining point computing the points with a*b and ceiling
+/// Try to substract remaining gas computing the gas with a*b and ceiling
 /// the result.
-pub fn sub_remaining_points_with_mult(env: &Env, a: usize, b: usize) -> ABIResult<()> {
+pub fn sub_remaining_gas_with_mult(env: &Env, a: usize, b: usize) -> ABIResult<()> {
     match a.checked_mul(b) {
-        Some(points) => sub_remaining_point(env, points as u64),
+        Some(gas) => sub_remaining_gas(env, gas as u64),
         None => abi_bail!(format!("Multiplication overflow {} {}", a, b)),
     }
 }

@@ -18,7 +18,7 @@ struct Metering {
     #[cornetto(const, 200)]
     pub print: u64,
     #[cornetto(const, 200)]
-    pub remaining_points: u64,
+    pub remaining_gas: u64,
 }
 
 pub(crate) fn metering_call() -> u64 {
@@ -33,8 +33,8 @@ pub(crate) fn metering_create_sc_mult() -> usize {
     METERING.create_sc_mult()
 }
 
-pub(crate) fn metering_remaining_points() -> u64 {
-    METERING.remaining_points()
+pub(crate) fn metering_remaining_gas() -> u64 {
+    METERING.remaining_gas()
 }
 
 pub(crate) fn metering_set_data_mult() -> usize {
