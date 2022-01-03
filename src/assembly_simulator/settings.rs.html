@@ -76,7 +76,7 @@
     <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">200</span>)]</span>
     <span class="kw">pub</span> <span class="ident">print</span>: <span class="ident">u64</span>,
     <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">200</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">remaining_points</span>: <span class="ident">u64</span>,
+    <span class="kw">pub</span> <span class="ident">remaining_gas</span>: <span class="ident">u64</span>,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_call</span>() -&gt; <span class="ident">u64</span> {
@@ -91,8 +91,8 @@
     <span class="ident">METERING</span>.<span class="ident">create_sc_mult</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_remaining_points</span>() -&gt; <span class="ident">u64</span> {
-    <span class="ident">METERING</span>.<span class="ident">remaining_points</span>()
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_remaining_gas</span>() -&gt; <span class="ident">u64</span> {
+    <span class="ident">METERING</span>.<span class="ident">remaining_gas</span>()
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_set_data_mult</span>() -&gt; <span class="ident">usize</span> {
@@ -113,5 +113,5 @@
     <span class="ident">METERING</span>.<span class="ident">_reset</span>(<span class="ident">DEFAULT_METERING_CALL</span>);
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="assembly_simulator" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (b60e32c82 2021-12-30)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="assembly_simulator" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (8f3238f89 2022-01-02)" ></div>
 </body></html>
