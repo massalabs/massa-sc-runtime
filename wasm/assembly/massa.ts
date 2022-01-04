@@ -4,7 +4,6 @@ export declare function assembly_script_print(message: string): void
  * called by create_sc
  **/
 export declare function assembly_script_create_sc(bytecode: string): string
-export declare function get_remaining_points(): u64
 
 export declare function assembly_script_set_data(key: string, value: string): void;
 export declare function assembly_script_get_data(key: string): string;
@@ -68,7 +67,7 @@ export function get_data(key: string): string {
  * @param key key address of the data
  * @param value value to put in the DB
  */
- export function set_data_for(address: string, key: string, value: string): void {
+export function set_data_for(address: string, key: string, value: string): void {
     assembly_script_set_data_for(address, key, value);
 }
 
