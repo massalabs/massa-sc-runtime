@@ -9,8 +9,8 @@
 use crate::env::{
     get_remaining_points_for_env, sub_remaining_gas, sub_remaining_gas_with_mult, Env,
 };
-use crate::types::{Address, Response};
-use crate::{settings, Bytecode};
+use crate::settings;
+use crate::types::Response;
 use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
 use wasmer::Memory;
 
@@ -40,7 +40,7 @@ pub(crate) use get_memory;
 /// And two pointers of string. (look at the readme in the wasm folder)
 fn call_module(
     env: &Env,
-    address: &Address,
+    address: &str,
     function: &str,
     param: &str,
     raw_coins: i64,
@@ -137,7 +137,7 @@ pub(crate) fn assembly_script_get_balance_for(env: &Env, address: i32) -> ABIRes
     }
 }
 
-fn create_sc(env: &Env, bytecode: &Bytecode) -> ABIResult<Address> {
+fn create_sc(env: &Env, bytecode: &[u8]) -> ABIResult<String> {
     match env.interface.create_module(bytecode) {
         Ok(address) => Ok(address),
         Err(err) => abi_bail!(err),
@@ -229,7 +229,7 @@ pub(crate) fn assembly_script_set_data(env: &Env, key: i32, value: i32) -> ABIRe
     let key = read_string_and_sub_gas(env, memory, key, settings::metering_set_data_key_mult())?;
     let value =
         read_string_and_sub_gas(env, memory, value, settings::metering_set_data_value_mult())?;
-    if let Err(err) = env.interface.set_data(&key, value.as_bytes()) {
+    if let Err(err) = env.interface.raw_set_data(&key, value.as_bytes()) {
         abi_bail!(err)
     }
     Ok(())
@@ -240,7 +240,7 @@ pub(crate) fn assembly_script_get_data(env: &Env, key: i32) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_data_const())?;
     let memory = get_memory!(env);
     let key = read_string_and_sub_gas(env, memory, key, settings::metering_get_data_key_mult())?;
-    match env.interface.get_data(&key) {
+    match env.interface.raw_get_data(&key) {
         Ok(data) => {
             sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_value_mult())?;
             Ok(pointer_from_utf8(env, &data)?.offset() as i32)
@@ -273,7 +273,10 @@ pub(crate) fn assembly_script_set_data_for(
     let value =
         read_string_and_sub_gas(env, memory, value, settings::metering_set_data_value_mult())?;
     let address = get_string(memory, address)?;
-    if let Err(err) = env.interface.set_data_for(&address, &key, value.as_bytes()) {
+    if let Err(err) = env
+        .interface
+        .raw_set_data_for(&address, &key, value.as_bytes())
+    {
         abi_bail!(err)
     }
     Ok(())
@@ -284,7 +287,7 @@ pub(crate) fn assembly_script_get_data_for(env: &Env, address: i32, key: i32) ->
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
     let key = read_string_and_sub_gas(env, memory, key, settings::metering_get_data_key_mult())?;
-    match env.interface.get_data_for(&address, &key) {
+    match env.interface.raw_get_data_for(&address, &key) {
         Ok(data) => {
             sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_value_mult())?;
             Ok(pointer_from_utf8(env, &data)?.offset() as i32)
