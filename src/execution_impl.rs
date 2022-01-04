@@ -35,7 +35,8 @@ fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Resu
             "assembly_script_get_data" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_data),
             "assembly_script_get_data_for" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_data_for),
             "assembly_script_get_owned_addresses" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_owned_addresses),
-            "assembly_script_get_call_stack" => Function::new_native_with_env(&store, env, assembly_script_get_call_stack),
+            "assembly_script_get_call_stack" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_call_stack),
+            "generate_event" => Function::new_native_with_env(&store, env, generate_event),
         },
     };
     let module = Module::new(&store, &module)?;
