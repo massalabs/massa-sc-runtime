@@ -9,6 +9,8 @@ pub(crate) const MAIN: &str = "main";
 struct Metering {
     #[cornetto(mut, 200)]
     pub call: u64,
+    #[cornetto(const, 200)]
+    pub generate_event: u64,
     #[cornetto(const, 1)]
     pub set_data_mult: usize,
     #[cornetto(const, 1)]
@@ -23,6 +25,10 @@ struct Metering {
 
 pub(crate) fn metering_call() -> u64 {
     METERING.call()
+}
+
+pub(crate) fn metering_generate_event() -> u64 {
+    METERING.generate_event()
 }
 
 pub(crate) fn metering_print() -> u64 {

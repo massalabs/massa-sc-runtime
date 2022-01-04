@@ -219,6 +219,16 @@ pub(crate) fn assembly_script_get_call_stack(env: &Env) -> ABIResult<i32> {
     }
 }
 
+pub(crate) fn generate_event(env: &Env, event: i32) -> ABIResult<()> {
+    sub_remaining_gas(env, settings::metering_generate_event())?;
+    let memory = get_memory!(env);
+    let event = get_string(memory, event)?;
+    if let Err(err) = env.interface.generate_event(event) {
+        abi_bail!(err)
+    }
+    Ok(())
+}
+
 /// Tooling, return a StringPtr allocated from a bytecode with utf8 parsing
 fn pointer_from_utf8(env: &Env, bytecode: &Bytecode) -> ABIResult<StringPtr> {
     match std::str::from_utf8(bytecode) {
