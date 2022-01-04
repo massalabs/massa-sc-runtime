@@ -28,6 +28,21 @@ pub trait Interface: Send + Sync + InterfaceClone {
         bail!("unimplemented function get_module in interface")
     }
 
+    /// Transfer an amount from the address on the current call stack to a target address.
+    fn transfer_coins(&self, _to_address: &Address, _raw_amount: u64) -> Result<()> {
+        bail!("unimplemented function transfer_coins in interface")
+    }
+
+    /// Transfer an amount from the specified address to a target address.
+    fn transfer_coins_for(
+        &self,
+        _from_address: &Address,
+        _to_address: &Address,
+        _raw_amount: u64,
+    ) -> Result<()> {
+        bail!("unimplemented function transfer_coins_for in interface")
+    }
+
     /// Requires to replace the module at the current address
     ///
     /// Note:
