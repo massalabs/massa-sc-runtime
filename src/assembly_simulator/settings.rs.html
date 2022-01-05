@@ -62,6 +62,12 @@
 <span id="60">60</span>
 <span id="61">61</span>
 <span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">cornetto::Cornetto</span>;
 
 <span class="comment">// main function name in the webassembly module</span>
@@ -75,6 +81,8 @@
     <span class="kw">pub</span> <span class="ident">call</span>: <span class="ident">u64</span>,
     <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">200</span>)]</span>
     <span class="kw">pub</span> <span class="ident">generate_event</span>: <span class="ident">u64</span>,
+    <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">200</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">transfer</span>: <span class="ident">u64</span>,
     <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">1</span>)]</span>
     <span class="kw">pub</span> <span class="ident">set_data_mult</span>: <span class="ident">usize</span>,
     <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">1</span>)]</span>
@@ -93,6 +101,10 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_generate_event</span>() -&gt; <span class="ident">u64</span> {
     <span class="ident">METERING</span>.<span class="ident">generate_event</span>()
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_transfer</span>() -&gt; <span class="ident">u64</span> {
+    <span class="ident">METERING</span>.<span class="ident">transfer</span>()
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_print</span>() -&gt; <span class="ident">u64</span> {
@@ -125,5 +137,5 @@
     <span class="ident">METERING</span>.<span class="ident">_reset</span>(<span class="ident">DEFAULT_METERING_CALL</span>);
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="assembly_simulator" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (399ba6bb3 2022-01-03)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="assembly_simulator" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
 </body></html>
