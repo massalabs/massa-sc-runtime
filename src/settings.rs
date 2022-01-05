@@ -11,6 +11,8 @@ struct Metering {
     pub call: u64,
     #[cornetto(const, 200)]
     pub generate_event: u64,
+    #[cornetto(const, 200)]
+    pub transfer: u64,
     #[cornetto(const, 1)]
     pub set_data_mult: usize,
     #[cornetto(const, 1)]
@@ -29,6 +31,10 @@ pub(crate) fn metering_call() -> u64 {
 
 pub(crate) fn metering_generate_event() -> u64 {
     METERING.generate_event()
+}
+
+pub(crate) fn metering_transfer() -> u64 {
+    METERING.transfer()
 }
 
 pub(crate) fn metering_print() -> u64 {

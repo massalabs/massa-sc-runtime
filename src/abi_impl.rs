@@ -78,6 +78,43 @@ fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> ABI
     }
 }
 
+/// Transfer an amount from the address on the current call stack to a target address.
+pub(crate) fn transfer_coins(env: &Env, to_address: i32, raw_amount: i64) -> ABIResult<()> {
+    sub_remaining_gas(env, settings::metering_transfer())?;
+    if raw_amount.is_negative() {
+        abi_bail!("Negative raw amount.");
+    }
+    let memory = get_memory!(env);
+    let to_address = &get_string(memory, to_address)?;
+    match env.interface.transfer_coins(to_address, raw_amount as u64) {
+        Ok(res) => Ok(res),
+        Err(err) => abi_bail!(err),
+    }
+}
+
+/// Transfer an amount from the specified address to a target address.
+pub(crate) fn transfer_coins_for(
+    env: &Env,
+    from_address: i32,
+    to_address: i32,
+    raw_amount: i64,
+) -> ABIResult<()> {
+    sub_remaining_gas(env, settings::metering_transfer())?;
+    if raw_amount.is_negative() {
+        abi_bail!("Negative raw amount.");
+    }
+    let memory = get_memory!(env);
+    let from_address = &get_string(memory, from_address)?;
+    let to_address = &get_string(memory, to_address)?;
+    match env
+        .interface
+        .transfer_coins_for(from_address, to_address, raw_amount as u64)
+    {
+        Ok(res) => Ok(res),
+        Err(err) => abi_bail!(err),
+    }
+}
+
 fn create_sc(env: &Env, bytecode: &Bytecode) -> ABIResult<Address> {
     match env.interface.create_module(bytecode) {
         Ok(address) => Ok(address),
