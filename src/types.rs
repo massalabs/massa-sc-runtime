@@ -114,7 +114,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn get_call_stack(&self) -> Result<Vec<Address>> {
         bail!("unimplemented function get_call_stack in interface")
     }
-    fn generate_event(&self, event: String) -> Result<()> {
+    fn generate_event(&self, _event: String) -> Result<()> {
         // TODO should be a SCEvent
         bail!("unimplemented function generate_event in interface")
     }
