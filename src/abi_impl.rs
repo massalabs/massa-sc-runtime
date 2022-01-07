@@ -115,6 +115,16 @@ pub(crate) fn transfer_coins_for(
     }
 }
 
+pub(crate) fn get_balance(env: &Env, address: i32) -> ABIResult<i64> {
+    sub_remaining_gas(env, settings::metering_get_balance())?;
+    let memory = get_memory!(env);
+    let address = &get_string(memory, address)?;
+    match env.interface.get_balance(address) {
+        Ok(res) => Ok(res as i64),
+        Err(err) => abi_bail!(err),
+    }
+}
+
 fn create_sc(env: &Env, bytecode: &Bytecode) -> ABIResult<Address> {
     match env.interface.create_module(bytecode) {
         Ok(address) => Ok(address),

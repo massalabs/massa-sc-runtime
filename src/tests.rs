@@ -24,6 +24,10 @@ impl Interface for TestInterface {
         }
     }
 
+    fn get_balance(&self, _address: &Address) -> Result<u64> {
+        Ok(1)
+    }
+
     fn update_module(&self, address: &Address, module: &Bytecode) -> Result<()> {
         self.0
             .lock()
@@ -93,6 +97,15 @@ fn test_caller() {
     // Test now if we failed if metering is too hight
     settings::set_metering(15_000);
     run(module, 20_000, &*interface).expect_err("Expected to be out of operation gas");
+}
+
+#[test]
+#[serial]
+fn test_get_balance() {
+    settings::reset_metering();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    assert!(interface.get_balance(&"test".to_string()).is_ok());
 }
 
 #[test]

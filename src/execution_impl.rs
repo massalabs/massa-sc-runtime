@@ -38,7 +38,8 @@ fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Resu
             "assembly_script_get_call_stack" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_call_stack),
             "generate_event" => Function::new_native_with_env(&store, env.clone(), generate_event),
             "transfer_coins" => Function::new_native_with_env(&store, env.clone(), transfer_coins),
-            "transfer_coins_for" => Function::new_native_with_env(&store, env, transfer_coins_for),
+            "transfer_coins_for" => Function::new_native_with_env(&store, env.clone(), transfer_coins_for),
+            "get_balance" => Function::new_native_with_env(&store, env, get_balance),
         },
     };
     let module = Module::new(&store, &module)?;
