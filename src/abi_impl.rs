@@ -79,7 +79,11 @@ fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> ABI
 }
 
 /// Transfer an amount from the address on the current call stack to a target address.
-pub(crate) fn transfer_coins(env: &Env, to_address: i32, raw_amount: i64) -> ABIResult<()> {
+pub(crate) fn assembly_script_transfer_coins(
+    env: &Env,
+    to_address: i32,
+    raw_amount: i64,
+) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_transfer())?;
     if raw_amount.is_negative() {
         abi_bail!("Negative raw amount.");
@@ -93,7 +97,7 @@ pub(crate) fn transfer_coins(env: &Env, to_address: i32, raw_amount: i64) -> ABI
 }
 
 /// Transfer an amount from the specified address to a target address.
-pub(crate) fn transfer_coins_for(
+pub(crate) fn assembly_script_transfer_coins_for(
     env: &Env,
     from_address: i32,
     to_address: i32,
@@ -115,11 +119,19 @@ pub(crate) fn transfer_coins_for(
     }
 }
 
-pub(crate) fn get_balance(env: &Env, address: i32) -> ABIResult<i64> {
+pub(crate) fn assembly_script_get_balance(env: &Env) -> ABIResult<i64> {
+    sub_remaining_gas(env, settings::metering_get_balance())?;
+    match env.interface.get_balance() {
+        Ok(res) => Ok(res as i64),
+        Err(err) => abi_bail!(err),
+    }
+}
+
+pub(crate) fn assembly_script_get_balance_for(env: &Env, address: i32) -> ABIResult<i64> {
     sub_remaining_gas(env, settings::metering_get_balance())?;
     let memory = get_memory!(env);
     let address = &get_string(memory, address)?;
-    match env.interface.get_balance(address) {
+    match env.interface.get_balance_for(address) {
         Ok(res) => Ok(res as i64),
         Err(err) => abi_bail!(err),
     }
@@ -156,7 +168,7 @@ pub(crate) fn assembly_script_call_module(
     }
 }
 
-pub(crate) fn get_remaining_points(env: &Env) -> ABIResult<i32> {
+pub(crate) fn assembly_script_get_remaining_gas(env: &Env) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_remaining_gas())?;
     Ok(get_remaining_points_for_env(env) as i32)
 }
@@ -266,7 +278,7 @@ pub(crate) fn assembly_script_get_call_stack(env: &Env) -> ABIResult<i32> {
     }
 }
 
-pub(crate) fn generate_event(env: &Env, event: i32) -> ABIResult<()> {
+pub(crate) fn assembly_script_generate_event(env: &Env, event: i32) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_generate_event())?;
     let memory = get_memory!(env);
     let event = get_string(memory, event)?;

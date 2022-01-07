@@ -24,7 +24,11 @@ impl Interface for TestInterface {
         }
     }
 
-    fn get_balance(&self, _address: &Address) -> Result<u64> {
+    fn get_balance(&self) -> Result<u64> {
+        Ok(1)
+    }
+
+    fn get_balance_for(&self, _address: &Address) -> Result<u64> {
         Ok(1)
     }
 
@@ -105,7 +109,16 @@ fn test_get_balance() {
     settings::reset_metering();
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    assert!(interface.get_balance(&"test".to_string()).is_ok());
+    assert!(interface.get_balance().is_ok());
+}
+
+#[test]
+#[serial]
+fn test_get_balance_for() {
+    settings::reset_metering();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    assert!(interface.get_balance_for(&"test".to_string()).is_ok());
 }
 
 #[test]

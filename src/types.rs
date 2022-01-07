@@ -28,10 +28,16 @@ pub trait Interface: Send + Sync + InterfaceClone {
         bail!("unimplemented function get_module in interface")
     }
 
+    /// Get the SCE ledger balance for the crrent address.
+    /// Defaults to zero if the address is not found.
+    fn get_balance(&self) -> Result<u64> {
+        bail!("unimplemented function get_balance in interface")
+    }
+
     /// Get the SCE ledger balance for an address.
     /// Defaults to zero if the address is not found.
-    fn get_balance(&self, _address: &Address) -> Result<u64> {
-        bail!("unimplemented function get_balance in interface")
+    fn get_balance_for(&self, _address: &Address) -> Result<u64> {
+        bail!("unimplemented function get_balance_for in interface")
     }
 
     /// Transfer an amount from the address on the current call stack to a target address.
