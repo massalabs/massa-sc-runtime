@@ -168,9 +168,9 @@ pub(crate) fn assembly_script_call_module(
     }
 }
 
-pub(crate) fn assembly_script_get_remaining_gas(env: &Env) -> ABIResult<i32> {
+pub(crate) fn assembly_script_get_remaining_gas(env: &Env) -> ABIResult<i64> {
     sub_remaining_gas(env, settings::metering_remaining_gas())?;
-    Ok(get_remaining_points_for_env(env) as i32)
+    Ok(get_remaining_points_for_env(env) as i64)
 }
 
 /// Create an instance of VM from a module with a
