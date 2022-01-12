@@ -15,16 +15,36 @@ struct Metering {
     pub transfer: u64,
     #[cornetto(const, 200)]
     pub get_balance: u64,
+    #[cornetto(const, 100)]
+    pub set_data_const: u64,
     #[cornetto(const, 1)]
-    pub set_data_mult: usize,
+    pub set_data_key_mult: usize,
     #[cornetto(const, 1)]
-    pub get_data_mult: usize,
+    pub set_data_value_mult: usize,
+    #[cornetto(const, 100)]
+    pub get_data_const: u64,
+    #[cornetto(const, 1)]
+    pub get_data_key_mult: usize,
+    #[cornetto(const, 1)]
+    pub get_data_value_mult: usize,
+    #[cornetto(const, 100)]
+    pub has_data_const: u64,
+    #[cornetto(const, 1)]
+    pub has_data_key_mult: usize,
     #[cornetto(const, 1)]
     pub create_sc_mult: usize,
     #[cornetto(const, 200)]
     pub print: u64,
     #[cornetto(const, 200)]
     pub remaining_gas: u64,
+    #[cornetto(const, 100)]
+    pub get_hash_const: u64,
+    #[cornetto(const, 1)]
+    pub hash_per_byte: usize,
+    #[cornetto(const, 200)]
+    pub get_owned_addrs: u64,
+    #[cornetto(const, 200)]
+    pub get_call_stack: u64,
 }
 
 pub(crate) fn metering_call() -> u64 {
@@ -55,12 +75,52 @@ pub(crate) fn metering_remaining_gas() -> u64 {
     METERING.remaining_gas()
 }
 
-pub(crate) fn metering_set_data_mult() -> usize {
-    METERING.set_data_mult()
+pub(crate) fn metering_set_data_const() -> u64 {
+    METERING.set_data_const()
 }
 
-pub(crate) fn metering_get_data_mult() -> usize {
-    METERING.get_data_mult()
+pub(crate) fn metering_set_data_key_mult() -> usize {
+    METERING.set_data_key_mult()
+}
+
+pub(crate) fn metering_set_data_value_mult() -> usize {
+    METERING.set_data_value_mult()
+}
+
+pub(crate) fn metering_get_data_const() -> u64 {
+    METERING.get_data_const()
+}
+
+pub(crate) fn metering_get_data_key_mult() -> usize {
+    METERING.get_data_key_mult()
+}
+
+pub(crate) fn metering_get_data_value_mult() -> usize {
+    METERING.get_data_value_mult()
+}
+
+pub(crate) fn metering_has_data_const() -> u64 {
+    METERING.has_data_const()
+}
+
+pub(crate) fn metering_has_data_key_mult() -> usize {
+    METERING.has_data_key_mult()
+}
+
+pub(crate) fn metering_hash_const() -> u64 {
+    METERING.get_hash_const()
+}
+
+pub(crate) fn metering_hash_per_byte() -> usize {
+    METERING.hash_per_byte()
+}
+
+pub(crate) fn metering_get_owned_addrs() -> u64 {
+    METERING.get_owned_addrs()
+}
+
+pub(crate) fn metering_get_call_stack() -> u64 {
+    METERING.get_call_stack()
 }
 
 #[cfg(test)]
