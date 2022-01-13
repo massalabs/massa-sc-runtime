@@ -184,7 +184,7 @@ export function get_data_or_default(key: string, default_value: string): string 
  */
 export function get_data_or_default_for(address:string, key: string, default_value: string): string {
     if(has_data_for(address, key)) {
-        return get_data(address, key);
+        return get_data_for(address, key);
     }
     return default_value;
 }
