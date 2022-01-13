@@ -118,7 +118,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         _signature: &Signature,
         _public_key: &PublicKey,
     ) -> Result<bool> {
-        bail!("unimplemented function hash in interface")
+        bail!("unimplemented function signature_verify in interface")
     }
 
     // Convert a public key to an address
