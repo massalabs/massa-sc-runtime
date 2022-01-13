@@ -51,6 +51,10 @@ struct Metering {
     pub signature_verify_data_mult: usize,
     #[cornetto(const, 100)]
     pub address_from_public_key: u64,
+    #[cornetto(const, 100)]
+    pub unsafe_random: u64,
+    #[cornetto(const, 100)]
+    pub get_time: u64,
 }
 
 pub(crate) fn metering_call() -> u64 {
@@ -139,6 +143,14 @@ pub(crate) fn metering_signature_verify_data_mult() -> usize {
 
 pub(crate) fn metering_address_from_public_key() -> u64 {
     METERING.address_from_public_key()
+}
+
+pub(crate) fn metering_unsafe_random() -> u64 {
+    METERING.unsafe_random()
+}
+
+pub(crate) fn metering_get_time() -> u64 {
+    METERING.get_time()
 }
 
 #[cfg(test)]

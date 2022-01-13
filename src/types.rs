@@ -1,6 +1,4 @@
 use anyhow::{bail, Result};
-use std::time::Instant;
-
 pub type Address = String;
 pub type MassaHash = String;
 pub type Signature = String;
@@ -126,14 +124,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
         bail!("unimplemented function address_from_public_key in interface")
     }
 
-    /// Returns the current time
-    fn get_time(&self) -> Result<Instant> {
+    /// Returns the current time (millisecond unix timestamp)
+    fn get_time(&self) -> Result<u64> {
         bail!("unimplemented function get_time in interface")
     }
 
-    /// Returns a random number
-    fn get_random(&self) -> Result<u64> {
-        bail!("unimplemented function get_random in interface")
+    /// Returns a random number (unsafe: can be predicted and manipulated)
+    fn unsafe_random(&self) -> Result<i64> {
+        bail!("unimplemented function unsafe_random in interface")
     }
 
     fn module_called(&self) -> Result<()> {

@@ -18,6 +18,8 @@ export declare function assembly_script_get_balance_for(address: string): u64;
 export declare function assembly_script_hash(data: string): string;
 export declare function assembly_script_signature_verify(data: string, signature: string, public_key: string): bool;
 export declare function assembly_script_address_from_public_key(public_key: string): string;
+export declare function assembly_script_get_time(): u64;
+export declare function assembly_script_unsafe_random(): i64;
 
 /**
  * Prints in the node logs
@@ -291,6 +293,25 @@ export function signature_verify(data: string, signature: string, public_key: st
  */
 export function address_from_public_key(data: string): string {
     return assembly_script_address_from_public_key(data);
+}
+
+/**
+ * Gets the slot unix timestamp in milliseconds
+ *
+ * @returns unix timestamp in milliseconds
+ */
+export function assembly_script_get_time(): u64 {
+    return assembly_script_get_time();
+}
+
+/**
+ * Gets an unsafe random i64 (all bits random)
+ * This function is unsafe because the random draws can be predicted and manipulated by attackers.
+ *
+ * @returns random signed 64bit integer
+ */
+export function assembly_script_unsafe_random(): i64 {
+    return assembly_script_unsafe_random();
 }
 
 /**

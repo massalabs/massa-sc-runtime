@@ -356,6 +356,24 @@ pub(crate) fn assembly_script_address_from_public_key(
     }
 }
 
+/// generates an unsafe random number
+pub(crate) fn assembly_script_unsafe_random(env: &Env) -> ABIResult<i64> {
+    sub_remaining_gas(env, settings::metering_unsafe_random())?;
+    match env.interface.unsafe_random() {
+        Err(err) => abi_bail!(err),
+        Ok(rnd) => Ok(rnd),
+    }
+}
+
+/// gets the current unix timestamp in milliseconds
+pub(crate) fn assembly_script_get_time(env: &Env) -> ABIResult<i64> {
+    sub_remaining_gas(env, settings::metering_get_time())?;
+    match env.interface.get_time() {
+        Err(err) => abi_bail!(err),
+        Ok(t) => Ok(t as i64),
+    }
+}
+
 /// Tooling, return a StringPtr allocated from a String
 fn pointer_from_string(env: &Env, value: &String) -> ABIResult<StringPtr> {
     match StringPtr::alloc(value, &env.wasm_env) {
