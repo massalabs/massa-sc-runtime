@@ -6,6 +6,8 @@ export declare function assembly_script_set_data(key: string, value: string): vo
 export declare function assembly_script_set_data_for(address: string, key: string, value: string): void;
 export declare function assembly_script_get_data(key: string): string;
 export declare function assembly_script_get_data_for(address: string, key: string): string;
+export declare function assembly_script_has_data(key: string): bool;
+export declare function assembly_script_has_data_for(address: string, key: string): bool;
 export declare function assembly_script_get_owned_addresses(): string;
 export declare function assembly_script_get_call_stack(): string;
 export declare function assembly_script_generate_event(event: string): void;
@@ -13,6 +15,8 @@ export declare function assembly_script_transfer_coins(to_address: string, raw_a
 export declare function assembly_script_transfer_coins_for(from_address: string, to_address: string, raw_amount: u64): void;
 export declare function assembly_script_get_balance(): u64;
 export declare function assembly_script_get_balance_for(address: string): u64;
+export declare function assembly_script_hash(data: string): string;
+export declare function assembly_script_signature_verify(data: string, signature: string, public_key: string): bool;
 
 /**
  * Prints in the node logs
@@ -132,6 +136,57 @@ export function get_data(key: string): string {
  */
 export function get_data_for(address: string, key: string): string {
     return assembly_script_get_data_for(address, key);
+}
+
+/**
+ * Checks whether an entry exists in the caller's datastore.
+ *
+ * @param key key of the data (will be hashed internally)
+ * @returns true if the key was found, false otherwise
+ */
+export function has_data(key: string): bool {
+    return assembly_script_has_data(key);
+}
+
+/**
+ * Checks whether an entry exists in the datastore of an arbitrary address.
+ *
+ * @param address target address
+ * @param key key of the data (will be hashed internally)
+ * @returns true if the key was found, false otherwise
+ */
+export function has_data_for(address: string, key: string): bool {
+    return assembly_script_has_data_for(key);
+}
+
+/**
+ *  Returns an entry from the caller's datastore or a default value if not found 
+ *
+ * @param address target address
+ * @param key key of the data (will be hashed internally)
+ * @param default_value default value if not found
+ * @returns found string value or default string
+ */
+export function get_data_or_default(key: string, default_value: string): string {
+    if(has_data(key)) {
+        return get_data(key);
+    }
+    return default_value;
+}
+
+/**
+ *  Returns an entry from an address' datastore or a default value if not found 
+ *
+ * @param address target address
+ * @param key key of the data (will be hashed internally)
+ * @param default_value default value if not found
+ * @returns found string value or default string
+ */
+export function get_data_or_default_for(address:string, key: string, default_value: string): string {
+    if(has_data_for(address, key)) {
+        return get_data(address, key);
+    }
+    return default_value;
 }
 
 /**

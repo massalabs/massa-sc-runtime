@@ -45,6 +45,10 @@ struct Metering {
     pub get_owned_addrs: u64,
     #[cornetto(const, 200)]
     pub get_call_stack: u64,
+    #[cornetto(const, 100)]
+    pub signature_verify_const: u64,
+    #[cornetto(const, 1)]
+    pub signature_verify_data_mult: usize,
 }
 
 pub(crate) fn metering_call() -> u64 {
@@ -121,6 +125,14 @@ pub(crate) fn metering_get_owned_addrs() -> u64 {
 
 pub(crate) fn metering_get_call_stack() -> u64 {
     METERING.get_call_stack()
+}
+
+pub(crate) fn metering_signature_verify_const() -> u64 {
+    METERING.signature_verify_const()
+}
+
+pub(crate) fn metering_signature_verify_data_mult() -> usize {
+    METERING.signature_verify_data_mult()
 }
 
 #[cfg(test)]

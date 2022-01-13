@@ -315,6 +315,33 @@ pub(crate) fn assembly_script_generate_event(env: &Env, event: i32) -> ABIResult
     Ok(())
 }
 
+/// verify a signature of data given a public key. Returns Ok(1) if correctly verified, otherwise Ok(0)
+pub(crate) fn assembly_script_signature_verify(
+    env: &Env,
+    data: i32,
+    signature: i32,
+    public_key: i32,
+) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_signature_verify_const())?;
+    let memory = get_memory!(env);
+    let data = read_string_and_sub_gas(
+        env,
+        memory,
+        data,
+        settings::metering_signature_verify_data_mult(),
+    )?;
+    let signature = get_string(memory, signature)?;
+    let public_key = get_string(memory, public_key)?;
+    match env
+        .interface
+        .signature_verify(&data.as_bytes().to_vec(), &signature, &public_key)
+    {
+        Err(err) => abi_bail!(err),
+        Ok(false) => Ok(0),
+        Ok(true) => Ok(1),
+    }
+}
+
 /// Tooling, return a StringPtr allocated from a String
 fn pointer_from_string(env: &Env, value: &String) -> ABIResult<StringPtr> {
     match StringPtr::alloc(value, &env.wasm_env) {
