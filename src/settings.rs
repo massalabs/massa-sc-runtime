@@ -49,6 +49,8 @@ struct Metering {
     pub signature_verify_const: u64,
     #[cornetto(const, 1)]
     pub signature_verify_data_mult: usize,
+    #[cornetto(const, 100)]
+    pub address_from_public_key: u64,
 }
 
 pub(crate) fn metering_call() -> u64 {
@@ -133,6 +135,10 @@ pub(crate) fn metering_signature_verify_const() -> u64 {
 
 pub(crate) fn metering_signature_verify_data_mult() -> usize {
     METERING.signature_verify_data_mult()
+}
+
+pub(crate) fn metering_address_from_public_key() -> u64 {
+    METERING.address_from_public_key()
 }
 
 #[cfg(test)]

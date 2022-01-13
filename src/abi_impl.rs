@@ -342,6 +342,20 @@ pub(crate) fn assembly_script_signature_verify(
     }
 }
 
+/// converts a public key to an address
+pub(crate) fn assembly_script_address_from_public_key(
+    env: &Env,
+    public_key: i32,
+) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_address_from_public_key())?;
+    let memory = get_memory!(env);
+    let public_key = get_string(memory, public_key)?;
+    match env.interface.address_from_public_key(&public_key) {
+        Err(err) => abi_bail!(err),
+        Ok(addr) => Ok(pointer_from_string(env, &addr)?.offset() as i32),
+    }
+}
+
 /// Tooling, return a StringPtr allocated from a String
 fn pointer_from_string(env: &Env, value: &String) -> ABIResult<StringPtr> {
     match StringPtr::alloc(value, &env.wasm_env) {

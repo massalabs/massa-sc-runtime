@@ -17,6 +17,7 @@ export declare function assembly_script_get_balance(): u64;
 export declare function assembly_script_get_balance_for(address: string): u64;
 export declare function assembly_script_hash(data: string): string;
 export declare function assembly_script_signature_verify(data: string, signature: string, public_key: string): bool;
+export declare function assembly_script_address_from_public_key(public_key: string): string;
 
 /**
  * Prints in the node logs
@@ -217,7 +218,7 @@ export function get_call_stack(): string {
  *
  * @param message String version of the event
  */
- export function generate_event(event: string): void {
+export function generate_event(event: string): void {
     assembly_script_generate_event(event);
 }
 
@@ -259,6 +260,37 @@ export function get_balance(): u64 {
  */
 export function get_balance_for(address: string): u64 {
     return assembly_script_get_balance_for(address);
+}
+
+/**
+ * Hash data and return the base58-encoded hash
+ *
+ * @param data Data to hash
+ */
+export function hash(data: string): string {
+    return assembly_script_hash(event);
+}
+
+/**
+ * Hash data and return the base58-encoded hash
+ *
+ * @param data Data that was signed
+ * @param signature base58check signature
+ * @param public_key base58check public key
+ * @returns true if verification suceeded, false otherwise
+ */
+export function signature_verify(data: string, signature: string, public_key: string): bool {
+    return assembly_script_signature_verify(data, signature, public_key);
+}
+
+/**
+ * Converts a public key to an address
+ *
+ * @param public_key Base58check public key
+ * @returns the resulting address
+ */
+export function address_from_public_key(data: string): string {
+    return assembly_script_address_from_public_key(data);
 }
 
 /**

@@ -44,7 +44,8 @@ fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Resu
             "assembly_script_get_balance" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_balance),
             "assembly_script_get_balance_for" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_balance_for),
             "assembly_script_hash" => Function::new_native_with_env(&store, env.clone(), assembly_script_hash),
-            "assembly_script_signature_verify" => Function::new_native_with_env(&store, env, assembly_script_signature_verify),
+            "assembly_script_signature_verify" => Function::new_native_with_env(&store, env.clone(), assembly_script_signature_verify),
+            "assembly_script_address_from_public_key" => Function::new_native_with_env(&store, env, assembly_script_address_from_public_key),
         },
     };
     let module = Module::new(&store, &module)?;
