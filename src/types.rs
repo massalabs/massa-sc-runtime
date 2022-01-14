@@ -1,7 +1,8 @@
 use anyhow::{bail, Result};
-use std::time::Instant;
-
 pub type Address = String;
+pub type MassaHash = String;
+pub type Signature = String;
+pub type PublicKey = String;
 pub type Bytecode = Vec<u8>;
 
 /// That's what is returned when a module is executed correctly since the end
@@ -70,7 +71,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     /// Requires the data at the address
-    fn get_data_for(&self, _address: &Address, _key: &str) -> Result<Bytecode> {
+    fn get_data_for(&self, _address: &Address, _key: &MassaHash) -> Result<Vec<u8>> {
         bail!("unimplemented function get_data_for in interface")
     }
 
@@ -83,26 +84,54 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ///
     /// Note:
     /// The execution lib will allways use the current context address for the update
-    fn set_data_for(&self, _address: &Address, _key: &str, _value: &Bytecode) -> Result<()> {
+    fn set_data_for(&self, _address: &Address, _key: &MassaHash, _value: &Vec<u8>) -> Result<()> {
         bail!("unimplemented function set_data_for in interface")
     }
 
-    fn get_data(&self, _key: &str) -> Result<Bytecode> {
+    fn get_data(&self, _key: &String) -> Result<Vec<u8>> {
         bail!("unimplemented function get_data in interface")
     }
 
-    fn set_data(&self, _key: &str, _value: &Bytecode) -> Result<()> {
+    fn set_data(&self, _key: &String, _value: &Vec<u8>) -> Result<()> {
         bail!("unimplemented function set_data in interface")
     }
 
-    /// Returns the current time
-    fn get_time(&self) -> Result<Instant> {
+    fn has_data(&self, _key: &String) -> Result<bool> {
+        bail!("unimplemented function has_data in interface")
+    }
+
+    fn has_data_for(&self, _address: &Address, _key: &String) -> Result<bool> {
+        bail!("unimplemented function has_data_for in interface")
+    }
+
+    // Hash data
+    fn hash(&self, _data: &Vec<u8>) -> Result<MassaHash> {
+        bail!("unimplemented function hash in interface")
+    }
+
+    // Verify signature
+    fn signature_verify(
+        &self,
+        _data: &Vec<u8>,
+        _signature: &Signature,
+        _public_key: &PublicKey,
+    ) -> Result<bool> {
+        bail!("unimplemented function signature_verify in interface")
+    }
+
+    // Convert a public key to an address
+    fn address_from_public_key(&self, _public_key: &PublicKey) -> Result<Address> {
+        bail!("unimplemented function address_from_public_key in interface")
+    }
+
+    /// Returns the current time (millisecond unix timestamp)
+    fn get_time(&self) -> Result<u64> {
         bail!("unimplemented function get_time in interface")
     }
 
-    /// Returns a random number
-    fn get_random(&self) -> Result<u64> {
-        bail!("unimplemented function get_random in interface")
+    /// Returns a random number (unsafe: can be predicted and manipulated)
+    fn unsafe_random(&self) -> Result<i64> {
+        bail!("unimplemented function unsafe_random in interface")
     }
 
     fn module_called(&self) -> Result<()> {
@@ -120,6 +149,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn get_call_stack(&self) -> Result<Vec<Address>> {
         bail!("unimplemented function get_call_stack in interface")
     }
+
     fn generate_event(&self, _event: String) -> Result<()> {
         // TODO should be a SCEvent
         bail!("unimplemented function generate_event in interface")

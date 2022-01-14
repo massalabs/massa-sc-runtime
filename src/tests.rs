@@ -49,7 +49,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn get_data(&self, _: &str) -> Result<Bytecode> {
+    fn get_data(&self, _: &String) -> Result<Bytecode> {
         match self.0.lock().unwrap().clone().get(&"print".to_string()) {
             Some(bytes) => Ok(bytes.clone()),
             _ => bail!("Cannot find data"),
