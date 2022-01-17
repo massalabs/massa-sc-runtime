@@ -300,7 +300,7 @@ export function address_from_public_key(data: string): string {
  *
  * @returns unix timestamp in milliseconds
  */
-export function assembly_script_get_time(): u64 {
+export function get_time(): u64 {
     return assembly_script_get_time();
 }
 
@@ -310,7 +310,7 @@ export function assembly_script_get_time(): u64 {
  *
  * @returns random signed 64bit integer
  */
-export function assembly_script_unsafe_random(): i64 {
+export function unsafe_random(): i64 {
     return assembly_script_unsafe_random();
 }
 
