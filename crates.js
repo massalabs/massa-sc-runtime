@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["assembly_simulator"];
+window.ALL_CRATES = ["massa_sc_runtime"];
