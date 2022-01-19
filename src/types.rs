@@ -56,6 +56,17 @@ pub trait Interface: Send + Sync + InterfaceClone {
         bail!("unimplemented function transfer_coins_for in interface")
     }
 
+    /// Spend an amount of coins from the current address to a target address,
+    /// making those available for use by a contract called with the target address.
+    fn set_call_coins(&self, _target_address: &Address, _raw_amount: u64) -> Result<()> {
+        bail!("unimplemented function set_call_coins_for in interface")
+    }
+
+    /// Get the amount of coins that have been made available for use by the caller of the currently executing code.
+    fn get_call_coins(&self) -> Result<u64> {
+        bail!("unimplemented function get_call_coins_for in interface")
+    }
+
     /// Requires to replace the module at the current address
     ///
     /// Note:

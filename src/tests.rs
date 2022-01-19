@@ -56,6 +56,10 @@ impl Interface for TestInterface {
         }
     }
 
+    fn get_call_coins(&self) -> Result<u64> {
+        Ok(0)
+    }
+
     fn create_module(&self, module: &Bytecode) -> Result<Address> {
         let address = String::from("get_string");
         self.0
@@ -110,6 +114,15 @@ fn test_get_balance() {
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     assert!(interface.get_balance().is_ok());
+}
+
+#[test]
+#[serial]
+fn test_get_call_coins() {
+    settings::reset_metering();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    assert!(interface.get_call_coins().is_ok());
 }
 
 #[test]
