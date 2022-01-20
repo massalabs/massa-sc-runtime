@@ -84,35 +84,35 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ///
     /// Note:
     /// The execution lib will allways use the current context address for the update
-    fn set_data_for(&self, _address: &Address, _key: &MassaHash, _value: &Vec<u8>) -> Result<()> {
+    fn set_data_for(&self, _address: &Address, _key: &MassaHash, _value: &[u8]) -> Result<()> {
         bail!("unimplemented function set_data_for in interface")
     }
 
-    fn get_data(&self, _key: &String) -> Result<Vec<u8>> {
+    fn get_data(&self, _key: &str) -> Result<Vec<u8>> {
         bail!("unimplemented function get_data in interface")
     }
 
-    fn set_data(&self, _key: &String, _value: &Vec<u8>) -> Result<()> {
+    fn set_data(&self, _key: &str, _value: &[u8]) -> Result<()> {
         bail!("unimplemented function set_data in interface")
     }
 
-    fn has_data(&self, _key: &String) -> Result<bool> {
+    fn has_data(&self, _key: &str) -> Result<bool> {
         bail!("unimplemented function has_data in interface")
     }
 
-    fn has_data_for(&self, _address: &Address, _key: &String) -> Result<bool> {
+    fn has_data_for(&self, _address: &Address, _key: &str) -> Result<bool> {
         bail!("unimplemented function has_data_for in interface")
     }
 
     // Hash data
-    fn hash(&self, _data: &Vec<u8>) -> Result<MassaHash> {
+    fn hash(&self, _data: &[u8]) -> Result<MassaHash> {
         bail!("unimplemented function hash in interface")
     }
 
     // Verify signature
     fn signature_verify(
         &self,
-        _data: &Vec<u8>,
+        _data: &[u8],
         _signature: &Signature,
         _public_key: &PublicKey,
     ) -> Result<bool> {
