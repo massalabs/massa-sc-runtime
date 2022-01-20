@@ -1,8 +1,11 @@
 {
-  "name": "wasm",
-  "version": "0.1.0",
-  "description": "",
+  "name": "massa-sc-runtime",
+  "version": "1.0.0",
   "main": "index.js",
+  "repository": "https://github.com/massalabs/massa-sc-runtime",
+  "author": "Adrien Zinger <zinger.ad@gmail.com>, Yvan Sraka <yvan@sraka.xyz>",
+  "license": "MIT",
+  "private": false,
   "scripts": {
     "get_string": "asc assembly/get_string.ts --target release --exportRuntime --textFile build/get_string.wat --binaryFile build/get_string.wasm",
     "create_sc": "node massa_tools/include_base64.js assembly/create_sc.ts && asc assembly/create_sc.m.ts --target release --exportRuntime --textFile build/create_sc.wat --binaryFile build/create_sc.wasm && rm assembly/create_sc.m.ts",
@@ -12,14 +15,13 @@
     "build": "yarn run get_string && yarn run caller && yarn run local_hello_name_caller && yarn run create_sc",
     "clean": "rm -rf build && rm assembly/*.m.ts"
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "assemblyscript": "^0.19.20",
     "jest": "^27.4.5"
   },
   "dependencies": {
     "json-as": "^0.2.6",
+    "massa-sc-std": "^1.0.0",
     "visitor-as": "^0.6.0"
   }
 }

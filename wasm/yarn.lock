@@ -1890,6 +1890,11 @@ makeerror@1.0.12:
   dependencies:
     tmpl "1.0.5"
 
+massa-sc-std@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/massa-sc-std/-/massa-sc-std-1.0.0.tgz#7e86552c2af2725a6f7cdb450b470ab39868e2a0"
+  integrity sha512-iVpm9tBjAdFI7GkQmTSAS+C+vmZ3PyrwKT/HzobO85fTyTKLmBJSqaPfvoh6FpUVqapOuaiOWA+WiwN0EvYV/A==
+
 merge-stream@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/merge-stream/-/merge-stream-2.0.0.tgz#52823629a14dd00c9770fb6ad47dc6310f2c1f60"

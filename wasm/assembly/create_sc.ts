@@ -1,4 +1,4 @@
-import { create_sc, include_base64 } from "./massa";
+import { create_sc, include_base64 } from "massa-sc-std";
 
 export function main(_args: string): i32 {
     // Create smart contract "get_string"
