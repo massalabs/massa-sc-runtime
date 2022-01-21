@@ -382,7 +382,7 @@ fn pointer_from_string(env: &Env, value: &str) -> ABIResult<StringPtr> {
 /// Tooling, return a StringPtr allocated from bytes with utf8 parsing
 fn pointer_from_utf8(env: &Env, value: &[u8]) -> ABIResult<StringPtr> {
     match std::str::from_utf8(value) {
-        Ok(data) => match StringPtr::alloc(&data.into(), &env.wasm_env) {
+        Ok(data) => match StringPtr::alloc(&data.to_string(), &env.wasm_env) {
             Ok(ptr) => Ok(*ptr),
             Err(err) => abi_bail!(err),
         },
