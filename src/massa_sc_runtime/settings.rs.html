@@ -163,6 +163,12 @@
 <span id="162">162</span>
 <span id="163">163</span>
 <span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">cornetto::Cornetto</span>;
 
 <span class="comment">// main function name in the webassembly module</span>
@@ -220,10 +226,16 @@
     <span class="kw">pub</span> <span class="ident">unsafe_random</span>: <span class="ident">u64</span>,
     <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">100</span>)]</span>
     <span class="kw">pub</span> <span class="ident">get_time</span>: <span class="ident">u64</span>,
+    <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">100</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">get_call_coins</span>: <span class="ident">u64</span>,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_call</span>() -&gt; <span class="ident">u64</span> {
     <span class="ident">METERING</span>.<span class="ident">call</span>()
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_get_call_coins</span>() -&gt; <span class="ident">u64</span> {
+    <span class="ident">METERING</span>.<span class="ident">get_call_coins</span>()
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_generate_event</span>() -&gt; <span class="ident">u64</span> {
