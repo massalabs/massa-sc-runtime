@@ -45,24 +45,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "assembly_simulator"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "as-ffi-bindings",
- "base64",
- "cornetto",
- "lazy_static",
- "serde",
- "serde_json",
- "serial_test",
- "wasmer",
- "wasmer-compiler-singlepass",
- "wasmer-engine-universal",
- "wasmer-middlewares",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -527,6 +509,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b823e83b2affd8f40a9ee8c29dbc56404c1e34cd2710921f2801e2cf29527afa"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "massa-sc-runtime"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "as-ffi-bindings",
+ "base64",
+ "cornetto",
+ "lazy_static",
+ "serde",
+ "serde_json",
+ "serial_test",
+ "wasmer",
+ "wasmer-compiler-singlepass",
+ "wasmer-engine-universal",
+ "wasmer-middlewares",
 ]
 
 [[package]]
