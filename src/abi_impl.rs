@@ -216,7 +216,7 @@ pub(crate) fn assembly_script_hash(env: &Env, value: i32) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_hash_const())?;
     let memory = get_memory!(env);
     let value = read_string_and_sub_gas(env, memory, value, settings::metering_hash_per_byte())?;
-    match env.interface.hash(&value.as_bytes().to_vec()) {
+    match env.interface.hash(value.as_bytes()) {
         Ok(h) => Ok(pointer_from_string(env, &h)?.offset() as i32),
         Err(err) => abi_bail!(err),
     }
@@ -229,7 +229,7 @@ pub(crate) fn assembly_script_set_data(env: &Env, key: i32, value: i32) -> ABIRe
     let key = read_string_and_sub_gas(env, memory, key, settings::metering_set_data_key_mult())?;
     let value =
         read_string_and_sub_gas(env, memory, value, settings::metering_set_data_value_mult())?;
-    if let Err(err) = env.interface.set_data(&key, &value.as_bytes().to_vec()) {
+    if let Err(err) = env.interface.set_data(&key, value.as_bytes()) {
         abi_bail!(err)
     }
     Ok(())
@@ -273,10 +273,7 @@ pub(crate) fn assembly_script_set_data_for(
     let value =
         read_string_and_sub_gas(env, memory, value, settings::metering_set_data_value_mult())?;
     let address = get_string(memory, address)?;
-    if let Err(err) = env
-        .interface
-        .set_data_for(&address, &key, &value.as_bytes().to_vec())
-    {
+    if let Err(err) = env.interface.set_data_for(&address, &key, value.as_bytes()) {
         abi_bail!(err)
     }
     Ok(())
@@ -353,7 +350,7 @@ pub(crate) fn assembly_script_signature_verify(
     let public_key = get_string(memory, public_key)?;
     match env
         .interface
-        .signature_verify(&data.as_bytes().to_vec(), &signature, &public_key)
+        .signature_verify(data.as_bytes(), &signature, &public_key)
     {
         Err(err) => abi_bail!(err),
         Ok(false) => Ok(0),
@@ -394,15 +391,15 @@ pub(crate) fn assembly_script_get_time(env: &Env) -> ABIResult<i64> {
 }
 
 /// Tooling, return a StringPtr allocated from a String
-fn pointer_from_string(env: &Env, value: &String) -> ABIResult<StringPtr> {
-    match StringPtr::alloc(value, &env.wasm_env) {
+fn pointer_from_string(env: &Env, value: &str) -> ABIResult<StringPtr> {
+    match StringPtr::alloc(&value.into(), &env.wasm_env) {
         Ok(ptr) => Ok(*ptr),
         Err(err) => abi_bail!(err),
     }
 }
 
 /// Tooling, return a StringPtr allocated from bytes with utf8 parsing
-fn pointer_from_utf8(env: &Env, value: &Vec<u8>) -> ABIResult<StringPtr> {
+fn pointer_from_utf8(env: &Env, value: &[u8]) -> ABIResult<StringPtr> {
     match std::str::from_utf8(value) {
         Ok(data) => match StringPtr::alloc(&data.to_string(), &env.wasm_env) {
             Ok(ptr) => Ok(*ptr),

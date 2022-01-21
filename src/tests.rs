@@ -50,11 +50,11 @@ impl Interface for TestInterface {
         self.0
             .lock()
             .unwrap()
-            .insert("print".to_string(), message.as_bytes().to_vec());
+            .insert("print".into(), message.as_bytes().to_vec());
         Ok(())
     }
 
-    fn get_data(&self, _: &String) -> Result<Bytecode> {
+    fn get_data(&self, _: &str) -> Result<Bytecode> {
         match self.0.lock().unwrap().clone().get(&"print".to_string()) {
             Some(bytes) => Ok(bytes.clone()),
             _ => bail!("Cannot find data"),
