@@ -1,3 +1,4 @@
+/// THIS FILE SHOULD TEST THE ABI, NOT THE MOCKED INTERFACE
 use crate::execution_impl::run;
 use crate::settings;
 use crate::types::{Address, Bytecode};
@@ -17,11 +18,15 @@ impl InterfaceClone for TestInterface {
 }
 
 impl Interface for TestInterface {
-    fn get_module(&self, address: &Address) -> Result<Bytecode> {
+    fn init_call(&self, address: &Address, _raw_coins: u64) -> Result<Bytecode> {
         match self.0.lock().unwrap().clone().get(&address.clone()) {
             Some(module) => Ok(module.clone()),
             _ => bail!("Cannot find module for address {}", address),
         }
+    }
+
+    fn finish_call(&self) -> Result<()> {
+        Ok(())
     }
 
     fn get_balance(&self) -> Result<u64> {
@@ -56,6 +61,10 @@ impl Interface for TestInterface {
         }
     }
 
+    fn get_call_coins(&self) -> Result<u64> {
+        Ok(0)
+    }
+
     fn create_module(&self, module: &Bytecode) -> Result<Address> {
         let address = String::from("get_string");
         self.0
@@ -63,10 +72,6 @@ impl Interface for TestInterface {
             .unwrap()
             .insert(address.clone(), module.clone());
         Ok(address)
-    }
-
-    fn exit_success(&self) -> Result<()> {
-        Ok(())
     }
 }
 
@@ -101,24 +106,6 @@ fn test_caller() {
     // Test now if we failed if metering is too hight
     settings::set_metering(15_000);
     run(module, 20_000, &*interface).expect_err("Expected to be out of operation gas");
-}
-
-#[test]
-#[serial]
-fn test_get_balance() {
-    settings::reset_metering();
-    let interface: Box<dyn Interface> =
-        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    assert!(interface.get_balance().is_ok());
-}
-
-#[test]
-#[serial]
-fn test_get_balance_for() {
-    settings::reset_metering();
-    let interface: Box<dyn Interface> =
-        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    assert!(interface.get_balance_for(&"test".to_string()).is_ok());
 }
 
 #[test]

@@ -48,6 +48,7 @@ fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Resu
             "assembly_script_signature_verify" => Function::new_native_with_env(&store, env.clone(), assembly_script_signature_verify),
             "assembly_script_address_from_public_key" => Function::new_native_with_env(&store, env.clone(), assembly_script_address_from_public_key),
             "assembly_script_unsafe_random" => Function::new_native_with_env(&store, env.clone(), assembly_script_unsafe_random),
+            "assembly_script_get_call_coins" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_call_coins),
             "assembly_script_get_time" => Function::new_native_with_env(&store, env, assembly_script_get_time),
         },
     };

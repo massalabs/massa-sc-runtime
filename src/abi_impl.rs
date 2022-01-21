@@ -38,12 +38,22 @@ pub(crate) use get_memory;
 /// It take in argument the environment defined in env.rs
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
-fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> ABIResult<Response> {
-    let module = &match env.interface.get_module(address) {
+fn call_module(
+    env: &Env,
+    address: &Address,
+    function: &str,
+    param: &str,
+    raw_coins: i64,
+) -> ABIResult<Response> {
+    let raw_coins: u64 = match raw_coins.try_into() {
+        Ok(v) => v,
+        Err(_) => abi_bail!("negative amount of coins in Call"),
+    };
+    let module = &match env.interface.init_call(address, raw_coins) {
         Ok(module) => module,
         Err(err) => abi_bail!(err),
     };
-    let res = match crate::execution_impl::exec(
+    match crate::execution_impl::exec(
         get_remaining_points_for_env(env),
         None,
         module,
@@ -51,11 +61,19 @@ fn call_module(env: &Env, address: &Address, function: &str, param: &str) -> ABI
         param,
         &*env.interface,
     ) {
-        Ok(response) => response,
+        Ok(resp) => match env.interface.finish_call() {
+            Ok(_) => Ok(resp),
+            Err(err) => abi_bail!(err),
+        },
         Err(err) => abi_bail!(err),
-    };
-    match env.interface.exit_success() {
-        Ok(_) => Ok(res),
+    }
+}
+
+/// Get the coins that have been made available for a specific purpose for the current call.
+pub(crate) fn assembly_script_get_call_coins(env: &Env) -> ABIResult<i64> {
+    sub_remaining_gas(env, settings::metering_get_call_coins())?;
+    match env.interface.get_call_coins() {
+        Ok(res) => Ok(res as i64),
         Err(err) => abi_bail!(err),
     }
 }
@@ -134,13 +152,14 @@ pub(crate) fn assembly_script_call_module(
     address: i32,
     function: i32,
     param: i32,
+    call_coins: i64,
 ) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_call())?;
     let memory = get_memory!(env);
     let address = &get_string(memory, address)?;
     let function = &get_string(memory, function)?;
     let param = &get_string(memory, param)?;
-    let response = call_module(env, address, function, param)?;
+    let response = call_module(env, address, function, param, call_coins)?;
     match StringPtr::alloc(&response.ret, &env.wasm_env) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
