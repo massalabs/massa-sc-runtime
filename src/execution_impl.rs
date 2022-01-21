@@ -10,6 +10,7 @@ use wasmer::{
     imports, CompilerConfig, Function, ImportObject, Instance, Module, Store, Universal, Val,
 };
 use wasmer_compiler_singlepass::Singlepass;
+use wasmer_middlewares::metering::{self, MeteringPoints};
 use wasmer_middlewares::Metering;
 
 /// Create an instance of VM from a module with a given interface, an operation
@@ -68,37 +69,57 @@ pub(crate) fn exec(
     };
     let mut env = as_ffi_bindings::Env::default();
     env.init(&instance)?;
-    let param_ptr = *StringPtr::alloc(&param.to_string(), &env)?;
-    match instance
-        .exports
-        .get_function(function)?
-        .call(&[Val::I32(param_ptr.offset() as i32)])
-    {
-        Ok(value) => {
-            // TODO: clean and define wat should be return by the main
-            if function.eq(crate::settings::MAIN) {
-                return Ok(Response {
-                    ret: "0".to_string(),
-                    remaining_gas: get_remaining_points_for_instance(&instance),
-                });
-            }
-            let ret = if let Some(offset) = value.get(0) {
-                if let Some(offset) = offset.i32() {
-                    let str_ptr = StringPtr::new(offset as u32);
-                    let memory = instance.exports.get_memory("memory")?;
-                    str_ptr.read(memory)?
-                } else {
-                    bail!("Execution wasn't in capacity to read the return value")
+
+    // Closure for the execution allowing us to handle a gas error
+    fn execution(
+        instance: &Instance,
+        function: &str,
+        param: &str,
+        env: &as_ffi_bindings::Env,
+    ) -> Result<Response> {
+        let param_ptr = *StringPtr::alloc(&param.to_string(), env)?;
+        match instance
+            .exports
+            .get_function(function)?
+            .call(&[Val::I32(param_ptr.offset() as i32)])
+        {
+            Ok(value) => {
+                // TODO: clean and define wat should be return by the main
+                if function.eq(crate::settings::MAIN) {
+                    return Ok(Response {
+                        ret: "0".to_string(),
+                        remaining_gas: get_remaining_points_for_instance(instance),
+                    });
                 }
-            } else {
-                String::new()
-            };
-            Ok(Response {
-                ret,
-                remaining_gas: get_remaining_points_for_instance(&instance),
-            })
+                let ret = if let Some(offset) = value.get(0) {
+                    if let Some(offset) = offset.i32() {
+                        let str_ptr = StringPtr::new(offset as u32);
+                        let memory = instance.exports.get_memory("memory")?;
+                        str_ptr.read(memory)?
+                    } else {
+                        bail!("Execution wasn't in capacity to read the return value")
+                    }
+                } else {
+                    String::new()
+                };
+                Ok(Response {
+                    ret,
+                    remaining_gas: get_remaining_points_for_instance(instance),
+                })
+            }
+            Err(error) => bail!(error),
         }
-        Err(error) => bail!(error),
+    }
+
+    match execution(&instance, function, param, &env) {
+        Ok(response) => Ok(response),
+        Err(err) => {
+            // Because the last needed more than the remaining points, we should have an error.
+            match metering::get_remaining_points(&instance) {
+                MeteringPoints::Remaining(..) => bail!(err),
+                MeteringPoints::Exhausted => bail!("Not enough gas, limit reached at: {function}"),
+            }
+        }
     }
 }
 

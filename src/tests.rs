@@ -162,3 +162,29 @@ fn test_module_creation() {
     ));
     run(module, 20_000, &*interface).expect("Failed to run caller.wat");
 }
+
+#[test]
+#[serial]
+fn test_not_enough_gas_error() {
+    settings::reset_metering();
+    // This test should create a smartcontract module and call it
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/create_sc.wasm"
+    ));
+    run(module, 100_000, &*interface).expect("Failed to run create_sc.wat");
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/caller.wat"
+    ));
+    match run(module, 10000, &*interface) {
+        Ok(_) => panic!("Shouldn't pass successfully =-("),
+        Err(err) => {
+            assert!(err
+                .to_string()
+                .starts_with("RuntimeError: Not enough gas, limit reached at:"))
+        }
+    }
+}
