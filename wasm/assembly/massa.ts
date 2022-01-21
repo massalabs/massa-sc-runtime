@@ -15,6 +15,7 @@ export declare function assembly_script_transfer_coins(to_address: string, raw_a
 export declare function assembly_script_transfer_coins_for(from_address: string, to_address: string, raw_amount: u64): void;
 export declare function assembly_script_get_balance(): u64;
 export declare function assembly_script_get_balance_for(address: string): u64;
+export declare function assembly_script_get_call_coins(): u64;
 export declare function assembly_script_hash(data: string): string;
 export declare function assembly_script_signature_verify(data: string, signature: string, public_key: string): bool;
 export declare function assembly_script_address_from_public_key(public_key: string): string;
@@ -253,6 +254,15 @@ export function transfer_coins_for(from_address: string, to_address: string, raw
  */
 export function get_balance(): u64 {
     return assembly_script_get_balance();
+}
+
+/**
+ * Gets the amount of coins transferred in the current call
+ *
+ * @returns Raw amount of coins (in elementary nits)
+ */
+ export function get_call_coins(): u64 {
+    return assembly_script_get_call_coins();
 }
 
 /**
