@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "json-as": "^0.2.6",
-    "massa-sc-std": "^1.0.0",
+    "massa-sc-std": "^1.1.0",
     "visitor-as": "^0.6.0"
   }
 }

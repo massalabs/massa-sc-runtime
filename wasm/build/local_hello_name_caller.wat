@@ -8,8 +8,8 @@
  (type $i32_i32_i32_i32_=>_none (func (param i32 i32 i32 i32)))
  (type $i32_i32_i32_=>_none (func (param i32 i32 i32)))
  (type $none_=>_i32 (func (result i32)))
- (import "massa" "assembly_script_call" (func $assembly/massa/assembly_script_call (param i32 i32 i32 i64) (result i32)))
- (import "massa" "assembly_script_print" (func $assembly/massa/assembly_script_print (param i32)))
+ (import "index" "assembly_script_call" (func $~lib/massa-sc-std/index/assembly_script_call (param i32 i32 i32 i64) (result i32)))
+ (import "index" "assembly_script_print" (func $~lib/massa-sc-std/index/assembly_script_print (param i32)))
  (import "env" "abort" (func $~lib/builtins/abort (param i32 i32 i32 i32)))
  (global $~lib/rt/itcms/total (mut i32) (i32.const 0))
  (global $~lib/rt/itcms/threshold (mut i32) (i32.const 0))
@@ -1944,11 +1944,11 @@
    i32.const 1104
    i32.const 1152
    i64.const 0
-   call $assembly/massa/assembly_script_call
+   call $~lib/massa-sc-std/index/assembly_script_call
    local.tee $0
    i32.store offset=12
    local.get $0
-   call $assembly/massa/assembly_script_print
+   call $~lib/massa-sc-std/index/assembly_script_print
    global.get $~lib/memory/__stack_pointer
    i32.const 16
    i32.add
