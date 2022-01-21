@@ -1,3 +1,5 @@
+/// THIS FILE SHOULD TEST THE ABI, NOT THE MOCKED INTERFACE
+
 use crate::execution_impl::run;
 use crate::settings;
 use crate::types::{Address, Bytecode};
@@ -105,33 +107,6 @@ fn test_caller() {
     // Test now if we failed if metering is too hight
     settings::set_metering(15_000);
     run(module, 20_000, &*interface).expect_err("Expected to be out of operation gas");
-}
-
-#[test]
-#[serial]
-fn test_get_balance() {
-    settings::reset_metering();
-    let interface: Box<dyn Interface> =
-        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    assert!(interface.get_balance().is_ok());
-}
-
-#[test]
-#[serial]
-fn test_get_call_coins() {
-    settings::reset_metering();
-    let interface: Box<dyn Interface> =
-        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    assert!(interface.get_call_coins().is_ok());
-}
-
-#[test]
-#[serial]
-fn test_get_balance_for() {
-    settings::reset_metering();
-    let interface: Box<dyn Interface> =
-        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    assert!(interface.get_balance_for(&"test".to_string()).is_ok());
 }
 
 #[test]
