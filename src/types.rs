@@ -24,9 +24,14 @@ impl Clone for Box<dyn Interface> {
 }
 
 pub trait Interface: Send + Sync + InterfaceClone {
-    /// Requires the module in the given address
-    fn get_module(&self, _address: &Address) -> Result<Bytecode> {
-        bail!("unimplemented function get_module in interface")
+    /// Prepare the execution of a module at the given address and transfer a given amount of coins
+    fn init_call(&self, _address: &Address, _raw_coins: u64) -> Result<Bytecode> {
+        bail!("unimplemented function init_call in interface")
+    }
+
+    /// Finish a call
+    fn finish_call(&self) -> Result<()> {
+        bail!("unimplemented function finish_call in interface")
     }
 
     /// Get the SCE ledger balance for the crrent address.
@@ -54,12 +59,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
         _raw_amount: u64,
     ) -> Result<()> {
         bail!("unimplemented function transfer_coins_for in interface")
-    }
-
-    /// Spend an amount of coins from the current address to a target address,
-    /// making those available for use by a contract called with the target address.
-    fn set_call_coins(&self, _target_address: &Address, _raw_amount: u64) -> Result<()> {
-        bail!("unimplemented function set_call_coins_for in interface")
     }
 
     /// Get the amount of coins that have been made available for use by the caller of the currently executing code.
@@ -147,10 +146,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     fn module_called(&self) -> Result<()> {
         bail!("unimplemented function module_called in interface")
-    }
-
-    fn exit_success(&self) -> Result<()> {
-        bail!("unimplemented function exit_success in interface")
     }
 
     fn get_owned_addresses(&self) -> Result<Vec<Address>> {

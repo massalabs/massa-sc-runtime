@@ -17,11 +17,15 @@ impl InterfaceClone for TestInterface {
 }
 
 impl Interface for TestInterface {
-    fn get_module(&self, address: &Address) -> Result<Bytecode> {
+    fn init_call(&self, address: &Address, _raw_coins: u64) -> Result<Bytecode> {
         match self.0.lock().unwrap().clone().get(&address.clone()) {
             Some(module) => Ok(module.clone()),
             _ => bail!("Cannot find module for address {}", address),
         }
+    }
+
+    fn finish_call(&self) -> Result<()> {
+        Ok(())
     }
 
     fn get_balance(&self) -> Result<u64> {
@@ -67,10 +71,6 @@ impl Interface for TestInterface {
             .unwrap()
             .insert(address.clone(), module.clone());
         Ok(address)
-    }
-
-    fn exit_success(&self) -> Result<()> {
-        Ok(())
     }
 }
 

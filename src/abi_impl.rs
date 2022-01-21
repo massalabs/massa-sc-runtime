@@ -43,24 +43,17 @@ fn call_module(
     address: &Address,
     function: &str,
     param: &str,
-    call_coins: i64,
+    raw_coins: i64,
 ) -> ABIResult<Response> {
-    // Set call coins if positive.
-    if call_coins.is_positive() {
-        sub_remaining_gas(env, settings::metering_set_call_coins())?;
-        if env
-            .interface
-            .set_call_coins(address, call_coins as u64)
-            .is_err()
-        {
-            abi_bail!("Failed to set call coins.");
-        }
-    }
-    let module = &match env.interface.get_module(address) {
+    let raw_coins: u64 = match raw_coins.try_into() {
+        Ok(v) => v,
+        Err(_) => abi_bail!("negative amount of coins in Call"),
+    };
+    let module = &match env.interface.init_call(address, raw_coins) {
         Ok(module) => module,
         Err(err) => abi_bail!(err),
     };
-    let res = match crate::execution_impl::exec(
+    match crate::execution_impl::exec(
         get_remaining_points_for_env(env),
         None,
         module,
@@ -68,11 +61,10 @@ fn call_module(
         param,
         &*env.interface,
     ) {
-        Ok(response) => response,
-        Err(err) => abi_bail!(err),
-    };
-    match env.interface.exit_success() {
-        Ok(_) => Ok(res),
+        Ok(resp) => match env.interface.finish_call() {
+            Ok(_) => Ok(resp),
+            Err(err) => abi_bail!(err),
+        },
         Err(err) => abi_bail!(err),
     }
 }

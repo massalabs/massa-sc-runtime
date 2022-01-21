@@ -56,17 +56,11 @@ struct Metering {
     #[cornetto(const, 100)]
     pub get_time: u64,
     #[cornetto(const, 100)]
-    pub set_call_coins: u64,
-    #[cornetto(const, 100)]
     pub get_call_coins: u64,
 }
 
 pub(crate) fn metering_call() -> u64 {
     METERING.call()
-}
-
-pub(crate) fn metering_set_call_coins() -> u64 {
-    METERING.set_call_coins()
 }
 
 pub(crate) fn metering_get_call_coins() -> u64 {
