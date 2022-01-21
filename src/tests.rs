@@ -1,5 +1,4 @@
 /// THIS FILE SHOULD TEST THE ABI, NOT THE MOCKED INTERFACE
-
 use crate::execution_impl::run;
 use crate::settings;
 use crate::types::{Address, Bytecode};
