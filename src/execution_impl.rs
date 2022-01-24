@@ -50,33 +50,6 @@ fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Resu
             "assembly_script_unsafe_random" => Function::new_native_with_env(&store, env.clone(), assembly_script_unsafe_random),
             "assembly_script_get_time" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_time),
         },
-        // /!\ WARNING: @damip duplicated code bellow is just for retro-compatility purpose it allow user to use a local `massa.ts` file
-        // rather than the new `massa-sc-std` NPM dependency (used both by `massa-sc-runtime` & `massa-sc-template`) ...
-        "massa" => {
-            "assembly_script_print" => Function::new_native_with_env(&store, env.clone(), assembly_script_print),
-            "assembly_script_call" => Function::new_native_with_env(&store, env.clone(), assembly_script_call_module),
-            "assembly_script_get_remaining_gas" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_remaining_gas),
-            "assembly_script_create_sc" => Function::new_native_with_env(&store, env.clone(), assembly_script_create_sc),
-            "assembly_script_set_data" => Function::new_native_with_env(&store, env.clone(), assembly_script_set_data),
-            "assembly_script_set_data_for" => Function::new_native_with_env(&store, env.clone(), assembly_script_set_data_for),
-            "assembly_script_get_data" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_data),
-            "assembly_script_get_data_for" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_data_for),
-            "assembly_script_has_data" => Function::new_native_with_env(&store, env.clone(), assembly_script_has_data),
-            "assembly_script_has_data_for" => Function::new_native_with_env(&store, env.clone(), assembly_script_has_data_for),
-            "assembly_script_get_owned_addresses" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_owned_addresses),
-            "assembly_script_get_call_stack" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_call_stack),
-            "assembly_script_generate_event" => Function::new_native_with_env(&store, env.clone(), assembly_script_generate_event),
-            "assembly_script_transfer_coins" => Function::new_native_with_env(&store, env.clone(), assembly_script_transfer_coins),
-            "assembly_script_transfer_coins_for" => Function::new_native_with_env(&store, env.clone(), assembly_script_transfer_coins_for),
-            "assembly_script_get_balance" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_balance),
-            "assembly_script_get_balance_for" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_balance_for),
-            "assembly_script_hash" => Function::new_native_with_env(&store, env.clone(), assembly_script_hash),
-            "assembly_script_signature_verify" => Function::new_native_with_env(&store, env.clone(), assembly_script_signature_verify),
-            "assembly_script_address_from_public_key" => Function::new_native_with_env(&store, env.clone(), assembly_script_address_from_public_key),
-            "assembly_script_unsafe_random" => Function::new_native_with_env(&store, env.clone(), assembly_script_unsafe_random),
-            "assembly_script_get_call_coins" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_call_coins),
-            "assembly_script_get_time" => Function::new_native_with_env(&store, env, assembly_script_get_time),
-        },
     };
     let module = Module::new(&store, &module)?;
     Ok(Instance::new(&module, &resolver)?)
