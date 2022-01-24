@@ -71,6 +71,7 @@ jobs:
       - run: |
           cd wasm
           yarn install
+          yarn build
           yarn test
 
   clippy:
