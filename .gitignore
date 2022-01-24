@@ -2,3 +2,4 @@
 .envrc
 /target
 shell.nix
+.idea
