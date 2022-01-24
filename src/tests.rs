@@ -1,12 +1,12 @@
 /// THIS FILE SHOULD TEST THE ABI, NOT THE MOCKED INTERFACE
-use crate::execution_impl::run;
-use crate::settings;
-use crate::types::{Address, Bytecode};
-use crate::types::{Interface, InterfaceClone};
+use crate::{
+    run, settings,
+    types::{Interface, InterfaceClone},
+};
 use anyhow::{bail, Result};
 use serial_test::serial;
 use std::sync::{Arc, Mutex};
-pub type Ledger = std::collections::BTreeMap<Address, Bytecode>; // Byttecode instead of String
+pub type Ledger = std::collections::BTreeMap<String, Vec<u8>>; // Byttecode instead of String
 
 #[derive(Clone)]
 struct TestInterface(Arc<Mutex<Ledger>>);
@@ -18,8 +18,14 @@ impl InterfaceClone for TestInterface {
 }
 
 impl Interface for TestInterface {
-    fn init_call(&self, address: &Address, _raw_coins: u64) -> Result<Bytecode> {
-        match self.0.lock().unwrap().clone().get(&address.clone()) {
+    fn init_call(&self, address: &str, _raw_coins: u64) -> Result<Vec<u8>> {
+        match self
+            .0
+            .lock()
+            .unwrap()
+            .clone()
+            .get::<String>(&address.to_string())
+        {
             Some(module) => Ok(module.clone()),
             _ => bail!("Cannot find module for address {}", address),
         }
@@ -33,15 +39,15 @@ impl Interface for TestInterface {
         Ok(1)
     }
 
-    fn get_balance_for(&self, _address: &Address) -> Result<u64> {
+    fn get_balance_for(&self, _address: &str) -> Result<u64> {
         Ok(1)
     }
 
-    fn update_module(&self, address: &Address, module: &Bytecode) -> Result<()> {
+    fn update_module(&self, address: &str, module: &[u8]) -> Result<()> {
         self.0
             .lock()
             .unwrap()
-            .insert(address.clone(), module.to_vec());
+            .insert(address.to_string(), module.to_vec());
         Ok(())
     }
 
@@ -54,7 +60,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn get_data(&self, _: &str) -> Result<Bytecode> {
+    fn raw_get_data(&self, _: &str) -> Result<Vec<u8>> {
         match self.0.lock().unwrap().clone().get(&"print".to_string()) {
             Some(bytes) => Ok(bytes.clone()),
             _ => bail!("Cannot find data"),
@@ -65,12 +71,12 @@ impl Interface for TestInterface {
         Ok(0)
     }
 
-    fn create_module(&self, module: &Bytecode) -> Result<Address> {
+    fn create_module(&self, module: &[u8]) -> Result<String> {
         let address = String::from("get_string");
         self.0
             .lock()
             .unwrap()
-            .insert(address.clone(), module.clone());
+            .insert(address.clone(), module.to_vec());
         Ok(address)
     }
 }
@@ -86,7 +92,7 @@ fn test_caller() {
         "/wasm/build/get_string.wat"
     ));
     interface
-        .update_module(&"get_string".to_string(), &module.to_vec())
+        .update_module("get_string", module.as_ref())
         .unwrap();
     // test only if the module is valid
     run(module, 20_000, &*interface).expect("Failed to run get_string.wat");
@@ -99,7 +105,7 @@ fn test_caller() {
     settings::set_metering(0);
     let b = run(module, 20_000, &*interface).expect("Failed to run caller.wat");
     assert_eq!(a + prev_call_price, b);
-    let v_out = interface.get_data(&String::new()).unwrap();
+    let v_out = interface.raw_get_data("").unwrap();
     let output = std::str::from_utf8(&v_out).unwrap();
     assert_eq!(output, "hello you");
 
@@ -121,7 +127,7 @@ fn test_local_hello_name_caller() {
         "/wasm/build/get_string.wat"
     ));
     interface
-        .update_module(&"get_string".to_string(), &module.to_vec())
+        .update_module("get_string", module.as_ref())
         .unwrap();
     run(module, 100, &*interface).expect("Failed to run get_string.wat");
     let module = include_bytes!(concat!(
