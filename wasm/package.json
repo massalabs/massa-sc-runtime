@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "repository": "https://github.com/massalabs/massa-sc-runtime",
-  "author": "Adrien Zinger <zinger.ad@gmail.com>, Yvan Sraka <yvan@sraka.xyz>",
+  "author": "Massa Labs <info@massa.net>",
   "license": "MIT",
   "private": false,
   "scripts": {
