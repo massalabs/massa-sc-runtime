@@ -1,7 +1,10 @@
-use crate::{env::{assembly_script_abort, get_remaining_points_for_instance, Env}, settings::max_number_of_pages};
 use crate::settings;
 use crate::types::{Interface, Response};
 use crate::{abi_impl::*, tunable_memory::LimitingTunables};
+use crate::{
+    env::{assembly_script_abort, get_remaining_points_for_instance, Env},
+    settings::max_number_of_pages,
+};
 use anyhow::{bail, Result};
 use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
 use std::sync::Arc;
