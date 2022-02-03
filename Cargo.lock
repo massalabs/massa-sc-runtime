@@ -520,6 +520,7 @@ dependencies = [
  "base64",
  "cornetto",
  "lazy_static",
+ "loupe",
  "serde",
  "serde_json",
  "serial_test",
