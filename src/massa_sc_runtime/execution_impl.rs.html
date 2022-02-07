@@ -133,17 +133,25 @@
 <span id="132">132</span>
 <span id="133">133</span>
 <span id="134">134</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::abi_impl</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::env</span>::{<span class="ident">assembly_script_abort</span>, <span class="ident">get_remaining_points_for_instance</span>, <span class="ident">Env</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::settings</span>;
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::settings</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">Interface</span>, <span class="ident">Response</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">abi_impl</span>::<span class="kw-2">*</span>, <span class="ident">tunable_memory::LimitingTunables</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">env</span>::{<span class="ident">assembly_script_abort</span>, <span class="ident">get_remaining_points_for_instance</span>, <span class="ident">Env</span>},
+    <span class="ident">settings::max_number_of_pages</span>,
+};
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">bail</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">as_ffi_bindings</span>::{<span class="ident">Read</span> <span class="kw">as</span> <span class="ident">ASRead</span>, <span class="ident">StringPtr</span>, <span class="ident">Write</span> <span class="kw">as</span> <span class="ident">ASWrite</span>};
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
-<span class="kw">use</span> <span class="ident">wasmer::wasmparser::Operator</span>;
 <span class="kw">use</span> <span class="ident">wasmer</span>::{
     <span class="ident">imports</span>, <span class="ident">CompilerConfig</span>, <span class="ident">Function</span>, <span class="ident">ImportObject</span>, <span class="ident">Instance</span>, <span class="ident">Module</span>, <span class="ident">Store</span>, <span class="ident">Universal</span>, <span class="ident">Val</span>,
 };
+<span class="kw">use</span> <span class="ident">wasmer</span>::{<span class="ident">wasmparser::Operator</span>, <span class="ident">BaseTunables</span>, <span class="ident">Pages</span>, <span class="ident">Target</span>};
 <span class="kw">use</span> <span class="ident">wasmer_compiler_singlepass::Singlepass</span>;
 <span class="kw">use</span> <span class="ident">wasmer_middlewares::metering</span>::{<span class="self">self</span>, <span class="ident">MeteringPoints</span>};
 <span class="kw">use</span> <span class="ident">wasmer_middlewares::Metering</span>;
@@ -151,10 +159,12 @@
 <span class="doccomment">/// Create an instance of VM from a module with a given interface, an operation</span>
 <span class="doccomment">/// number limit and a webassembly module</span>
 <span class="kw">fn</span> <span class="ident">create_instance</span>(<span class="ident">limit</span>: <span class="ident">u64</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">interface</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Interface</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">BaseTunables::for_target</span>(<span class="kw-2">&amp;</span><span class="ident">Target::default</span>());
+    <span class="kw">let</span> <span class="ident">tunables</span> <span class="op">=</span> <span class="ident">LimitingTunables::new</span>(<span class="ident">base</span>, <span class="ident">Pages</span>(<span class="ident">max_number_of_pages</span>()));
     <span class="kw">let</span> <span class="ident">metering</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Metering::new</span>(<span class="ident">limit</span>, <span class="op">|</span><span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Operator</span><span class="op">|</span> -&gt; <span class="ident">u64</span> { <span class="number">1</span> }));
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compiler_config</span> <span class="op">=</span> <span class="ident">Singlepass::new</span>();
     <span class="ident">compiler_config</span>.<span class="ident">push_middleware</span>(<span class="ident">metering</span>);
-    <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">Store::new</span>(<span class="kw-2">&amp;</span><span class="ident">Universal::new</span>(<span class="ident">compiler_config</span>).<span class="ident">engine</span>());
+    <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">Store::new_with_tunables</span>(<span class="kw-2">&amp;</span><span class="ident">Universal::new</span>(<span class="ident">compiler_config</span>).<span class="ident">engine</span>(), <span class="ident">tunables</span>);
     <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">Env::new</span>(<span class="ident">interface</span>);
     <span class="kw">let</span> <span class="ident">resolver</span>: <span class="ident">ImportObject</span> <span class="op">=</span> <span class="macro">imports!</span> {
         <span class="string">&quot;env&quot;</span> =&gt; {
@@ -184,7 +194,7 @@
             <span class="string">&quot;assembly_script_address_from_public_key&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_address_from_public_key</span>),
             <span class="string">&quot;assembly_script_unsafe_random&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_unsafe_random</span>),
             <span class="string">&quot;assembly_script_get_call_coins&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_get_call_coins</span>),
-            <span class="string">&quot;assembly_script_get_time&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_get_time</span>),
+            <span class="string">&quot;assembly_script_get_time&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>, <span class="ident">assembly_script_get_time</span>),
         },
     };
     <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="ident">Module::new</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="kw-2">&amp;</span><span class="ident">module</span>)<span class="question-mark">?</span>;
