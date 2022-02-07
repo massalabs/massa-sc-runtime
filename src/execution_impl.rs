@@ -1,14 +1,17 @@
-use crate::abi_impl::*;
-use crate::env::{assembly_script_abort, get_remaining_points_for_instance, Env};
 use crate::settings;
 use crate::types::{Interface, Response};
+use crate::{abi_impl::*, tunable_memory::LimitingTunables};
+use crate::{
+    env::{assembly_script_abort, get_remaining_points_for_instance, Env},
+    settings::max_number_of_pages,
+};
 use anyhow::{bail, Result};
 use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
 use std::sync::Arc;
-use wasmer::wasmparser::Operator;
 use wasmer::{
     imports, CompilerConfig, Function, ImportObject, Instance, Module, Store, Universal, Val,
 };
+use wasmer::{wasmparser::Operator, BaseTunables, Pages, Target};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::metering::{self, MeteringPoints};
 use wasmer_middlewares::Metering;
@@ -16,10 +19,12 @@ use wasmer_middlewares::Metering;
 /// Create an instance of VM from a module with a given interface, an operation
 /// number limit and a webassembly module
 fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Result<Instance> {
+    let base = BaseTunables::for_target(&Target::default());
+    let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
     let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
     let mut compiler_config = Singlepass::new();
     compiler_config.push_middleware(metering);
-    let store = Store::new(&Universal::new(compiler_config).engine());
+    let store = Store::new_with_tunables(&Universal::new(compiler_config).engine(), tunables);
     let env = Env::new(interface);
     let resolver: ImportObject = imports! {
         "env" => {
@@ -49,7 +54,7 @@ fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Resu
             "assembly_script_address_from_public_key" => Function::new_native_with_env(&store, env.clone(), assembly_script_address_from_public_key),
             "assembly_script_unsafe_random" => Function::new_native_with_env(&store, env.clone(), assembly_script_unsafe_random),
             "assembly_script_get_call_coins" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_call_coins),
-            "assembly_script_get_time" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_time),
+            "assembly_script_get_time" => Function::new_native_with_env(&store, env, assembly_script_get_time),
         },
     };
     let module = Module::new(&store, &module)?;
