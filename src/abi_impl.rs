@@ -308,6 +308,30 @@ pub(crate) fn assembly_script_has_data_for(env: &Env, address: i32, key: i32) ->
     }
 }
 
+pub(crate) fn assembly_script_get_owned_addresses_raw(env: &Env) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_get_owned_addrs())?;
+    let data = match env.interface.get_owned_addresses() {
+        Ok(data) => data,
+        Err(err) => abi_bail!(err),
+    };
+    match StringPtr::alloc(&data.join(";"), &env.wasm_env) {
+        Ok(ptr) => Ok(ptr.offset() as i32),
+        Err(err) => abi_bail!(err),
+    }
+}
+
+pub(crate) fn assembly_script_get_call_stack_raw(env: &Env) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_get_call_stack())?;
+    let data = match env.interface.get_call_stack() {
+        Ok(data) => data,
+        Err(err) => abi_bail!(err),
+    };
+    match StringPtr::alloc(&data.join(";"), &env.wasm_env) {
+        Ok(ptr) => Ok(ptr.offset() as i32),
+        Err(err) => abi_bail!(err),
+    }
+}
+
 pub(crate) fn assembly_script_get_owned_addresses(env: &Env) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_owned_addrs())?;
     match env.interface.get_owned_addresses() {

@@ -155,10 +155,18 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("exit_success")
     }
 
+    /// Expect to return a list of owned addresses
+    ///
+    /// Required on smart-contract execute the imported function
+    /// `assembly_script_get_owned_addresses`
     fn get_owned_addresses(&self) -> Result<Vec<String>> {
         unimplemented!("get_owned_addresses")
     }
 
+    /// Expect to return a list of addresses in the call stack
+    ///
+    /// Required on smart-contract execute the imported function
+    /// `assembly_script_get_call_stack`
     fn get_call_stack(&self) -> Result<Vec<String>> {
         unimplemented!("get_call_stack")
     }
