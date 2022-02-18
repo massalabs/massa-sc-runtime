@@ -191,6 +191,14 @@
 <span id="190">190</span>
 <span id="191">191</span>
 <span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">bail</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">de::DeserializeOwned</span>, <span class="ident">Serialize</span>};
 
@@ -348,10 +356,18 @@
         <span class="macro">unimplemented!</span>(<span class="string">&quot;exit_success&quot;</span>)
     }
 
+    <span class="doccomment">/// Expect to return a list of owned addresses</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Required on smart-contract execute the imported function</span>
+    <span class="doccomment">/// `assembly_script_get_owned_addresses`</span>
     <span class="kw">fn</span> <span class="ident">get_owned_addresses</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;get_owned_addresses&quot;</span>)
     }
 
+    <span class="doccomment">/// Expect to return a list of addresses in the call stack</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Required on smart-contract execute the imported function</span>
+    <span class="doccomment">/// `assembly_script_get_call_stack`</span>
     <span class="kw">fn</span> <span class="ident">get_call_stack</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;get_call_stack&quot;</span>)
     }
