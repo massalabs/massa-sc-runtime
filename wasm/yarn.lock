@@ -1892,9 +1892,10 @@ makeerror@1.0.12:
   dependencies:
     tmpl "1.0.5"
 
-"massa-sc-std@git+https://github.com/z80dev/massa-sc-std.git":
-  version "1.1.0"
-  resolved "git+https://github.com/z80dev/massa-sc-std.git#7ba81fe2095d4f9fdc5a699de26551b49eb79915"
+massa-sc-std@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/massa-sc-std/-/massa-sc-std-2.0.0.tgz#7c75e3c04295deae4f80383c1d73c0ac45bf58f9"
+  integrity sha512-gpMX4iGWAzI6PTpb/wGYH3RN+q585o3ixFuaHnD7VuL2amqFlFW44RwZESPPVBcq+nBWypJxz2pt6hxOA/gjLQ==
 
 merge-stream@^2.0.0:
   version "2.0.0"

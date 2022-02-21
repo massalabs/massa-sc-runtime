@@ -131,6 +131,17 @@ pub(crate) fn exec(
     }
 }
 
+/// Library Input, take a`module` wasm builded with the massa environment,
+/// must have a main function inside written in AssemblyScript:
+///
+/// ```js
+/// import { print } from "massa-sc-std";
+///
+/// export function main(_args: string): i32 {
+///     print("hello world");
+///     return 0;
+/// }
+/// ```  
 pub fn run(module: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
     let instance = create_instance(limit, module, interface)?;
     if instance.exports.contains(settings::MAIN) {

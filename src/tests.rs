@@ -181,3 +181,16 @@ fn test_not_enough_gas_error() {
         }
     }
 }
+
+#[test]
+#[serial]
+fn test_run_without_main() {
+    settings::reset_metering();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/no_main.wasm"
+    ));
+    run(module, 100_000, &*interface).expect_err("An error should spawn here");
+}
