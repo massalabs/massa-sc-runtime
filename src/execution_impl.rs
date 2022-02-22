@@ -26,11 +26,11 @@ fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Resu
     compiler_config.canonicalize_nans(true);
 
     // Add metering middleware
-    let base = BaseTunables::for_target(&Target::default());
-    let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
     let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
     compiler_config.push_middleware(metering);
 
+    let base = BaseTunables::for_target(&Target::default());
+    let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
     let store = Store::new_with_tunables(&Universal::new(compiler_config).engine(), tunables);
     let env = Env::new(interface);
     let resolver: ImportObject = imports! {
