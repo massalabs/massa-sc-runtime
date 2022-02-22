@@ -19,6 +19,8 @@ use wasmer_middlewares::Metering;
 /// Create an instance of VM from a module with a given interface, an operation
 /// number limit and a webassembly module
 fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Result<Instance> {
+    // We use the Singlepass compiler because it is fast and adapted to blockchains
+    // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
     let mut compiler_config = Singlepass::new();
 
     // NaNs are non-deterministic in WASM: https://github.com/WebAssembly/design/blob/main/Nondeterminism.md
