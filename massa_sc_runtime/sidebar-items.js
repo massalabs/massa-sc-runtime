@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["run",""]],"trait":[["Interface",""],["InterfaceClone",""]]});
+initSidebarItems({"fn":[["run","Library Input, take a`module` wasm builded with the massa environment, must have a main function inside written in AssemblyScript:"]],"trait":[["Interface",""],["InterfaceClone",""]]});

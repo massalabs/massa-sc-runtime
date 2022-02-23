@@ -140,6 +140,17 @@
 <span id="139">139</span>
 <span id="140">140</span>
 <span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::settings</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">Interface</span>, <span class="ident">Response</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">abi_impl</span>::<span class="kw-2">*</span>, <span class="ident">tunable_memory::LimitingTunables</span>};
@@ -273,6 +284,17 @@
     }
 }
 
+<span class="doccomment">/// Library Input, take a`module` wasm builded with the massa environment,</span>
+<span class="doccomment">/// must have a main function inside written in AssemblyScript:</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```js</span>
+<span class="doccomment">/// import { print } from &quot;massa-sc-std&quot;;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// export function main(_args: string): i32 {</span>
+<span class="doccomment">///     print(&quot;hello world&quot;);</span>
+<span class="doccomment">///     return 0;</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```  </span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">limit</span>: <span class="ident">u64</span>, <span class="ident">interface</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Interface</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">instance</span> <span class="op">=</span> <span class="ident">create_instance</span>(<span class="ident">limit</span>, <span class="ident">module</span>, <span class="ident">interface</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">instance</span>.<span class="ident">exports</span>.<span class="ident">contains</span>(<span class="ident">settings::MAIN</span>) {
