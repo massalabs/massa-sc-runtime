@@ -19,11 +19,20 @@ use wasmer_middlewares::Metering;
 /// Create an instance of VM from a module with a given interface, an operation
 /// number limit and a webassembly module
 fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Result<Instance> {
+    // We use the Singlepass compiler because it is fast and adapted to blockchains
+    // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
+    let mut compiler_config = Singlepass::new();
+
+    // NaNs are non-deterministic in WASM: https://github.com/WebAssembly/design/blob/main/Nondeterminism.md
+    // Ensure determinism by canonicalizing their representation
+    compiler_config.canonicalize_nans(true);
+
+    // Add metering middleware
+    let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
+    compiler_config.push_middleware(metering);
+
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
-    let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
-    let mut compiler_config = Singlepass::new();
-    compiler_config.push_middleware(metering);
     let store = Store::new_with_tunables(&Universal::new(compiler_config).engine(), tunables);
     let env = Env::new(interface);
     let resolver: ImportObject = imports! {
