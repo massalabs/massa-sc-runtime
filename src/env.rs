@@ -7,6 +7,11 @@ use as_ffi_bindings::{Read, StringPtr};
 use wasmer::{HostEnvInitError, Instance, WasmerEnv};
 use wasmer_middlewares::metering::{self, set_remaining_points, MeteringPoints};
 
+/// Error that append when a smartcontract try to call massa-std outside the
+/// main function. Wasmer hasn't the time to call `fn init_with_instance`
+pub const EXEC_INSTANCE_ERR: &str = "Unable to create execution instance. Make
+sure that you are not trying to call massa-std outside the main function";
+
 #[derive(Clone)]
 pub struct Env {
     pub wasm_env: as_ffi_bindings::Env,
@@ -32,12 +37,15 @@ impl WasmerEnv for Env {
     }
 }
 
-pub fn get_remaining_points_for_env(env: &Env) -> u64 {
-    let instance = &env.instance.clone().unwrap();
-    match metering::get_remaining_points(instance) {
+pub fn get_remaining_points_for_env(env: &Env) -> ABIResult<u64> {
+    let instance = match env.instance.clone() {
+        Some(instance) => instance,
+        None => abi_bail!(EXEC_INSTANCE_ERR),
+    };
+    Ok(match metering::get_remaining_points(&instance) {
         MeteringPoints::Remaining(gas) => gas,
         MeteringPoints::Exhausted => 0,
-    }
+    })
 }
 
 pub fn get_remaining_points_for_instance(instance: &Instance) -> u64 {
@@ -48,10 +56,13 @@ pub fn get_remaining_points_for_instance(instance: &Instance) -> u64 {
 }
 
 pub fn sub_remaining_gas(env: &Env, gas: u64) -> ABIResult<()> {
-    let instance = &env.instance.clone().unwrap();
-    let remaining_gas = get_remaining_points_for_env(env);
+    let instance = match env.instance.clone() {
+        Some(instance) => instance,
+        None => abi_bail!(EXEC_INSTANCE_ERR),
+    };
+    let remaining_gas = get_remaining_points_for_env(env)?;
     if let Some(remaining_gas) = remaining_gas.checked_sub(gas) {
-        set_remaining_points(instance, remaining_gas);
+        set_remaining_points(&instance, remaining_gas);
     } else {
         abi_bail!("Remaining gas reach zero")
     }

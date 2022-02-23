@@ -5,3 +5,4 @@ build/*
 !build/caller_json.wasm
 !build/local_hello_name_caller.wat
 !build/create_sc.wasm
+!build/no_main.wasm
