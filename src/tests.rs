@@ -136,6 +136,26 @@ fn test_caller() {
 
 #[test]
 #[serial]
+fn test_caller_no_return() {
+    settings::reset_metering();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/get_string.wat"
+    ));
+    interface.create_module(module.as_ref()).unwrap();
+    // test only if the module is valid
+    run_main(module, 20_000, &*interface).expect("Failed to run get_string.wat");
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/caller_no_return.wasm"
+    ));
+    run_main(module, 20_000, &*interface).expect("Failed to run caller.wat");
+}
+
+#[test]
+#[serial]
 fn test_local_hello_name_caller() {
     settings::reset_metering();
     // This test should verify that even if we failed to load a module,

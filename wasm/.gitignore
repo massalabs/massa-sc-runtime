@@ -8,3 +8,4 @@ build/*
 !build/no_main.wasm
 !build/send_message.wasm
 !build/receive_message.wasm
+!build/caller_no_return.wasm
