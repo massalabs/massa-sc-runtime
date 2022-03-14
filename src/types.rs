@@ -175,6 +175,21 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn generate_event(&self, _event: String) -> Result<()> {
         unimplemented!("generate_event")
     }
+
+    // TODO document interface function
+    fn send_message(
+        &self,
+        target_address: &str,
+        target_handler: &str,
+        validity_start: (u64, u64),
+        validity_end: (u64, u64),
+        max_gas: u64,
+        gas_price: &str,
+        coins: &str,
+        payload: &str,
+    ) -> Result<()> {
+        unimplemented!("send_message")
+    }
 }
 
 impl dyn Interface {

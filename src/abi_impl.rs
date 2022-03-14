@@ -417,6 +417,43 @@ pub(crate) fn assembly_script_get_time(env: &Env) -> ABIResult<i64> {
     }
 }
 
+/// sends an async call
+pub(crate) fn assembly_script_send_message(
+    env: &Env,
+    target_address: i32,
+    target_handler: i32,
+    validity_start_period: i64,
+    validity_start_thread: i64,
+    validity_end_period: i64,
+    validity_end_thread: i64,
+    max_gas: i64,
+    gas_price: i32,
+    coins: i32,
+    payload: i32,
+) -> ABIResult<()> {
+    // make metering send message
+    sub_remaining_gas(env, settings::metering_get_time())?;
+    let memory = get_memory!(env);
+    let target_address = &get_string(memory, target_address)?;
+    let target_handler = &get_string(memory, target_handler)?;
+    let gas_price = &get_string(memory, gas_price)?;
+    let coins = &get_string(memory, coins)?;
+    let payload = &get_string(memory, payload)?;
+    match env.interface.send_message(
+        target_address,
+        target_handler,
+        (validity_start_period as u64, validity_start_thread as u64), 
+        (validity_end_period as u64, validity_end_thread as u64),
+        max_gas as u64,
+        gas_price,
+        coins,
+        payload,
+    ) {
+        Err(err) => abi_bail!(err),
+        Ok(_) => Ok(()),
+    }
+}
+
 /// Tooling, return a StringPtr allocated from a String
 fn pointer_from_string(env: &Env, value: &str) -> ABIResult<StringPtr> {
     match StringPtr::alloc(&value.into(), &env.wasm_env) {
