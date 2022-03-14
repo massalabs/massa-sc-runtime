@@ -422,6 +422,8 @@ pub(crate) fn assembly_script_send_message(
     env: &Env,
     target_address: i32,
     target_handler: i32,
+    current_slot_period: i64,
+    current_slot_thread: i64,
     validity_start_period: i64,
     validity_start_thread: i64,
     validity_end_period: i64,
@@ -431,8 +433,12 @@ pub(crate) fn assembly_script_send_message(
     coins: i32,
     payload: i32,
 ) -> ABIResult<()> {
-    // make metering send message
-    sub_remaining_gas(env, settings::metering_get_time())?;
+    sub_remaining_gas(env, settings::metering_send_message())?;
+    let current_slot = (current_slot_period as u64, current_slot_thread as u64);
+    let validity_start_slot = (validity_start_period as u64, validity_start_thread as u64);
+    let validity_end_slot = (validity_end_period as u64, validity_end_thread as u64);
+    sub_remaining_gas(env, compute_gas_cost_of_message_storage(current_slot, validity_end_slot))?;
+
     let memory = get_memory!(env);
     let target_address = &get_string(memory, target_address)?;
     let target_handler = &get_string(memory, target_handler)?;
@@ -442,8 +448,8 @@ pub(crate) fn assembly_script_send_message(
     match env.interface.send_message(
         target_address,
         target_handler,
-        (validity_start_period as u64, validity_start_thread as u64), 
-        (validity_end_period as u64, validity_end_thread as u64),
+        validity_start_slot,
+        validity_end_slot,
         max_gas as u64,
         gas_price,
         coins,
@@ -452,6 +458,16 @@ pub(crate) fn assembly_script_send_message(
         Err(err) => abi_bail!(err),
         Ok(_) => Ok(()),
     }
+}
+
+/// Tooling, returns the gas cost of saving a message
+/// This allows making the message emission more gas-consuming when it requires
+/// storing the message in queue for longer
+fn compute_gas_cost_of_message_storage(
+    current_slot: (u64, u64),
+    validity_end_slot: (u64, u64),
+) -> u64 {
+    validity_end_slot.0 - current_slot.0
 }
 
 /// Tooling, return a StringPtr allocated from a String
