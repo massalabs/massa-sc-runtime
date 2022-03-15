@@ -176,7 +176,19 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("generate_event")
     }
 
-    // TODO document interface function
+    /// Sends an async message
+    ///
+    /// # Arguments
+    ///
+    /// * `target_address` - Destination address hash in format string
+    /// * `target_handler` - Name of the message handling function
+    /// * `validity_start` - Tuple containing the period and thread of the validity start slot
+    /// * `validity_end` - Tuple containing the period and thread of the validity end slot
+    /// * `max_gas` - Maximum gas for the message execution
+    /// * `gas_price` - Price of one gas unit
+    /// * `coins` - Coins of the sender
+    /// * `payload` - Message payload
+    /// 
     fn send_message(
         &self,
         target_address: &str,
