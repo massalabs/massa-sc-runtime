@@ -134,7 +134,8 @@ fn test_local_hello_name_caller() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/local_hello_name_caller.wat"
     ));
-    run_main(module, 20_000, &*interface).expect_err("Succeeded to run_main local_hello_name_caller.wat");
+    run_main(module, 20_000, &*interface)
+        .expect_err("Succeeded to run_main local_hello_name_caller.wat");
 }
 
 #[test]

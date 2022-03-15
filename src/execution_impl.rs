@@ -172,6 +172,12 @@ pub fn run_main(module: &[u8], limit: u64, interface: &dyn Interface) -> Result<
 ///     return 0;
 /// }
 /// ```  
-pub fn run_function(module: &[u8], limit: u64, function: &str, param: &str, interface: &dyn Interface) -> Result<u64> {
+pub fn run_function(
+    module: &[u8],
+    limit: u64,
+    function: &str,
+    param: &str,
+    interface: &dyn Interface,
+) -> Result<u64> {
     Ok(exec(limit, None, module, function, param, interface)?.remaining_gas)
 }

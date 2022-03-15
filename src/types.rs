@@ -188,7 +188,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// * `gas_price` - Price of one gas unit
     /// * `coins` - Coins of the sender
     /// * `payload` - Message payload
-    /// 
+    ///
     fn send_message(
         &self,
         target_address: &str,
