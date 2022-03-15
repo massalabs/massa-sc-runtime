@@ -433,20 +433,15 @@ pub(crate) fn assembly_script_send_message(
 ) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_send_message())?;
     let memory = get_memory!(env);
-    let target_address = &get_string(memory, target_address)?;
-    let target_handler = &get_string(memory, target_handler)?;
-    let gas_price = &get_string(memory, gas_price)?;
-    let coins = &get_string(memory, coins)?;
-    let payload = &get_string(memory, payload)?;
     match env.interface.send_message(
-        target_address,
-        target_handler,
+        &get_string(memory, target_address)?,
+        &get_string(memory, target_handler)?,
         (validity_start_period as u64, validity_start_thread as u64),
         (validity_end_period as u64, validity_end_thread as u64),
         max_gas as u64,
-        gas_price,
-        coins,
-        payload,
+        &get_string(memory, gas_price)?,
+        &get_string(memory, coins)?,
+        &get_string(memory, payload)?,
     ) {
         Err(err) => abi_bail!(err),
         Ok(_) => Ok(()),
