@@ -178,7 +178,7 @@ fn test_not_enough_gas_error() {
         Err(err) => {
             assert!(err
                 .to_string()
-                .starts_with("run_maintimeError: Not enough gas, limit reached at:"))
+                .starts_with("RuntimeError: Not enough gas, limit reached at:"))
         }
     }
 }
