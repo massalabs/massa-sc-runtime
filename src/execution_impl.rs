@@ -65,7 +65,8 @@ fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Resu
             "assembly_script_address_from_public_key" => Function::new_native_with_env(&store, env.clone(), assembly_script_address_from_public_key),
             "assembly_script_unsafe_random" => Function::new_native_with_env(&store, env.clone(), assembly_script_unsafe_random),
             "assembly_script_get_call_coins" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_call_coins),
-            "assembly_script_get_time" => Function::new_native_with_env(&store, env, assembly_script_get_time),
+            "assembly_script_get_time" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_time),
+            "assembly_script_send_message" => Function::new_native_with_env(&store, env, assembly_script_send_message),
         },
     };
     let module = Module::new(&store, &module)?;
@@ -140,7 +141,7 @@ pub(crate) fn exec(
     }
 }
 
-/// Library Input, take a`module` wasm builded with the massa environment,
+/// Library Input, take a `module` wasm builded with the massa environment,
 /// must have a main function inside written in AssemblyScript:
 ///
 /// ```js
@@ -151,11 +152,32 @@ pub(crate) fn exec(
 ///     return 0;
 /// }
 /// ```  
-pub fn run(module: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
+pub fn run_main(module: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
     let instance = create_instance(limit, module, interface)?;
     if instance.exports.contains(settings::MAIN) {
         Ok(exec(limit, Some(instance), module, settings::MAIN, "", interface)?.remaining_gas)
     } else {
         Ok(limit)
     }
+}
+
+/// Library Input, take a `module` wasm builded with the massa environment,
+/// run a function of that module with the given parameter:
+///
+/// ```js
+/// import { print } from "massa-sc-std";
+///
+/// export function hello_world(_args: string): i32 {
+///     print("hello world");
+///     return 0;
+/// }
+/// ```  
+pub fn run_function(
+    module: &[u8],
+    limit: u64,
+    function: &str,
+    param: &str,
+    interface: &dyn Interface,
+) -> Result<u64> {
+    Ok(exec(limit, None, module, function, param, interface)?.remaining_gas)
 }

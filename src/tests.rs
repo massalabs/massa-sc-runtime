@@ -1,6 +1,6 @@
 /// THIS FILE SHOULD TEST THE ABI, NOT THE MOCKED INTERFACE
 use crate::{
-    run, settings,
+    run_main, settings,
     types::{Interface, InterfaceClone},
 };
 use anyhow::{bail, Result};
@@ -95,15 +95,15 @@ fn test_caller() {
         .update_module("get_string", module.as_ref())
         .unwrap();
     // test only if the module is valid
-    run(module, 20_000, &*interface).expect("Failed to run get_string.wat");
+    run_main(module, 20_000, &*interface).expect("Failed to run_main get_string.wat");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/caller.wat"
     ));
-    let a = run(module, 20_000, &*interface).expect("Failed to run caller.wat");
+    let a = run_main(module, 20_000, &*interface).expect("Failed to run_main caller.wat");
     let prev_call_price = settings::metering_call();
     settings::set_metering(0);
-    let b = run(module, 20_000, &*interface).expect("Failed to run caller.wat");
+    let b = run_main(module, 20_000, &*interface).expect("Failed to run_main caller.wat");
     assert_eq!(a + prev_call_price, b);
     let v_out = interface.raw_get_data("").unwrap();
     let output = std::str::from_utf8(&v_out).unwrap();
@@ -111,7 +111,7 @@ fn test_caller() {
 
     // Test now if we failed if metering is too hight
     settings::set_metering(15_000);
-    run(module, 20_000, &*interface).expect_err("Expected to be out of operation gas");
+    run_main(module, 20_000, &*interface).expect_err("Expected to be out of operation gas");
 }
 
 #[test]
@@ -129,12 +129,13 @@ fn test_local_hello_name_caller() {
     interface
         .update_module("get_string", module.as_ref())
         .unwrap();
-    run(module, 100, &*interface).expect("Failed to run get_string.wat");
+    run_main(module, 100, &*interface).expect("Failed to run_main get_string.wat");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/local_hello_name_caller.wat"
     ));
-    run(module, 20_000, &*interface).expect_err("Succeeded to run local_hello_name_caller.wat");
+    run_main(module, 20_000, &*interface)
+        .expect_err("Succeeded to run_main local_hello_name_caller.wat");
 }
 
 #[test]
@@ -148,12 +149,12 @@ fn test_module_creation() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/create_sc.wasm"
     ));
-    run(module, 100_000, &*interface).expect("Failed to run create_sc.wat");
+    run_main(module, 100_000, &*interface).expect("Failed to run_main create_sc.wat");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/caller.wat"
     ));
-    run(module, 20_000, &*interface).expect("Failed to run caller.wat");
+    run_main(module, 20_000, &*interface).expect("Failed to run_main caller.wat");
 }
 
 #[test]
@@ -167,12 +168,12 @@ fn test_not_enough_gas_error() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/create_sc.wasm"
     ));
-    run(module, 100_000, &*interface).expect("Failed to run create_sc.wat");
+    run_main(module, 100_000, &*interface).expect("Failed to run_main create_sc.wat");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/caller.wat"
     ));
-    match run(module, 10000, &*interface) {
+    match run_main(module, 10000, &*interface) {
         Ok(_) => panic!("Shouldn't pass successfully =-("),
         Err(err) => {
             assert!(err
@@ -184,7 +185,7 @@ fn test_not_enough_gas_error() {
 
 #[test]
 #[serial]
-fn test_run_without_main() {
+fn test_run_main_without_main() {
     settings::reset_metering();
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
@@ -192,5 +193,5 @@ fn test_run_without_main() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/no_main.wasm"
     ));
-    run(module, 100_000, &*interface).expect_err("An error should spawn here");
+    run_main(module, 100_000, &*interface).expect_err("An error should spawn here");
 }

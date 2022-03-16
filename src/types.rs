@@ -175,6 +175,34 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn generate_event(&self, _event: String) -> Result<()> {
         unimplemented!("generate_event")
     }
+
+    /// Sends an async message
+    ///
+    /// # Arguments
+    ///
+    /// * `target_address` - Destination address hash in format string
+    /// * `target_handler` - Name of the message handling function
+    /// * `validity_start` - Tuple containing the period and thread of the validity start slot
+    /// * `validity_end` - Tuple containing the period and thread of the validity end slot
+    /// * `max_gas` - Maximum gas for the message execution
+    /// * `gas_price` - Price of one gas unit
+    /// * `coins` - Coins of the sender
+    /// * `data` - Message data
+    ///
+    #[allow(clippy::too_many_arguments)]
+    fn send_message(
+        &self,
+        target_address: &str,
+        target_handler: &str,
+        validity_start: (u64, u8),
+        validity_end: (u64, u8),
+        max_gas: u64,
+        gas_price: u64,
+        raw_coins: u64,
+        data: &[u8],
+    ) -> Result<()> {
+        unimplemented!("send_message")
+    }
 }
 
 impl dyn Interface {

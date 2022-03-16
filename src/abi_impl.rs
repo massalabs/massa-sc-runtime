@@ -417,6 +417,63 @@ pub(crate) fn assembly_script_get_time(env: &Env) -> ABIResult<i64> {
     }
 }
 
+/// sends an async message
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn assembly_script_send_message(
+    env: &Env,
+    target_address: i32,
+    target_handler: i32,
+    validity_start_period: i64,
+    validity_start_thread: i32,
+    validity_end_period: i64,
+    validity_end_thread: i32,
+    max_gas: i64,
+    gas_price: i64,
+    raw_coins: i64,
+    data: i32,
+) -> ABIResult<()> {
+    sub_remaining_gas(env, settings::metering_send_message())?;
+    let validity_start: (u64, u8) = match (
+        validity_start_period.try_into(),
+        validity_start_thread.try_into(),
+    ) {
+        (Ok(p), Ok(t)) => (p, t),
+        (Err(_), _) => abi_bail!("negative validity start period"),
+        (_, Err(_)) => abi_bail!("invalid validity start thread"),
+    };
+    let validity_end: (u64, u8) = match (
+        validity_end_period.try_into(),
+        validity_end_thread.try_into(),
+    ) {
+        (Ok(p), Ok(t)) => (p, t),
+        (Err(_), _) => abi_bail!("negative validity end period"),
+        (_, Err(_)) => abi_bail!("invalid validity end thread"),
+    };
+    if max_gas.is_negative() {
+        abi_bail!("negative max gas");
+    }
+    if gas_price.is_negative() {
+        abi_bail!("negative gas price");
+    }
+    if raw_coins.is_negative() {
+        abi_bail!("negative coins")
+    }
+    let memory = get_memory!(env);
+    match env.interface.send_message(
+        &get_string(memory, target_address)?,
+        &get_string(memory, target_handler)?,
+        validity_start,
+        validity_end,
+        max_gas as u64,
+        gas_price as u64,
+        raw_coins as u64,
+        get_string(memory, data)?.as_bytes(),
+    ) {
+        Err(err) => abi_bail!(err),
+        Ok(_) => Ok(()),
+    }
+}
+
 /// Tooling, return a StringPtr allocated from a String
 fn pointer_from_string(env: &Env, value: &str) -> ABIResult<StringPtr> {
     match StringPtr::alloc(&value.into(), &env.wasm_env) {
