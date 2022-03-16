@@ -428,8 +428,8 @@ pub(crate) fn assembly_script_send_message(
     validity_end_period: i64,
     validity_end_thread: i32,
     max_gas: i64,
-    gas_price: i32,
-    coins: i32,
+    gas_price: i64,
+    raw_coins: i64,
     data: i32,
 ) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_send_message())?;
@@ -446,22 +446,27 @@ pub(crate) fn assembly_script_send_message(
         validity_end_thread.try_into(),
     ) {
         (Ok(p), Ok(t)) => (p, t),
-        (Err(_), _) => abi_bail!("negative validity start period"),
-        (_, Err(_)) => abi_bail!("invalid validity start thread"),
+        (Err(_), _) => abi_bail!("negative validity end period"),
+        (_, Err(_)) => abi_bail!("invalid validity end thread"),
     };
-    let max_gas: u64 = match max_gas.try_into() {
-        Ok(v) => v,
-        Err(_) => abi_bail!("negative max gas"),
-    };
+    if max_gas.is_negative() {
+        abi_bail!("negative max gas");
+    }
+    if gas_price.is_negative() {
+        abi_bail!("negative gas price");
+    }
+    if raw_coins.is_negative() {
+        abi_bail!("negative coins")
+    }
     let memory = get_memory!(env);
     match env.interface.send_message(
         &get_string(memory, target_address)?,
         &get_string(memory, target_handler)?,
         validity_start,
         validity_end,
-        max_gas,
-        &get_string(memory, gas_price)?,
-        &get_string(memory, coins)?,
+        max_gas as u64,
+        gas_price as u64,
+        raw_coins as u64,
         get_string(memory, data)?.as_bytes(),
     ) {
         Err(err) => abi_bail!(err),

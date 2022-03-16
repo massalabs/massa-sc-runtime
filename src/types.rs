@@ -197,8 +197,8 @@ pub trait Interface: Send + Sync + InterfaceClone {
         validity_start: (u64, u8),
         validity_end: (u64, u8),
         max_gas: u64,
-        gas_price: &str,
-        coins: &str,
+        gas_price: u64,
+        raw_coins: u64,
         data: &[u8],
     ) -> Result<()> {
         unimplemented!("send_message")
