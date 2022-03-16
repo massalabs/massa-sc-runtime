@@ -189,6 +189,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// * `coins` - Coins of the sender
     /// * `data` - Message data
     ///
+    #[allow(clippy::too_many_arguments)]
     fn send_message(
         &self,
         target_address: &str,

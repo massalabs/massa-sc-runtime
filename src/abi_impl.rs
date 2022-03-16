@@ -418,6 +418,7 @@ pub(crate) fn assembly_script_get_time(env: &Env) -> ABIResult<i64> {
 }
 
 /// sends an async message
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn assembly_script_send_message(
     env: &Env,
     target_address: i32,
