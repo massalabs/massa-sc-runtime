@@ -187,18 +187,18 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// * `max_gas` - Maximum gas for the message execution
     /// * `gas_price` - Price of one gas unit
     /// * `coins` - Coins of the sender
-    /// * `payload` - Message payload
+    /// * `data` - Message data
     ///
     fn send_message(
         &self,
         target_address: &str,
         target_handler: &str,
-        validity_start: (u64, u64),
-        validity_end: (u64, u64),
+        validity_start: (u64, u8),
+        validity_end: (u64, u8),
         max_gas: u64,
         gas_price: &str,
         coins: &str,
-        payload: &str,
+        data: &[u8],
     ) -> Result<()> {
         unimplemented!("send_message")
     }

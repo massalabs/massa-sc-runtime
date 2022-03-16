@@ -59,8 +59,7 @@ struct Metering {
     pub get_call_coins: u64,
     #[cornetto(const, 24)]
     pub max_number_of_pages: u32,
-    // note: we must define this value
-    #[cornetto(const, 42)]
+    #[cornetto(const, 100)]
     pub send_message: u64,
 }
 
