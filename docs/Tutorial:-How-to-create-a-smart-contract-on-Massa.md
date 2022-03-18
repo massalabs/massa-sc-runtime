@@ -2,7 +2,7 @@
 
 > This tutorial doesn't assume any existing knowledge of the Massa protocol.
 
-In this tutorial we will go through all the steps required to create a smart-contract on Massa. We will cover all the steps by building a small game on Massa: a decentralized Tictactoe!
+In this tutorial, we will go through all the steps required to create a smart-contract on Massa. We will cover all the steps by building a small game on Massa: a decentralized Tic-tac-toe!
 
 This tutorial is divided into several parts:
 - [Writing your smart-contract](#Writing-your-smart-contract) will
@@ -15,13 +15,13 @@ You can find the complete project [here](https://github.com/massalabs/tictactoe-
 
 ### Prerequisites
 
-Smart-contracts are written in [Assembly Script](https://www.assemblyscript.org/) and so we’ll assume that you have some familiarity with it, but you should be able to follow along even if you’re coming from a different programming language. We’ll also assume that you’re familiar with programming concepts like functions, objects, arrays, and to a lesser extent, classes.
+Smart-contracts are written in [Assembly Script](https://www.assemblyscript.org/), and so we’ll assume that you have some familiarity with it, but you should be able to follow along even if you’re coming from a different programming language. We’ll also assume that you’re familiar with programming concepts like functions, objects, arrays, and to a lesser extent, classes.
 
 For the decentralized website part, we'll assume that you have some familiarity with HTML and JavaScript. If you want to have more details, you can follow [this great tutorial from React](https://reactjs.org/tutorial/tutorial.html) from which the dApp is heavily inspired from.
 
 ## Writing your smart-contract
 
-Smart-contract in Massa are written in [Assembly Script](https://www.assemblyscript.org/) and then compiled to [WebAssembly](https://webassembly.org/) (wasm). We chose WebAssembly as it is efficient and can be compiled from several languages, including Assembly Script. If you want to have more details on how the Massa smart-contract engine was built have a look [here](https://github.com/massalabs/massa-sc-runtime/issues/93).
+Smart-contract in Massa are written in [Assembly Script](https://www.assemblyscript.org/) and then compiled to [WebAssembly](https://webassembly.org/) (WASM). We chose WebAssembly as it is efficient and can be compiled from several languages, including Assembly Script. If you want to have more details on how the Massa smart-contract engine was built, have a look [here](https://github.com/massalabs/massa-sc-runtime/issues/93).
 
 ### Setup
 
@@ -41,11 +41,11 @@ This command will initialize a new folder with a hello-world smart-contract exam
 
 ### Writing the smart-contract
 
-Smart-contracts are in the `src` directory. We will write the tictactoe smart-contract `smart-contract.ts` file. The `main.ts` file is used to create a smart-contract that is used to create the tictactoe smart-contract on the Massa blockchain. It may be confusing right now, but we'll go through all these steps in the following.
+Smart-contracts are in the `src` directory. We will write the tic-tac-toe smart-contract `smart-contract.ts` file. The `main.ts` file is used to create a smart-contract that is used to create the tic-tac-toe smart-contract on the Massa blockchain. It may be confusing right now, but we'll go through all these steps in the following.
 
 #### smart-contract.ts
 
-Let's start with tictactoe smart-contract. As the main goal of this tutorial is to understand how to use Massa's smart-contracts, we will not go through the details of each function.
+Let's start with tic-tac-toe smart-contract. As the main goal of this tutorial is to understand how to use Massa's smart-contracts, we will not go through the details of each function.
 
 ```ts
 /**
@@ -61,9 +61,9 @@ export function initialize(_args: string): void {
 }
 ```
 
-The `initialize` function is used to start a new tictactoe game. This function is used to instantiate the different variables that will be used to track the state of the game: `currentPlayer`, `gameState` and `gameWinner`. Note that smart-contract data is stored in a hashmap where keys and values must be string. For more details we refer to the documentation: TODO.
+The `initialize` function is used to start a new tic-tac-toe game. This function is used to instantiate the different variables that will be used to track the state of the game: `currentPlayer`, `gameState` and `gameWinner`. Note that smart-contract data is stored in a hash map where keys and values must be string. For more details, we refer to the documentation: TODO.
 
-Notice that in this example the `initialize` function is public (see the `export`). It means that anyone can call it. In a real world example you will probably want to design a more complex mechanism!
+Notice that in this example, the `initialize` function is public (see the `export`). It means that anyone can call it. In a real-world example, you will probably want to design a more complex mechanism!
 
 We now turn to the game logic:
 ```ts
@@ -137,9 +137,9 @@ function _checkWin(player: string): void {
 
 ```
 
-The `play` function is used to update the state of the game when each player plays. As the `initialize` function, it is a public function: anyone can call it and play the next move. Public functions of Massa smart-contracts can only take strings as arguments. To pass several arguments we thus have to rely on `json-as` and to define the possible arguments using `PlayArgs`.
+The `play` function is used to update the state of the game when each player plays. As the `initialize` function, it is a public function: anyone can call it and play the next move. Public functions of Massa smart-contracts can only take strings as arguments. To pass several arguments, we thus have to rely on `json-as` and to define the possible arguments using `PlayArgs`.
 
-The `_checkWin` function is used to check if the game ended or not. private. As it does not used the `export` prefix, it cannot be called by anyone. It can only be called internaly by the smart-contract.
+The `_checkWin` function is used to check whether the game ended or not. Private, as it does not use the `export` prefix, it cannot be called by anyone. It can only be called internally by the smart-contract.
 
 #### main.ts
 
@@ -165,15 +165,15 @@ export function main(_args: string): i32 {
 
 Smart-contract can be compiled using the `massa-sc-scripts` command: TODO.
 
-## Putting you smart-contract on the blockchain
+## Putting your smart-contract on the blockchain
 
 We'll now turn to the process of putting the smart-contract on the Massa blockchain.
 
 ### Setup
 
-To put your smart-contract on the Massa blockchain you need to run a node and use the client. If this is something that you have never done, all the steps are detailed in the [tutorials](https://github.com/massalabs/massa#tutorials-to-join-the-testnet).
+To put your smart-contract on the Massa blockchain, you need to run a node and use the client. If this is something that you have never done, all the steps are detailed in the [tutorials](https://github.com/massalabs/massa#tutorials-to-join-the-testnet).
 
-In order to be able to be able to read the different prints when you execute the smart-contracts you should set the logging level to debug. Edit (or create) the `massa/massa-node/config/config.toml` file and add the following line:
+To be able to be able to read the different prints when you execute the smart-contracts, you should set the logging level to debug. Edit (or create) the `massa/massa-node/config/config.toml` file and add the following line:
 
 ```toml
 [logging]
@@ -182,12 +182,13 @@ In order to be able to be able to read the different prints when you execute the
 
 ### Sending the smart-contract
 
-Sending the smart-contract to the Massa blockchain is done using the `send_smart_contract` from the massa client:
+Sending the smart-contract to the Massa blockchain is done using the `send_smart_contract` from the Massa client:
 
 ```
 send_smart_contract <your_address> main.wasm 1000000 0 0 0
 ```
-where `<your_address>` should obviously be replaced by an address from your wallet. If the operation was successfully sent, you should receive message similar to this:
+
+Where `<your_address>` should obviously be replaced by an address from your wallet. If the operation was successfully sent, you should receive a message similar to this:
 
 ```
 Sent operation IDs:
@@ -209,7 +210,7 @@ ExecuteSC
 
 This command allows you to see if the operation is in the pool, in which blocks it is included and various properties.
 
-Once the operation is included in a block, it is immediately executed. Now, looking at the logs of the node you should see something similar to this:
+Once the operation is included in a block, it is immediately executed. Now, looking at the logs of the node, you should see something similar to this:
 
 ```
 2022-03-17T16:18:42.002581Z DEBUG massa_execution_worker::interface_impl: SC print: Initialized, address:yqQMHYoWoD569AzuqT97HW8bTuZu44yx5z6W1wRtQP9u715r4
@@ -217,7 +218,7 @@ Once the operation is included in a block, it is immediately executed. Now, look
 
 ### Interacting with your smart-contract
 
-We can try further our smart-contract by calling the different functions and looking at the state of the game. For this we create a new smart-contract `main.ts`.
+We can try further our smart-contract by calling the different functions and looking at the state of the game. For this, we create a new smart-contract `main.ts`.
 
 #### main.ts
 
@@ -244,9 +245,9 @@ export function main(_args: string): i32 {
 }
 ```
 
-This smart-contract initialize a new game and then play a whole game by performing a series of actions. Of course in a real world example this would probably be done by different players, each using a smart-contract with their specific action.
+This smart-contract initialize a new game and then play a whole game by performing a series of actions. Of course, in a real-world example this would probably be done by different players, each using a smart-contract with their specific action.
 
-As before, you should compile you smart-contract, send it to the blockchain using the `send_smart_contract` command. Once this is done and the operation is included in a block you should see the operations being performed by your node in the logs:
+As before, you should compile your smart-contract, send it to the blockchain using the `send_smart_contract` command. Once this is done and the operation is included in a block, you should see the operations being performed by your node in the logs:
 
 ```
 2022-03-17T16:18:42.015501Z DEBUG massa_execution_worker::interface_impl: SC print: Current player:O
@@ -257,15 +258,15 @@ As before, you should compile you smart-contract, send it to the blockchain usin
 
 ## Create your first dApp
 
-Interacting with smart-contracts through the command line client is usually cumbersome and you are probably more used to interact with smart-contracts through regular websites such as [sushi.com](https://www.sushi.com/).
+Interacting with smart-contracts through the command line client is usually cumbersome, and you are probably more used to interact with smart-contracts through regular websites such as [sushi.com](https://www.sushi.com/).
 
 We'll see in this part how you can host your dApp on a website and how to enable people to interact with your smart-contract directly from the browser using the web3 Massa library.
 
 ### The front
 
-Now let's start building out the client-side application that will talk to our smart-contract. We'll do this by modifying the HTML and Javascript files made by [React for their tutorial](https://reactjs.org/tutorial/tutorial.html). What we'll essentialy do is replace the standard functions used to play the game and store the state of the game with smart-contracts actions.
+Now let's start building out the client-side application that will talk to our smart-contract. We'll do this by modifying the HTML and JavaScript files made by [React for their tutorial](https://reactjs.org/tutorial/tutorial.html). What we'll essentially do is replace the standard functions used to play the game and store the state of the game with smart-contracts actions.
 
-You do not have to be a front-end expert to follow along with this part of the tutorial. I have intentionally kept the HTML and Javascript code very simple, and we will not spend much time focusing on it.
+You do not have to be a front-end expert to follow along with this part of the tutorial. I have intentionally kept the HTML and JavaScript code simple, and we will not spend much time focusing on it.
 
 We'll be using the front end made by [React for their tutorial](https://reactjs.org/tutorial/tutorial.html).
 
@@ -273,4 +274,4 @@ We'll be using the front end made by [React for their tutorial](https://reactjs.
 
 ## Going further
 
-- You can test smart-contracts locally using the [massa smart-contract tester](https://github.com/massalabs/massa-sc-tester).
+- You can test smart-contracts locally using the [Massa smart-contract tester](https://github.com/massalabs/massa-sc-tester).
