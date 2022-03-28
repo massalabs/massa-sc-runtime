@@ -6,3 +6,5 @@ build/*
 !build/local_hello_name_caller.wat
 !build/create_sc.wasm
 !build/no_main.wasm
+!build/send_message.wasm
+!build/receive_message.wasm
