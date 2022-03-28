@@ -19,7 +19,7 @@
     "clean": "rm -rf build && rm assembly/*.m.ts"
   },
   "devDependencies": {
-    "assemblyscript": "^0.19.20",
+    "assemblyscript": "^0.19.22",
     "jest": "^27.4.5"
   },
   "dependencies": {
