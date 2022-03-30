@@ -474,6 +474,24 @@ pub(crate) fn assembly_script_send_message(
     }
 }
 
+/// gets the period of the current execution slot
+pub(crate) fn assembly_script_get_current_period(env: &Env) -> ABIResult<i64> {
+    sub_remaining_gas(env, settings::metering_get_current_period())?;
+    match env.interface.get_current_period() {
+        Err(err) => abi_bail!(err),
+        Ok(v) => Ok(v as i64),
+    }
+}
+
+/// gets the thread of the current execution slot
+pub(crate) fn assembly_script_get_current_thread(env: &Env) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_get_current_thread())?;
+    match env.interface.get_current_thread() {
+        Err(err) => abi_bail!(err),
+        Ok(v) => Ok(v as i32),
+    }
+}
+
 /// Tooling, return a StringPtr allocated from a String
 fn pointer_from_string(env: &Env, value: &str) -> ABIResult<StringPtr> {
     match StringPtr::alloc(&value.into(), &env.wasm_env) {
