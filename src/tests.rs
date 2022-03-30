@@ -1,6 +1,6 @@
 /// THIS FILE SHOULD TEST THE ABI, NOT THE MOCKED INTERFACE
 use crate::{
-    run_main, settings,
+    run_function, run_main, settings,
     types::{Interface, InterfaceClone},
 };
 use anyhow::{bail, Result};
@@ -78,6 +78,20 @@ impl Interface for TestInterface {
             .unwrap()
             .insert(address.clone(), module.to_vec());
         Ok(address)
+    }
+
+    fn send_message(
+        &self,
+        _target_address: &str,
+        _target_handler: &str,
+        _validity_start: (u64, u8),
+        _validity_end: (u64, u8),
+        _max_gas: u64,
+        _gas_price: u64,
+        _coins: u64,
+        _data: &[u8],
+    ) -> Result<()> {
+        Ok(())
     }
 }
 
@@ -181,6 +195,33 @@ fn test_not_enough_gas_error() {
                 .starts_with("RuntimeError: Not enough gas, limit reached at:"))
         }
     }
+}
+
+#[test]
+#[serial]
+fn test_send_message() {
+    settings::reset_metering();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/send_message.wasm"
+    ));
+    run_main(module, 100_000, &*interface).expect("Failed to run_main send_message.wat");
+}
+
+#[test]
+#[serial]
+fn test_run_function() {
+    settings::reset_metering();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/receive_message.wasm"
+    ));
+    run_function(module, 100_000, "receive", "data", &*interface)
+        .expect("Failed to run_function receive_message.wat");
 }
 
 #[test]
