@@ -147,6 +147,16 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("unsafe_random")
     }
 
+    /// Returns the period of the current execution slot
+    fn get_current_period(&self) -> Result<u64> {
+        unimplemented!("get_current_period")
+    }
+
+    /// Returns the thread of the current execution slot
+    fn get_current_thread(&self) -> Result<u8> {
+        unimplemented!("get_current_thread")
+    }
+
     fn module_called(&self) -> Result<()> {
         unimplemented!("module_called")
     }
