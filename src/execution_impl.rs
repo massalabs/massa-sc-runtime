@@ -68,7 +68,7 @@ fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Resu
             "assembly_script_get_time" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_time),
             "assembly_script_send_message" => Function::new_native_with_env(&store, env.clone(), assembly_script_send_message),
             "assembly_script_get_current_period" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_current_period),
-            "assembly_script_get_current_thread" => Function::new_native_with_env(&store, env, assembly_script_get_current_period),
+            "assembly_script_get_current_thread" => Function::new_native_with_env(&store, env, assembly_script_get_current_thread),
         },
     };
     let module = Module::new(&store, &module)?;
