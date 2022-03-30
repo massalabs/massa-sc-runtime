@@ -227,6 +227,16 @@
 <span id="226">226</span>
 <span id="227">227</span>
 <span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">bail</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">de::DeserializeOwned</span>, <span class="ident">Serialize</span>};
 
@@ -374,6 +384,16 @@
     <span class="doccomment">/// Returns a random number (unsafe: can be predicted and manipulated)</span>
     <span class="kw">fn</span> <span class="ident">unsafe_random</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;unsafe_random&quot;</span>)
+    }
+
+    <span class="doccomment">/// Returns the period of the current execution slot</span>
+    <span class="kw">fn</span> <span class="ident">get_current_period</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+        <span class="macro">unimplemented!</span>(<span class="string">&quot;get_current_period&quot;</span>)
+    }
+
+    <span class="doccomment">/// Returns the thread of the current execution slot</span>
+    <span class="kw">fn</span> <span class="ident">get_current_thread</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+        <span class="macro">unimplemented!</span>(<span class="string">&quot;get_current_thread&quot;</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">module_called</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
