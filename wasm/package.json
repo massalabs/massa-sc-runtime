@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "json-as": "^0.2.6",
-    "massa-sc-std": "^2.0.0",
+    "massa-sc-std": "https://github.com/massalabs/massa-sc-std",
     "visitor-as": "^0.6.0"
   }
 }
