@@ -8,6 +8,7 @@ use crate::{
 use anyhow::{bail, Result};
 use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
 use std::sync::Arc;
+use wasmer::WasmerEnv;
 use wasmer::{
     imports, CompilerConfig, Function, ImportObject, Instance, Module, Store, Universal, Val,
 };
@@ -15,7 +16,6 @@ use wasmer::{wasmparser::Operator, BaseTunables, Pages, Target};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::metering::{self, MeteringPoints};
 use wasmer_middlewares::Metering;
-use wasmer::WasmerEnv;
 
 /// Create an instance of VM from a module with a given interface, an operation
 /// number limit and a webassembly module
@@ -91,12 +91,7 @@ pub(crate) fn exec(
     env.init_with_instance(&instance)?;
 
     // Closure for the execution allowing us to handle a gas error
-    fn execution(
-        instance: &Instance,
-        function: &str,
-        param: &str,
-        env: &Env,
-    ) -> Result<Response> {
+    fn execution(instance: &Instance, function: &str, param: &str, env: &Env) -> Result<Response> {
         let param_ptr = *StringPtr::alloc(&param.to_string(), &env.wasm_env)?;
         match instance
             .exports
