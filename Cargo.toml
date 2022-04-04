@@ -2,6 +2,8 @@
 name = "massa-sc-runtime"
 version = "0.3.0"
 edition = "2021"
+description = "Massa SC Runtime"
+license = "Apache-2.0"
 
 [dependencies]
 anyhow = "1.0"
