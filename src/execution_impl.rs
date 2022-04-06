@@ -2,7 +2,7 @@ use crate::settings;
 use crate::types::{Interface, Response};
 use crate::{abi_impl::*, tunable_memory::LimitingTunables};
 use crate::{
-    env::{assembly_script_abort, get_remaining_points_for_instance, Env},
+    env::{assembly_script_abort, get_remaining_points, Env},
     settings::max_number_of_pages,
 };
 use anyhow::{bail, Result};
@@ -18,7 +18,11 @@ use wasmer_middlewares::Metering;
 
 /// Create an instance of VM from a module with a given interface, an operation
 /// number limit and a webassembly module
-fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Result<Instance> {
+fn create_instance(
+    limit: u64,
+    module: &[u8],
+    interface: &dyn Interface,
+) -> Result<(Instance, Env)> {
     // We use the Singlepass compiler because it is fast and adapted to blockchains
     // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
     let mut compiler_config = Singlepass::new();
@@ -68,11 +72,11 @@ fn create_instance(limit: u64, module: &[u8], interface: &dyn Interface) -> Resu
             "assembly_script_get_time" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_time),
             "assembly_script_send_message" => Function::new_native_with_env(&store, env.clone(), assembly_script_send_message),
             "assembly_script_get_current_period" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_current_period),
-            "assembly_script_get_current_thread" => Function::new_native_with_env(&store, env, assembly_script_get_current_thread),
+            "assembly_script_get_current_thread" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_current_thread),
         },
     };
     let module = Module::new(&store, &module)?;
-    Ok(Instance::new(&module, &resolver)?)
+    Ok((Instance::new(&module, &resolver)?, env))
 }
 
 pub(crate) fn exec(
@@ -83,8 +87,8 @@ pub(crate) fn exec(
     param: &str,
     interface: &dyn Interface,
 ) -> Result<Response> {
-    let instance = match instance {
-        Some(instance) => instance,
+    let (instance, host_env) = match instance {
+        Some(instance) => (instance, Env::new(interface)),
         None => create_instance(limit, module, interface)?,
     };
     let mut env = as_ffi_bindings::Env::default();
@@ -96,6 +100,7 @@ pub(crate) fn exec(
         function: &str,
         param: &str,
         env: &as_ffi_bindings::Env,
+        host_env: &Env,
     ) -> Result<Response> {
         let param_ptr = *StringPtr::alloc(&param.to_string(), env)?;
         match instance
@@ -108,7 +113,7 @@ pub(crate) fn exec(
                 if function.eq(crate::settings::MAIN) {
                     return Ok(Response {
                         ret: "0".to_string(),
-                        remaining_gas: get_remaining_points_for_instance(instance),
+                        remaining_gas: get_remaining_points(host_env)?,
                     });
                 }
                 let ret = if let Some(offset) = value.get(0) {
@@ -124,14 +129,14 @@ pub(crate) fn exec(
                 };
                 Ok(Response {
                     ret,
-                    remaining_gas: get_remaining_points_for_instance(instance),
+                    remaining_gas: get_remaining_points(host_env)?,
                 })
             }
             Err(error) => bail!(error),
         }
     }
 
-    match execution(&instance, function, param, &env) {
+    match execution(&instance, function, param, &env, &host_env) {
         Ok(response) => Ok(response),
         Err(err) => {
             // Because the last needed more than the remaining points, we should have an error.
@@ -155,7 +160,7 @@ pub(crate) fn exec(
 /// }
 /// ```  
 pub fn run_main(module: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
-    let instance = create_instance(limit, module, interface)?;
+    let (instance, _) = create_instance(limit, module, interface)?;
     if instance.exports.contains(settings::MAIN) {
         Ok(exec(limit, Some(instance), module, settings::MAIN, "", interface)?.remaining_gas)
     } else {
