@@ -4,8 +4,13 @@ use crate::abi_impl::{abi_bail, get_memory, ABIResult};
 use crate::types::Interface;
 use anyhow::Result;
 use as_ffi_bindings::{Read, StringPtr};
+use std::sync::{Arc, Mutex};
 use wasmer::{HostEnvInitError, Instance, WasmerEnv};
 use wasmer_middlewares::metering::{self, set_remaining_points, MeteringPoints};
+
+lazy_static! {
+    pub static ref ENV: Arc<Mutex<Option<Env>>> = Arc::new(Mutex::new(None));
+}
 
 /// Error that append when a smartcontract try to call massa-std outside the
 /// main function. Wasmer hasn't the time to call `fn init_with_instance`
@@ -88,12 +93,16 @@ pub fn sub_remaining_gas_with_mult(env: &Env, a: usize, b: usize) -> ABIResult<(
 /// - To create an instance, this function has to be in the ImportObject in the "env" namespace.
 /// - We can take advantage of the behaviours printing the assemblyscript error
 pub fn assembly_script_abort(
-    env: &Env,
     message: StringPtr,
     filename: StringPtr,
     line: i32,
     col: i32,
 ) -> ABIResult<()> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     let memory = get_memory!(env);
     let message = message.read(memory);
     let filename = filename.read(memory);

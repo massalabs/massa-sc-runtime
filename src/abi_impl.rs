@@ -7,7 +7,7 @@
 ///!
 ///! ```
 use crate::env::{
-    get_remaining_points_for_env, sub_remaining_gas, sub_remaining_gas_with_mult, Env,
+    get_remaining_points_for_env, sub_remaining_gas, sub_remaining_gas_with_mult, Env, ENV,
 };
 use crate::settings;
 use crate::types::Response;
@@ -70,7 +70,12 @@ fn call_module(
 }
 
 /// Get the coins that have been made available for a specific purpose for the current call.
-pub(crate) fn assembly_script_get_call_coins(env: &Env) -> ABIResult<i64> {
+pub(crate) fn assembly_script_get_call_coins() -> ABIResult<i64> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_get_call_coins())?;
     match env.interface.get_call_coins() {
         Ok(res) => Ok(res as i64),
@@ -79,11 +84,12 @@ pub(crate) fn assembly_script_get_call_coins(env: &Env) -> ABIResult<i64> {
 }
 
 /// Transfer an amount from the address on the current call stack to a target address.
-pub(crate) fn assembly_script_transfer_coins(
-    env: &Env,
-    to_address: i32,
-    raw_amount: i64,
-) -> ABIResult<()> {
+pub(crate) fn assembly_script_transfer_coins(to_address: i32, raw_amount: i64) -> ABIResult<()> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_transfer())?;
     if raw_amount.is_negative() {
         abi_bail!("Negative raw amount.");
@@ -98,11 +104,15 @@ pub(crate) fn assembly_script_transfer_coins(
 
 /// Transfer an amount from the specified address to a target address.
 pub(crate) fn assembly_script_transfer_coins_for(
-    env: &Env,
     from_address: i32,
     to_address: i32,
     raw_amount: i64,
 ) -> ABIResult<()> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_transfer())?;
     if raw_amount.is_negative() {
         abi_bail!("Negative raw amount.");
@@ -119,7 +129,12 @@ pub(crate) fn assembly_script_transfer_coins_for(
     }
 }
 
-pub(crate) fn assembly_script_get_balance(env: &Env) -> ABIResult<i64> {
+pub(crate) fn assembly_script_get_balance() -> ABIResult<i64> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_get_balance())?;
     match env.interface.get_balance() {
         Ok(res) => Ok(res as i64),
@@ -127,7 +142,12 @@ pub(crate) fn assembly_script_get_balance(env: &Env) -> ABIResult<i64> {
     }
 }
 
-pub(crate) fn assembly_script_get_balance_for(env: &Env, address: i32) -> ABIResult<i64> {
+pub(crate) fn assembly_script_get_balance_for(address: i32) -> ABIResult<i64> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_get_balance())?;
     let memory = get_memory!(env);
     let address = &get_string(memory, address)?;
@@ -148,12 +168,16 @@ fn create_sc(env: &Env, bytecode: &[u8]) -> ABIResult<String> {
 /// directly form AssemblyScript:
 #[doc = include_str!("../wasm/README.md")]
 pub(crate) fn assembly_script_call_module(
-    env: &Env,
     address: i32,
     function: i32,
     param: i32,
     call_coins: i64,
 ) -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_call())?;
     let memory = get_memory!(env);
     let address = &get_string(memory, address)?;
@@ -169,7 +193,12 @@ pub(crate) fn assembly_script_call_module(
     }
 }
 
-pub(crate) fn assembly_script_get_remaining_gas(env: &Env) -> ABIResult<i64> {
+pub(crate) fn assembly_script_get_remaining_gas() -> ABIResult<i64> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_remaining_gas())?;
     Ok(get_remaining_points_for_env(env)? as i64)
 }
@@ -178,7 +207,12 @@ pub(crate) fn assembly_script_get_remaining_gas(env: &Env) -> ABIResult<i64> {
 /// given intefrace, an operation number limit and a webassembly module
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
-pub(crate) fn assembly_script_print(env: &Env, arg: i32) -> ABIResult<()> {
+pub(crate) fn assembly_script_print(arg: i32) -> ABIResult<()> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_print())?;
     let memory = get_memory!(env);
     if let Err(err) = env.interface.print(&get_string(memory, arg)?) {
@@ -189,7 +223,12 @@ pub(crate) fn assembly_script_print(env: &Env, arg: i32) -> ABIResult<()> {
 
 /// Read a bytecode string, representing the webassembly module binary encoded
 /// with in base64.
-pub(crate) fn assembly_script_create_sc(env: &Env, bytecode: i32) -> ABIResult<i32> {
+pub(crate) fn assembly_script_create_sc(bytecode: i32) -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     let memory = get_memory!(env);
     // Base64 to Binary
     let bytecode = match base64::decode(read_string_and_sub_gas(
@@ -212,7 +251,12 @@ pub(crate) fn assembly_script_create_sc(env: &Env, bytecode: i32) -> ABIResult<i
 }
 
 /// performs a hash on a string and returns the bs58check encoded hash
-pub(crate) fn assembly_script_hash(env: &Env, value: i32) -> ABIResult<i32> {
+pub(crate) fn assembly_script_hash(value: i32) -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_hash_const())?;
     let memory = get_memory!(env);
     let value = read_string_and_sub_gas(env, memory, value, settings::metering_hash_per_byte())?;
@@ -223,7 +267,12 @@ pub(crate) fn assembly_script_hash(env: &Env, value: i32) -> ABIResult<i32> {
 }
 
 /// sets a key-indexed data entry in the datastore, overwriting existing values if any
-pub(crate) fn assembly_script_set_data(env: &Env, key: i32, value: i32) -> ABIResult<()> {
+pub(crate) fn assembly_script_set_data(key: i32, value: i32) -> ABIResult<()> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_set_data_const())?;
     let memory = get_memory!(env);
     let key = read_string_and_sub_gas(env, memory, key, settings::metering_set_data_key_mult())?;
@@ -236,7 +285,12 @@ pub(crate) fn assembly_script_set_data(env: &Env, key: i32, value: i32) -> ABIRe
 }
 
 /// gets a key-indexed data entry in the datastore, failing if non-existant
-pub(crate) fn assembly_script_get_data(env: &Env, key: i32) -> ABIResult<i32> {
+pub(crate) fn assembly_script_get_data(key: i32) -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_get_data_const())?;
     let memory = get_memory!(env);
     let key = read_string_and_sub_gas(env, memory, key, settings::metering_get_data_key_mult())?;
@@ -250,7 +304,12 @@ pub(crate) fn assembly_script_get_data(env: &Env, key: i32) -> ABIResult<i32> {
 }
 
 /// checks if a key-indexed data entry exists in the datastore
-pub(crate) fn assembly_script_has_data(env: &Env, key: i32) -> ABIResult<i32> {
+pub(crate) fn assembly_script_has_data(key: i32) -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_has_data_const())?;
     let memory = get_memory!(env);
     let key = read_string_and_sub_gas(env, memory, key, settings::metering_has_data_key_mult())?;
@@ -261,12 +320,12 @@ pub(crate) fn assembly_script_has_data(env: &Env, key: i32) -> ABIResult<i32> {
     }
 }
 
-pub(crate) fn assembly_script_set_data_for(
-    env: &Env,
-    address: i32,
-    key: i32,
-    value: i32,
-) -> ABIResult<()> {
+pub(crate) fn assembly_script_set_data_for(address: i32, key: i32, value: i32) -> ABIResult<()> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_set_data_const())?;
     let memory = get_memory!(env);
     let key = read_string_and_sub_gas(env, memory, key, settings::metering_set_data_key_mult())?;
@@ -282,7 +341,12 @@ pub(crate) fn assembly_script_set_data_for(
     Ok(())
 }
 
-pub(crate) fn assembly_script_get_data_for(env: &Env, address: i32, key: i32) -> ABIResult<i32> {
+pub(crate) fn assembly_script_get_data_for(address: i32, key: i32) -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_get_data_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
@@ -296,7 +360,12 @@ pub(crate) fn assembly_script_get_data_for(env: &Env, address: i32, key: i32) ->
     }
 }
 
-pub(crate) fn assembly_script_has_data_for(env: &Env, address: i32, key: i32) -> ABIResult<i32> {
+pub(crate) fn assembly_script_has_data_for(address: i32, key: i32) -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_has_data_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
@@ -308,7 +377,12 @@ pub(crate) fn assembly_script_has_data_for(env: &Env, address: i32, key: i32) ->
     }
 }
 
-pub(crate) fn assembly_script_get_owned_addresses_raw(env: &Env) -> ABIResult<i32> {
+pub(crate) fn assembly_script_get_owned_addresses_raw() -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_get_owned_addrs())?;
     let data = match env.interface.get_owned_addresses() {
         Ok(data) => data,
@@ -320,7 +394,12 @@ pub(crate) fn assembly_script_get_owned_addresses_raw(env: &Env) -> ABIResult<i3
     }
 }
 
-pub(crate) fn assembly_script_get_call_stack_raw(env: &Env) -> ABIResult<i32> {
+pub(crate) fn assembly_script_get_call_stack_raw() -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_get_call_stack())?;
     let data = match env.interface.get_call_stack() {
         Ok(data) => data,
@@ -332,7 +411,12 @@ pub(crate) fn assembly_script_get_call_stack_raw(env: &Env) -> ABIResult<i32> {
     }
 }
 
-pub(crate) fn assembly_script_get_owned_addresses(env: &Env) -> ABIResult<i32> {
+pub(crate) fn assembly_script_get_owned_addresses() -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_get_owned_addrs())?;
     match env.interface.get_owned_addresses() {
         Ok(data) => alloc_string_array(env, &data),
@@ -340,7 +424,12 @@ pub(crate) fn assembly_script_get_owned_addresses(env: &Env) -> ABIResult<i32> {
     }
 }
 
-pub(crate) fn assembly_script_get_call_stack(env: &Env) -> ABIResult<i32> {
+pub(crate) fn assembly_script_get_call_stack() -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_get_call_stack())?;
     match env.interface.get_call_stack() {
         Ok(data) => alloc_string_array(env, &data),
@@ -348,7 +437,12 @@ pub(crate) fn assembly_script_get_call_stack(env: &Env) -> ABIResult<i32> {
     }
 }
 
-pub(crate) fn assembly_script_generate_event(env: &Env, event: i32) -> ABIResult<()> {
+pub(crate) fn assembly_script_generate_event(event: i32) -> ABIResult<()> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_generate_event())?;
     let memory = get_memory!(env);
     let event = get_string(memory, event)?;
@@ -360,11 +454,15 @@ pub(crate) fn assembly_script_generate_event(env: &Env, event: i32) -> ABIResult
 
 /// verify a signature of data given a public key. Returns Ok(1) if correctly verified, otherwise Ok(0)
 pub(crate) fn assembly_script_signature_verify(
-    env: &Env,
     data: i32,
     signature: i32,
     public_key: i32,
 ) -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_signature_verify_const())?;
     let memory = get_memory!(env);
     let data = read_string_and_sub_gas(
@@ -386,10 +484,12 @@ pub(crate) fn assembly_script_signature_verify(
 }
 
 /// converts a public key to an address
-pub(crate) fn assembly_script_address_from_public_key(
-    env: &Env,
-    public_key: i32,
-) -> ABIResult<i32> {
+pub(crate) fn assembly_script_address_from_public_key(public_key: i32) -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_address_from_public_key())?;
     let memory = get_memory!(env);
     let public_key = get_string(memory, public_key)?;
@@ -400,7 +500,12 @@ pub(crate) fn assembly_script_address_from_public_key(
 }
 
 /// generates an unsafe random number
-pub(crate) fn assembly_script_unsafe_random(env: &Env) -> ABIResult<i64> {
+pub(crate) fn assembly_script_unsafe_random() -> ABIResult<i64> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_unsafe_random())?;
     match env.interface.unsafe_random() {
         Err(err) => abi_bail!(err),
@@ -409,7 +514,12 @@ pub(crate) fn assembly_script_unsafe_random(env: &Env) -> ABIResult<i64> {
 }
 
 /// gets the current unix timestamp in milliseconds
-pub(crate) fn assembly_script_get_time(env: &Env) -> ABIResult<i64> {
+pub(crate) fn assembly_script_get_time() -> ABIResult<i64> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_get_time())?;
     match env.interface.get_time() {
         Err(err) => abi_bail!(err),
@@ -420,7 +530,6 @@ pub(crate) fn assembly_script_get_time(env: &Env) -> ABIResult<i64> {
 /// sends an async message
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn assembly_script_send_message(
-    env: &Env,
     target_address: i32,
     target_handler: i32,
     validity_start_period: i64,
@@ -432,6 +541,11 @@ pub(crate) fn assembly_script_send_message(
     raw_coins: i64,
     data: i32,
 ) -> ABIResult<()> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_send_message())?;
     let validity_start: (u64, u8) = match (
         validity_start_period.try_into(),
@@ -475,7 +589,12 @@ pub(crate) fn assembly_script_send_message(
 }
 
 /// gets the period of the current execution slot
-pub(crate) fn assembly_script_get_current_period(env: &Env) -> ABIResult<i64> {
+pub(crate) fn assembly_script_get_current_period() -> ABIResult<i64> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_get_current_period())?;
     match env.interface.get_current_period() {
         Err(err) => abi_bail!(err),
@@ -484,7 +603,12 @@ pub(crate) fn assembly_script_get_current_period(env: &Env) -> ABIResult<i64> {
 }
 
 /// gets the thread of the current execution slot
-pub(crate) fn assembly_script_get_current_thread(env: &Env) -> ABIResult<i32> {
+pub(crate) fn assembly_script_get_current_thread() -> ABIResult<i32> {
+    let env = ENV.lock().expect("Couldn't acquire lock on env.");
+    let env = match env.as_ref() {
+        Some(env) => env,
+        None => abi_bail!("Uninitialized host env."),
+    };
     sub_remaining_gas(env, settings::metering_get_current_thread())?;
     match env.interface.get_current_thread() {
         Err(err) => abi_bail!(err),

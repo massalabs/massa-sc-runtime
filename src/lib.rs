@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate lazy_static;
+
 mod abi_impl;
 mod env;
 mod execution_impl;
