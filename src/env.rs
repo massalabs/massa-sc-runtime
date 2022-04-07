@@ -4,19 +4,14 @@ use crate::abi_impl::{abi_bail, get_memory, ABIResult};
 use crate::types::Interface;
 use anyhow::Result;
 use as_ffi_bindings::{Read, StringPtr};
-use wasmer::{HostEnvInitError, Instance, WasmerEnv};
-use wasmer_middlewares::metering::{self, set_remaining_points, MeteringPoints};
-
-/// Error that append when a smartcontract try to call massa-std outside the
-/// main function. Wasmer hasn't the time to call `fn init_with_instance`
-pub const EXEC_INSTANCE_ERR: &str = "Unable to create execution instance. Make
-sure that you are not trying to call massa-std outside the main function";
+use wasmer::{Global, HostEnvInitError, Instance, WasmerEnv};
 
 #[derive(Clone)]
 pub struct Env {
     pub wasm_env: as_ffi_bindings::Env,
     pub interface: Box<dyn Interface>,
-    pub instance: Option<Instance>,
+    pub remaining_points: Option<Global>,
+    pub exhausted_points: Option<Global>,
 }
 
 impl Env {
@@ -24,7 +19,8 @@ impl Env {
         Env {
             wasm_env: Default::default(),
             interface: interface.clone_box(),
-            instance: None,
+            remaining_points: None,
+            exhausted_points: None,
         }
     }
 }
@@ -32,37 +28,70 @@ impl Env {
 impl WasmerEnv for Env {
     fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError> {
         self.wasm_env.init_with_instance(instance)?;
-        self.instance = Some(instance.clone());
+        self.remaining_points = Some(
+            instance
+                .exports
+                .get_with_generics_weak("wasmer_metering_remaining_points")
+                .map_err(HostEnvInitError::from)?,
+        );
+        self.exhausted_points = Some(
+            instance
+                .exports
+                .get_with_generics_weak("wasmer_metering_points_exhausted")
+                .map_err(HostEnvInitError::from)?,
+        );
         Ok(())
     }
 }
 
-pub fn get_remaining_points_for_env(env: &Env) -> ABIResult<u64> {
-    let instance = match env.instance.clone() {
-        Some(instance) => instance,
-        None => abi_bail!(EXEC_INSTANCE_ERR),
+/// Get remaining metering points
+/// Should be equivalent to
+/// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L293
+pub fn get_remaining_points(env: &Env) -> ABIResult<u64> {
+    match env.exhausted_points.as_ref() {
+        Some(exhausted_points) => match exhausted_points.get().try_into() {
+            Ok::<i32, _>(exhausted) if exhausted > 0 => return Ok(0),
+            Ok::<i32, _>(_) => (),
+            Err(_) => abi_bail!("exhausted_points has wrong type"),
+        },
+        None => abi_bail!("Lost reference to exhausted_points"),
     };
-    Ok(match metering::get_remaining_points(&instance) {
-        MeteringPoints::Remaining(gas) => gas,
-        MeteringPoints::Exhausted => 0,
-    })
-}
-
-pub fn get_remaining_points_for_instance(instance: &Instance) -> u64 {
-    match metering::get_remaining_points(instance) {
-        MeteringPoints::Remaining(gas) => gas,
-        MeteringPoints::Exhausted => 0,
+    match env.remaining_points.as_ref() {
+        Some(remaining_points) => match remaining_points.get().try_into() {
+            Ok::<u64, _>(remaining) => Ok(remaining),
+            Err(_) => abi_bail!("remaining_points has wrong type"),
+        },
+        None => abi_bail!("Lost reference to remaining_points"),
     }
 }
 
-pub fn sub_remaining_gas(env: &Env, gas: u64) -> ABIResult<()> {
-    let instance = match env.instance.clone() {
-        Some(instance) => instance,
-        None => abi_bail!(EXEC_INSTANCE_ERR),
+/// Set remaining metering points
+/// Should be equivalent to
+/// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L343
+fn set_remaining_points(env: &Env, points: u64) -> ABIResult<()> {
+    match env.remaining_points.as_ref() {
+        Some(remaining_points) => {
+            if remaining_points.set(points.into()).is_err() {
+                abi_bail!("Can't set remaining_points");
+            }
+        }
+        None => abi_bail!("Lost reference to remaining_points"),
     };
-    let remaining_gas = get_remaining_points_for_env(env)?;
+    match env.exhausted_points.as_ref() {
+        Some(exhausted_points) => {
+            if exhausted_points.set(0i32.into()).is_err() {
+                abi_bail!("Can't set exhausted_points")
+            }
+        }
+        None => abi_bail!("Lost reference to exhausted_points"),
+    };
+    Ok(())
+}
+
+pub fn sub_remaining_gas(env: &Env, gas: u64) -> ABIResult<()> {
+    let remaining_gas = get_remaining_points(env)?;
     if let Some(remaining_gas) = remaining_gas.checked_sub(gas) {
-        set_remaining_points(&instance, remaining_gas);
+        set_remaining_points(env, remaining_gas)?;
     } else {
         abi_bail!("Remaining gas reach zero")
     }

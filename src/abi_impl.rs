@@ -6,9 +6,7 @@
 ///! rust side in `execution_impl.rs`.
 ///!
 ///! ```
-use crate::env::{
-    get_remaining_points_for_env, sub_remaining_gas, sub_remaining_gas_with_mult, Env,
-};
+use crate::env::{get_remaining_points, sub_remaining_gas, sub_remaining_gas_with_mult, Env};
 use crate::settings;
 use crate::types::Response;
 use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
@@ -54,7 +52,7 @@ fn call_module(
         Err(err) => abi_bail!(err),
     };
     match crate::execution_impl::exec(
-        get_remaining_points_for_env(env)?,
+        get_remaining_points(env)?,
         None,
         module,
         function,
@@ -171,7 +169,7 @@ pub(crate) fn assembly_script_call_module(
 
 pub(crate) fn assembly_script_get_remaining_gas(env: &Env) -> ABIResult<i64> {
     sub_remaining_gas(env, settings::metering_remaining_gas())?;
-    Ok(get_remaining_points_for_env(env)? as i64)
+    Ok(get_remaining_points(env)? as i64)
 }
 
 /// Create an instance of VM from a module with a
