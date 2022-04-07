@@ -6,7 +6,9 @@
 ///! rust side in `execution_impl.rs`.
 ///!
 ///! ```
-use crate::env::{get_remaining_points, sub_remaining_gas, sub_remaining_gas_with_mult, Env};
+use crate::env::{
+    get_remaining_points, set_remaining_points, sub_remaining_gas, sub_remaining_gas_with_mult, Env,
+};
 use crate::settings;
 use crate::types::Response;
 use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
@@ -59,10 +61,15 @@ fn call_module(
         param,
         &*env.interface,
     ) {
-        Ok(resp) => match env.interface.finish_call() {
-            Ok(_) => Ok(resp),
-            Err(err) => abi_bail!(err),
-        },
+        Ok(resp) => {
+            if let Err(err) = set_remaining_points(env, resp.remaining_gas) {
+                abi_bail!(err);
+            }
+            match env.interface.finish_call() {
+                Ok(_) => Ok(resp),
+                Err(err) => abi_bail!(err),
+            }
+        }
         Err(err) => abi_bail!(err),
     }
 }
