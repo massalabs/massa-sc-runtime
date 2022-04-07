@@ -551,6 +551,13 @@
 <span id="550">550</span>
 <span id="551">551</span>
 <span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
 </pre><pre class="rust"><code><span class="doccomment">///! *abi_impl.rs* contains all the implementation (and some tools as</span>
 <span class="doccomment">///! abi_bail!) of the massa abi.</span>
 <span class="doccomment">///!</span>
@@ -559,7 +566,9 @@
 <span class="doccomment">///! rust side in `execution_impl.rs`.</span>
 <span class="doccomment">///!</span>
 <span class="doccomment">///! ```</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::env</span>::{<span class="ident">get_remaining_points</span>, <span class="ident">sub_remaining_gas</span>, <span class="ident">sub_remaining_gas_with_mult</span>, <span class="ident">Env</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::env</span>::{
+    <span class="ident">get_remaining_points</span>, <span class="ident">set_remaining_points</span>, <span class="ident">sub_remaining_gas</span>, <span class="ident">sub_remaining_gas_with_mult</span>, <span class="ident">Env</span>,
+};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::settings</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::Response</span>;
 <span class="kw">use</span> <span class="ident">as_ffi_bindings</span>::{<span class="ident">Read</span> <span class="kw">as</span> <span class="ident">ASRead</span>, <span class="ident">StringPtr</span>, <span class="ident">Write</span> <span class="kw">as</span> <span class="ident">ASWrite</span>};
@@ -612,10 +621,15 @@
         <span class="ident">param</span>,
         <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">env</span>.<span class="ident">interface</span>,
     ) {
-        <span class="prelude-val">Ok</span>(<span class="ident">resp</span>) =&gt; <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">finish_call</span>() {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">resp</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
-        },
+        <span class="prelude-val">Ok</span>(<span class="ident">resp</span>) =&gt; {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">set_remaining_points</span>(<span class="ident">env</span>, <span class="ident">resp</span>.<span class="ident">remaining_gas</span>) {
+                <span class="macro">abi_bail!</span>(<span class="ident">err</span>);
+            }
+            <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">finish_call</span>() {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">resp</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
+            }
+        }
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
