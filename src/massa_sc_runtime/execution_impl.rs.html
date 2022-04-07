@@ -180,20 +180,17 @@
 <span id="179">179</span>
 <span id="180">180</span>
 <span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::settings</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">Interface</span>, <span class="ident">Response</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">abi_impl</span>::<span class="kw-2">*</span>, <span class="ident">tunable_memory::LimitingTunables</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">env</span>::{<span class="ident">assembly_script_abort</span>, <span class="ident">get_remaining_points_for_instance</span>, <span class="ident">Env</span>},
+    <span class="ident">env</span>::{<span class="ident">assembly_script_abort</span>, <span class="ident">get_remaining_points</span>, <span class="ident">Env</span>},
     <span class="ident">settings::max_number_of_pages</span>,
 };
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">bail</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">as_ffi_bindings</span>::{<span class="ident">Read</span> <span class="kw">as</span> <span class="ident">ASRead</span>, <span class="ident">StringPtr</span>, <span class="ident">Write</span> <span class="kw">as</span> <span class="ident">ASWrite</span>};
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
+<span class="kw">use</span> <span class="ident">wasmer::WasmerEnv</span>;
 <span class="kw">use</span> <span class="ident">wasmer</span>::{
     <span class="ident">imports</span>, <span class="ident">CompilerConfig</span>, <span class="ident">Function</span>, <span class="ident">ImportObject</span>, <span class="ident">Instance</span>, <span class="ident">Module</span>, <span class="ident">Store</span>, <span class="ident">Universal</span>, <span class="ident">Val</span>,
 };
@@ -204,7 +201,7 @@
 
 <span class="doccomment">/// Create an instance of VM from a module with a given interface, an operation</span>
 <span class="doccomment">/// number limit and a webassembly module</span>
-<span class="kw">fn</span> <span class="ident">create_instance</span>(<span class="ident">limit</span>: <span class="ident">u64</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">interface</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Interface</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">create_instance</span>(<span class="ident">limit</span>: <span class="ident">u64</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span> {
     <span class="comment">// We use the Singlepass compiler because it is fast and adapted to blockchains</span>
     <span class="comment">// See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compiler_config</span> <span class="op">=</span> <span class="ident">Singlepass::new</span>();
@@ -220,7 +217,6 @@
     <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">BaseTunables::for_target</span>(<span class="kw-2">&amp;</span><span class="ident">Target::default</span>());
     <span class="kw">let</span> <span class="ident">tunables</span> <span class="op">=</span> <span class="ident">LimitingTunables::new</span>(<span class="ident">base</span>, <span class="ident">Pages</span>(<span class="ident">max_number_of_pages</span>()));
     <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">Store::new_with_tunables</span>(<span class="kw-2">&amp;</span><span class="ident">Universal::new</span>(<span class="ident">compiler_config</span>).<span class="ident">engine</span>(), <span class="ident">tunables</span>);
-    <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">Env::new</span>(<span class="ident">interface</span>);
     <span class="kw">let</span> <span class="ident">resolver</span>: <span class="ident">ImportObject</span> <span class="op">=</span> <span class="macro">imports!</span> {
         <span class="string">&quot;env&quot;</span> =&gt; {
             <span class="comment">// Needed by wasm generated by AssemblyScript.</span>
@@ -254,7 +250,7 @@
             <span class="string">&quot;assembly_script_get_time&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_get_time</span>),
             <span class="string">&quot;assembly_script_send_message&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_send_message</span>),
             <span class="string">&quot;assembly_script_get_current_period&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_get_current_period</span>),
-            <span class="string">&quot;assembly_script_get_current_thread&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>, <span class="ident">assembly_script_get_current_thread</span>),
+            <span class="string">&quot;assembly_script_get_current_thread&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_get_current_thread</span>),
         },
     };
     <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="ident">Module::new</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="kw-2">&amp;</span><span class="ident">module</span>)<span class="question-mark">?</span>;
@@ -269,21 +265,16 @@
     <span class="ident">param</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">interface</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Interface</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">Env::new</span>(<span class="ident">interface</span>);
     <span class="kw">let</span> <span class="ident">instance</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">instance</span> {
         <span class="prelude-val">Some</span>(<span class="ident">instance</span>) =&gt; <span class="ident">instance</span>,
-        <span class="prelude-val">None</span> =&gt; <span class="ident">create_instance</span>(<span class="ident">limit</span>, <span class="ident">module</span>, <span class="ident">interface</span>)<span class="question-mark">?</span>,
+        <span class="prelude-val">None</span> =&gt; <span class="ident">create_instance</span>(<span class="ident">limit</span>, <span class="ident">module</span>, <span class="kw-2">&amp;</span><span class="ident">env</span>)<span class="question-mark">?</span>,
     };
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">as_ffi_bindings::Env::default</span>();
-    <span class="ident">env</span>.<span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="ident">instance</span>)<span class="question-mark">?</span>;
+    <span class="ident">env</span>.<span class="ident">init_with_instance</span>(<span class="kw-2">&amp;</span><span class="ident">instance</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// Closure for the execution allowing us to handle a gas error</span>
-    <span class="kw">fn</span> <span class="ident">execution</span>(
-        <span class="ident">instance</span>: <span class="kw-2">&amp;</span><span class="ident">Instance</span>,
-        <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">param</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">as_ffi_bindings::Env</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">param_ptr</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">param</span>.<span class="ident">to_string</span>(), <span class="ident">env</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn</span> <span class="ident">execution</span>(<span class="ident">instance</span>: <span class="kw-2">&amp;</span><span class="ident">Instance</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">param</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">param_ptr</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">param</span>.<span class="ident">to_string</span>(), <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">wasm_env</span>)<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="ident">instance</span>
             .<span class="ident">exports</span>
             .<span class="ident">get_function</span>(<span class="ident">function</span>)<span class="question-mark">?</span>
@@ -294,7 +285,7 @@
                 <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">eq</span>(<span class="ident"><span class="kw">crate</span>::settings::MAIN</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Response</span> {
                         <span class="ident">ret</span>: <span class="string">&quot;0&quot;</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">remaining_gas</span>: <span class="ident">get_remaining_points_for_instance</span>(<span class="ident">instance</span>),
+                        <span class="ident">remaining_gas</span>: <span class="ident">get_remaining_points</span>(<span class="ident">env</span>)<span class="question-mark">?</span>,
                     });
                 }
                 <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">get</span>(<span class="number">0</span>) {
@@ -310,7 +301,7 @@
                 };
                 <span class="prelude-val">Ok</span>(<span class="ident">Response</span> {
                     <span class="ident">ret</span>,
-                    <span class="ident">remaining_gas</span>: <span class="ident">get_remaining_points_for_instance</span>(<span class="ident">instance</span>),
+                    <span class="ident">remaining_gas</span>: <span class="ident">get_remaining_points</span>(<span class="ident">env</span>)<span class="question-mark">?</span>,
                 })
             }
             <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; <span class="macro">bail!</span>(<span class="ident">error</span>),
@@ -341,7 +332,8 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```  </span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_main</span>(<span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">limit</span>: <span class="ident">u64</span>, <span class="ident">interface</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Interface</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">instance</span> <span class="op">=</span> <span class="ident">create_instance</span>(<span class="ident">limit</span>, <span class="ident">module</span>, <span class="ident">interface</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">Env::new</span>(<span class="ident">interface</span>);
+    <span class="kw">let</span> <span class="ident">instance</span> <span class="op">=</span> <span class="ident">create_instance</span>(<span class="ident">limit</span>, <span class="ident">module</span>, <span class="kw-2">&amp;</span><span class="ident">env</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">instance</span>.<span class="ident">exports</span>.<span class="ident">contains</span>(<span class="ident">settings::MAIN</span>) {
         <span class="prelude-val">Ok</span>(<span class="ident">exec</span>(<span class="ident">limit</span>, <span class="prelude-val">Some</span>(<span class="ident">instance</span>), <span class="ident">module</span>, <span class="ident">settings::MAIN</span>, <span class="string">&quot;&quot;</span>, <span class="ident">interface</span>)<span class="question-mark">?</span>.<span class="ident">remaining_gas</span>)
     } <span class="kw">else</span> {
