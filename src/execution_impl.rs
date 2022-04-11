@@ -42,6 +42,9 @@ fn create_instance(limit: u64, module: &[u8], env: &Env) -> Result<Instance> {
     // Turn-off experimental SIMD feature.
     features.simd(false);
 
+    // Turn-off multivalue, because it is not supported for Singlepass(and it's true by default).
+    features.multi_value(false);
+
     // Add metering middleware
     let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
     compiler_config.push_middleware(metering);
