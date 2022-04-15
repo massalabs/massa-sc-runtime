@@ -1,3 +1,3 @@
-# massa-sc-runtime
+# Massa Smart Contracts Runtime
 
-Smart contract Simulator for wasm generated with AssemblyScript
+This is a VM (basically a wrapper around [Wasmer](https://wasmer.io/)) that lets run WASM SC generated with AssemblyScript (and using Massa customs ABIs).
