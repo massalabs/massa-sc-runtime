@@ -193,6 +193,18 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">cornetto::Cornetto</span>;
 
 <span class="comment">// main function name in the webassembly module</span>
@@ -260,6 +272,10 @@
     <span class="kw">pub</span> <span class="ident">max_number_of_pages</span>: <span class="ident">u32</span>,
     <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">100</span>)]</span>
     <span class="kw">pub</span> <span class="ident">send_message</span>: <span class="ident">u64</span>,
+    <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">1</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">set_bytecode_mult</span>: <span class="ident">usize</span>,
+    <span class="attribute">#[<span class="ident">cornetto</span>(<span class="kw">const</span>, <span class="number">100</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">set_bytecode_const</span>: <span class="ident">u64</span>,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_call</span>() -&gt; <span class="ident">u64</span> {
@@ -376,6 +392,14 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_send_message</span>() -&gt; <span class="ident">u64</span> {
     <span class="ident">METERING</span>.<span class="ident">send_message</span>()
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_set_bytecode_mult</span>() -&gt; <span class="ident">usize</span> {
+    <span class="ident">METERING</span>.<span class="ident">set_bytecode_mult</span>()
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">metering_set_bytecode_const</span>() -&gt; <span class="ident">u64</span> {
+    <span class="ident">METERING</span>.<span class="ident">set_bytecode_const</span>()
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>

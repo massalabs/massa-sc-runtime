@@ -198,6 +198,8 @@
 <span id="197">197</span>
 <span id="198">198</span>
 <span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::settings</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">Interface</span>, <span class="ident">Response</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">abi_impl</span>::<span class="kw-2">*</span>, <span class="ident">tunable_memory::LimitingTunables</span>};
@@ -287,6 +289,8 @@
             <span class="string">&quot;assembly_script_send_message&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_send_message</span>),
             <span class="string">&quot;assembly_script_get_current_period&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_get_current_period</span>),
             <span class="string">&quot;assembly_script_get_current_thread&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_get_current_thread</span>),
+            <span class="string">&quot;assembly_script_set_bytecode&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_set_bytecode</span>),
+            <span class="string">&quot;assembly_script_set_bytecode_for&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_set_bytecode_for</span>),
         },
     };
     <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="ident">Module::new</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="kw-2">&amp;</span><span class="ident">module</span>)<span class="question-mark">?</span>;
