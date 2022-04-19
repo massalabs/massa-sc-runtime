@@ -61,7 +61,7 @@ struct Metering {
     pub get_current_period: u64,
     #[cornetto(const, 50)]
     pub get_current_thread: u64,
-    #[cornetto(const, 24)]
+    #[cornetto(const, 500)]
     pub max_number_of_pages: u32,
     #[cornetto(const, 100)]
     pub send_message: u64,
