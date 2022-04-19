@@ -503,7 +503,7 @@ pub(crate) fn assembly_script_set_bytecode_for(
     address: i32,
     bytecode_base64: i32,
 ) -> ABIResult<()> {
-    sub_remaining_gas(env, settings::metering_get_data_const())?;
+    sub_remaining_gas(env, settings::metering_set_bytecode_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
     let bytecode_base64 = read_string_and_sub_gas(
@@ -524,7 +524,7 @@ pub(crate) fn assembly_script_set_bytecode_for(
 
 /// sets the executable bytecode of the current address
 pub(crate) fn assembly_script_set_bytecode(env: &Env, bytecode_base64: i32) -> ABIResult<()> {
-    sub_remaining_gas(env, settings::metering_get_data_const())?;
+    sub_remaining_gas(env, settings::metering_set_bytecode_const())?;
     let memory = get_memory!(env);
     let bytecode_base64 = read_string_and_sub_gas(
         env,
