@@ -497,6 +497,51 @@ pub(crate) fn assembly_script_get_current_thread(env: &Env) -> ABIResult<i32> {
     }
 }
 
+/// sets the executable bytecode of an arbitrary address
+pub(crate) fn assembly_script_set_bytecode_for(
+    env: &Env,
+    address: i32,
+    bytecode_base64: i32,
+) -> ABIResult<()> {
+    sub_remaining_gas(env, settings::metering_set_bytecode_const())?;
+    let memory = get_memory!(env);
+    let address = get_string(memory, address)?;
+    let bytecode_base64 = read_string_and_sub_gas(
+        env,
+        memory,
+        bytecode_base64,
+        settings::metering_set_bytecode_mult(),
+    )?;
+    let bytecode_raw = match base64::decode(bytecode_base64) {
+        Ok(v) => v,
+        Err(err) => abi_bail!(err),
+    };
+    match env.interface.raw_set_bytecode_for(&address, &bytecode_raw) {
+        Ok(()) => Ok(()),
+        Err(err) => abi_bail!(err),
+    }
+}
+
+/// sets the executable bytecode of the current address
+pub(crate) fn assembly_script_set_bytecode(env: &Env, bytecode_base64: i32) -> ABIResult<()> {
+    sub_remaining_gas(env, settings::metering_set_bytecode_const())?;
+    let memory = get_memory!(env);
+    let bytecode_base64 = read_string_and_sub_gas(
+        env,
+        memory,
+        bytecode_base64,
+        settings::metering_set_bytecode_mult(),
+    )?;
+    let bytecode_raw = match base64::decode(bytecode_base64) {
+        Ok(v) => v,
+        Err(err) => abi_bail!(err),
+    };
+    match env.interface.raw_set_bytecode(&bytecode_raw) {
+        Ok(()) => Ok(()),
+        Err(err) => abi_bail!(err),
+    }
+}
+
 /// Tooling, return a StringPtr allocated from a String
 fn pointer_from_string(env: &Env, value: &str) -> ABIResult<StringPtr> {
     match StringPtr::alloc(&value.into(), &env.wasm_env) {
