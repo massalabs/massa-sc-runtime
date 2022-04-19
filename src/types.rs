@@ -74,16 +74,18 @@ pub trait Interface: Send + Sync + InterfaceClone {
         bail!("unimplemented function get_call_coins_for in interface")
     }
 
-    /// Requires to replace the module at the current address
-    ///
-    /// Note:
-    /// The execution lib will use the current context address for the update
-    /// module and the new &[u8]
-    fn update_module(&self, address: &str, module: &[u8]) -> Result<()> {
-        unimplemented!("update_module")
+    /// Sets the executable bytecode at a target address.
+    /// The target address must exist and the current context must have access rights.
+    fn raw_set_bytecode_for(&self, address: &str, bytecode: &[u8]) -> Result<()> {
+        unimplemented!("raw_set_bytecode_for")
     }
 
-    /// Requires a new address that contains the &[u8] sended
+    /// Sets the executable bytecode at a current address.
+    fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
+        unimplemented!("raw_set_bytecode")
+    }
+
+    /// Requires a new address that contains the sent &[u8]
     fn create_module(&self, module: &[u8]) -> Result<String> {
         unimplemented!("create_module")
     }

@@ -65,6 +65,10 @@ struct Metering {
     pub max_number_of_pages: u32,
     #[cornetto(const, 100)]
     pub send_message: u64,
+    #[cornetto(const, 1)]
+    pub set_bytecode_mult: usize,
+    #[cornetto(const, 100)]
+    pub set_bytecode_const: u64,
 }
 
 pub(crate) fn metering_call() -> u64 {
@@ -181,6 +185,14 @@ pub(crate) fn max_number_of_pages() -> u32 {
 
 pub(crate) fn metering_send_message() -> u64 {
     METERING.send_message()
+}
+
+pub(crate) fn metering_set_bytecode_mult() -> usize {
+    METERING.set_bytecode_mult()
+}
+
+pub(crate) fn metering_set_bytecode_const() -> u64 {
+    METERING.set_bytecode_const()
 }
 
 #[cfg(test)]

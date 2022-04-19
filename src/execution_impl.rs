@@ -87,6 +87,8 @@ fn create_instance(limit: u64, module: &[u8], env: &Env) -> Result<Instance> {
             "assembly_script_send_message" => Function::new_native_with_env(&store, env.clone(), assembly_script_send_message),
             "assembly_script_get_current_period" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_current_period),
             "assembly_script_get_current_thread" => Function::new_native_with_env(&store, env.clone(), assembly_script_get_current_thread),
+            "assembly_script_set_bytecode" => Function::new_native_with_env(&store, env.clone(), assembly_script_set_bytecode),
+            "assembly_script_set_bytecode_for" => Function::new_native_with_env(&store, env.clone(), assembly_script_set_bytecode_for),
         },
     };
     let module = Module::new(&store, &module)?;

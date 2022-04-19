@@ -43,11 +43,17 @@ impl Interface for TestInterface {
         Ok(1)
     }
 
-    fn update_module(&self, address: &str, module: &[u8]) -> Result<()> {
+    fn raw_set_bytecode_for(&self, address: &str, bytecode: &[u8]) -> Result<()> {
         self.0
             .lock()
             .unwrap()
-            .insert(address.to_string(), module.to_vec());
+            .insert(address.to_string(), bytecode.to_vec());
+        Ok(())
+    }
+
+    fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
+        let address = String::from("get_string");
+        self.0.lock().unwrap().insert(address, bytecode.to_vec());
         Ok(())
     }
 
@@ -106,7 +112,7 @@ fn test_caller() {
         "/wasm/build/get_string.wat"
     ));
     interface
-        .update_module("get_string", module.as_ref())
+        .raw_set_bytecode_for("get_string", module.as_ref())
         .unwrap();
     // test only if the module is valid
     run_main(module, 20_000, &*interface).expect("Failed to run_main get_string.wat");
@@ -141,7 +147,7 @@ fn test_local_hello_name_caller() {
         "/wasm/build/get_string.wat"
     ));
     interface
-        .update_module("get_string", module.as_ref())
+        .raw_set_bytecode_for("get_string", module.as_ref())
         .unwrap();
     run_main(module, 100, &*interface).expect("Failed to run_main get_string.wat");
     let module = include_bytes!(concat!(
