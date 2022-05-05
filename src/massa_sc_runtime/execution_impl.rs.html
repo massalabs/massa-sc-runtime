@@ -200,6 +200,9 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::settings</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">Interface</span>, <span class="ident">Response</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">abi_impl</span>::<span class="kw-2">*</span>, <span class="ident">tunable_memory::LimitingTunables</span>};
@@ -234,6 +237,9 @@
 
     <span class="comment">// Canonicalize NaN.</span>
     <span class="ident">compiler_config</span>.<span class="ident">canonicalize_nans</span>(<span class="bool-val">true</span>);
+
+    <span class="comment">// enable stack check</span>
+    <span class="ident">compiler_config</span>.<span class="ident">enable_stack_check</span>(<span class="bool-val">true</span>);
 
     <span class="comment">// Turning-off in wasmer feature flags:</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">features</span> <span class="op">=</span> <span class="ident">Features::new</span>();
