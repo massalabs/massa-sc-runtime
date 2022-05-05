@@ -33,6 +33,9 @@ fn create_instance(limit: u64, module: &[u8], env: &Env) -> Result<Instance> {
     // Canonicalize NaN.
     compiler_config.canonicalize_nans(true);
 
+    // enable stack check
+    compiler_config.enable_stack_check(true);
+
     // Turning-off in wasmer feature flags:
     let mut features = Features::new();
 
