@@ -28,6 +28,16 @@ struct Metering {
     #[cornetto(const, 1)]
     pub get_data_value_mult: usize,
     #[cornetto(const, 100)]
+    pub delete_data_const: u64,
+    #[cornetto(const, 1)]
+    pub delete_data_key_mult: usize,
+    #[cornetto(const, 100)]
+    pub append_data_const: u64,
+    #[cornetto(const, 1)]
+    pub append_data_key_mult: usize,
+    #[cornetto(const, 1)]
+    pub append_data_value_mult: usize,
+    #[cornetto(const, 100)]
     pub has_data_const: u64,
     #[cornetto(const, 1)]
     pub has_data_key_mult: usize,
@@ -125,6 +135,26 @@ pub(crate) fn metering_get_data_key_mult() -> usize {
 
 pub(crate) fn metering_get_data_value_mult() -> usize {
     METERING.get_data_value_mult()
+}
+
+pub(crate) fn metering_append_data_const() -> u64 {
+    METERING.append_data_const()
+}
+
+pub(crate) fn metering_append_data_key_mult() -> usize {
+    METERING.append_data_key_mult()
+}
+
+pub(crate) fn metering_append_data_value_mult() -> usize {
+    METERING.append_data_value_mult()
+}
+
+pub(crate) fn metering_delete_data_const() -> u64 {
+    METERING.delete_data_const()
+}
+
+pub(crate) fn metering_delete_data_key_mult() -> usize {
+    METERING.delete_data_key_mult()
 }
 
 pub(crate) fn metering_has_data_const() -> u64 {

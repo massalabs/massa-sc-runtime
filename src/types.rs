@@ -103,13 +103,29 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("raw_set_data")
     }
 
+    fn raw_append_data(&self, key: &str, value: &[u8]) -> Result<()> {
+        unimplemented!("raw_append_data")
+    }
+
+    fn raw_delete_data(&self, key: &str) -> Result<()> {
+        unimplemented!("raw_delete_data")
+    }
+
     /// Requires the data at the address
     fn raw_get_data_for(&self, address: &str, key: &str) -> Result<Vec<u8>> {
-        unimplemented!("get_data_for")
+        unimplemented!("raw_get_data_for")
     }
 
     fn raw_set_data_for(&self, address: &str, key: &str, value: &[u8]) -> Result<()> {
-        unimplemented!("set_data_for")
+        unimplemented!("raw_set_data_for")
+    }
+
+    fn raw_append_data_for(&self, address: &str, key: &str, value: &[u8]) -> Result<()> {
+        unimplemented!("raw_append_data_for")
+    }
+
+    fn raw_delete_data_for(&self, address: &str, key: &str) -> Result<()> {
+        unimplemented!("raw_delete_data_for")
     }
 
     /// Requires to replace the data in the current address
