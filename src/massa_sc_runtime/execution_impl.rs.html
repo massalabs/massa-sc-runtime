@@ -203,6 +203,10 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::settings</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">Interface</span>, <span class="ident">Response</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">abi_impl</span>::<span class="kw-2">*</span>, <span class="ident">tunable_memory::LimitingTunables</span>};
@@ -275,6 +279,10 @@
             <span class="string">&quot;assembly_script_set_data_for&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_set_data_for</span>),
             <span class="string">&quot;assembly_script_get_data&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_get_data</span>),
             <span class="string">&quot;assembly_script_get_data_for&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_get_data_for</span>),
+            <span class="string">&quot;assembly_script_delete_data&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_delete_data</span>),
+            <span class="string">&quot;assembly_script_delete_data_for&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_delete_data_for</span>),
+            <span class="string">&quot;assembly_script_append_data&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_append_data</span>),
+            <span class="string">&quot;assembly_script_append_data_for&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_append_data_for</span>),
             <span class="string">&quot;assembly_script_has_data&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_has_data</span>),
             <span class="string">&quot;assembly_script_has_data_for&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_has_data_for</span>),
             <span class="string">&quot;assembly_script_get_owned_addresses&quot;</span> =&gt; <span class="ident">Function::new_native_with_env</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">env</span>.<span class="ident">clone</span>(), <span class="ident">assembly_script_get_owned_addresses</span>),
