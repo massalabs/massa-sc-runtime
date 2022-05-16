@@ -240,6 +240,23 @@ pub(crate) fn assembly_script_set_data(env: &Env, key: i32, value: i32) -> ABIRe
     Ok(())
 }
 
+/// appends data to a key-indexed data entry in the datastore, fails if the entry does not exist
+pub(crate) fn assembly_script_append_data(env: &Env, key: i32, value: i32) -> ABIResult<()> {
+    sub_remaining_gas(env, settings::metering_append_data_const())?;
+    let memory = get_memory!(env);
+    let key = read_string_and_sub_gas(env, memory, key, settings::metering_append_data_key_mult())?;
+    let value = read_string_and_sub_gas(
+        env,
+        memory,
+        value,
+        settings::metering_append_data_value_mult(),
+    )?;
+    if let Err(err) = env.interface.raw_append_data(&key, value.as_bytes()) {
+        abi_bail!(err)
+    }
+    Ok(())
+}
+
 /// gets a key-indexed data entry in the datastore, failing if non-existant
 pub(crate) fn assembly_script_get_data(env: &Env, key: i32) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_data_const())?;
@@ -266,6 +283,19 @@ pub(crate) fn assembly_script_has_data(env: &Env, key: i32) -> ABIResult<i32> {
     }
 }
 
+/// deletes a key-indexed data entry in the datastore of the current address, fails if the entry is absent
+pub(crate) fn assembly_script_delete_data(env: &Env, key: i32) -> ABIResult<()> {
+    sub_remaining_gas(env, settings::metering_delete_data_const())?;
+    let memory = get_memory!(env);
+    let key = read_string_and_sub_gas(env, memory, key, settings::metering_delete_data_key_mult())?;
+    match env.interface.raw_delete_data(&key) {
+        Ok(_) => Ok(()),
+        Err(err) => abi_bail!(err),
+    }
+}
+
+/// Sets the value of a datastore entry of an arbitrary address, creating the entry if it does not exist.
+/// Fails if the address does not exist.
 pub(crate) fn assembly_script_set_data_for(
     env: &Env,
     address: i32,
@@ -287,6 +317,33 @@ pub(crate) fn assembly_script_set_data_for(
     Ok(())
 }
 
+/// Appends data to the value of a datastore entry of an arbitrary address, fails if the entry or address does not exist.
+pub(crate) fn assembly_script_append_data_for(
+    env: &Env,
+    address: i32,
+    key: i32,
+    value: i32,
+) -> ABIResult<()> {
+    sub_remaining_gas(env, settings::metering_append_data_const())?;
+    let memory = get_memory!(env);
+    let key = read_string_and_sub_gas(env, memory, key, settings::metering_append_data_key_mult())?;
+    let value = read_string_and_sub_gas(
+        env,
+        memory,
+        value,
+        settings::metering_append_data_value_mult(),
+    )?;
+    let address = get_string(memory, address)?;
+    if let Err(err) = env
+        .interface
+        .raw_append_data_for(&address, &key, value.as_bytes())
+    {
+        abi_bail!(err)
+    }
+    Ok(())
+}
+
+/// Gets the value of a datastore entry for an arbitrary address, fails if the entry or address does not exist
 pub(crate) fn assembly_script_get_data_for(env: &Env, address: i32, key: i32) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_data_const())?;
     let memory = get_memory!(env);
@@ -297,6 +354,18 @@ pub(crate) fn assembly_script_get_data_for(env: &Env, address: i32, key: i32) ->
             sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_value_mult())?;
             Ok(pointer_from_utf8(env, &data)?.offset() as i32)
         }
+        Err(err) => abi_bail!(err),
+    }
+}
+
+/// Deletes a datastore entry for an address. Fails if the entry or address does not exist.
+pub(crate) fn assembly_script_delete_data_for(env: &Env, address: i32, key: i32) -> ABIResult<()> {
+    sub_remaining_gas(env, settings::metering_delete_data_const())?;
+    let memory = get_memory!(env);
+    let address = get_string(memory, address)?;
+    let key = read_string_and_sub_gas(env, memory, key, settings::metering_delete_data_key_mult())?;
+    match env.interface.raw_delete_data_for(&address, &key) {
+        Ok(_) => Ok(()),
         Err(err) => abi_bail!(err),
     }
 }
