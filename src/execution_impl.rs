@@ -1,12 +1,12 @@
 use crate::settings;
-use crate::types::{Interface, Response};
+use crate::types::{Interface, Parameter, Response};
 use crate::{abi_impl::*, tunable_memory::LimitingTunables};
 use crate::{
     env::{assembly_script_abort, get_remaining_points, Env},
     settings::max_number_of_pages,
 };
 use anyhow::{bail, Result};
-use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
+use as_ffi_bindings::{AnyPtr, AnyPtrExported, StringPtr, Write as ASWrite};
 use std::sync::Arc;
 use wasmer::WasmerEnv;
 use wasmer::{
@@ -107,7 +107,7 @@ pub(crate) fn exec(
     instance: Option<Instance>,
     module: &[u8],
     function: &str,
-    param: &str,
+    param: &Option<AnyPtrExported>,
     interface: &dyn Interface,
 ) -> Result<Response> {
     let mut env = Env::new(interface);
@@ -118,31 +118,39 @@ pub(crate) fn exec(
     env.init_with_instance(&instance)?;
 
     // Closure for the execution allowing us to handle a gas error
-    fn execution(instance: &Instance, function: &str, param: &str, env: &Env) -> Result<Response> {
-        let param_ptr = *StringPtr::alloc(&param.to_string(), &env.wasm_env)?;
+    fn execution(
+        instance: &Instance,
+        function: &str,
+        param: &Option<AnyPtrExported>,
+        env: &Env,
+    ) -> Result<Response> {
+        let offset = match param {
+            Some(p) => AnyPtr::import(p, &env.wasm_env)?.offset(),
+            None => StringPtr::alloc(&String::new(), &env.wasm_env)?.offset(),
+        };
         match instance
             .exports
             .get_function(function)?
-            .call(&[Val::I32(param_ptr.offset() as i32)])
+            .call(&[Val::I32(offset as i32)])
         {
             Ok(value) => {
                 // TODO: clean and define wat should be return by the main
                 if function.eq(crate::settings::MAIN) {
                     return Ok(Response {
-                        ret: "0".to_string(),
+                        ret: None,
                         remaining_gas: get_remaining_points(env)?,
                     });
                 }
                 let ret = if let Some(offset) = value.get(0) {
                     if let Some(offset) = offset.i32() {
-                        let str_ptr = StringPtr::new(offset as u32);
+                        let ptr = AnyPtr::new(offset as u32);
                         let memory = instance.exports.get_memory("memory")?;
-                        str_ptr.read(memory)?
+                        Some(ptr.export(memory)?)
                     } else {
                         bail!("Execution wasn't in capacity to read the return value")
                     }
                 } else {
-                    String::new()
+                    None
                 };
                 Ok(Response {
                     ret,
@@ -175,12 +183,20 @@ pub(crate) fn exec(
 ///     print("hello world");
 ///     return 0;
 /// }
-/// ```  
+/// ```
 pub fn run_main(module: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
     let env = Env::new(interface);
     let instance = create_instance(limit, module, &env)?;
     if instance.exports.contains(settings::MAIN) {
-        Ok(exec(limit, Some(instance), module, settings::MAIN, "", interface)?.remaining_gas)
+        Ok(exec(
+            limit,
+            Some(instance),
+            module,
+            settings::MAIN,
+            &None,
+            interface,
+        )?
+        .remaining_gas)
     } else {
         Ok(limit)
     }
@@ -196,13 +212,21 @@ pub fn run_main(module: &[u8], limit: u64, interface: &dyn Interface) -> Result<
 ///     print("hello world");
 ///     return 0;
 /// }
-/// ```  
+/// ```
 pub fn run_function(
     module: &[u8],
     limit: u64,
     function: &str,
-    param: &str,
+    param: &[u8],
     interface: &dyn Interface,
 ) -> Result<u64> {
-    Ok(exec(limit, None, module, function, param, interface)?.remaining_gas)
+    Ok(exec(
+        limit,
+        None,
+        module,
+        function,
+        &Some(Parameter::from(param.to_vec()).try_into()?),
+        interface,
+    )?
+    .remaining_gas)
 }

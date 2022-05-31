@@ -1,17 +1,17 @@
-///! *abi_impl.rs* contains all the implementation (and some tools as
-///! abi_bail!) of the massa abi.
-///!
-///! The ABIs are the imported function / object declared in the webassembly
-///! module. You can look at the other side of the mirror in `massa.ts` and the
-///! rust side in `execution_impl.rs`.
-///!
-///! ```
+//! *abi_impl.rs* contains all the implementation (and some tools as
+//! abi_bail!) of the massa abi.
+//!
+//! The ABIs are the imported function / object declared in the webassembly
+//! module. You can look at the other side of the mirror in `massa.ts` and the
+//! rust side in `execution_impl.rs`.
+//!
+//! ```
 use crate::env::{
     get_remaining_points, set_remaining_points, sub_remaining_gas, sub_remaining_gas_with_mult, Env,
 };
 use crate::settings;
 use crate::types::Response;
-use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
+use as_ffi_bindings::{AnyPtr, AnyPtrExported, Read as ASRead, StringPtr, Write as ASWrite};
 use wasmer::Memory;
 
 pub type ABIResult<T, E = wasmer::RuntimeError> = core::result::Result<T, E>;
@@ -42,7 +42,7 @@ fn call_module(
     env: &Env,
     address: &str,
     function: &str,
-    param: &str,
+    param: &Option<AnyPtrExported>,
     raw_coins: i64,
 ) -> ABIResult<Response> {
     let raw_coins: u64 = match raw_coins.try_into() {
@@ -163,14 +163,18 @@ pub(crate) fn assembly_script_call_module(
     let memory = get_memory!(env);
     let address = &get_string(memory, address)?;
     let function = &get_string(memory, function)?;
-    let param = &get_string(memory, param)?;
-    let response = call_module(env, address, function, param, call_coins)?;
-    match StringPtr::alloc(&response.ret, &env.wasm_env) {
-        Ok(ret) => Ok(ret.offset() as i32),
-        _ => abi_bail!(format!(
-            "Cannot allocate response in call {}::{}",
-            address, function
-        )),
+
+    let param = get_exported_ptr(memory, param)?;
+    let response = call_module(env, address, function, &Some(param), call_coins)?;
+    match response.ret {
+        Some(ret) => match AnyPtr::import(&ret, &env.wasm_env) {
+            Ok(ret_ptr) => Ok(ret_ptr.offset() as i32),
+            Err(err) => abi_bail!(format!(
+                "cannot allocate response in call {}::{}\n{}",
+                address, function, err
+            )),
+        },
+        None => abi_bail!("calling a module should return a value"),
     }
 }
 
@@ -541,7 +545,7 @@ pub(crate) fn assembly_script_send_message(
         max_gas as u64,
         gas_price as u64,
         raw_coins as u64,
-        get_string(memory, data)?.as_bytes(),
+        &get_exported_ptr(memory, data)?.serialize(),
     ) {
         Err(err) => abi_bail!(err),
         Ok(_) => Ok(()),
@@ -653,9 +657,17 @@ fn read_string_and_sub_gas(
 }
 
 /// Tooling, return a string from a given offset
-fn get_string(memory: &Memory, ptr: i32) -> ABIResult<String> {
-    match StringPtr::new(ptr as u32).read(memory) {
+fn get_string(memory: &Memory, offset: i32) -> ABIResult<String> {
+    match StringPtr::new(offset as u32).read(memory) {
         Ok(str) => Ok(str),
+        Err(err) => abi_bail!(err),
+    }
+}
+
+/// Tooling, return a buffer containing the object in the a given offset
+fn get_exported_ptr(memory: &Memory, offset: i32) -> ABIResult<AnyPtrExported> {
+    match AnyPtr::new(offset as u32).export(memory) {
+        Ok(any) => Ok(any),
         Err(err) => abi_bail!(err),
     }
 }

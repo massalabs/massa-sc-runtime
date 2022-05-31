@@ -160,6 +160,31 @@ fn test_local_hello_name_caller() {
 
 #[test]
 #[serial]
+fn test_cast_dyn() {
+    settings::reset_metering();
+    // This test should verify that even if we failed to load a module,
+    // we should never panic and just stop the call stack
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/my_struct.wasm"
+    ));
+    interface
+        .raw_set_bytecode_for("my_struct", module.as_ref())
+        .unwrap();
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/my_struct_caller.wasm"
+    ));
+    run_main(module, 100_000, &*interface).expect("Failed to run_main my_struct_caller.wasm");
+    let v_out = interface.raw_get_data("").unwrap();
+    let output = std::str::from_utf8(&v_out).unwrap();
+    assert_eq!(output, "val: 12, 42");
+}
+
+#[test]
+#[serial]
 fn test_module_creation() {
     settings::reset_metering();
     // This test should create a smartcontract module and call it
@@ -226,7 +251,7 @@ fn test_run_function() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/receive_message.wasm"
     ));
-    run_function(module, 100_000, "receive", "data", &*interface)
+    run_function(module, 100_000, "receive", &[12, 12, 12, 12], &*interface)
         .expect("Failed to run_function receive_message.wat");
 }
 
