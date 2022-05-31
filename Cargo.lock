@@ -37,7 +37,7 @@ checksum = "84450d0b4a8bd1ba4144ce8ce718fbc5d071358b1e5384bace6536b3d1f2d5b3"
 [[package]]
 name = "as-ffi-bindings"
 version = "0.2.1"
-source = "git+https://github.com/massalabs/as-ffi-bindings.git?branch=fix_memory_errors#a0860c12b4a4544a20ce5612064254730bfce012"
+source = "git+https://github.com/massalabs/as-ffi-bindings.git#e7c0e36494686f4c5be49c90b2439d994ecd12c8"
 dependencies = [
  "anyhow",
  "wasmer",
