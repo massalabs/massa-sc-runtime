@@ -145,9 +145,15 @@ pub(crate) fn exec(
                     if let Some(offset) = offset.i32() {
                         let ptr = AnyPtr::new(offset as u32);
                         let memory = instance.exports.get_memory("memory")?;
-                        Some(ptr.export(memory)?)
+                        let ptr_exported = ptr.export(memory)?;
+                        // the following test could be avoided if we accept to use any kind of pointer
+                        if ptr_exported.id > 1 {
+                            // id > 1 <=> unknown ptr type
+                            bail!("forbidden user-defined type, return a string or an array")
+                        }
+                        Some(ptr_exported)
                     } else {
-                        bail!("Execution wasn't in capacity to read the return value")
+                        bail!("execution wasn't in capacity to read the return value")
                     }
                 } else {
                     None
