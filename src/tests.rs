@@ -162,8 +162,11 @@ fn test_local_hello_name_caller() {
 #[serial]
 fn test_cast_dyn() {
     settings::reset_metering();
-    // This test should verify that even if we failed to load a module,
-    // we should never panic and just stop the call stack
+    // This test should verify if we allow or not to use User-Defined type
+    // as parameter and return type.
+    //
+    // Actually it is forbidden to send something else than an ArrayBuffer
+    // and a String.
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
@@ -177,10 +180,16 @@ fn test_cast_dyn() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/my_struct_caller.wasm"
     ));
-    run_main(module, 100_000, &*interface).expect("Failed to run_main my_struct_caller.wasm");
-    let v_out = interface.raw_get_data("").unwrap();
-    let output = std::str::from_utf8(&v_out).unwrap();
-    assert_eq!(output, "val: 12, 42");
+    // could be activated later after discussion
+    // run_main(module, 100_000, &*interface).expect("Failed to run_main my_struct_caller.wasm");
+    //
+    // let v_out = interface.raw_get_data("").unwrap();
+    // let output = std::str::from_utf8(&v_out).unwrap();
+    // assert_eq!(output, "val: 12, 42");
+    //
+    // instead of:
+    run_main(module, 100_000, &*interface)
+        .expect_err("Unexpected success to run_main my_struct_caller.wasm");
 }
 
 #[test]
