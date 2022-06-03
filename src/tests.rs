@@ -109,21 +109,21 @@ fn test_caller() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/get_string.wat"
+        "/wasm/build/get_string.wasm"
     ));
     interface
         .raw_set_bytecode_for("get_string", module.as_ref())
         .unwrap();
     // test only if the module is valid
-    run_main(module, 20_000, &*interface).expect("Failed to run_main get_string.wat");
+    run_main(module, 20_000, &*interface).expect("Failed to run_main get_string.wasm");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/caller.wat"
+        "/wasm/build/caller.wasm"
     ));
-    let a = run_main(module, 20_000, &*interface).expect("Failed to run_main caller.wat");
+    let a = run_main(module, 20_000, &*interface).expect("Failed to run_main caller.wasm");
     let prev_call_price = settings::metering_call();
     settings::set_metering(0);
-    let b = run_main(module, 20_000, &*interface).expect("Failed to run_main caller.wat");
+    let b = run_main(module, 20_000, &*interface).expect("Failed to run_main caller.wasm");
     assert_eq!(a + prev_call_price, b);
     let v_out = interface.raw_get_data("").unwrap();
     let output = std::str::from_utf8(&v_out).unwrap();
@@ -144,7 +144,7 @@ fn test_local_hello_name_caller() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/get_string.wat"
+        "/wasm/build/get_string.wasm"
     ));
     interface
         .raw_set_bytecode_for("get_string", module.as_ref())
@@ -152,7 +152,7 @@ fn test_local_hello_name_caller() {
     run_main(module, 100, &*interface).expect("Failed to run_main get_string.wat");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/local_hello_name_caller.wat"
+        "/wasm/build/local_hello_name_caller.wasm"
     ));
     run_main(module, 20_000, &*interface)
         .expect_err("Succeeded to run_main local_hello_name_caller.wat");
@@ -203,12 +203,12 @@ fn test_module_creation() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/create_sc.wasm"
     ));
-    run_main(module, 100_000, &*interface).expect("Failed to run_main create_sc.wat");
+    run_main(module, 100_000, &*interface).expect("Failed to run_main create_sc.wasm");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/caller.wat"
+        "/wasm/build/caller.wasm"
     ));
-    run_main(module, 20_000, &*interface).expect("Failed to run_main caller.wat");
+    run_main(module, 20_000, &*interface).expect("Failed to run_main caller.wasm");
 }
 
 #[test]
@@ -222,10 +222,10 @@ fn test_not_enough_gas_error() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/create_sc.wasm"
     ));
-    run_main(module, 100_000, &*interface).expect("Failed to run_main create_sc.wat");
+    run_main(module, 100_000, &*interface).expect("Failed to run_main create_sc.wasm");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/caller.wat"
+        "/wasm/build/caller.wasm"
     ));
     match run_main(module, 10000, &*interface) {
         Ok(_) => panic!("Shouldn't pass successfully =-("),
@@ -247,7 +247,7 @@ fn test_send_message() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/send_message.wasm"
     ));
-    run_main(module, 100_000, &*interface).expect("Failed to run_main send_message.wat");
+    run_main(module, 100_000, &*interface).expect("Failed to run_main send_message.wasm");
 }
 
 #[test]
@@ -261,7 +261,7 @@ fn test_run_function() {
         "/wasm/build/receive_message.wasm"
     ));
     run_function(module, 100_000, "receive", &[12, 12, 12, 12], &*interface)
-        .expect("Failed to run_function receive_message.wat");
+        .expect("Failed to run_function receive_message.wasm");
 }
 
 #[test]
