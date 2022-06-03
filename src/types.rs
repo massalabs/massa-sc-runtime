@@ -1,12 +1,49 @@
 use anyhow::{bail, Result};
+use as_ffi_bindings::AnyPtrExported;
 use serde::{de::DeserializeOwned, Serialize};
 
 /// That's what is returned when a module is executed correctly since the end
 pub(crate) struct Response {
-    /// returned value from the module call
-    pub ret: String,
+    /// returned value from the module call, by default if none, we send an
+    /// empty String inside a StringPtr.
+    pub ret: Option<AnyPtrExported>,
     /// number of gas that remain after the execution (metering)
     pub remaining_gas: u64,
+}
+
+pub struct Parameter(Vec<u8>);
+
+impl Parameter {
+    pub fn from(buf: Vec<u8>) -> Self {
+        Self(buf)
+    }
+}
+
+impl From<Vec<u8>> for Parameter {
+    fn from(v: Vec<u8>) -> Self {
+        Self(v)
+    }
+}
+
+impl From<Parameter> for Vec<u8> {
+    fn from(p: Parameter) -> Self {
+        p.0
+    }
+}
+
+/// Smart contract parameter
+impl From<AnyPtrExported> for Parameter {
+    fn from(ptr: AnyPtrExported) -> Self {
+        Self(ptr.serialize())
+    }
+}
+
+impl TryFrom<Parameter> for AnyPtrExported {
+    type Error = anyhow::Error;
+
+    fn try_from(value: Parameter) -> Result<Self, Self::Error> {
+        Self::deserialize(&value.0)
+    }
 }
 
 pub trait InterfaceClone {

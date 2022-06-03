@@ -8,3 +8,5 @@ build/*
 !build/no_main.wasm
 !build/send_message.wasm
 !build/receive_message.wasm
+!build/my_struct.wasm
+!build/my_struct_caller.wasm
