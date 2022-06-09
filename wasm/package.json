@@ -1,5 +1,5 @@
 {
-  "name": "wasm1",
+  "name": "wasm",
   "version": "0.1.0",
   "scripts": {
     "sc_get_string": "massa-sc-scripts build-sc src/get_string.ts",
