@@ -671,7 +671,6 @@
 <span id="670">670</span>
 <span id="671">671</span>
 <span id="672">672</span>
-<span id="673">673</span>
 </pre><pre class="rust"><code><span class="doccomment">///! *abi_impl.rs* contains all the implementation (and some tools as</span>
 <span class="doccomment">///! abi_bail!) of the massa abi.</span>
 <span class="doccomment">///!</span>
@@ -825,7 +824,6 @@
 
 <span class="doccomment">/// Raw call that have the right type signature to be able to be call a module</span>
 <span class="doccomment">/// directly form AssemblyScript:</span>
-<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="macro">include_str!</span>(<span class="string">&quot;../wasm/README.md&quot;</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_call_module</span>(
     <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>,
     <span class="ident">address</span>: <span class="ident">i32</span>,
