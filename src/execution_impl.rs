@@ -102,6 +102,18 @@ fn create_instance(limit: u64, module: &[u8], env: &Env) -> Result<Instance> {
     Ok(Instance::new(&module, &resolver)?)
 }
 
+/// Internal execution function, used on smart contract called from node or
+/// from another smart contract
+/// Parameters:
+/// * `limit`: Limit of gas that can be used.
+/// * `instance`: Optional wasmer instance to be passed instead of creating it directly in the function.
+/// * `module`: Bytecode that contains the function to be executed.
+/// * `function`: Name of the function to call.
+/// * `param`: Parameter to pass to the function.
+/// * `interface`: Interface to call function in Massa from execution context.
+///
+/// Return:
+/// The return of the function executed as string and the remaining gas for the rest of the execution.
 pub(crate) fn exec(
     limit: u64,
     instance: Option<Instance>,
@@ -117,19 +129,33 @@ pub(crate) fn exec(
     };
     env.init_with_instance(&instance)?;
 
-    // Closure for the execution allowing us to handle a gas error
+    /// Closure for the execution allowing us to handle a gas error
+    /// used by the [exec] function.
+    ///
+    /// Parameters:
+    /// * `instance`: A wasmer instance that store all the bytecode and memory. Used to call the function and retrieve the memory
+    /// * `function`: Name of the function to call
+    /// * `param`: Parameter to pass to the function
+    /// * `env`: Environnement that contains metering and wasmer env.
+    ///
+    /// Return:
+    /// The return of the function executed as string and the remaining gas for the rest of the execution.
     fn execution(instance: &Instance, function: &str, param: &str, env: &Env) -> Result<Response> {
         let param_ptr = *StringPtr::alloc(&param.to_string(), &env.wasm_env)?;
-        match instance
-            .exports
-            .get_function(function)?
-            .call(&[Val::I32(param_ptr.offset() as i32)])
-        {
+        let wasm_func = instance.exports.get_function(function)?;
+        let argc = wasm_func.param_arity();
+        let res = if argc == 0 && function == settings::MAIN {
+            wasm_func.call(&[])
+        } else if argc == 1 {
+            wasm_func.call(&[Val::I32(param_ptr.offset() as i32)])
+        } else {
+            bail!("Unexpected number of parameters in the function called")
+        };
+        match res {
             Ok(value) => {
-                // TODO: clean and define wat should be return by the main
                 if function.eq(crate::settings::MAIN) {
                     return Ok(Response {
-                        ret: "0".to_string(),
+                        ret: String::new(), // main return empty string
                         remaining_gas: get_remaining_points(env)?,
                     });
                 }
@@ -175,7 +201,7 @@ pub(crate) fn exec(
 ///     print("hello world");
 ///     return 0;
 /// }
-/// ```  
+/// ```
 pub fn run_main(module: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
     let env = Env::new(interface);
     let instance = create_instance(limit, module, &env)?;
@@ -196,7 +222,7 @@ pub fn run_main(module: &[u8], limit: u64, interface: &dyn Interface) -> Result<
 ///     print("hello world");
 ///     return 0;
 /// }
-/// ```  
+/// ```
 pub fn run_function(
     module: &[u8],
     limit: u64,

@@ -1,10 +1,13 @@
 node_modules
 build/*
-!build/caller.wat
-!build/get_string.wat
+!build/caller.wasm
+!build/get_string.wasm
 !build/caller_json.wasm
-!build/local_hello_name_caller.wat
+!build/caller_no_return.wasm
+!build/local_hello_name_caller.wasm
 !build/create_sc.wasm
 !build/no_main.wasm
 !build/send_message.wasm
 !build/receive_message.wasm
+!build/my_struct.wasm
+!build/my_struct_caller.wasm
