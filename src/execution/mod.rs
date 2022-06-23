@@ -29,11 +29,7 @@ pub(crate) trait MassaModule {
 
 /// Create an instance of VM from a module with a given interface, an operation
 /// number limit and a webassembly module
-pub(crate) fn create_instance(
-    limit: u64,
-    bytecode: &[u8],
-    module: &impl MassaModule,
-) -> Result<Instance> {
+pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<Instance> {
     // We use the Singlepass compiler because it is fast and adapted to blockchains
     // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
     let mut compiler_config = Singlepass::new();
@@ -71,21 +67,21 @@ pub(crate) fn create_instance(
     let store = Store::new_with_tunables(&engine, tunables);
 
     Ok(Instance::new(
-        &Module::new(&store, &bytecode)?,
+        &Module::new(&store, &module.get_bytecode())?,
         &module.resolver(&store),
     )?)
 }
 
 /// Dispatch module corresponding to the first bytecode.
-/// 0: target AssemblyScript
-/// 1: todo: another target
+/// 1: target AssemblyScript
+/// 2: todo: another target
 /// _: target AssemblyScript and use the full bytecode
 pub(crate) fn get_module(interface: &dyn Interface, bytecode: &[u8]) -> Result<impl MassaModule> {
     if bytecode.is_empty() {
         bail!("error: module is empty")
     }
     Ok(match bytecode[0] {
-        0 => ASModule::init(interface, &bytecode[1..]),
+        1 => ASModule::init(interface, &bytecode[1..]),
         _ => ASModule::init(interface, bytecode),
     })
 }

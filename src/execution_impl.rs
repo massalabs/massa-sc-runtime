@@ -26,7 +26,7 @@ pub(crate) fn exec(
 ) -> Result<Response> {
     let instance = match instance {
         Some(instance) => instance,
-        None => create_instance(limit, module.get_bytecode(), &module)?,
+        None => create_instance(limit, &module)?,
     };
     module.init_with_instance(&instance)?;
 
@@ -55,7 +55,7 @@ pub(crate) fn exec(
 /// ```
 pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
     let module = get_module(interface, bytecode)?;
-    let instance = create_instance(limit, bytecode, &module)?;
+    let instance = create_instance(limit, &module)?;
     if instance.exports.contains(settings::MAIN) {
         Ok(exec(limit, Some(instance), module, settings::MAIN, "")?.remaining_gas)
     } else {
