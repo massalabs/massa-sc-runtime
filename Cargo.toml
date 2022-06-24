@@ -8,7 +8,7 @@ anyhow = "1.0"
 lazy_static = "1"
 serde = "1.0"
 serde_json = "1.0"
-wasmer = "2.2.1"
+wasmer = { version = "2.2.1", default-features = false, features = [ "avx", "std" ] }
 as-ffi-bindings = { "git" = "https://github.com/massalabs/as-ffi-bindings.git", branch = "fix_memory_errors" }
 wasmer-compiler-singlepass = "2.2.1"
 wasmer-engine-universal = "2.2.1"
