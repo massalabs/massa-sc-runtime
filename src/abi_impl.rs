@@ -151,7 +151,6 @@ fn create_sc(env: &Env, bytecode: &[u8]) -> ABIResult<String> {
 
 /// Raw call that have the right type signature to be able to be call a module
 /// directly form AssemblyScript:
-#[doc = include_str!("../wasm/README.md")]
 pub(crate) fn assembly_script_call_module(
     env: &Env,
     address: i32,
