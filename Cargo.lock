@@ -1215,7 +1215,6 @@ dependencies = [
  "lazy_static",
  "loupe",
  "more-asserts",
- "rayon",
  "smallvec",
  "wasmer-compiler",
  "wasmer-types",

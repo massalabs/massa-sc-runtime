@@ -10,9 +10,9 @@ serde = "1.0"
 serde_json = "1.0"
 wasmer = { version = "2.2.1", default-features = false, features = [ "std" ] }
 as-ffi-bindings = { "git" = "https://github.com/massalabs/as-ffi-bindings.git", branch = "fix_memory_errors" }
-wasmer-compiler-singlepass = "2.2.1"
-wasmer-engine-universal = "2.2.1"
-wasmer-middlewares = "2.2.1"
+wasmer-compiler-singlepass = { version = "2.2.1", default-features = false, features = [ "std" ] }
+wasmer-engine-universal = { version = "2.2.1", default-features = false, features = [ ] }
+wasmer-middlewares = { version = "2.2.1", default-features = false, features = [ ] }
 cornetto = "0.1.0"
 base64 = "0.13.0"
 serial_test = "0.5.1"
