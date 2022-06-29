@@ -88,9 +88,6 @@
 <span id="82">82</span>
 <span id="83">83</span>
 <span id="84">84</span>
-<span id="85">85</span>
-<span id="86">86</span>
-<span id="87">87</span>
 </pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">as_abi</span>;
 <span class="kw">mod</span> <span class="ident">as_execution</span>;
 <span class="kw">mod</span> <span class="ident">common</span>;
@@ -134,9 +131,6 @@
 
     <span class="comment">// Canonicalize NaN.</span>
     <span class="ident">compiler_config</span>.<span class="ident">canonicalize_nans</span>(<span class="bool-val">true</span>);
-
-    <span class="comment">// enable stack check</span>
-    <span class="ident">compiler_config</span>.<span class="ident">enable_stack_check</span>(<span class="bool-val">true</span>);
 
     <span class="comment">// Turning-off in wasmer feature flags:</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">features</span> <span class="op">=</span> <span class="ident">Features::new</span>();
