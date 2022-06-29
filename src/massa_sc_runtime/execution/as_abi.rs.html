@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;abi_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>abi_impl.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css"disabled><link rel="stylesheet" type="text/css" href="../../dark.css"disabled><link rel="stylesheet" type="text/css" href="../../light.css"id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../massa_sc_runtime/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;execution&#x2F;as_abi.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>as_abi.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css"disabled><link rel="stylesheet" type="text/css" href="../../../dark.css"disabled><link rel="stylesheet" type="text/css" href="../../../light.css"id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../massa_sc_runtime/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -614,143 +614,26 @@
 <span id="613">613</span>
 <span id="614">614</span>
 <span id="615">615</span>
-<span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
-<span id="619">619</span>
-<span id="620">620</span>
-<span id="621">621</span>
-<span id="622">622</span>
-<span id="623">623</span>
-<span id="624">624</span>
-<span id="625">625</span>
-<span id="626">626</span>
-<span id="627">627</span>
-<span id="628">628</span>
-<span id="629">629</span>
-<span id="630">630</span>
-<span id="631">631</span>
-<span id="632">632</span>
-<span id="633">633</span>
-<span id="634">634</span>
-<span id="635">635</span>
-<span id="636">636</span>
-<span id="637">637</span>
-<span id="638">638</span>
-<span id="639">639</span>
-<span id="640">640</span>
-<span id="641">641</span>
-<span id="642">642</span>
-<span id="643">643</span>
-<span id="644">644</span>
-<span id="645">645</span>
-<span id="646">646</span>
-<span id="647">647</span>
-<span id="648">648</span>
-<span id="649">649</span>
-<span id="650">650</span>
-<span id="651">651</span>
-<span id="652">652</span>
-<span id="653">653</span>
-<span id="654">654</span>
-<span id="655">655</span>
-<span id="656">656</span>
-<span id="657">657</span>
-<span id="658">658</span>
-<span id="659">659</span>
-<span id="660">660</span>
-<span id="661">661</span>
-<span id="662">662</span>
-<span id="663">663</span>
-<span id="664">664</span>
-<span id="665">665</span>
-<span id="666">666</span>
-<span id="667">667</span>
-<span id="668">668</span>
-<span id="669">669</span>
-<span id="670">670</span>
-<span id="671">671</span>
-<span id="672">672</span>
-</pre><pre class="rust"><code><span class="doccomment">///! *abi_impl.rs* contains all the implementation (and some tools as</span>
-<span class="doccomment">///! abi_bail!) of the massa abi.</span>
-<span class="doccomment">///!</span>
-<span class="doccomment">///! The ABIs are the imported function / object declared in the webassembly</span>
-<span class="doccomment">///! module. You can look at the other side of the mirror in `massa.ts` and the</span>
-<span class="doccomment">///! rust side in `execution_impl.rs`.</span>
-<span class="doccomment">///!</span>
-<span class="doccomment">///! ```</span>
+</pre><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as</span>
+<span class="doccomment">//! abi_bail!) of the massa abi.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The ABIs are the imported function / object declared in the webassembly</span>
+<span class="doccomment">//! module. You can look at the other side of the mirror in `massa.ts` and the</span>
+<span class="doccomment">//! rust side in `execution_impl.rs`.</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::env</span>::{
-    <span class="ident">get_remaining_points</span>, <span class="ident">set_remaining_points</span>, <span class="ident">sub_remaining_gas</span>, <span class="ident">sub_remaining_gas_with_mult</span>, <span class="ident">Env</span>,
+    <span class="ident">get_memory</span>, <span class="ident">get_remaining_points</span>, <span class="ident">sub_remaining_gas</span>, <span class="ident">sub_remaining_gas_with_mult</span>, <span class="ident">ASEnv</span>,
+    <span class="ident">MassaEnv</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::settings</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::Response</span>;
 <span class="kw">use</span> <span class="ident">as_ffi_bindings</span>::{<span class="ident">Read</span> <span class="kw">as</span> <span class="ident">ASRead</span>, <span class="ident">StringPtr</span>, <span class="ident">Write</span> <span class="kw">as</span> <span class="ident">ASWrite</span>};
 <span class="kw">use</span> <span class="ident">wasmer::Memory</span>;
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span> <span class="op">=</span> <span class="ident">wasmer::RuntimeError</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>;
-<span class="macro">macro_rules!</span> <span class="ident">abi_bail</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">err</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">wasmer::RuntimeError::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">err</span>.<span class="ident">to_string</span>()))
-    };
-}
-<span class="macro">macro_rules!</span> <span class="ident">get_memory</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">env</span>:<span class="ident">ident</span>) =&gt; {
-        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">env</span>.<span class="ident">wasm_env</span>.<span class="ident">memory</span>.<span class="ident">get_ref</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">mem</span>) =&gt; <span class="ident">mem</span>,
-            <span class="kw">_</span> =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;uninitialized memory&quot;</span>),
-        }
-    };
-}
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">abi_bail</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">get_memory</span>;
-
-<span class="doccomment">/// `Call` ABI called by the webassembly VM</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Call an exported function in a WASM module at a given address</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It take in argument the environment defined in env.rs</span>
-<span class="doccomment">/// this environment is automatically filled by the wasmer library</span>
-<span class="doccomment">/// And two pointers of string. (look at the readme in the wasm folder)</span>
-<span class="kw">fn</span> <span class="ident">call_module</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>,
-    <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">param</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">raw_coins</span>: <span class="ident">i64</span>,
-) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">raw_coins</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">raw_coins</span>.<span class="ident">try_into</span>() {
-        <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative amount of coins in Call&quot;</span>),
-    };
-    <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">init_call</span>(<span class="ident">address</span>, <span class="ident">raw_coins</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">module</span>) =&gt; <span class="ident">module</span>,
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
-    };
-    <span class="kw">match</span> <span class="ident"><span class="kw">crate</span>::execution_impl::exec</span>(
-        <span class="ident">get_remaining_points</span>(<span class="ident">env</span>)<span class="question-mark">?</span>,
-        <span class="prelude-val">None</span>,
-        <span class="ident">module</span>,
-        <span class="ident">function</span>,
-        <span class="ident">param</span>,
-        <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">env</span>.<span class="ident">interface</span>,
-    ) {
-        <span class="prelude-val">Ok</span>(<span class="ident">resp</span>) =&gt; {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">set_remaining_points</span>(<span class="ident">env</span>, <span class="ident">resp</span>.<span class="ident">remaining_gas</span>) {
-                <span class="macro">abi_bail!</span>(<span class="ident">err</span>);
-            }
-            <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">finish_call</span>() {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">resp</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
-            }
-        }
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
-    }
-}
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::common</span>::{<span class="ident">abi_bail</span>, <span class="ident">call_module</span>, <span class="ident">create_sc</span>, <span class="ident">ABIResult</span>};
 
 <span class="doccomment">/// Get the coins that have been made available for a specific purpose for the current call.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_call_coins</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_call_coins</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_get_call_coins</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">get_call_coins</span>() {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">get_call_coins</span>() {
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">res</span> <span class="kw">as</span> <span class="ident">i64</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
@@ -758,7 +641,7 @@
 
 <span class="doccomment">/// Transfer an amount from the address on the current call stack to a target address.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_transfer_coins</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>,
+    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>,
     <span class="ident">to_address</span>: <span class="ident">i32</span>,
     <span class="ident">raw_amount</span>: <span class="ident">i64</span>,
 ) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
@@ -768,7 +651,10 @@
     }
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">to_address</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">to_address</span>)<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">transfer_coins</span>(<span class="ident">to_address</span>, <span class="ident">raw_amount</span> <span class="kw">as</span> <span class="ident">u64</span>) {
+    <span class="kw">match</span> <span class="ident">env</span>
+        .<span class="ident">get_interface</span>()
+        .<span class="ident">transfer_coins</span>(<span class="ident">to_address</span>, <span class="ident">raw_amount</span> <span class="kw">as</span> <span class="ident">u64</span>)
+    {
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">res</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
@@ -776,7 +662,7 @@
 
 <span class="doccomment">/// Transfer an amount from the specified address to a target address.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_transfer_coins_for</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>,
+    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>,
     <span class="ident">from_address</span>: <span class="ident">i32</span>,
     <span class="ident">to_address</span>: <span class="ident">i32</span>,
     <span class="ident">raw_amount</span>: <span class="ident">i64</span>,
@@ -789,7 +675,7 @@
     <span class="kw">let</span> <span class="ident">from_address</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">from_address</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">to_address</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">to_address</span>)<span class="question-mark">?</span>;
     <span class="kw">match</span> <span class="ident">env</span>
-        .<span class="ident">interface</span>
+        .<span class="ident">get_interface</span>()
         .<span class="ident">transfer_coins_for</span>(<span class="ident">from_address</span>, <span class="ident">to_address</span>, <span class="ident">raw_amount</span> <span class="kw">as</span> <span class="ident">u64</span>)
     {
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">res</span>),
@@ -797,27 +683,20 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_balance</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_balance</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_get_balance</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">get_balance</span>() {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">get_balance</span>() {
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">res</span> <span class="kw">as</span> <span class="ident">i64</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_balance_for</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">address</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_balance_for</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">address</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_get_balance</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">address</span>)<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">get_balance_for</span>(<span class="ident">address</span>) {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">get_balance_for</span>(<span class="ident">address</span>) {
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">res</span> <span class="kw">as</span> <span class="ident">i64</span>),
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
-    }
-}
-
-<span class="kw">fn</span> <span class="ident">create_sc</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">bytecode</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">create_module</span>(<span class="ident">bytecode</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">address</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">address</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
@@ -825,7 +704,7 @@
 <span class="doccomment">/// Raw call that have the right type signature to be able to be call a module</span>
 <span class="doccomment">/// directly form AssemblyScript:</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_call_module</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>,
+    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>,
     <span class="ident">address</span>: <span class="ident">i32</span>,
     <span class="ident">function</span>: <span class="ident">i32</span>,
     <span class="ident">param</span>: <span class="ident">i32</span>,
@@ -837,7 +716,7 @@
     <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">function</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">param</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">call_module</span>(<span class="ident">env</span>, <span class="ident">address</span>, <span class="ident">function</span>, <span class="ident">param</span>, <span class="ident">call_coins</span>)<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">response</span>.<span class="ident">ret</span>, <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">wasm_env</span>) {
+    <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">response</span>.<span class="ident">ret</span>, <span class="ident">env</span>.<span class="ident">get_wasm_env</span>()) {
         <span class="prelude-val">Ok</span>(<span class="ident">ret</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">ret</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">i32</span>),
         <span class="kw">_</span> =&gt; <span class="macro">abi_bail!</span>(<span class="macro">format!</span>(
             <span class="string">&quot;Cannot allocate response in call {}::{}&quot;</span>,
@@ -846,7 +725,7 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_remaining_gas</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_remaining_gas</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_remaining_gas</span>())<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">get_remaining_points</span>(<span class="ident">env</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i64</span>)
 }
@@ -855,10 +734,10 @@
 <span class="doccomment">/// given intefrace, an operation number limit and a webassembly module</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// An utility print function to write on stdout directly from AssemblyScript:</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_print</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">arg</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_print</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">arg</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_print</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">print</span>(<span class="kw-2">&amp;</span><span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">arg</span>)<span class="question-mark">?</span>) {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">print</span>(<span class="kw-2">&amp;</span><span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">arg</span>)<span class="question-mark">?</span>) {
         <span class="macro">abi_bail!</span>(<span class="ident">err</span>);
     }
     <span class="prelude-val">Ok</span>(())
@@ -866,7 +745,7 @@
 
 <span class="doccomment">/// Read a bytecode string, representing the webassembly module binary encoded</span>
 <span class="doccomment">/// with in base64.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_create_sc</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">bytecode</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_create_sc</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">bytecode</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="comment">// Base64 to Binary</span>
     <span class="kw">let</span> <span class="ident">bytecode</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">base64::decode</span>(<span class="ident">read_string_and_sub_gas</span>(
@@ -882,38 +761,38 @@
         <span class="prelude-val">Ok</span>(<span class="ident">address</span>) =&gt; <span class="ident">address</span>,
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     };
-    <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>, <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">wasm_env</span>) {
+    <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>, <span class="ident">env</span>.<span class="ident">get_wasm_env</span>()) {
         <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">i32</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
 
 <span class="doccomment">/// performs a hash on a string and returns the bs58check encoded hash</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_hash</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">value</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_hash</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">value</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_hash_const</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">read_string_and_sub_gas</span>(<span class="ident">env</span>, <span class="ident">memory</span>, <span class="ident">value</span>, <span class="ident">settings::metering_hash_per_byte</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">hash</span>(<span class="ident">value</span>.<span class="ident">as_bytes</span>()) {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">hash</span>(<span class="ident">value</span>.<span class="ident">as_bytes</span>()) {
         <span class="prelude-val">Ok</span>(<span class="ident">h</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">pointer_from_string</span>(<span class="ident">env</span>, <span class="kw-2">&amp;</span><span class="ident">h</span>)<span class="question-mark">?</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">i32</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
 
 <span class="doccomment">/// sets a key-indexed data entry in the datastore, overwriting existing values if any</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_set_data</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">key</span>: <span class="ident">i32</span>, <span class="ident">value</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_set_data</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">key</span>: <span class="ident">i32</span>, <span class="ident">value</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_set_data_const</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">read_string_and_sub_gas</span>(<span class="ident">env</span>, <span class="ident">memory</span>, <span class="ident">key</span>, <span class="ident">settings::metering_set_data_key_mult</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span>
         <span class="ident">read_string_and_sub_gas</span>(<span class="ident">env</span>, <span class="ident">memory</span>, <span class="ident">value</span>, <span class="ident">settings::metering_set_data_value_mult</span>())<span class="question-mark">?</span>;
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">raw_set_data</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">value</span>.<span class="ident">as_bytes</span>()) {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">raw_set_data</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">value</span>.<span class="ident">as_bytes</span>()) {
         <span class="macro">abi_bail!</span>(<span class="ident">err</span>)
     }
     <span class="prelude-val">Ok</span>(())
 }
 
 <span class="doccomment">/// appends data to a key-indexed data entry in the datastore, fails if the entry does not exist</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_append_data</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">key</span>: <span class="ident">i32</span>, <span class="ident">value</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_append_data</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">key</span>: <span class="ident">i32</span>, <span class="ident">value</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_append_data_const</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">read_string_and_sub_gas</span>(<span class="ident">env</span>, <span class="ident">memory</span>, <span class="ident">key</span>, <span class="ident">settings::metering_append_data_key_mult</span>())<span class="question-mark">?</span>;
@@ -923,18 +802,18 @@
         <span class="ident">value</span>,
         <span class="ident">settings::metering_append_data_value_mult</span>(),
     )<span class="question-mark">?</span>;
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">raw_append_data</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">value</span>.<span class="ident">as_bytes</span>()) {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">raw_append_data</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">value</span>.<span class="ident">as_bytes</span>()) {
         <span class="macro">abi_bail!</span>(<span class="ident">err</span>)
     }
     <span class="prelude-val">Ok</span>(())
 }
 
 <span class="doccomment">/// gets a key-indexed data entry in the datastore, failing if non-existant</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_data</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">key</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_data</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">key</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_get_data_const</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">read_string_and_sub_gas</span>(<span class="ident">env</span>, <span class="ident">memory</span>, <span class="ident">key</span>, <span class="ident">settings::metering_get_data_key_mult</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">raw_get_data</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>) {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">raw_get_data</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>) {
         <span class="prelude-val">Ok</span>(<span class="ident">data</span>) =&gt; {
             <span class="ident">sub_remaining_gas_with_mult</span>(<span class="ident">env</span>, <span class="ident">data</span>.<span class="ident">len</span>(), <span class="ident">settings::metering_get_data_value_mult</span>())<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">pointer_from_utf8</span>(<span class="ident">env</span>, <span class="kw-2">&amp;</span><span class="ident">data</span>)<span class="question-mark">?</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">i32</span>)
@@ -944,11 +823,11 @@
 }
 
 <span class="doccomment">/// checks if a key-indexed data entry exists in the datastore</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_has_data</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">key</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_has_data</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">key</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_has_data_const</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">read_string_and_sub_gas</span>(<span class="ident">env</span>, <span class="ident">memory</span>, <span class="ident">key</span>, <span class="ident">settings::metering_has_data_key_mult</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">has_data</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>) {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">has_data</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>) {
         <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="number">1</span>),
         <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
@@ -956,11 +835,11 @@
 }
 
 <span class="doccomment">/// deletes a key-indexed data entry in the datastore of the current address, fails if the entry is absent</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_delete_data</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">key</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_delete_data</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">key</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_delete_data_const</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">read_string_and_sub_gas</span>(<span class="ident">env</span>, <span class="ident">memory</span>, <span class="ident">key</span>, <span class="ident">settings::metering_delete_data_key_mult</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">raw_delete_data</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>) {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">raw_delete_data</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>) {
         <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(()),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
@@ -969,7 +848,7 @@
 <span class="doccomment">/// Sets the value of a datastore entry of an arbitrary address, creating the entry if it does not exist.</span>
 <span class="doccomment">/// Fails if the address does not exist.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_set_data_for</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>,
+    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>,
     <span class="ident">address</span>: <span class="ident">i32</span>,
     <span class="ident">key</span>: <span class="ident">i32</span>,
     <span class="ident">value</span>: <span class="ident">i32</span>,
@@ -981,7 +860,7 @@
         <span class="ident">read_string_and_sub_gas</span>(<span class="ident">env</span>, <span class="ident">memory</span>, <span class="ident">value</span>, <span class="ident">settings::metering_set_data_value_mult</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">address</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">env</span>
-        .<span class="ident">interface</span>
+        .<span class="ident">get_interface</span>()
         .<span class="ident">raw_set_data_for</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">value</span>.<span class="ident">as_bytes</span>())
     {
         <span class="macro">abi_bail!</span>(<span class="ident">err</span>)
@@ -991,7 +870,7 @@
 
 <span class="doccomment">/// Appends data to the value of a datastore entry of an arbitrary address, fails if the entry or address does not exist.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_append_data_for</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>,
+    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>,
     <span class="ident">address</span>: <span class="ident">i32</span>,
     <span class="ident">key</span>: <span class="ident">i32</span>,
     <span class="ident">value</span>: <span class="ident">i32</span>,
@@ -1007,7 +886,7 @@
     )<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">address</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">env</span>
-        .<span class="ident">interface</span>
+        .<span class="ident">get_interface</span>()
         .<span class="ident">raw_append_data_for</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">value</span>.<span class="ident">as_bytes</span>())
     {
         <span class="macro">abi_bail!</span>(<span class="ident">err</span>)
@@ -1016,12 +895,12 @@
 }
 
 <span class="doccomment">/// Gets the value of a datastore entry for an arbitrary address, fails if the entry or address does not exist</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_data_for</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">address</span>: <span class="ident">i32</span>, <span class="ident">key</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_data_for</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">address</span>: <span class="ident">i32</span>, <span class="ident">key</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_get_data_const</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">address</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">read_string_and_sub_gas</span>(<span class="ident">env</span>, <span class="ident">memory</span>, <span class="ident">key</span>, <span class="ident">settings::metering_get_data_key_mult</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">raw_get_data_for</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>) {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">raw_get_data_for</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>) {
         <span class="prelude-val">Ok</span>(<span class="ident">data</span>) =&gt; {
             <span class="ident">sub_remaining_gas_with_mult</span>(<span class="ident">env</span>, <span class="ident">data</span>.<span class="ident">len</span>(), <span class="ident">settings::metering_get_data_value_mult</span>())<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">pointer_from_utf8</span>(<span class="ident">env</span>, <span class="kw-2">&amp;</span><span class="ident">data</span>)<span class="question-mark">?</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">i32</span>)
@@ -1031,74 +910,78 @@
 }
 
 <span class="doccomment">/// Deletes a datastore entry for an address. Fails if the entry or address does not exist.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_delete_data_for</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">address</span>: <span class="ident">i32</span>, <span class="ident">key</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_delete_data_for</span>(
+    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>,
+    <span class="ident">address</span>: <span class="ident">i32</span>,
+    <span class="ident">key</span>: <span class="ident">i32</span>,
+) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_delete_data_const</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">address</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">read_string_and_sub_gas</span>(<span class="ident">env</span>, <span class="ident">memory</span>, <span class="ident">key</span>, <span class="ident">settings::metering_delete_data_key_mult</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">raw_delete_data_for</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>) {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">raw_delete_data_for</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>) {
         <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(()),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_has_data_for</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">address</span>: <span class="ident">i32</span>, <span class="ident">key</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_has_data_for</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">address</span>: <span class="ident">i32</span>, <span class="ident">key</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_has_data_const</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">address</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">read_string_and_sub_gas</span>(<span class="ident">env</span>, <span class="ident">memory</span>, <span class="ident">key</span>, <span class="ident">settings::metering_has_data_key_mult</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">has_data_for</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>) {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">has_data_for</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>) {
         <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="number">1</span>),
         <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_owned_addresses_raw</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_owned_addresses_raw</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_get_owned_addrs</span>())<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">get_owned_addresses</span>() {
+    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">get_owned_addresses</span>() {
         <span class="prelude-val">Ok</span>(<span class="ident">data</span>) =&gt; <span class="ident">data</span>,
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     };
-    <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">join</span>(<span class="string">&quot;;&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">wasm_env</span>) {
+    <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">join</span>(<span class="string">&quot;;&quot;</span>), <span class="ident">env</span>.<span class="ident">get_wasm_env</span>()) {
         <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">i32</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_call_stack_raw</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_call_stack_raw</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_get_call_stack</span>())<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">get_call_stack</span>() {
+    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">get_call_stack</span>() {
         <span class="prelude-val">Ok</span>(<span class="ident">data</span>) =&gt; <span class="ident">data</span>,
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     };
-    <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">join</span>(<span class="string">&quot;;&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">wasm_env</span>) {
+    <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">join</span>(<span class="string">&quot;;&quot;</span>), <span class="ident">env</span>.<span class="ident">get_wasm_env</span>()) {
         <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">i32</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_owned_addresses</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_owned_addresses</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_get_owned_addrs</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">get_owned_addresses</span>() {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">get_owned_addresses</span>() {
         <span class="prelude-val">Ok</span>(<span class="ident">data</span>) =&gt; <span class="ident">alloc_string_array</span>(<span class="ident">env</span>, <span class="kw-2">&amp;</span><span class="ident">data</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_call_stack</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_call_stack</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_get_call_stack</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">get_call_stack</span>() {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">get_call_stack</span>() {
         <span class="prelude-val">Ok</span>(<span class="ident">data</span>) =&gt; <span class="ident">alloc_string_array</span>(<span class="ident">env</span>, <span class="kw-2">&amp;</span><span class="ident">data</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_generate_event</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">event</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_generate_event</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">event</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_generate_event</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">event</span>)<span class="question-mark">?</span>;
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">generate_event</span>(<span class="ident">event</span>) {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">generate_event</span>(<span class="ident">event</span>) {
         <span class="macro">abi_bail!</span>(<span class="ident">err</span>)
     }
     <span class="prelude-val">Ok</span>(())
@@ -1106,7 +989,7 @@
 
 <span class="doccomment">/// verify a signature of data given a public key. Returns Ok(1) if correctly verified, otherwise Ok(0)</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_signature_verify</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>,
+    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>,
     <span class="ident">data</span>: <span class="ident">i32</span>,
     <span class="ident">signature</span>: <span class="ident">i32</span>,
     <span class="ident">public_key</span>: <span class="ident">i32</span>,
@@ -1122,7 +1005,7 @@
     <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">signature</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">public_key</span> <span class="op">=</span> <span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">public_key</span>)<span class="question-mark">?</span>;
     <span class="kw">match</span> <span class="ident">env</span>
-        .<span class="ident">interface</span>
+        .<span class="ident">get_interface</span>()
         .<span class="ident">signature_verify</span>(<span class="ident">data</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;</span><span class="ident">signature</span>, <span class="kw-2">&amp;</span><span class="ident">public_key</span>)
     {
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
@@ -1133,31 +1016,31 @@
 
 <span class="doccomment">/// converts a public key to an address</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_address_from_public_key</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>,
+    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>,
     <span class="ident">public_key</span>: <span class="ident">i32</span>,
 ) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_address_from_public_key</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">public_key</span> <span class="op">=</span> <span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">public_key</span>)<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">address_from_public_key</span>(<span class="kw-2">&amp;</span><span class="ident">public_key</span>) {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">address_from_public_key</span>(<span class="kw-2">&amp;</span><span class="ident">public_key</span>) {
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
         <span class="prelude-val">Ok</span>(<span class="ident">addr</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">pointer_from_string</span>(<span class="ident">env</span>, <span class="kw-2">&amp;</span><span class="ident">addr</span>)<span class="question-mark">?</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">i32</span>),
     }
 }
 
 <span class="doccomment">/// generates an unsafe random number</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_unsafe_random</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_unsafe_random</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_unsafe_random</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">unsafe_random</span>() {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">unsafe_random</span>() {
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
         <span class="prelude-val">Ok</span>(<span class="ident">rnd</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">rnd</span>),
     }
 }
 
 <span class="doccomment">/// gets the current unix timestamp in milliseconds</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_time</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_time</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_get_time</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">get_time</span>() {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">get_time</span>() {
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
         <span class="prelude-val">Ok</span>(<span class="ident">t</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">t</span> <span class="kw">as</span> <span class="ident">i64</span>),
     }
@@ -1166,7 +1049,7 @@
 <span class="doccomment">/// sends an async message</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_arguments</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_send_message</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>,
+    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>,
     <span class="ident">target_address</span>: <span class="ident">i32</span>,
     <span class="ident">target_handler</span>: <span class="ident">i32</span>,
     <span class="ident">validity_start_period</span>: <span class="ident">i64</span>,
@@ -1205,7 +1088,7 @@
         <span class="macro">abi_bail!</span>(<span class="string">&quot;negative coins&quot;</span>)
     }
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">send_message</span>(
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">send_message</span>(
         <span class="kw-2">&amp;</span><span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">target_address</span>)<span class="question-mark">?</span>,
         <span class="kw-2">&amp;</span><span class="ident">get_string</span>(<span class="ident">memory</span>, <span class="ident">target_handler</span>)<span class="question-mark">?</span>,
         <span class="ident">validity_start</span>,
@@ -1221,18 +1104,18 @@
 }
 
 <span class="doccomment">/// gets the period of the current execution slot</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_current_period</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_current_period</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_get_current_period</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">get_current_period</span>() {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">get_current_period</span>() {
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
         <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">i64</span>),
     }
 }
 
 <span class="doccomment">/// gets the thread of the current execution slot</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_current_thread</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_get_current_thread</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_get_current_thread</span>())<span class="question-mark">?</span>;
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">get_current_thread</span>() {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">get_current_thread</span>() {
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
         <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>),
     }
@@ -1240,7 +1123,7 @@
 
 <span class="doccomment">/// sets the executable bytecode of an arbitrary address</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_set_bytecode_for</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>,
+    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>,
     <span class="ident">address</span>: <span class="ident">i32</span>,
     <span class="ident">bytecode_base64</span>: <span class="ident">i32</span>,
 ) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
@@ -1257,14 +1140,17 @@
         <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     };
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">raw_set_bytecode_for</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>, <span class="kw-2">&amp;</span><span class="ident">bytecode_raw</span>) {
+    <span class="kw">match</span> <span class="ident">env</span>
+        .<span class="ident">get_interface</span>()
+        .<span class="ident">raw_set_bytecode_for</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>, <span class="kw-2">&amp;</span><span class="ident">bytecode_raw</span>)
+    {
         <span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Ok</span>(()),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
 
 <span class="doccomment">/// sets the executable bytecode of the current address</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_set_bytecode</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">bytecode_base64</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assembly_script_set_bytecode</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">bytecode_base64</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="ident">sub_remaining_gas</span>(<span class="ident">env</span>, <span class="ident">settings::metering_set_bytecode_const</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span> <span class="macro">get_memory!</span>(<span class="ident">env</span>);
     <span class="kw">let</span> <span class="ident">bytecode_base64</span> <span class="op">=</span> <span class="ident">read_string_and_sub_gas</span>(
@@ -1277,24 +1163,24 @@
         <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     };
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">interface</span>.<span class="ident">raw_set_bytecode</span>(<span class="kw-2">&amp;</span><span class="ident">bytecode_raw</span>) {
+    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">raw_set_bytecode</span>(<span class="kw-2">&amp;</span><span class="ident">bytecode_raw</span>) {
         <span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Ok</span>(()),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
 
 <span class="doccomment">/// Tooling, return a StringPtr allocated from a String</span>
-<span class="kw">fn</span> <span class="ident">pointer_from_string</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">StringPtr</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">into</span>(), <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">wasm_env</span>) {
+<span class="kw">fn</span> <span class="ident">pointer_from_string</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">StringPtr</span><span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">into</span>(), <span class="ident">env</span>.<span class="ident">get_wasm_env</span>()) {
         <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">ptr</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
 
 <span class="doccomment">/// Tooling, return a StringPtr allocated from bytes with utf8 parsing</span>
-<span class="kw">fn</span> <span class="ident">pointer_from_utf8</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">StringPtr</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">pointer_from_utf8</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">StringPtr</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">std::str::from_utf8</span>(<span class="ident">value</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">data</span>) =&gt; <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">to_string</span>(), <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">wasm_env</span>) {
+        <span class="prelude-val">Ok</span>(<span class="ident">data</span>) =&gt; <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">to_string</span>(), <span class="ident">env</span>.<span class="ident">get_wasm_env</span>()) {
             <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">ptr</span>),
             <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
         },
@@ -1310,7 +1196,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Return the string value in the StringPtr</span>
 <span class="kw">fn</span> <span class="ident">read_string_and_sub_gas</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>,
+    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>,
     <span class="ident">memory</span>: <span class="kw-2">&amp;</span><span class="ident">Memory</span>,
     <span class="ident">offset</span>: <span class="ident">i32</span>,
     <span class="ident">mult</span>: <span class="ident">usize</span>,
@@ -1333,16 +1219,16 @@
 }
 
 <span class="doccomment">/// Tooling, return a pointer offset of a serialized list in json</span>
-<span class="kw">fn</span> <span class="ident">alloc_string_array</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Env</span>, <span class="ident">vec</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>]) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">alloc_string_array</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">ASEnv</span>, <span class="ident">vec</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>]) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">addresses</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">serde_json::to_string</span>(<span class="ident">vec</span>) {
         <span class="prelude-val">Ok</span>(<span class="ident">list</span>) =&gt; <span class="ident">list</span>,
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     };
-    <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">addresses</span>, <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">wasm_env</span>) {
+    <span class="kw">match</span> <span class="ident">StringPtr::alloc</span>(<span class="kw-2">&amp;</span><span class="ident">addresses</span>, <span class="ident">env</span>.<span class="ident">get_wasm_env</span>()) {
         <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">i32</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="massa_sc_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (acbe4443c 2021-12-02)" ></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="massa_sc_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (acbe4443c 2021-12-02)" ></div>
 </body></html>
