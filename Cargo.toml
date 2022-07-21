@@ -8,11 +8,11 @@ anyhow = "1.0"
 lazy_static = "1"
 serde = "1.0"
 serde_json = "1.0"
-wasmer = { version = "2.3.0", default-features = false, features = [ "std" ] }
+wasmer = "2.3.0"
 as-ffi-bindings = "0.2.5"
-wasmer-compiler-singlepass = { version = "2.3.0", default-features = false, features = [ "std" ] }
-wasmer-engine-universal = { version = "2.3.0", default-features = false, features = [ ] }
-wasmer-middlewares = { version = "2.3.0", default-features = false, features = [ ] }
+wasmer-compiler-singlepass = "2.2.1"
+wasmer-engine-universal = "2.2.1"
+wasmer-middlewares = "2.2.1"
 cornetto = "0.1"
 base64 = "0.13"
 serial_test = "0.8"
