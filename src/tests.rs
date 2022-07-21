@@ -19,8 +19,13 @@ impl InterfaceClone for TestInterface {
 
 impl Interface for TestInterface {
     fn init_call(&self, address: &str, _raw_coins: u64) -> Result<Vec<u8>> {
-        let data = self.0.lock().unwrap().clone();
-        match data.get::<String>(&address.to_string()) {
+        match self
+            .0
+            .lock()
+            .unwrap()
+            .clone()
+            .get::<String>(&address.to_string())
+        {
             Some(module) => Ok(module.clone()),
             _ => bail!("Cannot find module for address {}", address),
         }
@@ -62,8 +67,7 @@ impl Interface for TestInterface {
     }
 
     fn raw_get_data(&self, _: &str) -> Result<Vec<u8>> {
-        let bytes = self.0.lock().unwrap().clone();
-        match bytes.get(&"print".to_string()) {
+        match self.0.lock().unwrap().clone().get(&"print".to_string()) {
             Some(bytes) => Ok(bytes.clone()),
             _ => bail!("Cannot find data"),
         }
@@ -103,25 +107,23 @@ fn test_caller() {
     settings::reset_metering();
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let mut module = vec![1u8];
-    module.extend_from_slice(include_bytes!(concat!(
+    let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/get_string.wasm"
-    )));
+    ));
     interface
-        .raw_set_bytecode_for("get_string", &module)
+        .raw_set_bytecode_for("get_string", module.as_ref())
         .unwrap();
     // test only if the module is valid
-    run_main(&module, 20_000, &*interface).expect("Failed to run_main get_string.wasm");
-    let mut module = vec![1u8];
-    module.extend_from_slice(include_bytes!(concat!(
+    run_main(module, 20_000, &*interface).expect("Failed to run_main get_string.wasm");
+    let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/caller.wasm"
-    )));
-    let a = run_main(&module, 20_000, &*interface).expect("Failed to run_main caller.wasm");
+    ));
+    let a = run_main(module, 20_000, &*interface).expect("Failed to run_main caller.wasm");
     let prev_call_price = settings::metering_call();
     settings::set_metering(0);
-    let b = run_main(&module, 20_000, &*interface).expect("Failed to run_main caller.wasm");
+    let b = run_main(module, 20_000, &*interface).expect("Failed to run_main caller.wasm");
     assert_eq!(a + prev_call_price, b);
     let v_out = interface.raw_get_data("").unwrap();
     let output = std::str::from_utf8(&v_out).unwrap();
@@ -129,7 +131,7 @@ fn test_caller() {
 
     // Test now if we failed if metering is too hight
     settings::set_metering(15_000);
-    run_main(&module, 20_000, &*interface).expect_err("Expected to be out of operation gas");
+    run_main(module, 20_000, &*interface).expect_err("Expected to be out of operation gas");
 }
 
 #[test]
