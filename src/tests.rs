@@ -6,7 +6,9 @@ use crate::{
 use anyhow::{bail, Result};
 use rand::Rng;
 use serial_test::serial;
-use std::sync::{Arc, Mutex};
+// use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use parking_lot::Mutex;
 pub type Ledger = std::collections::BTreeMap<String, Vec<u8>>; // Byttecode instead of String
 
 #[derive(Clone)]
@@ -20,7 +22,7 @@ impl InterfaceClone for TestInterface {
 
 impl Interface for TestInterface {
     fn init_call(&self, address: &str, _raw_coins: u64) -> Result<Vec<u8>> {
-        let data = self.0.lock().unwrap().clone();
+        let data = self.0.lock().clone();
         match data.get::<String>(&address.to_string()) {
             Some(module) => Ok(module.clone()),
             _ => bail!("Cannot find module for address {}", address),
@@ -42,14 +44,13 @@ impl Interface for TestInterface {
     fn raw_set_bytecode_for(&self, address: &str, bytecode: &[u8]) -> Result<()> {
         self.0
             .lock()
-            .unwrap()
             .insert(address.to_string(), bytecode.to_vec());
         Ok(())
     }
 
     fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
         let address = String::from("get_string");
-        self.0.lock().unwrap().insert(address, bytecode.to_vec());
+        self.0.lock().insert(address, bytecode.to_vec());
         Ok(())
     }
 
@@ -57,13 +58,12 @@ impl Interface for TestInterface {
         println!("{}", message);
         self.0
             .lock()
-            .unwrap()
             .insert("print".into(), message.as_bytes().to_vec());
         Ok(())
     }
 
     fn raw_get_data(&self, _: &str) -> Result<Vec<u8>> {
-        let bytes = self.0.lock().unwrap().clone();
+        let bytes = self.0.lock().clone();
         match bytes.get(&"print".to_string()) {
             Some(bytes) => Ok(bytes.clone()),
             _ => bail!("Cannot find data"),
@@ -78,7 +78,6 @@ impl Interface for TestInterface {
         let address = String::from("get_string");
         self.0
             .lock()
-            .unwrap()
             .insert(address.clone(), module.to_vec());
         Ok(address)
     }
