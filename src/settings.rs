@@ -79,6 +79,8 @@ struct Metering {
     pub set_bytecode_mult: usize,
     #[cornetto(const, 100)]
     pub set_bytecode_const: u64,
+    #[cornetto(const, 8270)]
+    pub initial_const: u64,
 }
 
 pub(crate) fn metering_call() -> u64 {
@@ -224,6 +226,8 @@ pub(crate) fn metering_set_bytecode_mult() -> usize {
 pub(crate) fn metering_set_bytecode_const() -> u64 {
     METERING.set_bytecode_const()
 }
+
+pub(crate) fn metering_initial_const() -> u64 { METERING.initial_const() }
 
 #[cfg(test)]
 pub(crate) fn set_metering(call_price: u64) {

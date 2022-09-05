@@ -260,3 +260,27 @@ fn test_run_main_without_main() {
     ));
     run_main(module, 100_000, &*interface).expect_err("An error should spawn here");
 }
+
+#[test]
+#[serial]
+fn test_run_empty_main() {
+    settings::reset_metering();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/empty_main.wasm"
+    ));
+    // Even if our SC is empty; there is still an initial metering cost
+    // (mainly because we have a memory allocator to init)
+    let initial_metering_cost = settings::metering_initial_const();
+    // Test that we can run our module
+    let a = run_main(module, initial_metering_cost, &*interface)
+        .expect("Failed to run empty_main.wasm");
+    assert_eq!(a, 0);
+    // Test that we still have some remaining metering
+    let remaining = 100;
+    let b = run_main(module, initial_metering_cost+remaining, &*interface)
+        .expect("Failed to run empty_main.wasm");
+    assert_eq!(b, remaining);
+}
