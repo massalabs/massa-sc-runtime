@@ -280,7 +280,7 @@ fn test_run_empty_main() {
     assert_eq!(a, 0);
     // Test that we still have some remaining metering
     let remaining = 100;
-    let b = run_main(module, initial_metering_cost+remaining, &*interface)
+    let b = run_main(module, initial_metering_cost + remaining, &*interface)
         .expect("Failed to run empty_main.wasm");
     assert_eq!(b, remaining);
 }

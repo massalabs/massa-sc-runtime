@@ -227,7 +227,9 @@ pub(crate) fn metering_set_bytecode_const() -> u64 {
     METERING.set_bytecode_const()
 }
 
-pub(crate) fn metering_initial_const() -> u64 { METERING.initial_const() }
+pub(crate) fn metering_initial_const() -> u64 {
+    METERING.initial_const()
+}
 
 #[cfg(test)]
 pub(crate) fn set_metering(call_price: u64) {
