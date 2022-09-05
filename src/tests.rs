@@ -7,8 +7,8 @@ use anyhow::{bail, Result};
 use rand::Rng;
 use serial_test::serial;
 // use std::sync::{Arc, Mutex};
-use std::sync::Arc;
 use parking_lot::Mutex;
+use std::sync::Arc;
 pub type Ledger = std::collections::BTreeMap<String, Vec<u8>>; // Byttecode instead of String
 
 #[derive(Clone)]
@@ -42,9 +42,7 @@ impl Interface for TestInterface {
     }
 
     fn raw_set_bytecode_for(&self, address: &str, bytecode: &[u8]) -> Result<()> {
-        self.0
-            .lock()
-            .insert(address.to_string(), bytecode.to_vec());
+        self.0.lock().insert(address.to_string(), bytecode.to_vec());
         Ok(())
     }
 
@@ -76,9 +74,7 @@ impl Interface for TestInterface {
 
     fn create_module(&self, module: &[u8]) -> Result<String> {
         let address = String::from("get_string");
-        self.0
-            .lock()
-            .insert(address.clone(), module.to_vec());
+        self.0.lock().insert(address.clone(), module.to_vec());
         Ok(address)
     }
 
