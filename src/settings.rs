@@ -79,8 +79,8 @@ struct Metering {
     pub set_bytecode_mult: usize,
     #[cornetto(const, 100)]
     pub set_bytecode_const: u64,
-    #[cornetto(const, 8270)]
-    pub initial_const: u64,
+    #[cornetto(mut, 100)]
+    pub initial_cost: u64,
 }
 
 pub(crate) fn metering_call() -> u64 {
@@ -227,16 +227,21 @@ pub(crate) fn metering_set_bytecode_const() -> u64 {
     METERING.set_bytecode_const()
 }
 
-pub(crate) fn metering_initial_const() -> u64 {
-    METERING.initial_const()
+pub(crate) fn metering_initial_cost() -> u64 {
+    METERING.initial_cost()
 }
 
 #[cfg(test)]
 pub(crate) fn set_metering(call_price: u64) {
-    METERING._reset(call_price);
+    METERING._reset(call_price, DEFAULT_METERING_INITIAL_COST);
+}
+
+#[cfg(test)]
+pub(crate) fn set_metering_initial_cost(initial_cost: u64) {
+    METERING._reset(DEFAULT_METERING_CALL, initial_cost);
 }
 
 #[cfg(test)]
 pub(crate) fn reset_metering() {
-    METERING._reset(DEFAULT_METERING_CALL);
+    METERING._reset(DEFAULT_METERING_CALL, DEFAULT_METERING_INITIAL_COST);
 }

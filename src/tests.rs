@@ -5,6 +5,7 @@ use crate::{
 };
 use anyhow::{bail, Result};
 use serial_test::serial;
+use rand::Rng;
 use std::sync::{Arc, Mutex};
 pub type Ledger = std::collections::BTreeMap<String, Vec<u8>>; // Byttecode instead of String
 
@@ -271,16 +272,19 @@ fn test_run_empty_main() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/empty_main.wasm"
     ));
-    // Even if our SC is empty; there is still an initial metering cost
+    // Even if our SC is empty; there is still an initial and minimum metering cost
     // (mainly because we have a memory allocator to init)
-    let initial_metering_cost = settings::metering_initial_const();
-    // Test that we can run our module
-    let a = run_main(module, initial_metering_cost, &*interface)
+    settings::set_metering_initial_cost(0);
+    let a = run_main(module, 10_000_000, &*interface)
         .expect("Failed to run empty_main.wasm");
-    assert_eq!(a, 0);
-    // Test that we still have some remaining metering
-    let remaining = 100;
-    let b = run_main(module, initial_metering_cost + remaining, &*interface)
+    // Here we avoid hardcoding a value (that can change in future wasmer release)$
+    assert!(a > 0);
+
+    let mut rng = rand::thread_rng();
+    let cost = rng.gen_range(1..1_000_000);
+    settings::set_metering_initial_cost(cost);
+    let b = run_main(module, 10_000_000, &*interface)
         .expect("Failed to run empty_main.wasm");
-    assert_eq!(b, remaining);
+    // Between 2 calls, the metering cost should be the difference
+    assert_eq!(a - b, cost);
 }

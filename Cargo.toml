@@ -17,3 +17,5 @@ cornetto = "0.1"
 base64 = "0.13"
 serial_test = "0.8"
 loupe = "0.1"
+rand = "0.8"
+

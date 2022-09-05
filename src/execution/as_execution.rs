@@ -1,7 +1,7 @@
 use super::{as_abi::*, MassaModule};
-use crate::env::{assembly_script_abort, get_remaining_points, ASEnv, MassaEnv};
+use crate::env::{assembly_script_abort, get_remaining_points, ASEnv, MassaEnv, set_remaining_points};
 use crate::types::Response;
-use crate::Interface;
+use crate::{Interface, settings};
 use anyhow::{bail, Result};
 use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
 use wasmer::{imports, Function, ImportObject, Instance, Store, Val, WasmerEnv};
@@ -22,6 +22,7 @@ impl MassaModule for ASModule {
         &self.bytecode
     }
     fn execution(&self, instance: &Instance, function: &str, param: &str) -> Result<Response> {
+
         let param_ptr = *StringPtr::alloc(&param.to_string(), self.env.get_wasm_env())?;
         let wasm_func = instance.exports.get_function(function)?;
         let argc = wasm_func.param_arity();
@@ -32,6 +33,15 @@ impl MassaModule for ASModule {
         } else {
             bail!("Unexpected number of parameters in the function called")
         };
+
+        // sub initial metering cost
+        let metering_initial_cost = settings::metering_initial_cost();
+        let remaining_gas = get_remaining_points(&self.env)?;
+        if metering_initial_cost > remaining_gas {
+            bail!("Not enough gas for initial cost")
+        }
+        set_remaining_points(&self.env, remaining_gas - metering_initial_cost)?;
+
         match res {
             Ok(value) => {
                 if function.eq(crate::settings::MAIN) {
