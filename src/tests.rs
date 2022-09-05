@@ -4,8 +4,8 @@ use crate::{
     types::{Interface, InterfaceClone},
 };
 use anyhow::{bail, Result};
-use serial_test::serial;
 use rand::Rng;
+use serial_test::serial;
 use std::sync::{Arc, Mutex};
 pub type Ledger = std::collections::BTreeMap<String, Vec<u8>>; // Byttecode instead of String
 
@@ -275,16 +275,14 @@ fn test_run_empty_main() {
     // Even if our SC is empty; there is still an initial and minimum metering cost
     // (mainly because we have a memory allocator to init)
     settings::set_metering_initial_cost(0);
-    let a = run_main(module, 10_000_000, &*interface)
-        .expect("Failed to run empty_main.wasm");
+    let a = run_main(module, 10_000_000, &*interface).expect("Failed to run empty_main.wasm");
     // Here we avoid hardcoding a value (that can change in future wasmer release)$
     assert!(a > 0);
 
     let mut rng = rand::thread_rng();
     let cost = rng.gen_range(1..1_000_000);
     settings::set_metering_initial_cost(cost);
-    let b = run_main(module, 10_000_000, &*interface)
-        .expect("Failed to run empty_main.wasm");
+    let b = run_main(module, 10_000_000, &*interface).expect("Failed to run empty_main.wasm");
     // Between 2 calls, the metering cost should be the difference
     assert_eq!(a - b, cost);
 }
