@@ -4,10 +4,9 @@ use crate::{
     types::{Interface, InterfaceClone},
 };
 use anyhow::{bail, Result};
+use parking_lot::Mutex;
 use rand::Rng;
 use serial_test::serial;
-// use std::sync::{Arc, Mutex};
-use parking_lot::Mutex;
 use std::sync::Arc;
 pub type Ledger = std::collections::BTreeMap<String, Vec<u8>>; // Byttecode instead of String
 
