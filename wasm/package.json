@@ -9,6 +9,7 @@
     "build_get_string": "yarn run sc_get_string && yarn run sc_get_string_main && yarn run get_string_caller && yarn run local_hello_name_caller",
     "caller_no_return": "massa-sc-scripts build-sc src/caller_no_return.ts",
     "no_main": "massa-sc-scripts build-sc src/no_main.ts",
+    "empty_main": "massa-sc-scripts build-sc src/empty_main.ts",
     "sc_receive_message": "massa-sc-scripts build-sc src/receive_message.ts",
     "send_message": "massa-sc-scripts build-sc src/send_message.ts",
     "build_message": "yarn run sc_receive_message && yarn run send_message",

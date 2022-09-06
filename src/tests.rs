@@ -4,6 +4,7 @@ use crate::{
     types::{Interface, InterfaceClone},
 };
 use anyhow::{bail, Result};
+use rand::Rng;
 use serial_test::serial;
 use std::sync::{Arc, Mutex};
 pub type Ledger = std::collections::BTreeMap<String, Vec<u8>>; // Byttecode instead of String
@@ -259,4 +260,29 @@ fn test_run_main_without_main() {
         "/wasm/build/no_main.wasm"
     ));
     run_main(module, 100_000, &*interface).expect_err("An error should spawn here");
+}
+
+#[test]
+#[serial]
+fn test_run_empty_main() {
+    settings::reset_metering();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/empty_main.wasm"
+    ));
+    // Even if our SC is empty; there is still an initial and minimum metering cost
+    // (mainly because we have a memory allocator to init)
+    settings::set_metering_initial_cost(0);
+    let a = run_main(module, 10_000_000, &*interface).expect("Failed to run empty_main.wasm");
+    // Here we avoid hardcoding a value (that can change in future wasmer release)$
+    assert!(a > 0);
+
+    let mut rng = rand::thread_rng();
+    let cost = rng.gen_range(1..1_000_000);
+    settings::set_metering_initial_cost(cost);
+    let b = run_main(module, 10_000_000, &*interface).expect("Failed to run empty_main.wasm");
+    // Between 2 calls, the metering cost should be the difference
+    assert_eq!(a - b, cost);
 }
