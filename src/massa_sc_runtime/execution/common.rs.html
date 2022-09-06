@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/execution/common.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>common.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../massa_sc_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../massa_sc_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/execution/common.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>common.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../massa_sc_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../massa_sc_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -70,72 +64,71 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">wasmer::WasmerEnv</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>wasmer::WasmerEnv;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::env</span>::{<span class="ident">get_remaining_points</span>, <span class="ident">set_remaining_points</span>, <span class="ident">MassaEnv</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Response</span>;
+<span class="kw">use </span><span class="kw">crate</span>::env::{get_remaining_points, set_remaining_points, MassaEnv};
+<span class="kw">use </span><span class="kw">crate</span>::Response;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::get_module</span>;
+<span class="kw">use </span><span class="kw">super</span>::get_module;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span> <span class="op">=</span> <span class="ident">wasmer::RuntimeError</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>;
-<span class="macro">macro_rules!</span> <span class="ident">abi_bail</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">err</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">wasmer::RuntimeError::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">err</span>.<span class="ident">to_string</span>()))
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ABIResult&lt;T, E = wasmer::RuntimeError&gt; = core::result::Result&lt;T, E&gt;;
+<span class="macro">macro_rules! </span>abi_bail {
+    (<span class="macro-nonterminal">$err</span>:expr) =&gt; {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(wasmer::RuntimeError::new(<span class="macro-nonterminal">$err</span>.to_string()))
     };
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">abi_bail</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>abi_bail;
 
-<span class="doccomment">/// `Call` ABI called by the webassembly VM</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Call an exported function in a WASM module at a given address</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It take in argument the environment defined in env.rs</span>
-<span class="doccomment">/// this environment is automatically filled by the wasmer library</span>
-<span class="doccomment">/// And two pointers of string. (look at the readme in the wasm folder)</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">call_module</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">WasmerEnv</span><span class="op">&gt;</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">MassaEnv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">param</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">raw_coins</span>: <span class="ident">i64</span>,
-) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">raw_coins</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">raw_coins</span>.<span class="ident">try_into</span>() {
-        <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+<span class="doccomment">/// `Call` ABI called by the webassembly VM
+///
+/// Call an exported function in a WASM module at a given address
+///
+/// It take in argument the environment defined in env.rs
+/// this environment is automatically filled by the wasmer library
+/// And two pointers of string. (look at the readme in the wasm folder)
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>call_module&lt;T: WasmerEnv&gt;(
+    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;,
+    address: <span class="kw-2">&amp;</span>str,
+    function: <span class="kw-2">&amp;</span>str,
+    param: <span class="kw-2">&amp;</span>str,
+    raw_coins: i64,
+) -&gt; ABIResult&lt;Response&gt; {
+    <span class="kw">let </span>raw_coins: u64 = <span class="kw">match </span>raw_coins.try_into() {
+        <span class="prelude-val">Ok</span>(v) =&gt; v,
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative amount of coins in Call&quot;</span>),
     };
-    <span class="kw">let</span> <span class="ident">bytecode</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">init_call</span>(<span class="ident">address</span>, <span class="ident">raw_coins</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">bytecode</span>) =&gt; <span class="ident">bytecode</span>,
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
+    <span class="kw">let </span>bytecode = <span class="kw-2">&amp;</span><span class="kw">match </span>env.get_interface().init_call(address, raw_coins) {
+        <span class="prelude-val">Ok</span>(bytecode) =&gt; bytecode,
+        <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
     };
-    <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">get_module</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">env</span>.<span class="ident">get_interface</span>(), <span class="ident">bytecode</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">module</span>) =&gt; <span class="ident">module</span>,
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
+    <span class="kw">let </span>module = <span class="kw">match </span>get_module(<span class="kw-2">&amp;*</span>env.get_interface(), bytecode) {
+        <span class="prelude-val">Ok</span>(module) =&gt; module,
+        <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
     };
-    <span class="kw">match</span> <span class="ident"><span class="kw">crate</span>::execution_impl::exec</span>(<span class="ident">get_remaining_points</span>(<span class="ident">env</span>)<span class="question-mark">?</span>, <span class="prelude-val">None</span>, <span class="ident">module</span>, <span class="ident">function</span>, <span class="ident">param</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">resp</span>) =&gt; {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">set_remaining_points</span>(<span class="ident">env</span>, <span class="ident">resp</span>.<span class="ident">remaining_gas</span>) {
-                <span class="macro">abi_bail!</span>(<span class="ident">err</span>);
+    <span class="kw">match </span><span class="kw">crate</span>::execution_impl::exec(get_remaining_points(env)<span class="question-mark">?</span>, <span class="prelude-val">None</span>, module, function, param) {
+        <span class="prelude-val">Ok</span>(resp) =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = set_remaining_points(env, resp.remaining_gas) {
+                <span class="macro">abi_bail!</span>(err);
             }
-            <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">finish_call</span>() {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">resp</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
+            <span class="kw">match </span>env.get_interface().finish_call() {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(resp),
+                <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
             }
         }
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
+        <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
     }
 }
 
-<span class="doccomment">/// Create a smart contract with the given `bytecode`</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_sc</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">WasmerEnv</span><span class="op">&gt;</span>(
-    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">MassaEnv</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">bytecode</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-) -&gt; <span class="ident">ABIResult</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">env</span>.<span class="ident">get_interface</span>().<span class="ident">create_module</span>(<span class="ident">bytecode</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">address</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">address</span>),
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="ident">err</span>),
+<span class="doccomment">/// Create a smart contract with the given `bytecode`
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_sc&lt;T: WasmerEnv&gt;(
+    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;,
+    bytecode: <span class="kw-2">&amp;</span>[u8],
+) -&gt; ABIResult&lt;String&gt; {
+    <span class="kw">match </span>env.get_interface().create_module(bytecode) {
+        <span class="prelude-val">Ok</span>(address) =&gt; <span class="prelude-val">Ok</span>(address),
+        <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="massa_sc_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (d68e7ebc3 2022-07-20)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="massa_sc_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (b44197abb 2022-09-05)" ></div></body></html>

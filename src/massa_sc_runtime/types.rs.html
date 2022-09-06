@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/types.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../massa_sc_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../massa_sc_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/types.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../massa_sc_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../massa_sc_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -260,262 +254,261 @@
 <span id="254">254</span>
 <span id="255">255</span>
 <span id="256">256</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">bail</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">de::DeserializeOwned</span>, <span class="ident">Serialize</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>serde::{de::DeserializeOwned, Serialize};
 
-<span class="doccomment">/// That&#39;s what is returned when a module is executed correctly since the end</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Response</span> {
-    <span class="doccomment">/// returned value from the module call</span>
-    <span class="kw">pub</span> <span class="ident">ret</span>: <span class="ident">String</span>,
-    <span class="doccomment">/// number of gas that remain after the execution (metering)</span>
-    <span class="kw">pub</span> <span class="ident">remaining_gas</span>: <span class="ident">u64</span>,
+<span class="doccomment">/// That&#39;s what is returned when a module is executed correctly since the end
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Response {
+    <span class="doccomment">/// returned value from the module call
+    </span><span class="kw">pub </span>ret: String,
+    <span class="doccomment">/// number of gas that remain after the execution (metering)
+    </span><span class="kw">pub </span>remaining_gas: u64,
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">InterfaceClone</span> {
-    <span class="kw">fn</span> <span class="ident">clone_box</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Interface</span><span class="op">&gt;</span>;
+<span class="kw">pub trait </span>InterfaceClone {
+    <span class="kw">fn </span>clone_box(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Interface&gt;;
 }
 
-<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Interface</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Interface</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">clone_box</span>()
+<span class="kw">impl </span>Clone <span class="kw">for </span>Box&lt;<span class="kw">dyn </span>Interface&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Interface&gt; {
+        <span class="self">self</span>.clone_box()
     }
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">unimplemented</span> {
+<span class="macro">macro_rules! </span>unimplemented {
     (<span class="macro-nonterminal">$</span><span class="kw">fn</span>: <span class="macro-nonterminal">expr</span>) =&gt; {
         <span class="macro">bail!</span>(<span class="macro">format!</span>(<span class="string">&quot;unimplemented function {} in interface&quot;</span>, <span class="macro-nonterminal">$</span><span class="kw">fn</span>))
     };
 }
 
-<span class="attribute">#[<span class="macro-nonterminal">allow</span>(<span class="ident">unused_variables</span>)]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Interface</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">InterfaceClone</span> {
-    <span class="doccomment">/// Prepare the execution of a module at the given address and transfer a given amount of coins</span>
-    <span class="kw">fn</span> <span class="ident">init_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">raw_coins</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="attribute">#[<span class="macro-nonterminal">allow</span>(unused_variables)]
+</span><span class="kw">pub trait </span>Interface: Send + Sync + InterfaceClone {
+    <span class="doccomment">/// Prepare the execution of a module at the given address and transfer a given amount of coins
+    </span><span class="kw">fn </span>init_call(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, raw_coins: u64) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;init_call&quot;</span>)
     }
 
-    <span class="doccomment">/// Finish a call</span>
-    <span class="kw">fn</span> <span class="ident">finish_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="doccomment">/// Finish a call
+    </span><span class="kw">fn </span>finish_call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;finish_call&quot;</span>)
     }
 
-    <span class="doccomment">/// Requires the module in the given address</span>
-    <span class="kw">fn</span> <span class="ident">get_module</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Requires the module in the given address
+    </span><span class="kw">fn </span>get_module(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;get_module&quot;</span>)
     }
 
-    <span class="doccomment">/// Get the SCE ledger balance for the crrent address.</span>
-    <span class="doccomment">/// Defaults to zero if the address is not found.</span>
-    <span class="kw">fn</span> <span class="ident">get_balance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Get the SCE ledger balance for the crrent address.
+    /// Defaults to zero if the address is not found.
+    </span><span class="kw">fn </span>get_balance(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;get_balance&quot;</span>)
     }
 
-    <span class="doccomment">/// Get the SCE ledger balance for an address.</span>
-    <span class="doccomment">/// Defaults to zero if the address is not found.</span>
-    <span class="kw">fn</span> <span class="ident">get_balance_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Get the SCE ledger balance for an address.
+    /// Defaults to zero if the address is not found.
+    </span><span class="kw">fn </span>get_balance_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;get_balance_for&quot;</span>)
     }
 
-    <span class="doccomment">/// Transfer an amount from the address on the current call stack to a target address.</span>
-    <span class="kw">fn</span> <span class="ident">transfer_coins</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">to_address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">raw_amount</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="doccomment">/// Transfer an amount from the address on the current call stack to a target address.
+    </span><span class="kw">fn </span>transfer_coins(<span class="kw-2">&amp;</span><span class="self">self</span>, to_address: <span class="kw-2">&amp;</span>str, raw_amount: u64) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;transfer_coins&quot;</span>)
     }
 
-    <span class="doccomment">/// Transfer an amount from the specified address to a target address.</span>
-    <span class="kw">fn</span> <span class="ident">transfer_coins_for</span>(
+    <span class="doccomment">/// Transfer an amount from the specified address to a target address.
+    </span><span class="kw">fn </span>transfer_coins_for(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">from_address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">to_address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">raw_amount</span>: <span class="ident">u64</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        from_address: <span class="kw-2">&amp;</span>str,
+        to_address: <span class="kw-2">&amp;</span>str,
+        raw_amount: u64,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;transfer_coins_for&quot;</span>)
     }
 
-    <span class="doccomment">/// Get the amount of coins that have been made available for use by the caller of the currently executing code.</span>
-    <span class="kw">fn</span> <span class="ident">get_call_coins</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Get the amount of coins that have been made available for use by the caller of the currently executing code.
+    </span><span class="kw">fn </span>get_call_coins(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
         <span class="macro">bail!</span>(<span class="string">&quot;unimplemented function get_call_coins_for in interface&quot;</span>)
     }
 
-    <span class="doccomment">/// Sets the executable bytecode at a target address.</span>
-    <span class="doccomment">/// The target address must exist and the current context must have access rights.</span>
-    <span class="kw">fn</span> <span class="ident">raw_set_bytecode_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">bytecode</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="doccomment">/// Sets the executable bytecode at a target address.
+    /// The target address must exist and the current context must have access rights.
+    </span><span class="kw">fn </span>raw_set_bytecode_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, bytecode: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;raw_set_bytecode_for&quot;</span>)
     }
 
-    <span class="doccomment">/// Sets the executable bytecode at a current address.</span>
-    <span class="kw">fn</span> <span class="ident">raw_set_bytecode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytecode</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="doccomment">/// Sets the executable bytecode at a current address.
+    </span><span class="kw">fn </span>raw_set_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;raw_set_bytecode&quot;</span>)
     }
 
-    <span class="doccomment">/// Requires a new address that contains the sent &amp;[u8]</span>
-    <span class="kw">fn</span> <span class="ident">create_module</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Requires a new address that contains the sent &amp;[u8]
+    </span><span class="kw">fn </span>create_module(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;create_module&quot;</span>)
     }
 
-    <span class="doccomment">/// Print function for examples</span>
-    <span class="kw">fn</span> <span class="ident">print</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="doccomment">/// Print function for examples
+    </span><span class="kw">fn </span>print(<span class="kw-2">&amp;</span><span class="self">self</span>, message: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;print&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">raw_get_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn </span>raw_get_data(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;raw_get_data&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">raw_set_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn </span>raw_set_data(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str, value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;raw_set_data&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">raw_append_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn </span>raw_append_data(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str, value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;raw_append_data&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">raw_delete_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn </span>raw_delete_data(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;raw_delete_data&quot;</span>)
     }
 
-    <span class="doccomment">/// Requires the data at the address</span>
-    <span class="kw">fn</span> <span class="ident">raw_get_data_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Requires the data at the address
+    </span><span class="kw">fn </span>raw_get_data_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;raw_get_data_for&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">raw_set_data_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn </span>raw_set_data_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, key: <span class="kw-2">&amp;</span>str, value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;raw_set_data_for&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">raw_append_data_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn </span>raw_append_data_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, key: <span class="kw-2">&amp;</span>str, value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;raw_append_data_for&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">raw_delete_data_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn </span>raw_delete_data_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;raw_delete_data_for&quot;</span>)
     }
 
-    <span class="doccomment">/// Requires to replace the data in the current address</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note:</span>
-    <span class="doccomment">/// The execution lib will allways use the current context address for the update</span>
-    <span class="kw">fn</span> <span class="ident">has_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Requires to replace the data in the current address
+    ///
+    /// Note:
+    /// The execution lib will allways use the current context address for the update
+    </span><span class="kw">fn </span>has_data(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;has_data&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">has_data_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">_key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">fn </span>has_data_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, _key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;has_data_for&quot;</span>)
     }
 
-    <span class="comment">// Hash data</span>
-    <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="comment">// Hash data
+    </span><span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;hash&quot;</span>)
     }
 
-    <span class="comment">// Verify signature</span>
-    <span class="kw">fn</span> <span class="ident">signature_verify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">signature</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">public_key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="comment">// Verify signature
+    </span><span class="kw">fn </span>signature_verify(<span class="kw-2">&amp;</span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8], signature: <span class="kw-2">&amp;</span>str, public_key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;signature_verify&quot;</span>)
     }
 
-    <span class="comment">// Convert a public key to an address</span>
-    <span class="kw">fn</span> <span class="ident">address_from_public_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">public_key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="comment">// Convert a public key to an address
+    </span><span class="kw">fn </span>address_from_public_key(<span class="kw-2">&amp;</span><span class="self">self</span>, public_key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;address_from_public_key&quot;</span>)
     }
 
-    <span class="doccomment">/// Returns the current time (millisecond unix timestamp)</span>
-    <span class="kw">fn</span> <span class="ident">get_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Returns the current time (millisecond unix timestamp)
+    </span><span class="kw">fn </span>get_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;get_time&quot;</span>)
     }
 
-    <span class="doccomment">/// Returns a random number (unsafe: can be predicted and manipulated)</span>
-    <span class="kw">fn</span> <span class="ident">unsafe_random</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Returns a random number (unsafe: can be predicted and manipulated)
+    </span><span class="kw">fn </span>unsafe_random(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;i64&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;unsafe_random&quot;</span>)
     }
 
-    <span class="doccomment">/// Returns the period of the current execution slot</span>
-    <span class="kw">fn</span> <span class="ident">get_current_period</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Returns the period of the current execution slot
+    </span><span class="kw">fn </span>get_current_period(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;get_current_period&quot;</span>)
     }
 
-    <span class="doccomment">/// Returns the thread of the current execution slot</span>
-    <span class="kw">fn</span> <span class="ident">get_current_thread</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Returns the thread of the current execution slot
+    </span><span class="kw">fn </span>get_current_thread(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u8&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;get_current_thread&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">module_called</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn </span>module_called(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;module_called&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">exit_success</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn </span>exit_success(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;exit_success&quot;</span>)
     }
 
-    <span class="doccomment">/// Expect to return a list of owned addresses</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Required on smart-contract execute the imported function</span>
-    <span class="doccomment">/// `assembly_script_get_owned_addresses`</span>
-    <span class="kw">fn</span> <span class="ident">get_owned_addresses</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Expect to return a list of owned addresses
+    ///
+    /// Required on smart-contract execute the imported function
+    /// `assembly_script_get_owned_addresses`
+    </span><span class="kw">fn </span>get_owned_addresses(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;String&gt;&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;get_owned_addresses&quot;</span>)
     }
 
-    <span class="doccomment">/// Expect to return a list of addresses in the call stack</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Required on smart-contract execute the imported function</span>
-    <span class="doccomment">/// `assembly_script_get_call_stack`</span>
-    <span class="kw">fn</span> <span class="ident">get_call_stack</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Expect to return a list of addresses in the call stack
+    ///
+    /// Required on smart-contract execute the imported function
+    /// `assembly_script_get_call_stack`
+    </span><span class="kw">fn </span>get_call_stack(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;String&gt;&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;get_call_stack&quot;</span>)
     }
 
-    <span class="comment">// TODO should be a SCEvent</span>
-    <span class="kw">fn</span> <span class="ident">generate_event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_event</span>: <span class="ident">String</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="comment">// TODO should be a SCEvent
+    </span><span class="kw">fn </span>generate_event(<span class="kw-2">&amp;</span><span class="self">self</span>, _event: String) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;generate_event&quot;</span>)
     }
 
-    <span class="doccomment">/// Sends an async message</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Arguments</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// * `target_address` - Destination address hash in format string</span>
-    <span class="doccomment">/// * `target_handler` - Name of the message handling function</span>
-    <span class="doccomment">/// * `validity_start` - Tuple containing the period and thread of the validity start slot</span>
-    <span class="doccomment">/// * `validity_end` - Tuple containing the period and thread of the validity end slot</span>
-    <span class="doccomment">/// * `max_gas` - Maximum gas for the message execution</span>
-    <span class="doccomment">/// * `gas_price` - Price of one gas unit</span>
-    <span class="doccomment">/// * `coins` - Coins of the sender</span>
-    <span class="doccomment">/// * `data` - Message data</span>
-    <span class="doccomment">///</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_arguments</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">send_message</span>(
+    <span class="doccomment">/// Sends an async message
+    ///
+    /// # Arguments
+    ///
+    /// * `target_address` - Destination address hash in format string
+    /// * `target_handler` - Name of the message handling function
+    /// * `validity_start` - Tuple containing the period and thread of the validity start slot
+    /// * `validity_end` - Tuple containing the period and thread of the validity end slot
+    /// * `max_gas` - Maximum gas for the message execution
+    /// * `gas_price` - Price of one gas unit
+    /// * `coins` - Coins of the sender
+    /// * `data` - Message data
+    ///
+    </span><span class="attribute">#[allow(clippy::too_many_arguments)]
+    </span><span class="kw">fn </span>send_message(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">target_address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">target_handler</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">validity_start</span>: (<span class="ident">u64</span>, <span class="ident">u8</span>),
-        <span class="ident">validity_end</span>: (<span class="ident">u64</span>, <span class="ident">u8</span>),
-        <span class="ident">max_gas</span>: <span class="ident">u64</span>,
-        <span class="ident">gas_price</span>: <span class="ident">u64</span>,
-        <span class="ident">raw_coins</span>: <span class="ident">u64</span>,
-        <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        target_address: <span class="kw-2">&amp;</span>str,
+        target_handler: <span class="kw-2">&amp;</span>str,
+        validity_start: (u64, u8),
+        validity_end: (u64, u8),
+        max_gas: u64,
+        gas_price: u64,
+        raw_coins: u64,
+        data: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;send_message&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="kw">dyn</span> <span class="ident">Interface</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_data</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">DeserializeOwned</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">serde_json::from_str</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">std::str::from_utf8</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">raw_get_data</span>(<span class="ident">key</span>)<span class="question-mark">?</span>,
+<span class="kw">impl dyn </span>Interface {
+    <span class="kw">pub fn </span>get_data&lt;T: DeserializeOwned&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
+        <span class="prelude-val">Ok</span>(serde_json::from_str::&lt;T&gt;(std::str::from_utf8(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.raw_get_data(key)<span class="question-mark">?</span>,
         )<span class="question-mark">?</span>)<span class="question-mark">?</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_data</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Serialize</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">raw_set_data</span>(<span class="ident">key</span>, <span class="ident">serde_json::to_string</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>)<span class="question-mark">?</span>.<span class="ident">as_bytes</span>())
+    <span class="kw">pub fn </span>set_data&lt;T: Serialize&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.raw_set_data(key, serde_json::to_string::&lt;T&gt;(value)<span class="question-mark">?</span>.as_bytes())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_data_for</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">DeserializeOwned</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">serde_json::from_str</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">std::str::from_utf8</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">raw_get_data_for</span>(<span class="ident">address</span>, <span class="ident">key</span>)<span class="question-mark">?</span>,
+    <span class="kw">pub fn </span>get_data_for&lt;T: DeserializeOwned&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
+        <span class="prelude-val">Ok</span>(serde_json::from_str::&lt;T&gt;(std::str::from_utf8(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.raw_get_data_for(address, key)<span class="question-mark">?</span>,
         )<span class="question-mark">?</span>)<span class="question-mark">?</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_data_for</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Serialize</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">raw_set_data_for</span>(<span class="ident">address</span>, <span class="ident">key</span>, <span class="ident">serde_json::to_string</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>)<span class="question-mark">?</span>.<span class="ident">as_bytes</span>())
+    <span class="kw">pub fn </span>set_data_for&lt;T: Serialize&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, key: <span class="kw-2">&amp;</span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.raw_set_data_for(address, key, serde_json::to_string::&lt;T&gt;(value)<span class="question-mark">?</span>.as_bytes())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="massa_sc_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (d68e7ebc3 2022-07-20)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="massa_sc_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (b44197abb 2022-09-05)" ></div></body></html>
