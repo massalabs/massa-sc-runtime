@@ -115,7 +115,7 @@ pub(crate) fn assembly_script_get_remaining_gas(env: &ASEnv) -> ABIResult<i64> {
 }
 
 /// Create an instance of VM from a module with a
-/// given intefrace, an operation number limit and a webassembly module
+/// given interface, an operation number limit and a webassembly module
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
 pub(crate) fn assembly_script_print(env: &ASEnv, arg: i32) -> ABIResult<()> {
@@ -192,7 +192,7 @@ pub(crate) fn assembly_script_append_data(env: &ASEnv, key: i32, value: i32) -> 
     Ok(())
 }
 
-/// gets a key-indexed data entry in the datastore, failing if non-existant
+/// gets a key-indexed data entry in the datastore, failing if non-existent
 pub(crate) fn assembly_script_get_data(env: &ASEnv, key: i32) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_data_const())?;
     let memory = get_memory!(env);
@@ -572,10 +572,10 @@ fn pointer_from_utf8(env: &ASEnv, value: &[u8]) -> ABIResult<StringPtr> {
     }
 }
 
-/// Tooling that take read a String in memory and substract remaining gas
+/// Tooling that take read a String in memory and subtract remaining gas
 /// with a multiplicator (String.len * mult).
 ///
-/// Sub funtion of `assembly_script_set_data_for`, `assembly_script_set_data`
+/// Sub function of `assembly_script_set_data_for`, `assembly_script_set_data`
 /// and `assembly_script_create_sc`
 ///
 /// Return the string value in the StringPtr

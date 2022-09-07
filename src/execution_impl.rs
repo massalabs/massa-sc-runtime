@@ -42,7 +42,7 @@ pub(crate) fn exec(
     }
 }
 
-/// Library Input, take a `module` wasm builded with the massa environment,
+/// Library Input, take a `module` wasm built with the massa environment,
 /// must have a main function inside written in AssemblyScript:
 ///
 /// ```js
@@ -63,7 +63,7 @@ pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Resul
     }
 }
 
-/// Library Input, take a `module` wasm builded with the massa environment,
+/// Library Input, take a `module` wasm built with the massa environment,
 /// run a function of that module with the given parameter:
 ///
 /// ```js

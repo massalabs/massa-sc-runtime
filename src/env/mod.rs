@@ -82,7 +82,7 @@ pub(crate) fn sub_remaining_gas<T: WasmerEnv>(env: &impl MassaEnv<T>, gas: u64) 
     Ok(())
 }
 
-/// Try to substract remaining gas computing the gas with a*b and ceiling
+/// Try to subtract remaining gas computing the gas with a*b and ceiling
 /// the result.
 pub(crate) fn sub_remaining_gas_with_mult<T: WasmerEnv>(
     env: &impl MassaEnv<T>,
