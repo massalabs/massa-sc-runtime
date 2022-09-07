@@ -64,7 +64,7 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
     let store = Store::new_with_tunables(&engine, tunables);
 
     Ok(Instance::new(
-        &Module::new(&store, &module.get_bytecode())?,
+        &Module::new(&store, module.get_bytecode())?,
         &module.resolver(&store),
     )?)
 }
