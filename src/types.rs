@@ -42,7 +42,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("get_module")
     }
 
-    /// Get the SCE ledger balance for the crrent address.
+    /// Get the SCE ledger balance for the current address.
     /// Defaults to zero if the address is not found.
     fn get_balance(&self) -> Result<u64> {
         unimplemented!("get_balance")
@@ -131,7 +131,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Requires to replace the data in the current address
     ///
     /// Note:
-    /// The execution lib will allways use the current context address for the update
+    /// The execution lib will always use the current context address for the update
     fn has_data(&self, key: &str) -> Result<bool> {
         unimplemented!("has_data")
     }

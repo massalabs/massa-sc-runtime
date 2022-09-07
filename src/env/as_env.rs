@@ -65,7 +65,7 @@ impl WasmerEnv for ASEnv {
 /// had pop up, an error message and more stacktrace information as line and column
 ///
 /// This function is automatically exported by AssemblyScript on build and allow assemblyscript
-/// to log what appened when a smartcontract crashed inside the instance.
+/// to log what happened when a smartcontract crashed inside the instance.
 ///
 /// Because AssemblyScript require this to be imported:
 /// - To create an instance, this function has to be in the ImportObject in the "env" namespace.
