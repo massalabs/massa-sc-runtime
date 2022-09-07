@@ -730,7 +730,7 @@
 }
 
 <span class="doccomment">/// Create an instance of VM from a module with a
-/// given intefrace, an operation number limit and a webassembly module
+/// given interface, an operation number limit and a webassembly module
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_print(env: <span class="kw-2">&amp;</span>ASEnv, arg: i32) -&gt; ABIResult&lt;()&gt; {
@@ -807,7 +807,7 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// gets a key-indexed data entry in the datastore, failing if non-existant
+<span class="doccomment">/// gets a key-indexed data entry in the datastore, failing if non-existent
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_data(env: <span class="kw-2">&amp;</span>ASEnv, key: i32) -&gt; ABIResult&lt;i32&gt; {
     sub_remaining_gas(env, settings::metering_get_data_const())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
@@ -1187,10 +1187,10 @@
     }
 }
 
-<span class="doccomment">/// Tooling that take read a String in memory and substract remaining gas
+<span class="doccomment">/// Tooling that take read a String in memory and subtract remaining gas
 /// with a multiplicator (String.len * mult).
 ///
-/// Sub funtion of `assembly_script_set_data_for`, `assembly_script_set_data`
+/// Sub function of `assembly_script_set_data_for`, `assembly_script_set_data`
 /// and `assembly_script_create_sc`
 ///
 /// Return the string value in the StringPtr
@@ -1229,4 +1229,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="massa_sc_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (b44197abb 2022-09-05)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="massa_sc_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (78a891d36 2022-09-06)" ></div></body></html>
