@@ -148,7 +148,7 @@
     <span class="kw">let </span>store = Store::new_with_tunables(<span class="kw-2">&amp;</span>engine, tunables);
 
     <span class="prelude-val">Ok</span>(Instance::new(
-        <span class="kw-2">&amp;</span>Module::new(<span class="kw-2">&amp;</span>store, <span class="kw-2">&amp;</span>module.get_bytecode())<span class="question-mark">?</span>,
+        <span class="kw-2">&amp;</span>Module::new(<span class="kw-2">&amp;</span>store, module.get_bytecode())<span class="question-mark">?</span>,
         <span class="kw-2">&amp;</span>module.resolver(<span class="kw-2">&amp;</span>store),
     )<span class="question-mark">?</span>)
 }
