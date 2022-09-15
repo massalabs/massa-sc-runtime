@@ -133,24 +133,8 @@ pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
     match env.get_interface().get_op_keys() {
         Err(err) => abi_bail!(err),
         Ok(k) => {
-
-            // Flatten a Vec<Vec<u8>> to a Vec<u8> with the format:
-            // L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
-            // FIXME: no unwrap + unit tests
-            // FIXME: handle case where i.len() as u8 fail
-            let k_f: Vec<u8> = u32::try_from(k.len())
-                .unwrap()
-                .to_le_bytes() // use little endian byte ordering (wasm default)
-                .into_iter()
-                .chain(
-                    k.iter()
-                        .map(|i| std::iter::once(i.len() as u8)
-                            .chain(i.iter().cloned())
-                        )
-                        .flatten(),
-                )
-                .collect();
-
+            let k_f = ser_bytearray_vec(&k,
+                                        settings::max_op_datastore_entry_count())?;
             let a = pointer_from_bytearray(env, &k_f)?.offset();
             Ok(a as i32)
         },
@@ -651,4 +635,77 @@ fn alloc_string_array(env: &ASEnv, vec: &[String]) -> ABIResult<i32> {
         Ok(ptr) => Ok(ptr.offset() as i32),
         Err(err) => abi_bail!(err),
     }
+}
+
+fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_entry: usize) -> ABIResult<Vec<u8>> {
+
+    // Flatten a Vec<Vec<u8>> to a Vec<u8> with the format:
+    // L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
+
+    if data.len() == 0 {
+        return Ok(Vec::new())
+    }
+
+    if data.len() > max_entry || data.len() > u32::MAX as usize {
+        abi_bail!("Too much entry in datastore");
+    }
+
+    if !data.iter().all(|v| u8::try_from(v.len()).is_ok()) {
+        abi_bail!("Unable to serialize some keys with too much entry")
+    }
+
+    let iter_1 = u32::try_from(data.len())
+        .unwrap() // safe to unwrap as we previously test against k.len()
+        .to_le_bytes() // use little endian byte ordering (wasm default)
+        .into_iter();
+
+    let iter_2 = data
+        .iter()
+        .flat_map(|v|
+            std::iter::once(v.len() as u8)
+                .chain(v.iter().cloned())
+        );
+
+    Ok(iter_1.chain(iter_2).collect::<Vec<u8>>())
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::execution::as_abi::ser_bytearray_vec;
+
+    #[test]
+    fn test_ser() {
+
+        let vb: Vec<Vec<u8>> = vec![
+            vec![1, 2, 3],
+            vec![11],
+        ];
+
+        let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
+        assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 1, 11]);
+    }
+
+    #[test]
+    fn test_ser_edge_cases() {
+
+        // TODO: should we support theses edge cases or bail?
+
+        let vb: Vec<Vec<u8>> = vec![
+            vec![1, 2, 3],
+            vec![],
+        ];
+
+        let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
+        assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 0]);
+
+        let vb_ser = ser_bytearray_vec(&vb, 1);
+        assert!(vb_ser.is_err());
+
+        let vb: Vec<Vec<u8>> = vec![];
+        let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
+        let empty_vec: Vec<u8> = vec![];
+        assert_eq!(vb_ser, empty_vec);
+    }
+
 }

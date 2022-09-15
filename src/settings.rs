@@ -81,6 +81,8 @@ struct Metering {
     pub set_bytecode_const: u64,
     #[cornetto(mut, 100)]
     pub initial_cost: u64,
+    #[cornetto(const, 128)]
+    pub max_op_datastore_entry_count: usize,
 }
 
 pub(crate) fn metering_call() -> u64 {
@@ -229,6 +231,10 @@ pub(crate) fn metering_set_bytecode_const() -> u64 {
 
 pub(crate) fn metering_initial_cost() -> u64 {
     METERING.initial_cost()
+}
+
+pub(crate) fn max_op_datastore_entry_count() -> usize {
+    METERING.max_op_datastore_entry_count()
 }
 
 #[cfg(test)]
