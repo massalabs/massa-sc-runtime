@@ -637,16 +637,17 @@ fn alloc_string_array(env: &ASEnv, vec: &[String]) -> ABIResult<i32> {
     }
 }
 
-fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_entry: usize) -> ABIResult<Vec<u8>> {
 
-    // Flatten a Vec<Vec<u8>> to a Vec<u8> with the format:
-    // L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
+/// Flatten a Vec<Vec<u8>> to a Vec<u8> with the format:
+/// L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
+fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_entry: usize) -> ABIResult<Vec<u8>> {
 
     if data.len() == 0 {
         return Ok(Vec::new())
     }
 
-    if data.len() > max_entry || data.len() > u32::MAX as usize {
+    // u16::MAX is still ok; u32::MAX -> panic!
+    if data.len() > max_entry || data.len() > u16::MAX as usize {
         abi_bail!("Too much entry in datastore");
     }
 
@@ -679,11 +680,11 @@ mod tests {
 
         let vb: Vec<Vec<u8>> = vec![
             vec![1, 2, 3],
-            vec![11],
+            vec![255],
         ];
 
         let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
-        assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 1, 11]);
+        assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 1, 255]);
     }
 
     #[test]
@@ -706,6 +707,23 @@ mod tests {
         let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
         let empty_vec: Vec<u8> = vec![];
         assert_eq!(vb_ser, empty_vec);
+
+        // A really big vec to serialize
+        let vb: Vec<Vec<u8>> = (0..=u8::MAX)
+            .cycle()
+            .take(u16::MAX as usize)
+            .map(|i| vec![i])
+            .collect();
+        assert_eq!(vb.len(), u16::MAX as usize);
+
+        let vb_ser = ser_bytearray_vec(&vb, u32::MAX as usize).unwrap();
+        assert_eq!(vb_ser[0..4], [255, 255, 0, 0]);
+        assert_eq!(vb_ser[4], 1);
+        assert_eq!(vb_ser[4+1], 0);
+        assert_eq!(vb_ser[4+2], 1);
+        assert_eq!(vb_ser[4+3], 1);
+        assert_eq!(vb_ser[vb_ser.len() - 2], 1);
+        assert_eq!(vb_ser[vb_ser.len() - 1], 254);
     }
 
 }
