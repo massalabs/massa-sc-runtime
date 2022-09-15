@@ -42,17 +42,21 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
     // Canonicalize NaN.
     compiler_config.canonicalize_nans(true);
 
-    // Turning-off in wasmer feature flags:
-    let mut features = Features::new();
-
-    // Disable threads.
-    features.threads(false);
-
-    // Turn-off experimental SIMD feature.
-    features.simd(false);
-
-    // Turn-off multivalue, because it is not supported for Singlepass(and it's true by default).
-    features.multi_value(false);
+    // Turning-off in wasmer feature flags
+    const FEATURES: Features = Features {
+        threads: false, // disable threads
+        reference_types: false,
+        simd: false, // turn off experimental SIMD feature
+        bulk_memory: false,
+        multi_value: false, // turn off multi value, not support for SinglePass (default: true)
+        tail_call: false,   // experimental
+        module_linking: false, // experimental
+        multi_memory: false, // experimental
+        memory64: false,    // experimental
+        exceptions: false,
+        relaxed_simd: false, // experimental
+        extended_const: false,
+    };
 
     // Add metering middleware
     let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
@@ -60,7 +64,7 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
 
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
-    let engine = Universal::new(compiler_config).features(features).engine();
+    let engine = Universal::new(compiler_config).features(FEATURES).engine();
     let store = Store::new_with_tunables(&engine, tunables);
 
     Ok(Instance::new(

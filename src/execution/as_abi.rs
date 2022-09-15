@@ -9,7 +9,7 @@ use crate::env::{
     MassaEnv,
 };
 use crate::settings;
-use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
+use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use wasmer::Memory;
 
 use super::common::{abi_bail, call_module, create_sc, ABIResult};
@@ -125,6 +125,36 @@ pub(crate) fn assembly_script_print(env: &ASEnv, arg: i32) -> ABIResult<()> {
         abi_bail!(err);
     }
     Ok(())
+}
+
+///
+pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
+    // FIXME: gas cost for this func: base cost * key count?
+    match env.get_interface().get_op_keys() {
+        Err(err) => abi_bail!(err),
+        Ok(k) => {
+
+            // Flatten a Vec<Vec<u8>> to a Vec<u8> with the format:
+            // L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
+            // FIXME: no unwrap + unit tests
+            // FIXME: handle case where i.len() as u8 fail
+            let k_f: Vec<u8> = u32::try_from(k.len())
+                .unwrap()
+                .to_le_bytes() // use little endian byte ordering (wasm default)
+                .into_iter()
+                .chain(
+                    k.iter()
+                        .map(|i| std::iter::once(i.len() as u8)
+                            .chain(i.iter().cloned())
+                        )
+                        .flatten(),
+                )
+                .collect();
+
+            let a = pointer_from_bytearray(env, &k_f)?.offset();
+            Ok(a as i32)
+        },
+    }
 }
 
 /// Read a bytecode string, representing the webassembly module binary encoded
@@ -570,6 +600,15 @@ fn pointer_from_utf8(env: &ASEnv, value: &[u8]) -> ABIResult<StringPtr> {
         },
         Err(err) => abi_bail!(err),
     }
+}
+
+/// Tooling, return a BufferPtr allocated from bytes
+fn pointer_from_bytearray(env: &ASEnv, value: &Vec<u8>) -> ABIResult<BufferPtr> {
+    match BufferPtr::alloc(value, env.get_wasm_env()) {
+        Ok(ptr) => Ok(*ptr),
+        Err(e) => abi_bail!(e),
+    }
+
 }
 
 /// Tooling that take read a String in memory and subtract remaining gas
