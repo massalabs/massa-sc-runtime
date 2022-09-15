@@ -141,6 +141,22 @@ pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
     }
 }
 
+pub(crate) fn assembly_script_has_op_key(env: &ASEnv, arg: i32) -> ABIResult<i32> {
+    // FIXME: gas cost for this func?
+    let memory = get_memory!(env);
+    let key = get_buffer(memory, arg)?;
+    match env.get_interface().has_op_key(&key) {
+        Err(err) => abi_bail!(err),
+        Ok(b) => {
+            // https://doc.rust-lang.org/reference/types/boolean.html
+            // 'true' is explicitly defined as: 0x01 while 'false' is: 0x00
+            let b_vec: Vec<u8> = vec![b as u8];
+            let a = pointer_from_bytearray(env, &b_vec)?.offset();
+            Ok(a as i32)
+        },
+    }
+}
+
 /// Read a bytecode string, representing the webassembly module binary encoded
 /// with in base64.
 pub(crate) fn assembly_script_create_sc(env: &ASEnv, bytecode: i32) -> ABIResult<i32> {
@@ -592,7 +608,6 @@ fn pointer_from_bytearray(env: &ASEnv, value: &Vec<u8>) -> ABIResult<BufferPtr> 
         Ok(ptr) => Ok(*ptr),
         Err(e) => abi_bail!(e),
     }
-
 }
 
 /// Tooling that take read a String in memory and subtract remaining gas
@@ -637,6 +652,13 @@ fn alloc_string_array(env: &ASEnv, vec: &[String]) -> ABIResult<i32> {
     }
 }
 
+/// Tooling, return a buffer (Vec<u8>) from a given offset
+fn get_buffer(memory: &Memory, ptr: i32) -> ABIResult<Vec<u8>> {
+    match BufferPtr::new(ptr as u32).read(memory) {
+        Ok(buffer) => Ok(buffer),
+        Err(err) => abi_bail!(err),
+    }
+}
 
 /// Flatten a Vec<Vec<u8>> to a Vec<u8> with the format:
 /// L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
@@ -716,7 +738,7 @@ mod tests {
             .collect();
         assert_eq!(vb.len(), u16::MAX as usize);
 
-        let vb_ser = ser_bytearray_vec(&vb, u32::MAX as usize).unwrap();
+        let vb_ser = ser_bytearray_vec(&vb, u16::MAX as usize).unwrap();
         assert_eq!(vb_ser[0..4], [255, 255, 0, 0]);
         assert_eq!(vb_ser[4], 1);
         assert_eq!(vb_ser[4+1], 0);
