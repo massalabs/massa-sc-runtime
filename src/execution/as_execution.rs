@@ -118,6 +118,7 @@ impl MassaModule for ASModule {
                 "assembly_script_set_bytecode_for" => Function::new_native_with_env(store, self.env.clone(), assembly_script_set_bytecode_for),
                 "assembly_script_get_op_keys" => Function::new_native_with_env(store, self.env.clone(), assembly_script_get_op_keys),
                 "assembly_script_has_op_key" => Function::new_native_with_env(store, self.env.clone(), assembly_script_has_op_key),
+                "assembly_script_get_op_data" => Function::new_native_with_env(store, self.env.clone(), assembly_script_get_op_data),
             },
         }
     }

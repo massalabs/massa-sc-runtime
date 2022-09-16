@@ -157,6 +157,19 @@ pub(crate) fn assembly_script_has_op_key(env: &ASEnv, arg: i32) -> ABIResult<i32
     }
 }
 
+pub(crate) fn assembly_script_get_op_data(env: &ASEnv, arg: i32) -> ABIResult<i32> {
+    // FIXME: gas cost for this func?
+    let memory = get_memory!(env);
+    let key = get_buffer(memory, arg)?;
+    match env.get_interface().get_op_data(&key) {
+        Err(err) => abi_bail!(err),
+        Ok(b) => {
+            let a = pointer_from_bytearray(env, &b)?.offset();
+            Ok(a as i32)
+        },
+    }
+}
+
 /// Read a bytecode string, representing the webassembly module binary encoded
 /// with in base64.
 pub(crate) fn assembly_script_create_sc(env: &ASEnv, bytecode: i32) -> ABIResult<i32> {
