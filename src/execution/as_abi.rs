@@ -687,6 +687,7 @@ fn alloc_string_array(env: &ASEnv, vec: &[String]) -> ABIResult<i32> {
     }
 }
 
+#[allow(dead_code)]
 /// Tooling, return a buffer (Vec<u8>) from a given offset
 fn get_buffer(memory: &Memory, ptr: i32) -> ABIResult<Vec<u8>> {
     match BufferPtr::new(ptr as u32).read(memory) {
