@@ -127,12 +127,14 @@ pub(crate) fn assembly_script_print(env: &ASEnv, arg: i32) -> ABIResult<()> {
     Ok(())
 }
 
-///
+/// Get the operation datastore keys (aka entries)
 pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
-    // FIXME: gas cost for this func: base cost * key count?
     match env.get_interface().get_op_keys() {
         Err(err) => abi_bail!(err),
         Ok(k) => {
+            sub_remaining_gas_with_mult(env,
+                                        k.iter().fold(0, |acc, v_| acc + v_.len()),
+                                        settings::get_op_keys_mult())?;
             let k_f = ser_bytearray_vec(&k,
                                         settings::max_op_datastore_entry_count())?;
             let a = pointer_from_bytearray(env, &k_f)?.offset();
@@ -141,10 +143,10 @@ pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
     }
 }
 
+/// Check if a key is present in operation datastore
 pub(crate) fn assembly_script_has_op_key(env: &ASEnv, arg: i32) -> ABIResult<i32> {
-    // FIXME: gas cost for this func?
     let memory = get_memory!(env);
-    let key = get_buffer(memory, arg)?;
+    let key = read_buffer_and_sub_gas(env, memory, arg, settings::has_op_key_mult())?;
     match env.get_interface().has_op_key(&key) {
         Err(err) => abi_bail!(err),
         Ok(b) => {
@@ -157,10 +159,10 @@ pub(crate) fn assembly_script_has_op_key(env: &ASEnv, arg: i32) -> ABIResult<i32
     }
 }
 
+/// Get the operation datastore value associated to given key
 pub(crate) fn assembly_script_get_op_data(env: &ASEnv, arg: i32) -> ABIResult<i32> {
-    // FIXME: gas cost for this func?
     let memory = get_memory!(env);
-    let key = get_buffer(memory, arg)?;
+    let key = read_buffer_and_sub_gas(env, memory, arg, settings::get_op_data_mult())?;
     match env.get_interface().get_op_data(&key) {
         Err(err) => abi_bail!(err),
         Ok(b) => {
@@ -644,6 +646,26 @@ fn read_string_and_sub_gas(
         Err(err) => abi_bail!(err),
     }
 }
+
+/// Tooling that take read a buffer (Vec<u8>) in memory and subtract remaining gas
+/// with a multiplicator (buffer len * mult).
+///
+/// Return the buffer in the BufferPtr
+fn read_buffer_and_sub_gas(
+    env: &ASEnv,
+    memory: &Memory,
+    offset: i32,
+    mult: usize,
+) -> ABIResult<Vec<u8>> {
+    match BufferPtr::new(offset as u32).read(memory) {
+        Ok(buffer) => {
+            sub_remaining_gas_with_mult(env, buffer.len(), mult)?;
+            Ok(buffer)
+        }
+        Err(err) => abi_bail!(err),
+    }
+}
+
 
 /// Tooling, return a string from a given offset
 fn get_string(memory: &Memory, ptr: i32) -> ABIResult<String> {
