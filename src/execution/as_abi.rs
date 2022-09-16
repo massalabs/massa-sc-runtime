@@ -132,14 +132,15 @@ pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
     match env.get_interface().get_op_keys() {
         Err(err) => abi_bail!(err),
         Ok(k) => {
-            sub_remaining_gas_with_mult(env,
-                                        k.iter().fold(0, |acc, v_| acc + v_.len()),
-                                        settings::get_op_keys_mult())?;
-            let k_f = ser_bytearray_vec(&k,
-                                        settings::max_op_datastore_entry_count())?;
+            sub_remaining_gas_with_mult(
+                env,
+                k.iter().fold(0, |acc, v_| acc + v_.len()),
+                settings::get_op_keys_mult(),
+            )?;
+            let k_f = ser_bytearray_vec(&k, settings::max_op_datastore_entry_count())?;
             let a = pointer_from_bytearray(env, &k_f)?.offset();
             Ok(a as i32)
-        },
+        }
     }
 }
 
@@ -155,7 +156,7 @@ pub(crate) fn assembly_script_has_op_key(env: &ASEnv, arg: i32) -> ABIResult<i32
             let b_vec: Vec<u8> = vec![b as u8];
             let a = pointer_from_bytearray(env, &b_vec)?.offset();
             Ok(a as i32)
-        },
+        }
     }
 }
 
@@ -168,7 +169,7 @@ pub(crate) fn assembly_script_get_op_data(env: &ASEnv, arg: i32) -> ABIResult<i3
         Ok(b) => {
             let a = pointer_from_bytearray(env, &b)?.offset();
             Ok(a as i32)
-        },
+        }
     }
 }
 
@@ -666,7 +667,6 @@ fn read_buffer_and_sub_gas(
     }
 }
 
-
 /// Tooling, return a string from a given offset
 fn get_string(memory: &Memory, ptr: i32) -> ABIResult<String> {
     match StringPtr::new(ptr as u32).read(memory) {
@@ -698,9 +698,8 @@ fn get_buffer(memory: &Memory, ptr: i32) -> ABIResult<Vec<u8>> {
 /// Flatten a Vec<Vec<u8>> to a Vec<u8> with the format:
 /// L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
 fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_entry: usize) -> ABIResult<Vec<u8>> {
-
     if data.len() == 0 {
-        return Ok(Vec::new())
+        return Ok(Vec::new());
     }
 
     // u16::MAX is still ok; u32::MAX -> panic!
@@ -719,14 +718,10 @@ fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_entry: usize) -> ABIResult<Vec<u8>
 
     let iter_2 = data
         .iter()
-        .flat_map(|v|
-            std::iter::once(v.len() as u8)
-                .chain(v.iter().cloned())
-        );
+        .flat_map(|v| std::iter::once(v.len() as u8).chain(v.iter().cloned()));
 
     Ok(iter_1.chain(iter_2).collect::<Vec<u8>>())
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -734,11 +729,7 @@ mod tests {
 
     #[test]
     fn test_ser() {
-
-        let vb: Vec<Vec<u8>> = vec![
-            vec![1, 2, 3],
-            vec![255],
-        ];
+        let vb: Vec<Vec<u8>> = vec![vec![1, 2, 3], vec![255]];
 
         let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
         assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 1, 255]);
@@ -746,13 +737,9 @@ mod tests {
 
     #[test]
     fn test_ser_edge_cases() {
+        // FIXME: should we support theses edge cases or bail?
 
-        // TODO: should we support theses edge cases or bail?
-
-        let vb: Vec<Vec<u8>> = vec![
-            vec![1, 2, 3],
-            vec![],
-        ];
+        let vb: Vec<Vec<u8>> = vec![vec![1, 2, 3], vec![]];
 
         let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
         assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 0]);
@@ -776,11 +763,10 @@ mod tests {
         let vb_ser = ser_bytearray_vec(&vb, u16::MAX as usize).unwrap();
         assert_eq!(vb_ser[0..4], [255, 255, 0, 0]);
         assert_eq!(vb_ser[4], 1);
-        assert_eq!(vb_ser[4+1], 0);
-        assert_eq!(vb_ser[4+2], 1);
-        assert_eq!(vb_ser[4+3], 1);
+        assert_eq!(vb_ser[4 + 1], 0);
+        assert_eq!(vb_ser[4 + 2], 1);
+        assert_eq!(vb_ser[4 + 3], 1);
         assert_eq!(vb_ser[vb_ser.len() - 2], 1);
         assert_eq!(vb_ser[vb_ser.len() - 1], 254);
     }
-
 }

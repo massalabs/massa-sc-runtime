@@ -3,10 +3,11 @@ use crate::{
     run_function, run_main, settings,
     types::{Interface, InterfaceClone},
 };
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 use parking_lot::Mutex;
 use rand::Rng;
 use serial_test::serial;
+use std::collections::BTreeMap;
 use std::sync::Arc;
 pub type Ledger = std::collections::BTreeMap<String, Vec<u8>>; // Bytecode instead of String
 
@@ -89,6 +90,36 @@ impl Interface for TestInterface {
         _data: &[u8],
     ) -> Result<()> {
         Ok(())
+    }
+
+    fn get_op_keys(&self) -> Result<Vec<Vec<u8>>> {
+        Ok(vec![
+            vec![0, 1, 2, 3, 4, 5, 6, 11],
+            vec![127, 128],
+            vec![254, 255],
+        ])
+    }
+
+    fn has_op_key(&self, key: &Vec<u8>) -> Result<bool> {
+        let ds: BTreeMap<Vec<u8>, Vec<u8>> = BTreeMap::from([
+            (vec![0, 1, 2, 3, 4, 5, 6, 11], vec![65]),
+            (vec![127, 128], vec![66, 67]),
+            (vec![254, 255], vec![68, 69]),
+        ]);
+
+        Ok(ds.contains_key(key))
+    }
+
+    fn get_op_data(&self, key: &Vec<u8>) -> Result<Vec<u8>> {
+        let ds: BTreeMap<Vec<u8>, Vec<u8>> = BTreeMap::from([
+            (vec![0, 1, 2, 3, 4, 5, 6, 11], vec![65]),
+            (vec![127, 128], vec![66, 67]),
+            (vec![254, 255], vec![68, 69]),
+        ]);
+
+        ds.get(key)
+            .cloned()
+            .ok_or(anyhow!("Unknown key: {:?}", key))
     }
 }
 
@@ -279,4 +310,17 @@ fn test_run_empty_main() {
     let b = run_main(module, 10_000_000, &*interface).expect("Failed to run empty_main.wasm");
     // Between 2 calls, the metering cost should be the difference
     assert_eq!(a - b, cost);
+}
+
+#[test]
+#[serial]
+fn test_op_fn() {
+    settings::reset_metering();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/op_fn.wasm"
+    ));
+    run_main(module, 10_000_000, &*interface).expect("Failed to run empty_main.wasm");
 }
