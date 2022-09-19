@@ -1,4 +1,4 @@
-import { getOpKeys, hasOpKey, getOpData } from "@massalabs/massa-sc-std";
+import { getOpKeys, hasOpKey, getOpData, print } from "@massalabs/massa-sc-std";
 
 export function main(_args: string): void {
     let keys: Array<StaticArray<u8>> = getOpKeys();
@@ -6,6 +6,7 @@ export function main(_args: string): void {
         let k = keys[i];
         if (hasOpKey(k)) {
             let data = getOpData(k);
+            print(`data: ${data}`);
         }
     }
 }
