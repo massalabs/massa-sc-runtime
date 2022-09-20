@@ -699,17 +699,17 @@ fn get_buffer(memory: &Memory, ptr: i32) -> ABIResult<Vec<u8>> {
 /// Flatten a Vec<Vec<u8>> to a Vec<u8> with the format:
 /// L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
 fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_entry: usize) -> ABIResult<Vec<u8>> {
-    if data.len() == 0 {
+    if data.is_empty() {
         return Ok(Vec::new());
     }
 
     // u16::MAX is still ok; u32::MAX -> panic!
     if data.len() > max_entry || data.len() > u16::MAX as usize {
-        abi_bail!("Too much entry in datastore");
+        abi_bail!("Too many entries in the datastore");
     }
 
     if !data.iter().all(|v| u8::try_from(v.len()).is_ok()) {
-        abi_bail!("Unable to serialize some keys with too much entry")
+        abi_bail!("Some datastore keys are too long")
     }
 
     let iter_1 = u32::try_from(data.len())
