@@ -708,20 +708,23 @@ fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_entry: usize) -> ABIResult<Vec<u8>
         abi_bail!("Too many entries in the datastore");
     }
 
-    if !data.iter().all(|v| u8::try_from(v.len()).is_ok()) {
-        abi_bail!("Some datastore keys are too long")
+    // pre alloc with max capacity
+    let mut buffer = Vec::with_capacity(4 + (data.len() as usize * (1+255)));
+
+    let entry_count = u32::try_from(data.len()).unwrap();
+    buffer.extend_from_slice(&entry_count.to_le_bytes());
+
+    for key in data.iter() {
+        let k_len = match u8::try_from(key.len()) {
+            Ok(l) => l,
+            Err(_) => abi_bail!("Some Datastore key are too long"),
+        };
+        buffer.push(k_len);
+        buffer.extend_from_slice(key);
+
     }
 
-    let iter_1 = u32::try_from(data.len())
-        .unwrap() // safe to unwrap as we previously test against k.len()
-        .to_le_bytes() // use little endian byte ordering (wasm default)
-        .into_iter();
-
-    let iter_2 = data
-        .iter()
-        .flat_map(|v| std::iter::once(v.len() as u8).chain(v.iter().cloned()));
-
-    Ok(iter_1.chain(iter_2).collect::<Vec<u8>>())
+    return Ok(buffer);
 }
 
 #[cfg(test)]
