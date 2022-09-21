@@ -723,7 +723,7 @@ fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_entry: usize) -> ABIResult<Vec<u8>
         buffer.extend_from_slice(key);
     }
 
-    return Ok(buffer);
+    Ok(buffer)
 }
 
 #[cfg(test)]
