@@ -709,7 +709,7 @@ fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_entry: usize) -> ABIResult<Vec<u8>
     }
 
     // pre alloc with max capacity
-    let mut buffer = Vec::with_capacity(4 + (data.len() as usize * (1+255)));
+    let mut buffer = Vec::with_capacity(4 + (data.len() as usize * (1 + 255)));
 
     let entry_count = u32::try_from(data.len()).unwrap();
     buffer.extend_from_slice(&entry_count.to_le_bytes());
@@ -721,7 +721,6 @@ fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_entry: usize) -> ABIResult<Vec<u8>
         };
         buffer.push(k_len);
         buffer.extend_from_slice(key);
-
     }
 
     return Ok(buffer);
