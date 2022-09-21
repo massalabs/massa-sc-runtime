@@ -36,9 +36,9 @@ checksum = "98161a4e3e2184da77bb14f02184cdd111e83bbbcc9979dfee3c44b9a85f5602"
 
 [[package]]
 name = "as-ffi-bindings"
-version = "0.2.6"
+version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63736c02f01b12a313282cd7045ab3b412c6a3ed2a45620019f239e1a9e270a0"
+checksum = "2208edd363e0fa2147e52cf05a9ed66cb56636e91fc92a78ba0a9193b977b049"
 dependencies = [
  "anyhow",
  "wasmer",
