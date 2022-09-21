@@ -698,13 +698,13 @@ fn get_buffer(memory: &Memory, ptr: i32) -> ABIResult<Vec<u8>> {
 
 /// Flatten a Vec<Vec<u8>> to a Vec<u8> with the format:
 /// L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
-fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_entry: usize) -> ABIResult<Vec<u8>> {
+fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_length: usize) -> ABIResult<Vec<u8>> {
     if data.is_empty() {
         return Ok(Vec::new());
     }
 
     // u16::MAX is still ok; u32::MAX -> panic!
-    if data.len() > max_entry || data.len() > u16::MAX as usize {
+    if data.len() > max_length || data.len() > u16::MAX as usize {
         abi_bail!("Too many entries in the datastore");
     }
 
@@ -717,7 +717,7 @@ fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_entry: usize) -> ABIResult<Vec<u8>
     for key in data.iter() {
         let k_len = match u8::try_from(key.len()) {
             Ok(l) => l,
-            Err(_) => abi_bail!("Some Datastore key are too long"),
+            Err(_) => abi_bail!("Some Datastore keys are too long"),
         };
         buffer.push(k_len);
         buffer.extend_from_slice(key);
