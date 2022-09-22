@@ -42,12 +42,16 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
     // Canonicalize NaN.
     compiler_config.canonicalize_nans(true);
 
-    // Turning-off in wasmer feature flags
+    // Default: Turning-off all wasmer feature flags
+    // Exception(s):
+    // * bulk_memory:
+    //   * https://docs.rs/wasmer/latest/wasmer/struct.Features.html: now fully standardized - wasm 2.0
+    //   * See also: https://github.com/paritytech/substrate/issues/12216
     const FEATURES: Features = Features {
         threads: false, // disable threads
         reference_types: false,
         simd: false, // turn off experimental SIMD feature
-        bulk_memory: false,
+        bulk_memory: true,
         multi_value: false, // turn off multi value, not support for SinglePass (default: true)
         tail_call: false,   // experimental
         module_linking: false, // experimental
