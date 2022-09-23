@@ -703,8 +703,7 @@ fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_length: usize) -> ABIResult<Vec<u8
         return Ok(Vec::new());
     }
 
-    // u16::MAX is still ok; u32::MAX -> panic!
-    if data.len() > max_length || data.len() > u16::MAX as usize {
+    if data.len() > max_length {
         abi_bail!("Too many entries in the datastore");
     }
 
