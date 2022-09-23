@@ -51,7 +51,7 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
         threads: false, // disable threads
         reference_types: false,
         simd: false, // turn off experimental SIMD feature
-        bulk_memory: true,
+        bulk_memory: true, // enabled in order to use ArrayBuffer in AS
         multi_value: false, // turn off multi value, not support for SinglePass (default: true)
         tail_call: false,   // experimental
         module_linking: false, // experimental
