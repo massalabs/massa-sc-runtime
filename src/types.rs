@@ -140,6 +140,21 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("has_data_for")
     }
 
+    /// Return operation datastore keys
+    fn get_op_keys(&self) -> Result<Vec<Vec<u8>>> {
+        unimplemented!("get_op_keys")
+    }
+
+    /// Check if key is in operation datastore
+    fn has_op_key(&self, key: &[u8]) -> Result<bool> {
+        unimplemented!("has_op_data")
+    }
+
+    /// Return operation datastore keys
+    fn get_op_data(&self, key: &[u8]) -> Result<Vec<u8>> {
+        unimplemented!("get_op_data")
+    }
+
     // Hash data
     fn hash(&self, data: &[u8]) -> Result<String> {
         unimplemented!("hash")

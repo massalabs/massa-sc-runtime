@@ -9,7 +9,7 @@ lazy_static = "1"
 serde = "1.0"
 serde_json = "1.0"
 wasmer = { version = "2.3.0" }
-as-ffi-bindings = "0.2.5"
+as-ffi-bindings = "0.2.7"
 wasmer-compiler-singlepass = { version = "2.3.0" }
 wasmer-engine-universal = { version = "2.3.0" }
 wasmer-middlewares = { version = "2.3.0" }

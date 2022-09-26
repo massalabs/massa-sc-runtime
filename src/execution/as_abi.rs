@@ -9,7 +9,7 @@ use crate::env::{
     MassaEnv,
 };
 use crate::settings;
-use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
+use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use wasmer::Memory;
 
 use super::common::{abi_bail, call_module, create_sc, ABIResult};
@@ -125,6 +125,52 @@ pub(crate) fn assembly_script_print(env: &ASEnv, arg: i32) -> ABIResult<()> {
         abi_bail!(err);
     }
     Ok(())
+}
+
+/// Get the operation datastore keys (aka entries)
+pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
+    match env.get_interface().get_op_keys() {
+        Err(err) => abi_bail!(err),
+        Ok(k) => {
+            sub_remaining_gas_with_mult(
+                env,
+                k.iter().fold(0, |acc, v_| acc + v_.len()),
+                settings::get_op_keys_mult(),
+            )?;
+            let k_f = ser_bytearray_vec(&k, settings::max_op_datastore_entry_count())?;
+            let a = pointer_from_bytearray(env, &k_f)?.offset();
+            Ok(a as i32)
+        }
+    }
+}
+
+/// Check if a key is present in operation datastore
+pub(crate) fn assembly_script_has_op_key(env: &ASEnv, arg: i32) -> ABIResult<i32> {
+    let memory = get_memory!(env);
+    let key = read_buffer_and_sub_gas(env, memory, arg, settings::has_op_key_mult())?;
+    match env.get_interface().has_op_key(&key) {
+        Err(err) => abi_bail!(err),
+        Ok(b) => {
+            // https://doc.rust-lang.org/reference/types/boolean.html
+            // 'true' is explicitly defined as: 0x01 while 'false' is: 0x00
+            let b_vec: Vec<u8> = vec![b as u8];
+            let a = pointer_from_bytearray(env, &b_vec)?.offset();
+            Ok(a as i32)
+        }
+    }
+}
+
+/// Get the operation datastore value associated to given key
+pub(crate) fn assembly_script_get_op_data(env: &ASEnv, arg: i32) -> ABIResult<i32> {
+    let memory = get_memory!(env);
+    let key = read_buffer_and_sub_gas(env, memory, arg, settings::get_op_data_mult())?;
+    match env.get_interface().get_op_data(&key) {
+        Err(err) => abi_bail!(err),
+        Ok(b) => {
+            let a = pointer_from_bytearray(env, &b)?.offset();
+            Ok(a as i32)
+        }
+    }
 }
 
 /// Read a bytecode string, representing the webassembly module binary encoded
@@ -572,6 +618,14 @@ fn pointer_from_utf8(env: &ASEnv, value: &[u8]) -> ABIResult<StringPtr> {
     }
 }
 
+/// Tooling, return a BufferPtr allocated from bytes
+fn pointer_from_bytearray(env: &ASEnv, value: &Vec<u8>) -> ABIResult<BufferPtr> {
+    match BufferPtr::alloc(value, env.get_wasm_env()) {
+        Ok(ptr) => Ok(*ptr),
+        Err(e) => abi_bail!(e),
+    }
+}
+
 /// Tooling that take read a String in memory and subtract remaining gas
 /// with a multiplicator (String.len * mult).
 ///
@@ -594,6 +648,25 @@ fn read_string_and_sub_gas(
     }
 }
 
+/// Tooling that take read a buffer (Vec<u8>) in memory and subtract remaining gas
+/// with a multiplicator (buffer len * mult).
+///
+/// Return the buffer in the BufferPtr
+fn read_buffer_and_sub_gas(
+    env: &ASEnv,
+    memory: &Memory,
+    offset: i32,
+    mult: usize,
+) -> ABIResult<Vec<u8>> {
+    match BufferPtr::new(offset as u32).read(memory) {
+        Ok(buffer) => {
+            sub_remaining_gas_with_mult(env, buffer.len(), mult)?;
+            Ok(buffer)
+        }
+        Err(err) => abi_bail!(err),
+    }
+}
+
 /// Tooling, return a string from a given offset
 fn get_string(memory: &Memory, ptr: i32) -> ABIResult<String> {
     match StringPtr::new(ptr as u32).read(memory) {
@@ -611,5 +684,91 @@ fn alloc_string_array(env: &ASEnv, vec: &[String]) -> ABIResult<i32> {
     match StringPtr::alloc(&addresses, env.get_wasm_env()) {
         Ok(ptr) => Ok(ptr.offset() as i32),
         Err(err) => abi_bail!(err),
+    }
+}
+
+#[allow(dead_code)]
+/// Tooling, return a buffer (Vec<u8>) from a given offset
+fn get_buffer(memory: &Memory, ptr: i32) -> ABIResult<Vec<u8>> {
+    match BufferPtr::new(ptr as u32).read(memory) {
+        Ok(buffer) => Ok(buffer),
+        Err(err) => abi_bail!(err),
+    }
+}
+
+/// Flatten a Vec<Vec<u8>> to a Vec<u8> with the format:
+/// L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
+fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_length: usize) -> ABIResult<Vec<u8>> {
+    if data.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    if data.len() > max_length {
+        abi_bail!("Too many entries in the datastore");
+    }
+
+    // pre alloc with max capacity
+    let mut buffer = Vec::with_capacity(4 + (data.len() as usize * (1 + 255)));
+
+    let entry_count = u32::try_from(data.len()).unwrap();
+    buffer.extend_from_slice(&entry_count.to_le_bytes());
+
+    for key in data.iter() {
+        let k_len = match u8::try_from(key.len()) {
+            Ok(l) => l,
+            Err(_) => abi_bail!("Some Datastore keys are too long"),
+        };
+        buffer.push(k_len);
+        buffer.extend_from_slice(key);
+    }
+
+    Ok(buffer)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::execution::as_abi::ser_bytearray_vec;
+
+    #[test]
+    fn test_ser() {
+        let vb: Vec<Vec<u8>> = vec![vec![1, 2, 3], vec![255]];
+
+        let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
+        assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 1, 255]);
+    }
+
+    #[test]
+    fn test_ser_edge_cases() {
+        // FIXME: should we support theses edge cases or bail?
+
+        let vb: Vec<Vec<u8>> = vec![vec![1, 2, 3], vec![]];
+
+        let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
+        assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 0]);
+
+        let vb_ser = ser_bytearray_vec(&vb, 1);
+        assert!(vb_ser.is_err());
+
+        let vb: Vec<Vec<u8>> = vec![];
+        let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
+        let empty_vec: Vec<u8> = vec![];
+        assert_eq!(vb_ser, empty_vec);
+
+        // A really big vec to serialize
+        let vb: Vec<Vec<u8>> = (0..=u8::MAX)
+            .cycle()
+            .take(u16::MAX as usize)
+            .map(|i| vec![i])
+            .collect();
+        assert_eq!(vb.len(), u16::MAX as usize);
+
+        let vb_ser = ser_bytearray_vec(&vb, u16::MAX as usize).unwrap();
+        assert_eq!(vb_ser[0..4], [255, 255, 0, 0]);
+        assert_eq!(vb_ser[4], 1);
+        assert_eq!(vb_ser[4 + 1], 0);
+        assert_eq!(vb_ser[4 + 2], 1);
+        assert_eq!(vb_ser[4 + 3], 1);
+        assert_eq!(vb_ser[vb_ser.len() - 2], 1);
+        assert_eq!(vb_ser[vb_ser.len() - 1], 254);
     }
 }
