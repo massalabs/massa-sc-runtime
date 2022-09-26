@@ -120,6 +120,9 @@
 <span id="120">120</span>
 <span id="121">121</span>
 <span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{as_abi::<span class="kw-2">*</span>, MassaModule};
 <span class="kw">use </span><span class="kw">crate</span>::env::{
     assembly_script_abort, get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
@@ -238,9 +241,12 @@
                 <span class="string">&quot;assembly_script_get_current_thread&quot; </span>=&gt; Function::new_native_with_env(store, <span class="self">self</span>.env.clone(), assembly_script_get_current_thread),
                 <span class="string">&quot;assembly_script_set_bytecode&quot; </span>=&gt; Function::new_native_with_env(store, <span class="self">self</span>.env.clone(), assembly_script_set_bytecode),
                 <span class="string">&quot;assembly_script_set_bytecode_for&quot; </span>=&gt; Function::new_native_with_env(store, <span class="self">self</span>.env.clone(), assembly_script_set_bytecode_for),
+                <span class="string">&quot;assembly_script_get_op_keys&quot; </span>=&gt; Function::new_native_with_env(store, <span class="self">self</span>.env.clone(), assembly_script_get_op_keys),
+                <span class="string">&quot;assembly_script_has_op_key&quot; </span>=&gt; Function::new_native_with_env(store, <span class="self">self</span>.env.clone(), assembly_script_has_op_key),
+                <span class="string">&quot;assembly_script_get_op_data&quot; </span>=&gt; Function::new_native_with_env(store, <span class="self">self</span>.env.clone(), assembly_script_get_op_data),
             },
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="massa_sc_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (78a891d36 2022-09-06)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="massa_sc_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (f5193a9fc 2022-09-25)" ></div></body></html>
