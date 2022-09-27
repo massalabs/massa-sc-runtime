@@ -2,7 +2,7 @@ import { getOpKeys, hasOpKey, getOpData, print, generateEvent } from "@massalabs
 
 export function main(_args: string): void {
 
-    let keys: Array<Uint8Array> = getOpKeys();
+    let keys: Array<StaticArray<u8>> = getOpKeys();
     // generateEvent(`keys len: ${keys.length}`);
     if (keys.length != 3) {
         abort!("Expect keys length to be == 2 ano not: ${keys.length}");
