@@ -322,5 +322,5 @@ fn test_op_fn() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/op_fn.wasm"
     ));
-    run_main(module, 10_000_000, &*interface).expect("Failed to run empty_main.wasm");
+    run_main(module, 10_000_000, &*interface).expect("Failed to run op_fn.wasm");
 }
