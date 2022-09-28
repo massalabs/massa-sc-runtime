@@ -28,7 +28,7 @@ impl MassaModule for ASModule {
         let metering_initial_cost = settings::metering_initial_cost();
         let remaining_gas = get_remaining_points(&self.env)?;
         if metering_initial_cost > remaining_gas {
-            bail!("Not enough gas for initial cost")
+            bail!("Not enough gas to launch the virtual machine")
         }
         set_remaining_points(&self.env, remaining_gas - metering_initial_cost)?;
 
