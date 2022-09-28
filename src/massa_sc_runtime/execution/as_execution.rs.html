@@ -123,6 +123,7 @@
 <span id="123">123</span>
 <span id="124">124</span>
 <span id="125">125</span>
+<span id="126">126</span>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{as_abi::<span class="kw-2">*</span>, MassaModule};
 <span class="kw">use </span><span class="kw">crate</span>::env::{
     assembly_script_abort, get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
@@ -149,7 +150,16 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.bytecode
     }
     <span class="kw">fn </span>execution(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Instance, function: <span class="kw-2">&amp;</span>str, param: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Response&gt; {
-        <span class="kw">let </span>param_ptr = <span class="kw-2">*</span>StringPtr::alloc(<span class="kw-2">&amp;</span>param.to_string(), <span class="self">self</span>.env.get_wasm_env())<span class="question-mark">?</span>;
+        <span class="comment">// sub initial metering cost
+        </span><span class="kw">let </span>metering_initial_cost = settings::metering_initial_cost();
+        <span class="kw">let </span>remaining_gas = get_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env)<span class="question-mark">?</span>;
+        <span class="kw">if </span>metering_initial_cost &gt; remaining_gas {
+            <span class="macro">bail!</span>(<span class="string">&quot;Not enough gas to launch the virtual machine&quot;</span>)
+        }
+        set_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env, remaining_gas - metering_initial_cost)<span class="question-mark">?</span>;
+
+        <span class="comment">// Now can exec
+        </span><span class="kw">let </span>param_ptr = <span class="kw-2">*</span>StringPtr::alloc(<span class="kw-2">&amp;</span>param.to_string(), <span class="self">self</span>.env.get_wasm_env())<span class="question-mark">?</span>;
         <span class="kw">let </span>wasm_func = instance.exports.get_function(function)<span class="question-mark">?</span>;
         <span class="kw">let </span>argc = wasm_func.param_arity();
         <span class="kw">let </span>res = <span class="kw">if </span>argc == <span class="number">0 </span>&amp;&amp; function == <span class="kw">crate</span>::settings::MAIN {
@@ -159,14 +169,6 @@
         } <span class="kw">else </span>{
             <span class="macro">bail!</span>(<span class="string">&quot;Unexpected number of parameters in the function called&quot;</span>)
         };
-
-        <span class="comment">// sub initial metering cost
-        </span><span class="kw">let </span>metering_initial_cost = settings::metering_initial_cost();
-        <span class="kw">let </span>remaining_gas = get_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env)<span class="question-mark">?</span>;
-        <span class="kw">if </span>metering_initial_cost &gt; remaining_gas {
-            <span class="macro">bail!</span>(<span class="string">&quot;Not enough gas for initial cost&quot;</span>)
-        }
-        set_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env, remaining_gas - metering_initial_cost)<span class="question-mark">?</span>;
 
         <span class="kw">match </span>res {
             <span class="prelude-val">Ok</span>(value) =&gt; {
