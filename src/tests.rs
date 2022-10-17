@@ -119,7 +119,7 @@ impl Interface for TestInterface {
 
         ds.get(key)
             .cloned()
-            .ok_or(anyhow!("Unknown key: {:?}", key))
+            .ok_or_else(|| anyhow!("Unknown key: {:?}", key))
     }
 }
 

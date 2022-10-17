@@ -81,14 +81,38 @@ pub fn assembly_script_abort(
     let message = message.read(memory);
     let filename = filename.read(memory);
     if message.is_err() || filename.is_err() {
-        abi_bail!("Aborting failed to load message or filename")
+        abi_bail!("aborting failed to load message or filename")
     }
-    eprintln!(
-        "Error: {} at {}:{} col: {}",
+    abi_bail!(format!(
+        "error: {} at {}:{} col: {}",
         message.unwrap(),
         filename.unwrap(),
         line,
         col
-    );
-    Ok(())
+    ));
+}
+
+/// Assembly script builtin export `seed` function
+pub fn assembly_script_seed(env: &ASEnv) -> ABIResult<f64> {
+    match env.interface.unsafe_random() {
+        Ok(ret) => Ok(ret as f64),
+        _ => abi_bail!("failed to get random from interface"),
+    }
+}
+
+/// Assembly script builtin `Date.now()`.
+///
+/// Note for developpers: It seems that AS as updated the output of that function
+/// for the newest versions. Probably the signature will be soon () -> i32
+/// instead of () -> f64.
+pub fn assembly_script_date(env: &ASEnv) -> ABIResult<f64> {
+    let utime = match env.interface.get_time() {
+        Ok(time) => time,
+        _ => abi_bail!("failed to get time from interface"),
+    };
+    let ret = utime as f64;
+    if ret as u64 != utime {
+        abi_bail!("error getting time value") // will happen in a while
+    }
+    Ok(ret)
 }
