@@ -94,8 +94,8 @@ pub fn assembly_script_abort(
 
 /// Assembly script builtin export `seed` function
 pub fn assembly_script_seed(env: &ASEnv) -> ABIResult<f64> {
-    match env.interface.unsafe_random() {
-        Ok(ret) => Ok(ret as f64),
+    match env.interface.unsafe_random_f64() {
+        Ok(ret) => Ok(ret),
         _ => abi_bail!("failed to get random from interface"),
     }
 }
@@ -103,7 +103,7 @@ pub fn assembly_script_seed(env: &ASEnv) -> ABIResult<f64> {
 /// Assembly script builtin `Date.now()`.
 ///
 /// Note for developpers: It seems that AS as updated the output of that function
-/// for the newest versions. Probably the signature will be soon () -> i32
+/// for the newest versions. Probably the signature will be soon () -> i64
 /// instead of () -> f64.
 pub fn assembly_script_date(env: &ASEnv) -> ABIResult<f64> {
     let utime = match env.interface.get_time() {
