@@ -113,3 +113,20 @@ pub fn assembly_script_date(env: &ASEnv) -> ABIResult<f64> {
     let ret = utime as f64;
     Ok(ret)
 }
+
+/// Assembly script builtin export `seed` function
+#[allow(clippy::too_many_arguments)]
+pub fn assembly_script_trace(
+    env: &ASEnv,
+    message: StringPtr,
+    n: i32,
+    a0: f64,
+    a1: f64,
+    a2: f64,
+    a3: f64,
+    a4: f64,
+) -> ABIResult<()> {
+    let memory = get_memory!(env);
+    let message = message.read(memory);
+    abi_bail!("WIP")
+}
