@@ -111,8 +111,5 @@ pub fn assembly_script_date(env: &ASEnv) -> ABIResult<f64> {
         _ => abi_bail!("failed to get time from interface"),
     };
     let ret = utime as f64;
-    if ret as u64 != utime {
-        abi_bail!("error getting time value") // will happen in a while
-    }
     Ok(ret)
 }

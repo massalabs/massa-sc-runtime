@@ -91,6 +91,6 @@ pub(crate) fn sub_remaining_gas_with_mult<T: WasmerEnv>(
 ) -> ABIResult<()> {
     match a.checked_mul(b) {
         Some(gas) => sub_remaining_gas(env, gas as u64),
-        None => abi_bail!(format!("Multiplication overflow {} {}", a, b)),
+        None => abi_bail!(format!("Multiplication overflow {a} {b}")),
     }
 }
