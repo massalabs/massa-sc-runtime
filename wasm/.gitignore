@@ -11,3 +11,4 @@ build/*
 !build/receive_message.wasm
 !build/my_struct.wasm
 !build/my_struct_caller.wasm
+!build/use_builtins.wasm

@@ -348,6 +348,7 @@ fn test_builtins() {
     ));
     match run_main(module, 10_000_000, &*interface) {
         Err(e) => {
+            println!("Error: {}", e);
             assert!(e
                 .to_string()
                 .starts_with("RuntimeError: error: abord with date and rnd at use_builtins.ts"));
