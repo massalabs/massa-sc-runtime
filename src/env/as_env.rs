@@ -1,8 +1,9 @@
 //! Extends the env of wasmer-as
 
 use crate::{
-    env::get_memory,
+    env::{get_memory, sub_remaining_gas},
     execution::{abi_bail, ABIResult},
+    settings,
     types::Interface,
 };
 use anyhow::Result;
@@ -81,14 +82,37 @@ pub fn assembly_script_abort(
     let message = message.read(memory);
     let filename = filename.read(memory);
     if message.is_err() || filename.is_err() {
-        abi_bail!("Aborting failed to load message or filename")
+        abi_bail!("aborting failed to load message or filename")
     }
-    eprintln!(
-        "Error: {} at {}:{} col: {}",
+    abi_bail!(format!(
+        "error: {} at {}:{} col: {}",
         message.unwrap(),
         filename.unwrap(),
         line,
         col
-    );
-    Ok(())
+    ));
+}
+
+/// Assembly script builtin export `seed` function
+pub fn assembly_script_seed(env: &ASEnv) -> ABIResult<f64> {
+    sub_remaining_gas(env, settings::metering_unsafe_random())?;
+    match env.interface.unsafe_random_f64() {
+        Ok(ret) => Ok(ret),
+        _ => abi_bail!("failed to get random from interface"),
+    }
+}
+
+/// Assembly script builtin `Date.now()`.
+///
+/// Note for developpers: It seems that AS as updated the output of that function
+/// for the newest versions. Probably the signature will be soon () -> i64
+/// instead of () -> f64.
+pub fn assembly_script_date(env: &ASEnv) -> ABIResult<f64> {
+    sub_remaining_gas(env, settings::metering_get_time())?;
+    let utime = match env.interface.get_time() {
+        Ok(time) => time,
+        _ => abi_bail!("failed to get time from interface"),
+    };
+    let ret = utime as f64;
+    Ok(ret)
 }
