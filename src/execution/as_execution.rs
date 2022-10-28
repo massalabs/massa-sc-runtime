@@ -1,7 +1,7 @@
 use super::{as_abi::*, MassaModule};
 use crate::env::{
-    assembly_script_abort, assembly_script_date, assembly_script_seed,
-    get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
+    assembly_script_abort, assembly_script_date, assembly_script_seed, get_remaining_points,
+    set_remaining_points, ASEnv, MassaEnv,
 };
 use crate::types::Response;
 use crate::{settings, Interface};
