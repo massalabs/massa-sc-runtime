@@ -53,7 +53,6 @@ impl Interface for TestInterface {
     }
 
     fn print(&self, message: &str) -> Result<()> {
-        println!("{}", message);
         self.0
             .lock()
             .insert("print".into(), message.as_bytes().to_vec());
@@ -129,7 +128,7 @@ impl Interface for TestInterface {
     }
 
     fn get_time(&self) -> Result<u64> {
-        Ok(0)
+        Ok(1580515200000)
     }
 }
 
@@ -335,7 +334,7 @@ fn test_op_fn() {
     run_main(module, 10_000_000, &*interface).expect("Failed to run op_fn.wasm");
 }
 
-/// Test seed, now and abort
+/// Test seed, now, abort and trace
 #[test]
 #[serial]
 fn test_builtins() {
@@ -346,12 +345,55 @@ fn test_builtins() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/use_builtins.wasm"
     ));
+    let exp_err = "RuntimeError:";
+
     match run_main(module, 10_000_000, &*interface) {
         Err(e) => {
-            assert!(e
-                .to_string()
-                .starts_with("RuntimeError: error: abord with date and rnd at use_builtins.ts"));
+            assert_eq!(
+                "Sat Feb 01 2020 00:00:00",
+                String::from_utf8(interface.raw_get_data("").expect("unexpected fail")).unwrap()
+            );
+            let err = e.to_string();
+            assert!(err.starts_with(&format!("{exp_err} abort main, use_builtins.ts")));
         }
-        _ => panic!("Failed to run use_builtins.wasm"),
+        _ => panic!("main was expected to fail"),
+    }
+
+    run_function(module, 10_000_000, "use_trace_1", "", &*interface)
+        .expect("success expected for use_trace_1");
+    assert_eq!(
+        "hello world",
+        String::from_utf8(interface.raw_get_data("").expect("unexpected fail")).unwrap()
+    );
+
+    run_function(module, 10_000_000, "use_trace_2", "", &*interface)
+        .expect("success expected for use_trace_2");
+    assert_eq!(
+        "hello world, 0.1, 0.2, 0.3, 0.4, 0.5",
+        String::from_utf8(interface.raw_get_data("").expect("unexpected fail")).unwrap()
+    );
+
+    match run_function(module, 10_000_000, "abort_1", "", &*interface) {
+        Err(e) => {
+            let err = e.to_string();
+            assert!(err.starts_with(&format!("{exp_err} abort 1")));
+        }
+        _ => panic!("abort 1 was expected to fail"),
+    }
+
+    match run_function(module, 10_000_000, "abort_2", "", &*interface) {
+        Err(e) => {
+            let err = e.to_string();
+            assert!(err.starts_with(&format!("{exp_err} abort 2, blop, line 2")));
+        }
+        _ => panic!("abort 2 was expected to fail"),
+    }
+
+    match run_function(module, 10_000_000, "abort_3", "", &*interface) {
+        Err(e) => {
+            let err = e.to_string();
+            assert!(err.starts_with(&format!("{exp_err} abort 3, blop, line 2, col 3")));
+        }
+        _ => panic!("abort 3 was expected to fail"),
     }
 }

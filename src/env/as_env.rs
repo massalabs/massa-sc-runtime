@@ -80,16 +80,20 @@ pub fn assembly_script_abort(
     let memory = get_memory!(env);
     let message = message.read(memory);
     let filename = filename.read(memory);
-    if message.is_err() || filename.is_err() {
-        abi_bail!("aborting failed to load message or filename")
+    if message.is_err() {
+        abi_bail!("abort: failed to load message")
     }
-    abi_bail!(format!(
-        "error: {} at {}:{} col: {}",
-        message.unwrap(),
-        filename.unwrap(),
-        line,
-        col
-    ));
+    let mut ret = message.unwrap();
+    if let Ok(filename) = filename {
+        ret.push_str(&format!(", {filename}"));
+    }
+    if line != 0 {
+        ret.push_str(&format!(", line {line}"));
+    }
+    if col != 0 {
+        ret.push_str(&format!(", col {col}"));
+    }
+    abi_bail!(ret);
 }
 
 /// Assembly script builtin export `seed` function
@@ -115,4 +119,32 @@ pub fn assembly_script_date(env: &ASEnv) -> ABIResult<f64> {
         abi_bail!("error getting time value") // will happen in a while
     }
     Ok(ret)
+}
+
+/// Assembly script builtin `trace`.
+#[allow(clippy::too_many_arguments)]
+pub fn assembly_script_trace(
+    env: &ASEnv,
+    message: StringPtr,
+    n: i32,
+    a0: f64,
+    a1: f64,
+    a2: f64,
+    a3: f64,
+    a4: f64,
+) -> ABIResult<()> {
+    let memory = get_memory!(env);
+    let mut message = match message.read(memory) {
+        Ok(m) => m,
+        _ => abi_bail!("trace function: aborting failed to load message"),
+    };
+    let a = [a0, a1, a2, a3, a4];
+    if n > 5 {
+        abi_bail!("trace function: invalid number of arguments");
+    }
+    (0..(n as usize)).for_each(|i| message.push_str(&format!(", {}", a[i])));
+    if env.interface.print(&message).is_err() {
+        abi_bail!("interface error: print failed");
+    }
+    Ok(())
 }
