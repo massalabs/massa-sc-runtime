@@ -33,10 +33,14 @@ pub(crate) fn exec(
     match module.execution(&instance, function, param) {
         Ok(response) => Ok(response),
         Err(err) => {
-            // Because the last needed more than the remaining points, we should have an error.
-            match metering::get_remaining_points(&instance) {
-                MeteringPoints::Remaining(..) => bail!(err),
-                MeteringPoints::Exhausted => bail!("Not enough gas, limit reached at: {function}"),
+            if cfg!(feature = "gas_calibration") {
+                bail!(err)
+            } else {
+                // Because the last needed more than the remaining points, we should have an error.
+                match metering::get_remaining_points(&instance) {
+                    MeteringPoints::Remaining(..) => bail!(err),
+                    MeteringPoints::Exhausted => bail!("Not enough gas, limit reached at: {function}"),
+                }
             }
         }
     }
@@ -53,6 +57,8 @@ pub(crate) fn exec(
 ///     return 0;
 /// }
 /// ```
+/// Return:
+/// the remaining gas.
 pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
     let module = get_module(interface, bytecode)?;
     let instance = create_instance(limit, &module)?;

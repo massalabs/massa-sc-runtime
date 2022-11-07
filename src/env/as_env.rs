@@ -45,18 +45,22 @@ impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
 impl WasmerEnv for ASEnv {
     fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError> {
         self.wasm_env.init_with_instance(instance)?;
-        self.remaining_points = Some(
-            instance
-                .exports
-                .get_with_generics_weak("wasmer_metering_remaining_points")
-                .map_err(HostEnvInitError::from)?,
-        );
-        self.exhausted_points = Some(
-            instance
-                .exports
-                .get_with_generics_weak("wasmer_metering_points_exhausted")
-                .map_err(HostEnvInitError::from)?,
-        );
+
+        if cfg!(not(feature = "gas_calibration")) {
+            self.remaining_points = Some(
+                instance
+                    .exports
+                    .get_with_generics_weak("wasmer_metering_remaining_points")
+                    .map_err(HostEnvInitError::from)?,
+            );
+            self.exhausted_points = Some(
+                instance
+                    .exports
+                    .get_with_generics_weak("wasmer_metering_points_exhausted")
+                    .map_err(HostEnvInitError::from)?,
+            );
+        }
+
         Ok(())
     }
 }

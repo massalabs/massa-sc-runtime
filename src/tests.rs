@@ -324,3 +324,20 @@ fn test_op_fn() {
     ));
     run_main(module, 10_000_000, &*interface).expect("Failed to run op_fn.wasm");
 }
+
+#[test]
+#[serial]
+fn test_op_fn_with_gas_calibration() {
+
+    settings::reset_metering();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/op_fn_base0.wasm"
+    ));
+
+    run_main(module, 10_000_000, &*interface)
+        .expect("Failed to run op_fn.wasm");
+
+}

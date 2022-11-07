@@ -8,5 +8,7 @@ mod types;
 pub use execution_impl::{run_function, run_main};
 pub use types::*;
 
+mod middlewares;
+
 #[cfg(test)]
 mod tests;

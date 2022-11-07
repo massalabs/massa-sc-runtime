@@ -18,6 +18,8 @@ use std::sync::Arc;
 
 pub(crate) use as_execution::*;
 pub(crate) use common::*;
+use crate::middlewares::gas_calibration::GasCalibration;
+
 pub(crate) trait MassaModule {
     fn init(interface: &dyn Interface, bytecode: &[u8]) -> Self;
     /// Closure for the execution allowing us to handle a gas error
@@ -62,9 +64,15 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
         extended_const: false,
     };
 
-    // Add metering middleware
-    let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
-    compiler_config.push_middleware(metering);
+    if cfg!(feature = "gas_calibration") {
+        // Add gas calibration middleware
+        let gas_calibration = Arc::new(GasCalibration::new());
+        compiler_config.push_middleware(gas_calibration);
+    } else {
+        // Add metering middleware
+        let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
+        compiler_config.push_middleware(metering);
+    }
 
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));

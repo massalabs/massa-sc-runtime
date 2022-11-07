@@ -119,7 +119,9 @@ pub(crate) fn assembly_script_get_remaining_gas(env: &ASEnv) -> ABIResult<i64> {
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
 pub(crate) fn assembly_script_print(env: &ASEnv, arg: i32) -> ABIResult<()> {
-    sub_remaining_gas(env, settings::metering_print())?;
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas(env, settings::metering_print())?;
+    }
     let memory = get_memory!(env);
     if let Err(err) = env.get_interface().print(&get_string(memory, arg)?) {
         abi_bail!(err);
