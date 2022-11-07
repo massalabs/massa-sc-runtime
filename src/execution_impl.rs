@@ -46,6 +46,7 @@ pub(crate) fn exec(
     }
 }
 
+#[cfg(feature = "gas_calibration")]
 pub (crate) fn exec2(instance: Instance, mut module: impl MassaModule,
                      function: &str, param: &str) -> Result<(Response, Instance)> {
 

@@ -1,131 +1,14 @@
 /// THIS FILE SHOULD TEST THE ABI, NOT THE MOCKED INTERFACE
 use crate::{
     run_function, run_main, settings,
-    types::{Interface, InterfaceClone},
+    types::Interface,
 };
-use anyhow::{anyhow, bail, Result};
 use parking_lot::Mutex;
 use rand::Rng;
 use serial_test::serial;
-use std::collections::BTreeMap;
 use std::sync::Arc;
-use crate::execution::{create_instance, get_module};
-use crate::execution_impl::exec2;
-use crate::middlewares::gas_calibration::get_gas_calibration_result;
 
-pub type Ledger = std::collections::BTreeMap<String, Vec<u8>>; // Bytecode instead of String
-
-#[derive(Clone)]
-struct TestInterface(Arc<Mutex<Ledger>>);
-
-impl InterfaceClone for TestInterface {
-    fn clone_box(&self) -> Box<dyn Interface> {
-        Box::new(self.clone())
-    }
-}
-
-impl Interface for TestInterface {
-    fn init_call(&self, address: &str, _raw_coins: u64) -> Result<Vec<u8>> {
-        let data = self.0.lock().clone();
-        match data.get::<String>(&address.to_string()) {
-            Some(module) => Ok(module.clone()),
-            _ => bail!("Cannot find module for address {}", address),
-        }
-    }
-
-    fn finish_call(&self) -> Result<()> {
-        Ok(())
-    }
-
-    fn get_balance(&self) -> Result<u64> {
-        Ok(1)
-    }
-
-    fn get_balance_for(&self, _address: &str) -> Result<u64> {
-        Ok(1)
-    }
-
-    fn raw_set_bytecode_for(&self, address: &str, bytecode: &[u8]) -> Result<()> {
-        self.0.lock().insert(address.to_string(), bytecode.to_vec());
-        Ok(())
-    }
-
-    fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
-        let address = String::from("get_string");
-        self.0.lock().insert(address, bytecode.to_vec());
-        Ok(())
-    }
-
-    fn print(&self, message: &str) -> Result<()> {
-        println!("{}", message);
-        self.0
-            .lock()
-            .insert("print".into(), message.as_bytes().to_vec());
-        Ok(())
-    }
-
-    fn raw_get_data(&self, _: &str) -> Result<Vec<u8>> {
-        let bytes = self.0.lock().clone();
-        match bytes.get(&"print".to_string()) {
-            Some(bytes) => Ok(bytes.clone()),
-            _ => bail!("Cannot find data"),
-        }
-    }
-
-    fn get_call_coins(&self) -> Result<u64> {
-        Ok(0)
-    }
-
-    fn create_module(&self, module: &[u8]) -> Result<String> {
-        let address = String::from("get_string");
-        self.0.lock().insert(address.clone(), module.to_vec());
-        Ok(address)
-    }
-
-    fn send_message(
-        &self,
-        _target_address: &str,
-        _target_handler: &str,
-        _validity_start: (u64, u8),
-        _validity_end: (u64, u8),
-        _max_gas: u64,
-        _gas_price: u64,
-        _coins: u64,
-        _data: &[u8],
-    ) -> Result<()> {
-        Ok(())
-    }
-
-    fn get_op_keys(&self) -> Result<Vec<Vec<u8>>> {
-        Ok(vec![
-            vec![0, 1, 2, 3, 4, 5, 6, 11],
-            vec![127, 128],
-            vec![254, 255],
-        ])
-    }
-
-    fn has_op_key(&self, key: &[u8]) -> Result<bool> {
-        let ds: BTreeMap<Vec<u8>, Vec<u8>> = BTreeMap::from([
-            (vec![0, 1, 2, 3, 4, 5, 6, 11], vec![65]),
-            (vec![127, 128], vec![66, 67]),
-            (vec![254, 255], vec![68, 69]),
-        ]);
-
-        Ok(ds.contains_key(key))
-    }
-
-    fn get_op_data(&self, key: &[u8]) -> Result<Vec<u8>> {
-        let ds: BTreeMap<Vec<u8>, Vec<u8>> = BTreeMap::from([
-            (vec![0, 1, 2, 3, 4, 5, 6, 11], vec![65]),
-            (vec![127, 128], vec![66, 67]),
-            (vec![254, 255], vec![68, 69]),
-        ]);
-
-        ds.get(key)
-            .cloned()
-            .ok_or(anyhow!("Unknown key: {:?}", key))
-    }
-}
+use crate::tests::{TestInterface, Ledger};
 
 #[test]
 #[serial]
@@ -135,8 +18,8 @@ fn test_caller() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let mut module = vec![1u8];
     module.extend_from_slice(include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/get_string.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/get_string.wasm"
     )));
     interface
         .raw_set_bytecode_for("get_string", &module)
@@ -145,8 +28,8 @@ fn test_caller() {
     run_main(&module, 20_000, &*interface).expect("Failed to run_main get_string.wasm");
     let mut module = vec![1u8];
     module.extend_from_slice(include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/caller.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/caller.wasm"
     )));
     let a = run_main(&module, 20_000, &*interface).expect("Failed to run_main caller.wasm");
     let prev_call_price = settings::metering_call();
@@ -169,15 +52,15 @@ fn test_caller_no_return() {
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/get_string.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/get_string.wasm"
     ));
     interface.create_module(module.as_ref()).unwrap();
     // test only if the module is valid
     run_main(module, 20_000, &*interface).expect("Failed to run get_string.wasm");
     let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/caller_no_return.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/caller_no_return.wasm"
     ));
     run_main(module, 20_000, &*interface).expect("Failed to run caller.wasm");
 }
@@ -191,16 +74,16 @@ fn test_local_hello_name_caller() {
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/get_string.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/get_string.wasm"
     ));
     interface
         .raw_set_bytecode_for("get_string", module.as_ref())
         .unwrap();
     run_main(module, 100, &*interface).expect("Failed to run_main get_string.wasm");
     let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/local_hello_name_caller.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/local_hello_name_caller.wasm"
     ));
     run_main(module, 20_000, &*interface)
         .expect_err("Succeeded to run_main local_hello_name_caller.wasm");
@@ -214,13 +97,13 @@ fn test_module_creation() {
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/create_sc.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/create_sc.wasm"
     ));
     run_main(module, 100_000, &*interface).expect("Failed to run_main create_sc.wasm");
     let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/caller.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/caller.wasm"
     ));
     run_main(module, 20_000, &*interface).expect("Failed to run_main caller.wasm");
 }
@@ -233,13 +116,13 @@ fn test_not_enough_gas_error() {
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/create_sc.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/create_sc.wasm"
     ));
     run_main(module, 100_000, &*interface).expect("Failed to run_main create_sc.wasm");
     let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/caller.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/caller.wasm"
     ));
     match run_main(module, 10000, &*interface) {
         Ok(_) => panic!("Shouldn't pass successfully =-("),
@@ -258,8 +141,8 @@ fn test_send_message() {
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/send_message.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/send_message.wasm"
     ));
     run_main(module, 100_000, &*interface).expect("Failed to run_main send_message.wasm");
 }
@@ -271,8 +154,8 @@ fn test_run_function() {
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/receive_message.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/receive_message.wasm"
     ));
     run_function(module, 100_000, "receive", "data", &*interface)
         .expect("Failed to run_function receive_message.wasm");
@@ -285,8 +168,8 @@ fn test_run_main_without_main() {
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/no_main.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/no_main.wasm"
     ));
     run_main(module, 100_000, &*interface).expect_err("An error should spawn here");
 }
@@ -298,8 +181,8 @@ fn test_run_empty_main() {
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/empty_main.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/empty_main.wasm"
     ));
     // Even if our SC is empty; there is still an initial and minimum metering cost
     // (mainly because we have a memory allocator to init)
@@ -323,33 +206,8 @@ fn test_op_fn() {
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/op_fn.wasm"
+    env!("CARGO_MANIFEST_DIR"),
+    "/wasm/build/op_fn.wasm"
     ));
     run_main(module, 10_000_000, &*interface).expect("Failed to run op_fn.wasm");
-}
-
-
-#[test]
-#[serial]
-fn test_op_fn_with_gas_calibration() -> Result<()> {
-
-    settings::reset_metering();
-    let interface: Box<dyn Interface> =
-        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let bytecode = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/op_fn_base0.wasm"
-    ));
-
-    let module = get_module(&*interface, bytecode).unwrap();
-    let instance = create_instance(10_000_000, &module).unwrap();
-    let (_response, instance) = exec2(instance, module, settings::MAIN, "")?;
-    let gas_calibration_result = get_gas_calibration_result(&instance);
-
-    assert_eq!(gas_calibration_result.0.len(), 2);
-    assert_eq!(gas_calibration_result.0.get("Abi:call:massa.assembly_script_print"), Some(&2));
-    assert_eq!(gas_calibration_result.0.get("Abi:call:env.abort"), Some(&0));
-
-    Ok(())
 }
