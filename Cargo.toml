@@ -21,6 +21,7 @@ parking_lot = "0.12"
 rand = "0.8"
 # for gas_calibration middleware
 wasmer-types = { version = "2.3.0" }
+regex = "1"
 
 [features]
 gas_calibration = []

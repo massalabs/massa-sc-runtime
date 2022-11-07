@@ -9,6 +9,10 @@ use rand::Rng;
 use serial_test::serial;
 use std::collections::BTreeMap;
 use std::sync::Arc;
+use crate::execution::{create_instance, get_module};
+use crate::execution_impl::exec2;
+use crate::middlewares::gas_calibration::get_gas_calibration_result;
+
 pub type Ledger = std::collections::BTreeMap<String, Vec<u8>>; // Bytecode instead of String
 
 #[derive(Clone)]
@@ -325,19 +329,27 @@ fn test_op_fn() {
     run_main(module, 10_000_000, &*interface).expect("Failed to run op_fn.wasm");
 }
 
+
 #[test]
 #[serial]
-fn test_op_fn_with_gas_calibration() {
+fn test_op_fn_with_gas_calibration() -> Result<()> {
 
     settings::reset_metering();
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let module = include_bytes!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/wasm/build/op_fn_base0.wasm"
+    let bytecode = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/op_fn_base0.wasm"
     ));
 
-    run_main(module, 10_000_000, &*interface)
-        .expect("Failed to run op_fn.wasm");
+    let module = get_module(&*interface, bytecode).unwrap();
+    let instance = create_instance(10_000_000, &module).unwrap();
+    let (_response, instance) = exec2(instance, module, settings::MAIN, "")?;
+    let gas_calibration_result = get_gas_calibration_result(&instance);
 
+    assert_eq!(gas_calibration_result.0.len(), 2);
+    assert_eq!(gas_calibration_result.0.get("Abi:call:massa.assembly_script_print"), Some(&2));
+    assert_eq!(gas_calibration_result.0.get("Abi:call:env.abort"), Some(&0));
+
+    Ok(())
 }

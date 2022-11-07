@@ -1,7 +1,8 @@
 use wasmer::wasmparser::Operator;
-use loupe::{MemoryUsage, MemoryUsageTracker};
 use wasmer_types::{ExportIndex, GlobalIndex, GlobalInit, GlobalType, ModuleInfo, Mutability, Type};
-use wasmer::{MiddlewareReaderState, ModuleMiddleware, MiddlewareError, LocalFunctionIndex, FunctionMiddleware};
+use wasmer::{MiddlewareReaderState, ModuleMiddleware, MiddlewareError, LocalFunctionIndex, FunctionMiddleware, Instance, Extern};
+use loupe::{MemoryUsage, MemoryUsageTracker};
+use regex::{Regex, RegexSet};
 
 use std::fmt::{self, Debug};
 use std::mem;
@@ -75,7 +76,7 @@ impl ModuleMiddleware for GasCalibration {
                 .global_initializers
                 .push(GlobalInit::I64Const(0));
             module_info.exports.insert(
-                format!("wasmer_gascalibration_{}", function_fullname),
+                format!("wgc_abi_{}", function_fullname),
                 ExportIndex::Global(global_index),
             );
 
@@ -105,7 +106,7 @@ impl FunctionMiddleware for FunctionGasCalibration {
         match operator {
             Operator::Call { function_index } // function call - branch source
             => {
-                println!("Got call: {}", function_index);
+                // println!("Got call: {}", function_index);
 
                 let index = self
                     .global_indexes
@@ -137,4 +138,68 @@ impl FunctionMiddleware for FunctionGasCalibration {
         state.push_operator(operator);
         Ok(())
     }
+}
+
+#[derive(Debug)]
+pub struct GasCalibrationResult(pub(crate) HashMap<String, u64>);
+
+pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
+
+    let mut result = GasCalibrationResult { 0: Default::default() };
+    let patterns = [
+        r"wgc_abi_([\w\.]+)",
+    ];
+    // Must not fail
+    let set = RegexSet::new(&patterns).unwrap();
+    // Compile each pattern independently.
+    let regexes: Vec<_> = set.patterns().iter()
+        .map(|pat| Regex::new(pat).unwrap()) // never fail, already compiled in RegexSet
+        .collect();
+
+    // let mut abi_call_index = 0;
+    let mut exports_iter = instance.exports.iter();
+
+    loop {
+
+        let export_ = exports_iter.next();
+        if export_.is_none() {
+            break;
+        }
+        // Safe to unwrap (tested against is_none())
+        let (export_name, extern_) = export_.unwrap();
+
+        let counter_value: i64 = match extern_ {
+            Extern::Global(g) => {
+                let value_ = g.get().try_into();
+                if value_.is_err() {
+                    // println!("Not a i64 counter for {}: {:?}", export_name, g);
+                    continue;
+                }
+                value_.unwrap() // safe to unwrap
+            },
+            _ => continue,
+        };
+
+        let matches = set.matches(export_name);
+        match export_name {
+            ex_name if matches.matched(0) => {
+                let rgx = &regexes[0];
+                let mut rgx_iter = rgx.captures_iter(ex_name);
+
+                if let Some(cap) = rgx_iter.next() {
+                    if let Some(abi_func_name) = cap.get(1) {
+                        result.0.insert(
+                            format!("Abi:call:{}", abi_func_name.as_str()),
+                            counter_value as u64
+                        );
+                    }
+                }
+            }
+            _ => {
+                println!("Unhandled export name: {}", export_name);
+            }
+        }
+    }
+
+    result
 }
