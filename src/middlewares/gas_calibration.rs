@@ -1,4 +1,5 @@
 use wasmer::wasmparser::Operator;
+use wasmer_types::entity::EntityRef;
 use wasmer_types::{ExportIndex, GlobalIndex, GlobalInit, GlobalType, ModuleInfo, Mutability, Type};
 use wasmer::{MiddlewareReaderState, ModuleMiddleware, MiddlewareError, LocalFunctionIndex, FunctionMiddleware, Instance, Extern};
 use loupe::{MemoryUsage, MemoryUsageTracker};
@@ -63,8 +64,10 @@ impl ModuleMiddleware for GasCalibration {
 
         let mut indexes = GasCalibrationGlobalIndexes { imports_call_map: Default::default() };
 
-        for ((module_name, function_name, index), _import_index) in module_info.imports.iter() {
+        println!("{:#?}", module_info.func_index(LocalFunctionIndex::new(0)));
 
+        for ((module_name, function_name, index), _import_index) in module_info.imports.iter() {
+            println!("GasCalibration::transform_module_info: module_name: {:?}, function_name: {:?}, index: {:?}", module_name, function_name, index);
             // -> env.abort OR massa.assembly_script_print
             let function_fullname = format!("{}.{}", module_name, function_name);
 
@@ -106,32 +109,25 @@ impl FunctionMiddleware for FunctionGasCalibration {
         match operator {
             Operator::Call { function_index } // function call - branch source
             => {
-                // println!("Got call: {}", function_index);
+                println!("Got call: {}", function_index);
 
-                let index = self
+                if let Some(index) = self
                     .global_indexes
                     .imports_call_map
-                    .get(&function_index)
-                    .ok_or_else(||
-                        MiddlewareError::new("GasCalibration",
-                                             format!("Unable to get index for function index: {}", function_index)
-                        )
-                    )?;
-
-                state.extend(&[
-                    Operator::GlobalGet { global_index: index.1.as_u32() },
-                    Operator::I64Const { value: 1_i64 },
-                    Operator::I64Add,
-                    Operator::GlobalSet { global_index: index.1.as_u32() },
-                ]);
+                    .get(&function_index) {
+                        state.extend(&[
+                            Operator::GlobalGet { global_index: index.1.as_u32() },
+                            Operator::I64Const { value: 1_i64 },
+                            Operator::I64Add,
+                            Operator::GlobalSet { global_index: index.1.as_u32() },
+                        ]);
+                    }
             },
             // TODO: explore this
-            /*
             Operator::CallIndirect { .. } // function call - branch source
             => {
                 println!("Got call indirect");
             },
-            */
             _ => {}
         }
 

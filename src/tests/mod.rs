@@ -5,7 +5,7 @@ use crate::{
 use anyhow::{anyhow, bail, Result};
 use parking_lot::Mutex;
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, str::FromStr};
 use std::sync::Arc;
 
 pub type Ledger = std::collections::BTreeMap<String, Vec<u8>>; // Bytecode instead of String
@@ -36,6 +36,107 @@ impl Interface for TestInterface {
         Ok(1)
     }
 
+    fn transfer_coins(&self, _to_address: &str, _raw_amount: u64) -> Result<()> {
+        Ok(())
+    }
+
+    fn transfer_coins_for(
+            &self,
+            _from_address: &str,
+            _to_address: &str,
+            _raw_amount: u64,
+        ) -> Result<()> {
+        Ok(())
+    }
+
+    fn address_from_public_key(&self, public_key: &str) -> Result<String> {
+        Ok(public_key.to_string())
+    }
+
+    fn exit_success(&self) -> Result<()> {
+        Ok(())
+    }
+
+    fn generate_event(&self, _event: String) -> Result<()> {
+        Ok(())
+    }
+
+    fn get_call_stack(&self) -> Result<Vec<String>> {
+        Ok(vec![])
+    }
+
+    fn get_current_period(&self) -> Result<u64> {
+        Ok(0)
+    }
+
+    fn get_current_thread(&self) -> Result<u8> {
+        Ok(0)
+    }
+
+    fn get_module(&self, _address: &str) -> Result<Vec<u8>> {
+        Ok(vec![])
+    }
+
+    fn get_owned_addresses(&self) -> Result<Vec<String>> {
+        Ok(vec![])
+    }
+
+    fn has_data(&self, _key: &str) -> Result<bool> {
+        Ok(false)
+    }
+
+    fn has_data_for(&self, _address: &str, _key: &str) -> Result<bool> {
+        Ok(false)
+    }
+
+    fn hash(&self, data: &[u8]) -> Result<String> {
+        Ok(String::from_utf8(data.to_vec())?)
+    }
+
+    fn module_called(&self) -> Result<()> {
+        Ok(())
+    }
+
+    fn raw_append_data(&self, _key: &str, _value: &[u8]) -> Result<()> {
+        Ok(())
+    }
+
+    fn raw_append_data_for(&self, _address: &str, _key: &str, _value: &[u8]) -> Result<()> {
+        Ok(())
+    }
+
+    fn raw_delete_data(&self, _key: &str) -> Result<()> {
+        Ok(())
+    }
+    
+    fn raw_delete_data_for(&self, _address: &str, _key: &str) -> Result<()> {
+        Ok(())
+    }
+
+    fn raw_get_data_for(&self, _address: &str, _key: &str) -> Result<Vec<u8>> {
+        Ok(vec![])
+    }
+
+    fn raw_set_data(&self, _key: &str, value: &[u8]) -> Result<()> {
+        let mut bytes = self.0.lock().clone();
+        bytes.insert(String::from_str("print").unwrap(), value.to_vec());
+        Ok(())
+    }
+
+    fn raw_set_data_for(&self, _address: &str, _key: &str, value: &[u8]) -> Result<()> {
+        let mut bytes = self.0.lock().clone();
+        bytes.insert(String::from_str("print").unwrap(), value.to_vec());
+        Ok(())
+    }
+
+    fn signature_verify(&self, _data: &[u8], _signature: &str, _public_key: &str) -> Result<bool> {
+        Ok(false)
+    }
+
+    fn unsafe_random(&self) -> Result<i64> {
+        Ok(0)
+    }
+
     fn get_balance_for(&self, _address: &str) -> Result<u64> {
         Ok(1)
     }
@@ -63,7 +164,7 @@ impl Interface for TestInterface {
         let bytes = self.0.lock().clone();
         match bytes.get(&"print".to_string()) {
             Some(bytes) => Ok(bytes.clone()),
-            _ => bail!("Cannot find data"),
+            _ => Ok(vec![]),
         }
     }
 
@@ -116,9 +217,9 @@ impl Interface for TestInterface {
             (vec![254, 255], vec![68, 69]),
         ]);
 
-        ds.get(key)
+        Ok(ds.get(key)
             .cloned()
-            .ok_or_else(|| anyhow!("Unknown key: {:?}", key))
+            .unwrap_or(vec![]))
     }
 
     fn unsafe_random_f64(&self) -> Result<f64> {
