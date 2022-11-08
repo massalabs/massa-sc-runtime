@@ -141,7 +141,7 @@ impl FunctionMiddleware for FunctionGasCalibration {
 }
 
 #[derive(Debug)]
-pub struct GasCalibrationResult(pub(crate) HashMap<String, u64>);
+pub struct GasCalibrationResult(pub HashMap<String, u64>);
 
 pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
 

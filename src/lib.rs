@@ -6,8 +6,12 @@ mod tunable_memory;
 mod types;
 
 pub use execution_impl::{run_function, run_main};
+
 #[cfg(feature = "gas_calibration")]
 pub use execution_impl::run_main_gc;
+#[cfg(feature = "gas_calibration")]
+pub use middlewares::gas_calibration::GasCalibrationResult;
+
 pub use types::*;
 
 mod middlewares;
