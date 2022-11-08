@@ -64,10 +64,7 @@ impl ModuleMiddleware for GasCalibration {
 
         let mut indexes = GasCalibrationGlobalIndexes { imports_call_map: Default::default() };
 
-        println!("{:#?}", module_info.func_index(LocalFunctionIndex::new(0)));
-
         for ((module_name, function_name, index), _import_index) in module_info.imports.iter() {
-            println!("GasCalibration::transform_module_info: module_name: {:?}, function_name: {:?}, index: {:?}", module_name, function_name, index);
             // -> env.abort OR massa.assembly_script_print
             let function_fullname = format!("{}.{}", module_name, function_name);
 
@@ -109,7 +106,6 @@ impl FunctionMiddleware for FunctionGasCalibration {
         match operator {
             Operator::Call { function_index } // function call - branch source
             => {
-                println!("Got call: {}", function_index);
 
                 if let Some(index) = self
                     .global_indexes
@@ -124,10 +120,10 @@ impl FunctionMiddleware for FunctionGasCalibration {
                     }
             },
             // TODO: explore this
-            Operator::CallIndirect { .. } // function call - branch source
-            => {
-                println!("Got call indirect");
-            },
+            // Operator::CallIndirect { .. } // function call - branch source
+            // => {
+            //     println!("Got call indirect");
+            // },
             _ => {}
         }
 

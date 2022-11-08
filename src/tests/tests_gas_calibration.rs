@@ -27,12 +27,10 @@ fn test_basic_abi_call_counter() -> Result<()> {
 
     let gas_calibration_result = run_main_gc(bytecode, 100000, &interface)?;
 
-    println!("gas_calibration_result: {:?}", gas_calibration_result);
     // Total
-    println!("Total: {}", gas_calibration_result.0.iter().fold(0, |acc, (_, v)| acc + v));
     assert_eq!(gas_calibration_result.0.len(), 2);
-    // assert_eq!(gas_calibration_result.0.get("Abi:call:massa.assembly_script_print"), Some(&2));
-    // assert_eq!(gas_calibration_result.0.get("Abi:call:env.abort"), Some(&0));
+    assert_eq!(gas_calibration_result.0.get("Abi:call:massa.assembly_script_print"), Some(&2));
+    assert_eq!(gas_calibration_result.0.get("Abi:call:env.abort"), Some(&0));
 
     Ok(())
 }

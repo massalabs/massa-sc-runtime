@@ -224,7 +224,6 @@ impl Interface for TestInterface {
 
     fn unsafe_random_f64(&self) -> Result<f64> {
         let ret: f64 = rand::random();
-        println!("use random: {ret}");
         Ok(ret)
     }
 
