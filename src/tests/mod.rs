@@ -118,7 +118,17 @@ impl Interface for TestInterface {
 
         ds.get(key)
             .cloned()
-            .ok_or(anyhow!("Unknown key: {:?}", key))
+            .ok_or_else(|| anyhow!("Unknown key: {:?}", key))
+    }
+
+    fn unsafe_random_f64(&self) -> Result<f64> {
+        let ret: f64 = rand::random();
+        println!("use random: {ret}");
+        Ok(ret)
+    }
+
+    fn get_time(&self) -> Result<u64> {
+        Ok(0)
     }
 }
 
