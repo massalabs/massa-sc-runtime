@@ -211,3 +211,25 @@ fn test_op_fn() {
     ));
     run_main(module, 10_000_000, &*interface).expect("Failed to run op_fn.wasm");
 }
+
+/// Test seed, now and abort
+#[test]
+#[serial]
+fn test_builtins() {
+    settings::reset_metering();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/use_builtins.wasm"
+    ));
+    match run_main(module, 10_000_000, &*interface) {
+        Err(e) => {
+            println!("Error: {}", e);
+            assert!(e
+                .to_string()
+                .starts_with("RuntimeError: error: abord with date and rnd at use_builtins.ts"));
+        }
+        _ => panic!("Failed to run use_builtins.wasm"),
+    }
+}
