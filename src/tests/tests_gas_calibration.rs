@@ -2,7 +2,7 @@ use crate::{
     settings,
     types::Interface,
 };
-use crate::execution_impl::exec2;
+use crate::execution_impl::exec_gc;
 use crate::tests::{TestInterface, Ledger};
 use crate::middlewares::gas_calibration::get_gas_calibration_result;
 use crate::execution::{create_instance, get_module};
@@ -27,7 +27,7 @@ fn test_basic_abi_call_counter() -> Result<()> {
 
     let module = get_module(&*interface, bytecode).unwrap();
     let instance = create_instance(10_000_000, &module).unwrap();
-    let (_response, instance) = exec2(instance, module, settings::MAIN, "")?;
+    let (_response, instance) = exec_gc(instance, module, settings::MAIN, "")?;
     let gas_calibration_result = get_gas_calibration_result(&instance);
 
     assert_eq!(gas_calibration_result.0.len(), 2);
@@ -51,7 +51,7 @@ fn test_basic_abi_call_loop() -> Result<()> {
 
     let module = get_module(&*interface, bytecode).unwrap();
     let instance = create_instance(10_000_000, &module).unwrap();
-    let (_response, instance) = exec2(instance, module, settings::MAIN, "")?;
+    let (_response, instance) = exec_gc(instance, module, settings::MAIN, "")?;
     let gas_calibration_result = get_gas_calibration_result(&instance);
 
     assert_eq!(gas_calibration_result.0.len(), 2);

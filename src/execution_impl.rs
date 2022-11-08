@@ -4,6 +4,7 @@ use crate::types::{Interface, Response};
 use anyhow::{bail, Result};
 use wasmer::Instance;
 use wasmer_middlewares::metering::{self, MeteringPoints};
+use crate::middlewares::gas_calibration::{GasCalibrationResult, get_gas_calibration_result};
 
 /// Internal execution function, used on smart contract called from node or
 /// from another smart contract
@@ -47,7 +48,7 @@ pub(crate) fn exec(
 }
 
 #[cfg(feature = "gas_calibration")]
-pub (crate) fn exec2(instance: Instance, mut module: impl MassaModule,
+pub (crate) fn exec_gc(instance: Instance, mut module: impl MassaModule,
                      function: &str, param: &str) -> Result<(Response, Instance)> {
 
     module.init_with_instance(&instance)?;
@@ -80,6 +81,19 @@ pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Resul
         Ok(exec_res?.remaining_gas)
     } else {
         Ok(limit)
+    }
+}
+
+/// Same as run_main but return a GasCalibrationResult
+#[cfg(feature = "gas_calibration")]
+pub fn run_main_gc(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Result<GasCalibrationResult> {
+    let module = get_module(interface, bytecode)?;
+    let instance = create_instance(limit, &module)?;
+    if instance.exports.contains(settings::MAIN) {
+        let (_resp, instance) = exec_gc(instance.clone(), module, settings::MAIN, "")?;
+        Ok(get_gas_calibration_result(&instance))
+    } else {
+        bail!("No main");
     }
 }
 
