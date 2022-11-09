@@ -2,7 +2,7 @@ use crate::{
     types::{Interface, InterfaceClone},
 };
 
-use anyhow::{anyhow, bail, Result};
+use anyhow::{bail, Result};
 use parking_lot::Mutex;
 
 use std::{collections::BTreeMap, str::FromStr};
@@ -108,7 +108,7 @@ impl Interface for TestInterface {
     fn raw_delete_data(&self, _key: &str) -> Result<()> {
         Ok(())
     }
-    
+
     fn raw_delete_data_for(&self, _address: &str, _key: &str) -> Result<()> {
         Ok(())
     }

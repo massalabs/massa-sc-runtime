@@ -1,5 +1,5 @@
 use wasmer::wasmparser::Operator;
-use wasmer_types::entity::EntityRef;
+// use wasmer_types::entity::EntityRef;
 use wasmer_types::{ExportIndex, GlobalIndex, GlobalInit, GlobalType, ModuleInfo, Mutability, Type};
 use wasmer::{MiddlewareReaderState, ModuleMiddleware, MiddlewareError, LocalFunctionIndex, FunctionMiddleware, Instance, Extern};
 use loupe::{MemoryUsage, MemoryUsageTracker};
@@ -10,9 +10,12 @@ use std::mem;
 use std::sync::Mutex;
 use std::collections::HashMap;
 
+use crate::middlewares::operator::{operator_field_str, OPERATOR_VARIANTS};
+
 #[derive(Debug, Clone, MemoryUsage)]
 struct GasCalibrationGlobalIndexes {
-    imports_call_map: HashMap<u32, (String, GlobalIndex)>
+    imports_call_map: HashMap<u32, (String, GlobalIndex)>,
+    op_call_map: HashMap<String, GlobalIndex>
 }
 
 pub struct GasCalibration {
@@ -62,7 +65,10 @@ impl ModuleMiddleware for GasCalibration {
             panic!("GasCalibration::transform_module_info: Attempting to use a `GasCalibration` middleware from multiple modules.");
         }
 
-        let mut indexes = GasCalibrationGlobalIndexes { imports_call_map: Default::default() };
+        let mut indexes = GasCalibrationGlobalIndexes {
+            imports_call_map: Default::default(),
+            op_call_map: Default::default()
+        };
 
         for ((module_name, function_name, index), _import_index) in module_info.imports.iter() {
             // -> env.abort OR massa.assembly_script_print
@@ -83,6 +89,24 @@ impl ModuleMiddleware for GasCalibration {
             indexes.imports_call_map.insert(
                 *index,
                 (function_fullname, global_index));
+        }
+
+        for op_name in OPERATOR_VARIANTS {
+            // Append a global for this operator and initialize it.
+            let global_index = module_info
+                .globals
+                .push(GlobalType::new(Type::I64, Mutability::Var));
+            module_info
+                .global_initializers
+                .push(GlobalInit::I64Const(0));
+            module_info.exports.insert(
+                format!("wgc_op_{}", op_name),
+                ExportIndex::Global(global_index),
+            );
+
+            indexes.op_call_map.insert(
+                (*op_name).to_string(),
+                global_index);
         }
 
         *global_indexes = Some(indexes)
@@ -119,12 +143,27 @@ impl FunctionMiddleware for FunctionGasCalibration {
                         ]);
                     }
             },
-            // TODO: explore this
-            // Operator::CallIndirect { .. } // function call - branch source
-            // => {
-            //     println!("Got call indirect");
-            // },
-            _ => {}
+            _ => {
+
+                let op_name = operator_field_str(&operator);
+                let index = self
+                    .global_indexes
+                    .op_call_map
+                    .get(op_name)
+                    .ok_or_else(||
+                        MiddlewareError::new("GasCalibration",
+                                             format!("Unable to get index for op: {}", op_name)
+                        )
+                    )?;
+
+                state.extend(&[
+                    Operator::GlobalGet { global_index: index.as_u32() },
+                    Operator::I64Const { value: 1_i64 },
+                    Operator::I64Add,
+                    Operator::GlobalSet { global_index: index.as_u32() },
+                ]);
+
+            }
         }
 
         state.push_operator(operator);
@@ -140,6 +179,7 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
     let mut result = GasCalibrationResult { 0: Default::default() };
     let patterns = [
         r"wgc_abi_([\w\.]+)",
+        r"wgc_op_([\w]+)",
     ];
     // Must not fail
     let set = RegexSet::new(&patterns).unwrap();
@@ -182,6 +222,19 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
                     if let Some(abi_func_name) = cap.get(1) {
                         result.0.insert(
                             format!("Abi:call:{}", abi_func_name.as_str()),
+                            counter_value as u64
+                        );
+                    }
+                }
+            }
+            ex_name if matches.matched(1) => {
+                let rgx = &regexes[1];
+                let mut rgx_iter = rgx.captures_iter(ex_name);
+
+                if let Some(cap) = rgx_iter.next() {
+                    if let Some(op_name) = cap.get(1) {
+                        result.0.insert(
+                            format!("Wasm:{}", op_name.as_str()),
                             counter_value as u64
                         );
                     }
