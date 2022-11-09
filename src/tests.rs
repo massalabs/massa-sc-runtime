@@ -85,7 +85,7 @@ impl Interface for TestInterface {
         _validity_start: (u64, u8),
         _validity_end: (u64, u8),
         _max_gas: u64,
-        _fee: u64,
+        _raw_fee: u64,
         _coins: u64,
         _data: &[u8],
     ) -> Result<()> {

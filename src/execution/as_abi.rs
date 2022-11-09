@@ -487,7 +487,7 @@ pub(crate) fn assembly_script_send_message(
     validity_end_period: i64,
     validity_end_thread: i32,
     max_gas: i64,
-    fee: i64,
+    raw_fee: i64,
     raw_coins: i64,
     data: i32,
 ) -> ABIResult<()> {
@@ -511,8 +511,8 @@ pub(crate) fn assembly_script_send_message(
     if max_gas.is_negative() {
         abi_bail!("negative max gas");
     }
-    if fee.is_negative() {
-        abi_bail!("negative fee");
+    if raw_fee.is_negative() {
+        abi_bail!("negative raw_fee");
     }
     if raw_coins.is_negative() {
         abi_bail!("negative coins")
@@ -524,7 +524,7 @@ pub(crate) fn assembly_script_send_message(
         validity_start,
         validity_end,
         max_gas as u64,
-        fee as u64,
+        raw_fee as u64,
         raw_coins as u64,
         get_string(memory, data)?.as_bytes(),
     ) {
