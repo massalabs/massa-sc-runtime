@@ -37,6 +37,7 @@ impl MassaModule for ASModule {
         }
 
         // Now can exec
+        println!("Executing function {}", function);
         let wasm_func = instance.exports.get_function(function)?;
         let argc = wasm_func.param_arity();
         let res = if argc == 0 && function == crate::settings::MAIN {
