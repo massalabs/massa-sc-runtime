@@ -1,6 +1,6 @@
-use wasmer::wasmparser::Operator;
+use wasmer::wasmparser::{MemoryImmediate, Operator};
 // use wasmer_types::entity::EntityRef;
-use wasmer_types::{ExportIndex, GlobalIndex, GlobalInit, GlobalType, ModuleInfo, Mutability, Type};
+use wasmer_types::{ExportIndex, GlobalIndex, GlobalInit, GlobalType, MemoryIndex, ModuleInfo, Mutability, Type};
 use wasmer::{MiddlewareReaderState, ModuleMiddleware, MiddlewareError, LocalFunctionIndex, FunctionMiddleware, Instance, Extern};
 use loupe::{MemoryUsage, MemoryUsageTracker};
 use regex::{Regex, RegexSet};
@@ -15,7 +15,10 @@ use crate::middlewares::operator::{operator_field_str, OPERATOR_VARIANTS};
 #[derive(Debug, Clone, MemoryUsage)]
 struct GasCalibrationGlobalIndexes {
     imports_call_map: HashMap<u32, (String, GlobalIndex)>,
-    op_call_map: HashMap<String, GlobalIndex>
+    op_call_map: HashMap<String, GlobalIndex>,
+
+    // param_size_current: GlobalIndex,
+    // param_size_map: HashMap<u32, GlobalIndex>,
 }
 
 pub struct GasCalibration {
@@ -65,9 +68,24 @@ impl ModuleMiddleware for GasCalibration {
             panic!("GasCalibration::transform_module_info: Attempting to use a `GasCalibration` middleware from multiple modules.");
         }
 
+        /*
+        let global_index = module_info
+            .globals
+            .push(GlobalType::new(Type::I64, Mutability::Var));
+        module_info
+            .global_initializers
+            .push(GlobalInit::I64Const(0));
+        module_info.exports.insert(
+            "psize_cur".to_string(),
+            ExportIndex::Global(global_index),
+        );
+        */
+
         let mut indexes = GasCalibrationGlobalIndexes {
             imports_call_map: Default::default(),
-            op_call_map: Default::default()
+            op_call_map: Default::default(),
+            // param_size_current: global_index,
+            // param_size_map: Default::default()
         };
 
         for ((module_name, function_name, index), _import_index) in module_info.imports.iter() {
@@ -88,7 +106,25 @@ impl ModuleMiddleware for GasCalibration {
 
             indexes.imports_call_map.insert(
                 *index,
-                (function_fullname, global_index));
+                (function_fullname.clone(), global_index));
+
+            /*
+            // Append a global for param size per 'imports' (== abi call)
+            let global_index = module_info
+                .globals
+                .push(GlobalType::new(Type::I64, Mutability::Var));
+            module_info
+                .global_initializers
+                .push(GlobalInit::I64Const(0));
+
+            println!("function_fullname: {}", function_fullname);
+            module_info.exports.insert(
+                format!("wgc_ps_{}", function_fullname),
+                ExportIndex::Global(global_index),
+            );
+
+            indexes.param_size_map.insert(*index, global_index);
+            */
         }
 
         for op_name in OPERATOR_VARIANTS {
@@ -109,12 +145,13 @@ impl ModuleMiddleware for GasCalibration {
                 global_index);
         }
 
-        *global_indexes = Some(indexes)
 
         // println!("module info function names: {:?}", module_info.function_names);
         // println!("module info exports: {:?}", module_info.exports);
         // println!("module info imports: {:?}", module_info.imports);
         // println!("module info functions: {:?}", module_info.functions);
+
+        *global_indexes = Some(indexes)
     }
 }
 
@@ -126,25 +163,110 @@ impl FunctionMiddleware for FunctionGasCalibration {
     ) -> Result<(), MiddlewareError> {
 
         // println!("Operator: {:?}", operator);
+        state.push_operator(operator.clone());
 
         match operator {
-            Operator::Call { function_index } // function call - branch source
-            => {
+            // function call - branch source
+            Operator::Call { function_index } => {
+                let f = self.global_indexes.imports_call_map.get(&function_index).unwrap();
+                // println!("Operator::Call {:?}", f);
+
+                //state.push_operator(operator);
 
                 if let Some(index) = self
                     .global_indexes
                     .imports_call_map
                     .get(&function_index) {
-                        state.extend(&[
-                            Operator::GlobalGet { global_index: index.1.as_u32() },
-                            Operator::I64Const { value: 1_i64 },
-                            Operator::I64Add,
-                            Operator::GlobalSet { global_index: index.1.as_u32() },
-                        ]);
-                    }
-            },
-            _ => {
+                    state.extend(&[
+                        // incr function call counter
+                        Operator::GlobalGet { global_index: index.1.as_u32() },
+                        Operator::I64Const { value: 1_i64 },
+                        Operator::I64Add,
+                        Operator::GlobalSet { global_index: index.1.as_u32() }
+                    ]);
+                }
 
+                /*
+                if let Some(index) = self
+                    .global_indexes
+                    .param_size_map
+                    .get(&function_index) {
+
+                    state.extend(&[
+                       // add function call param size counter
+                        Operator::GlobalGet { global_index: index.as_u32() },
+                        Operator::GlobalGet { global_index: self.global_indexes.param_size_current.as_u32() },
+                        Operator::I64Add,
+                        Operator::GlobalSet { global_index: index.as_u32() },
+                        // now reset counter
+                        Operator::I64Const { value: 0 },
+                        Operator::GlobalSet { global_index: self.global_indexes.param_size_current.as_u32() }
+                    ]);
+                }
+                */
+            },
+
+            /*
+            Operator::LocalGet { local_index } => {
+
+                let m = MemoryImmediate {
+                    align: 2,
+                    offset: 0,
+                    memory: 0
+                };
+
+                let to_add = [
+                    Operator::LocalGet { local_index },
+                    Operator::I32Const { value: 4 },
+                    Operator::I32Sub,
+                    Operator::I32Load { memarg: m },
+
+                    Operator::GlobalSet {
+                        global_index: self.global_indexes
+                            .param_size_current
+                            .as_u32()
+                    },
+                ];
+                // TODO / FIXME
+                if local_index == 0 {
+                    state.extend(to_add);
+                }
+            },
+
+            Operator::I32Const { value } => {
+
+                let m = MemoryImmediate {
+                    align: 4,
+                    offset: 0,
+                    memory: 0
+                };
+
+                // TODO: how to get those memory values?
+                if value > 1048 && value < 1328 {
+                    let to_add = [
+                        // Operator::I32Const { value: 3 },
+                        Operator::I32Const { value: value - 4 },
+                        Operator::I32Load { memarg: m },
+                        Operator::GlobalSet {
+                            global_index: self.global_indexes
+                                .param_size_current
+                                .as_u32()
+                        },
+                    ];
+                    state.extend(to_add);
+                }
+            },
+            */
+            /*
+            Operator::End => {
+                // Reset
+                state.extend(&[
+                    Operator::I32Const { value: 0 },
+                    Operator::GlobalSet { global_index: self.global_indexes.param_size_current.as_u32() },
+                ]);
+            },
+            */
+            _ => {
                 let op_name = operator_field_str(&operator);
                 let index = self
                     .global_indexes
@@ -162,11 +284,9 @@ impl FunctionMiddleware for FunctionGasCalibration {
                     Operator::I64Add,
                     Operator::GlobalSet { global_index: index.as_u32() },
                 ]);
-
             }
         }
 
-        state.push_operator(operator);
         Ok(())
     }
 }
@@ -180,6 +300,7 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
     let patterns = [
         r"wgc_abi_([\w\.]+)",
         r"wgc_op_([\w]+)",
+        r"wgc_ps_([\w\.]+)",
     ];
     // Must not fail
     let set = RegexSet::new(&patterns).unwrap();
@@ -235,6 +356,19 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
                     if let Some(op_name) = cap.get(1) {
                         result.0.insert(
                             format!("Wasm:{}", op_name.as_str()),
+                            counter_value as u64
+                        );
+                    }
+                }
+            }
+            ex_name if matches.matched(2) => {
+                let rgx = &regexes[2];
+                let mut rgx_iter = rgx.captures_iter(ex_name);
+
+                if let Some(cap) = rgx_iter.next() {
+                    if let Some(op_name) = cap.get(1) {
+                        result.0.insert(
+                            format!("Abi:ps:{}", op_name.as_str()),
                             counter_value as u64
                         );
                     }

@@ -652,6 +652,7 @@ dependencies = [
  "cornetto",
  "lazy_static",
  "loupe",
+ "more-asserts 0.3.1",
  "parking_lot",
  "rand",
  "regex",
@@ -703,6 +704,12 @@ name = "more-asserts"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7843ec2de400bcbc6a6328c958dc38e5359da6e93e72e37bc5246bf1ae776389"
+
+[[package]]
+name = "more-asserts"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fafa6961cabd9c63bcd77a45d7e3b7f3b552b70417831fb0f56db717e72407e"
 
 [[package]]
 name = "num_cpus"
@@ -1294,7 +1301,7 @@ dependencies = [
  "indexmap",
  "js-sys",
  "loupe",
- "more-asserts",
+ "more-asserts 0.2.2",
  "target-lexicon",
  "thiserror",
  "wasm-bindgen",
@@ -1353,7 +1360,7 @@ dependencies = [
  "cranelift-frontend",
  "gimli",
  "loupe",
- "more-asserts",
+ "more-asserts 0.2.2",
  "rayon",
  "smallvec",
  "target-lexicon",
@@ -1374,7 +1381,7 @@ dependencies = [
  "gimli",
  "lazy_static",
  "loupe",
- "more-asserts",
+ "more-asserts 0.2.2",
  "rayon",
  "smallvec",
  "wasmer-compiler",
@@ -1404,7 +1411,7 @@ dependencies = [
  "lazy_static",
  "loupe",
  "memmap2",
- "more-asserts",
+ "more-asserts 0.2.2",
  "rustc-demangle",
  "serde",
  "serde_bytes",
@@ -1512,7 +1519,7 @@ dependencies = [
  "enum-iterator",
  "indexmap",
  "loupe",
- "more-asserts",
+ "more-asserts 0.2.2",
  "rkyv",
  "serde",
  "thiserror",
@@ -1535,7 +1542,7 @@ dependencies = [
  "loupe",
  "mach",
  "memoffset",
- "more-asserts",
+ "more-asserts 0.2.2",
  "region",
  "rkyv",
  "scopeguard",

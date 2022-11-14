@@ -9,6 +9,7 @@ use crate::middlewares::operator::OPERATOR_CARDINALITY;
 use serial_test::serial;
 use anyhow::Result;
 use parking_lot::Mutex;
+use more_asserts as ma;
 
 use std::sync::Arc;
 
@@ -25,6 +26,8 @@ fn test_basic_abi_call_counter() -> Result<()> {
     ));
 
     let gas_calibration_result = run_main_gc(bytecode, 100000, &interface)?;
+
+    // println!("gas_calibration_result: {:?}", gas_calibration_result);
 
     assert_eq!(gas_calibration_result.0.len(), 2 + OPERATOR_CARDINALITY);
     assert_eq!(gas_calibration_result.0.get("Abi:call:massa.assembly_script_print"), Some(&2));
@@ -88,14 +91,14 @@ fn test_basic_op() -> Result<()> {
         "Wasm:LocalGet",
         "Wasm:GlobalGet",
         "Wasm:I32Const",
-        "Wasm:If",
+        // "Wasm:If",
         "Wasm:MemorySize",
     ]);
+
     for op_exec in &op_executed {
-        assert!(gas_calibration_result.0.get(*op_exec).unwrap() > &0);
+        ma::assert_gt!(gas_calibration_result.0.get(*op_exec).unwrap(), &0);
     }
 
-    println!("non zero");
     for (k, v) in gas_calibration_result.0.iter() {
         if (*k).starts_with("Wasm:") && !op_executed.contains(&((*k).as_str())) {
             assert_eq!(*v, 0);

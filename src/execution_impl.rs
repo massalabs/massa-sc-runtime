@@ -52,6 +52,7 @@ pub (crate) fn exec_gc(instance: Instance, mut module: impl MassaModule,
                      function: &str, param: &str) -> Result<(Response, Instance)> {
 
     module.init_with_instance(&instance)?;
+    println!("yo");
     match module.execution(&instance, function, param) {
         Ok(response) => Ok((response, instance)),
         Err(err) => {
@@ -90,7 +91,7 @@ pub fn run_main_gc(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Re
     let module = get_module(interface, bytecode)?;
     let instance = create_instance(limit, &module)?;
     if instance.exports.contains(settings::MAIN) {
-        let (_resp, instance) = exec_gc(instance.clone(), module, settings::MAIN, "")?;
+        let (_resp, instance) = exec_gc(instance.clone(), module, settings::MAIN, "ABCD")?;
         Ok(get_gas_calibration_result(&instance))
     } else {
         bail!("No main");
