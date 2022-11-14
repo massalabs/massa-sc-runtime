@@ -29,9 +29,11 @@ fn test_basic_abi_call_counter() -> Result<()> {
 
     // println!("gas_calibration_result: {:?}", gas_calibration_result);
 
-    assert_eq!(gas_calibration_result.0.len(), 2 + OPERATOR_CARDINALITY);
-    assert_eq!(gas_calibration_result.0.get("Abi:call:massa.assembly_script_print"), Some(&2));
-    assert_eq!(gas_calibration_result.0.get("Abi:call:env.abort"), Some(&0));
+    assert_eq!(gas_calibration_result.counters.len(), 2 + OPERATOR_CARDINALITY);
+    assert_eq!(gas_calibration_result.counters.get("Abi:call:massa.assembly_script_print"), Some(&2));
+    assert_eq!(gas_calibration_result.counters.get("Abi:call:env.abort"), Some(&0));
+
+    ma::assert_gt!(gas_calibration_result.timers.get("Time:transform_module_info"), Some(&0.0));
 
     Ok(())
 }
@@ -50,9 +52,9 @@ fn test_basic_abi_call_loop() -> Result<()> {
 
     let gas_calibration_result = run_main_gc(bytecode, 100000, &interface)?;
 
-    assert_eq!(gas_calibration_result.0.len(), 2 + OPERATOR_CARDINALITY);
-    assert_eq!(gas_calibration_result.0.get("Abi:call:massa.assembly_script_print"), Some(&11));
-    assert_eq!(gas_calibration_result.0.get("Abi:call:env.abort"), Some(&0));
+    assert_eq!(gas_calibration_result.counters.len(), 2 + OPERATOR_CARDINALITY);
+    assert_eq!(gas_calibration_result.counters.get("Abi:call:massa.assembly_script_print"), Some(&11));
+    assert_eq!(gas_calibration_result.counters.get("Abi:call:env.abort"), Some(&0));
 
     Ok(())
 }
@@ -71,10 +73,10 @@ fn test_basic_op() -> Result<()> {
 
     let gas_calibration_result = run_main_gc(bytecode, 100000, &interface)?;
 
-    assert_eq!(gas_calibration_result.0.len(), 1 + OPERATOR_CARDINALITY);
+    assert_eq!(gas_calibration_result.counters.len(), 1 + OPERATOR_CARDINALITY);
     // Abi call issued
     // assert_eq!(gas_calibration_result.0.get("Abi:call:massa.assembly_script_print"), Some(&1));
-    assert_eq!(gas_calibration_result.0.get("Abi:call:env.abort"), Some(&0));
+    assert_eq!(gas_calibration_result.counters.get("Abi:call:env.abort"), Some(&0));
 
     // check op count
     // Use wat file to view op (https://webassembly.github.io/wabt/demo/wasm2wat/)
@@ -96,10 +98,10 @@ fn test_basic_op() -> Result<()> {
     ]);
 
     for op_exec in &op_executed {
-        ma::assert_gt!(gas_calibration_result.0.get(*op_exec).unwrap(), &0);
+        ma::assert_gt!(gas_calibration_result.counters.get(*op_exec).unwrap(), &0);
     }
 
-    for (k, v) in gas_calibration_result.0.iter() {
+    for (k, v) in gas_calibration_result.counters.iter() {
         if (*k).starts_with("Wasm:") && !op_executed.contains(&((*k).as_str())) {
             assert_eq!(*v, 0);
         }

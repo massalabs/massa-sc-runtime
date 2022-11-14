@@ -9,6 +9,7 @@ use std::fmt::{self, Debug};
 use std::mem;
 use std::sync::Mutex;
 use std::collections::HashMap;
+use std::time::{Duration, Instant};
 
 use crate::middlewares::operator::{operator_field_str, OPERATOR_VARIANTS};
 
@@ -63,6 +64,8 @@ impl ModuleMiddleware for GasCalibration {
 
     fn transform_module_info(&self, module_info: &mut ModuleInfo) {
 
+        let current = Instant::now();
+
         let mut global_indexes = self.global_indexes.lock().unwrap();
         if global_indexes.is_some() {
             panic!("GasCalibration::transform_module_info: Attempting to use a `GasCalibration` middleware from multiple modules.");
@@ -80,6 +83,8 @@ impl ModuleMiddleware for GasCalibration {
             ExportIndex::Global(global_index),
         );
         */
+
+        // println!("{:?}", global_indexes.transform_module_info_ms);
 
         let mut indexes = GasCalibrationGlobalIndexes {
             imports_call_map: Default::default(),
@@ -145,11 +150,38 @@ impl ModuleMiddleware for GasCalibration {
                 global_index);
         }
 
-
         // println!("module info function names: {:?}", module_info.function_names);
         // println!("module info exports: {:?}", module_info.exports);
         // println!("module info imports: {:?}", module_info.imports);
         // println!("module info functions: {:?}", module_info.functions);
+
+        let global_index = module_info
+            .globals
+            .push(GlobalType::new(Type::F64, Mutability::Var));
+        module_info
+            .global_initializers
+            .push(GlobalInit::F64Const(0.0));
+        module_info.exports.insert(
+            String::from("wgc_elapsed_feed"),
+            ExportIndex::Global(global_index),
+        );
+
+        // Append a global variable for time elapsed of this function.
+        // Note: transform_module_info can take quite some time and thus we need this timing
+        // for accurate gas calibration
+        let global_index = module_info
+            .globals
+            .push(GlobalType::new(Type::F64, Mutability::Var));
+        module_info
+            .global_initializers
+            .push(GlobalInit::F64Const(current.elapsed().as_secs_f64()));
+        module_info.exports.insert(
+            String::from("wgc_elapsed_transform_module_info"),
+            ExportIndex::Global(global_index),
+        );
+
+        // indexes.transform_module_info_ms += duration.as_millis() as f64;
+        // println!("Time elapsed in {}() is: {:?}", "transform_module_info", duration);
 
         *global_indexes = Some(indexes)
     }
@@ -161,6 +193,8 @@ impl FunctionMiddleware for FunctionGasCalibration {
         operator: Operator<'a>,
         state: &mut MiddlewareReaderState<'a>,
     ) -> Result<(), MiddlewareError> {
+
+        let current = Instant::now();
 
         // println!("Operator: {:?}", operator);
         state.push_operator(operator.clone());
@@ -287,20 +321,30 @@ impl FunctionMiddleware for FunctionGasCalibration {
             }
         }
 
+        let duration = current.elapsed();
+        // println!("Time elapsed in {}() is: {:?}", "feed", duration);
+
         Ok(())
     }
 }
 
 #[derive(Debug)]
-pub struct GasCalibrationResult(pub HashMap<String, u64>);
+pub struct GasCalibrationResult {
+    pub(crate) counters: HashMap<String, u64>,
+    pub(crate) timers: HashMap<String, f64>
+}
 
 pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
 
-    let mut result = GasCalibrationResult { 0: Default::default() };
+    let mut result = GasCalibrationResult {
+        counters: Default::default(),
+        timers: Default::default()
+    };
     let patterns = [
         r"wgc_abi_([\w\.]+)",
         r"wgc_op_([\w]+)",
         r"wgc_ps_([\w\.]+)",
+        r"wgc_elapsed_([\w\._]+)",
     ];
     // Must not fail
     let set = RegexSet::new(&patterns).unwrap();
@@ -321,17 +365,22 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
         // Safe to unwrap (tested against is_none())
         let (export_name, extern_) = export_.unwrap();
 
-        let counter_value: i64 = match extern_ {
+        let counter_value: Option<i64> = match extern_ {
             Extern::Global(g) => {
-                let value_ = g.get().try_into();
-                if value_.is_err() {
-                    // println!("Not a i64 counter for {}: {:?}", export_name, g);
-                    continue;
-                }
-                value_.unwrap() // safe to unwrap
+                g.get().try_into().ok()
             },
-            _ => continue,
+            _ => None,
         };
+        let timer_value: Option<f64> = match extern_ {
+            Extern::Global(g) => {
+                g.get().try_into().ok()
+            },
+            _ => None,
+        };
+
+        if counter_value.is_none() && timer_value.is_none() {
+            continue;
+        }
 
         let matches = set.matches(export_name);
         match export_name {
@@ -341,9 +390,10 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
 
                 if let Some(cap) = rgx_iter.next() {
                     if let Some(abi_func_name) = cap.get(1) {
-                        result.0.insert(
+
+                        result.counters.insert(
                             format!("Abi:call:{}", abi_func_name.as_str()),
-                            counter_value as u64
+                            counter_value.unwrap() as u64
                         );
                     }
                 }
@@ -354,9 +404,9 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
 
                 if let Some(cap) = rgx_iter.next() {
                     if let Some(op_name) = cap.get(1) {
-                        result.0.insert(
+                        result.counters.insert(
                             format!("Wasm:{}", op_name.as_str()),
-                            counter_value as u64
+                            counter_value.unwrap() as u64
                         );
                     }
                 }
@@ -367,9 +417,22 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
 
                 if let Some(cap) = rgx_iter.next() {
                     if let Some(op_name) = cap.get(1) {
-                        result.0.insert(
+                        result.counters.insert(
                             format!("Abi:ps:{}", op_name.as_str()),
-                            counter_value as u64
+                            counter_value.unwrap() as u64
+                        );
+                    }
+                }
+            }
+            ex_name if matches.matched(3) => {
+                let rgx = &regexes[3];
+                let mut rgx_iter = rgx.captures_iter(ex_name);
+
+                if let Some(cap) = rgx_iter.next() {
+                    if let Some(fn_name) = cap.get(1) {
+                        result.timers.insert(
+                            format!("Time:{}", fn_name.as_str()),
+                            timer_value.unwrap() as f64
                         );
                     }
                 }
