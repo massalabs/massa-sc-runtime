@@ -202,7 +202,7 @@ impl FunctionMiddleware for FunctionGasCalibration {
         match operator {
             // function call - branch source
             Operator::Call { function_index } => {
-                let f = self.global_indexes.imports_call_map.get(&function_index).unwrap();
+                // let f = self.global_indexes.imports_call_map.get(&function_index).unwrap();
                 // println!("Operator::Call {:?}", f);
 
                 //state.push_operator(operator);
