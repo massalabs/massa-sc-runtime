@@ -330,8 +330,8 @@ impl FunctionMiddleware for FunctionGasCalibration {
 
 #[derive(Debug)]
 pub struct GasCalibrationResult {
-    pub(crate) counters: HashMap<String, u64>,
-    pub(crate) timers: HashMap<String, f64>
+    pub counters: HashMap<String, u64>,
+    pub timers: HashMap<String, f64>
 }
 
 pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
