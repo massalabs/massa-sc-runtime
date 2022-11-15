@@ -1,6 +1,5 @@
-use wasmer::wasmparser::{MemoryImmediate, Operator};
-// use wasmer_types::entity::EntityRef;
-use wasmer_types::{ExportIndex, GlobalIndex, GlobalInit, GlobalType, MemoryIndex, ModuleInfo, Mutability, Type};
+use wasmer::wasmparser::Operator;
+use wasmer_types::{ExportIndex, GlobalIndex, GlobalInit, GlobalType, ModuleInfo, Mutability, Type};
 use wasmer::{MiddlewareReaderState, ModuleMiddleware, MiddlewareError, LocalFunctionIndex, FunctionMiddleware, Instance, Extern};
 use loupe::{MemoryUsage, MemoryUsageTracker};
 use regex::{Regex, RegexSet};
@@ -9,7 +8,7 @@ use std::fmt::{self, Debug};
 use std::mem;
 use std::sync::Mutex;
 use std::collections::HashMap;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use crate::middlewares::operator::{operator_field_str, OPERATOR_VARIANTS};
 
@@ -154,6 +153,10 @@ impl ModuleMiddleware for GasCalibration {
         // println!("module info exports: {:?}", module_info.exports);
         // println!("module info imports: {:?}", module_info.imports);
         // println!("module info functions: {:?}", module_info.functions);
+        // println!("module info num imported functions: {:?}", module_info.num_imported_functions);
+        // println!("module info start function: {:?}", module_info.start_function);
+        // println!("module info passive elements: {:?}", module_info.passive_elements);
+        // println!("module info signatures: {:?}", module_info.signatures);
 
         let global_index = module_info
             .globals
@@ -194,7 +197,7 @@ impl FunctionMiddleware for FunctionGasCalibration {
         state: &mut MiddlewareReaderState<'a>,
     ) -> Result<(), MiddlewareError> {
 
-        let current = Instant::now();
+        // let current = Instant::now();
 
         // println!("Operator: {:?}", operator);
         state.push_operator(operator.clone());
@@ -211,6 +214,8 @@ impl FunctionMiddleware for FunctionGasCalibration {
                     .global_indexes
                     .imports_call_map
                     .get(&function_index) {
+
+                    // println!("Found function index: {}", function_index);
                     state.extend(&[
                         // incr function call counter
                         Operator::GlobalGet { global_index: index.1.as_u32() },
@@ -218,6 +223,14 @@ impl FunctionMiddleware for FunctionGasCalibration {
                         Operator::I64Add,
                         Operator::GlobalSet { global_index: index.1.as_u32() }
                     ]);
+                } else {
+                    // Note: here we are skipping call to 'local function'
+                    // For instance, getOpKeys() use derOpKeys() (local) + get_op_keys() (abi)
+                    // Uncomment the line 'println!("...", module_info.functions);' to view the list of
+                    // all functions (import + local)
+                    // Note2: Signature of function (e.g. arguments types + return type) can be seen with:
+                    // println!("...", module_info.signatures);
+                    println!("Skipping unknown function index: {}", function_index);
                 }
 
                 /*
@@ -321,7 +334,7 @@ impl FunctionMiddleware for FunctionGasCalibration {
             }
         }
 
-        let duration = current.elapsed();
+        // let duration = current.elapsed();
         // println!("Time elapsed in {}() is: {:?}", "feed", duration);
 
         Ok(())
