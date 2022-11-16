@@ -349,6 +349,8 @@ pub struct GasCalibrationResult {
 
 pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
 
+    let current = Instant::now();
+
     let mut result = GasCalibrationResult {
         counters: Default::default(),
         timers: Default::default()
@@ -396,6 +398,7 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
         }
 
         let matches = set.matches(export_name);
+
         match export_name {
             ex_name if matches.matched(0) => {
                 let rgx = &regexes[0];
@@ -455,6 +458,12 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
             }
         }
     }
+
+    let duration = current.elapsed();
+    result.timers.insert(String::from("Time:gas_calibration_result"),
+                         duration.as_secs_f64());
+
+    // println!("Time elapsed in {}() is: {:?}", "gas_calibration_result", duration);
 
     result
 }
