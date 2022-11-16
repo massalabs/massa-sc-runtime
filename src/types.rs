@@ -233,7 +233,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// * `validity_start` - Tuple containing the period and thread of the validity start slot
     /// * `validity_end` - Tuple containing the period and thread of the validity end slot
     /// * `max_gas` - Maximum gas for the message execution
-    /// * `gas_price` - Price of one gas unit
+    /// * `raw_fee` - Fee to be paid for message execution
     /// * `coins` - Coins of the sender
     /// * `data` - Message data
     ///
@@ -245,7 +245,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         validity_start: (u64, u8),
         validity_end: (u64, u8),
         max_gas: u64,
-        gas_price: u64,
+        raw_fee: u64,
         raw_coins: u64,
         data: &[u8],
     ) -> Result<()> {
