@@ -1,6 +1,6 @@
 [package]
 name = "massa-sc-runtime"
-version = "0.9"
+version = "0.9.0"
 edition = "2021"
 
 [dependencies]
