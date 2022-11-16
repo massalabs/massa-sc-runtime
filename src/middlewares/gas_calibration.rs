@@ -230,7 +230,8 @@ impl FunctionMiddleware for FunctionGasCalibration {
                     // all functions (import + local)
                     // Note2: Signature of function (e.g. arguments types + return type) can be seen with:
                     // println!("...", module_info.signatures);
-                    println!("Skipping unknown function index: {}", function_index);
+
+                    // println!("Skipping unknown function index: {}", function_index);
                 }
 
                 /*
