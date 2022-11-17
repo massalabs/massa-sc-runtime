@@ -57,7 +57,6 @@ pub(crate) fn exec_gc(
     param: &str,
 ) -> Result<(Response, Instance)> {
     module.init_with_instance(&instance)?;
-    println!("yo");
     match module.execution(&instance, function, param) {
         Ok(response) => Ok((response, instance)),
         Err(err) => {
