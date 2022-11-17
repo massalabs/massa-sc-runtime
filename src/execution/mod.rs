@@ -16,9 +16,9 @@ use crate::{Interface, Response};
 
 use std::sync::Arc;
 
+use crate::middlewares::gas_calibration::GasCalibration;
 pub(crate) use as_execution::*;
 pub(crate) use common::*;
-use crate::middlewares::gas_calibration::GasCalibration;
 
 pub(crate) trait MassaModule {
     fn init(interface: &dyn Interface, bytecode: &[u8]) -> Self;

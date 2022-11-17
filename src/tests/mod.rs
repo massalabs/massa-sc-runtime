@@ -1,12 +1,10 @@
-use crate::{
-    types::{Interface, InterfaceClone},
-};
+use crate::types::{Interface, InterfaceClone};
 
 use anyhow::{bail, Result};
 use parking_lot::Mutex;
 
-use std::{collections::BTreeMap, str::FromStr};
 use std::sync::Arc;
+use std::{collections::BTreeMap, str::FromStr};
 
 pub type Ledger = std::collections::BTreeMap<String, Vec<u8>>; // Bytecode instead of String
 
@@ -41,11 +39,11 @@ impl Interface for TestInterface {
     }
 
     fn transfer_coins_for(
-            &self,
-            _from_address: &str,
-            _to_address: &str,
-            _raw_amount: u64,
-        ) -> Result<()> {
+        &self,
+        _from_address: &str,
+        _to_address: &str,
+        _raw_amount: u64,
+    ) -> Result<()> {
         Ok(())
     }
 
@@ -217,9 +215,7 @@ impl Interface for TestInterface {
             (vec![254, 255], vec![68, 69]),
         ]);
 
-        Ok(ds.get(key)
-            .cloned()
-            .unwrap_or(vec![]))
+        Ok(ds.get(key).cloned().unwrap_or(vec![]))
     }
 
     fn unsafe_random_f64(&self) -> Result<f64> {
@@ -232,7 +228,7 @@ impl Interface for TestInterface {
     }
 }
 
-#[cfg(not(feature = "gas_calibration"))]
-pub mod tests_runtime;
 #[cfg(feature = "gas_calibration")]
 pub mod tests_gas_calibration;
+#[cfg(not(feature = "gas_calibration"))]
+pub mod tests_runtime;

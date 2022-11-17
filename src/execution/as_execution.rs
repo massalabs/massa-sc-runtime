@@ -25,7 +25,6 @@ impl MassaModule for ASModule {
         &self.bytecode
     }
     fn execution(&self, instance: &Instance, function: &str, param: &str) -> Result<Response> {
-
         if cfg!(not(feature = "gas_calibration")) {
             // sub initial metering cost
             let metering_initial_cost = settings::metering_initial_cost();
@@ -51,7 +50,6 @@ impl MassaModule for ASModule {
         match res {
             Ok(value) => {
                 if function.eq(crate::settings::MAIN) {
-
                     let remaining_gas = if cfg!(feature = "gas_calibration") {
                         Ok(0_u64)
                     } else {
