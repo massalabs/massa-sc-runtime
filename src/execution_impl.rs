@@ -1,10 +1,10 @@
 use crate::execution::{create_instance, get_module, MassaModule};
+use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 use crate::settings;
 use crate::types::{Interface, Response};
 use anyhow::{bail, Result};
 use wasmer::Instance;
 use wasmer_middlewares::metering::{self, MeteringPoints};
-use crate::middlewares::gas_calibration::{GasCalibrationResult, get_gas_calibration_result};
 
 /// Internal execution function, used on smart contract called from node or
 /// from another smart contract
@@ -23,7 +23,7 @@ pub(crate) fn exec(
     instance: Option<Instance>,
     mut module: impl MassaModule,
     function: &str,
-    param: &str,
+    param: &[u8],
 ) -> Result<Response> {
     let instance = match instance {
         Some(instance) => instance,
@@ -40,7 +40,9 @@ pub(crate) fn exec(
                 // Because the last needed more than the remaining points, we should have an error.
                 match metering::get_remaining_points(&instance) {
                     MeteringPoints::Remaining(..) => bail!(err),
-                    MeteringPoints::Exhausted => bail!("Not enough gas, limit reached at: {function}"),
+                    MeteringPoints::Exhausted => {
+                        bail!("Not enough gas, limit reached at: {function}")
+                    }
                 }
             }
         }
@@ -48,9 +50,12 @@ pub(crate) fn exec(
 }
 
 #[cfg(feature = "gas_calibration")]
-pub (crate) fn exec_gc(instance: Instance, mut module: impl MassaModule,
-                     function: &str, param: &str) -> Result<(Response, Instance)> {
-
+pub(crate) fn exec_gc(
+    instance: Instance,
+    mut module: impl MassaModule,
+    function: &str,
+    param: &str,
+) -> Result<(Response, Instance)> {
     module.init_with_instance(&instance)?;
     println!("yo");
     match module.execution(&instance, function, param) {
@@ -78,7 +83,7 @@ pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Resul
     let module = get_module(interface, bytecode)?;
     let instance = create_instance(limit, &module)?;
     if instance.exports.contains(settings::MAIN) {
-        let exec_res = exec(limit, Some(instance.clone()), module, settings::MAIN, "");
+        let exec_res = exec(limit, Some(instance.clone()), module, settings::MAIN, b"");
         Ok(exec_res?.remaining_gas)
     } else {
         Ok(limit)
@@ -87,7 +92,11 @@ pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Resul
 
 /// Same as run_main but return a GasCalibrationResult
 #[cfg(feature = "gas_calibration")]
-pub fn run_main_gc(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Result<GasCalibrationResult> {
+pub fn run_main_gc(
+    bytecode: &[u8],
+    limit: u64,
+    interface: &dyn Interface,
+) -> Result<GasCalibrationResult> {
     let module = get_module(interface, bytecode)?;
     let instance = create_instance(limit, &module)?;
     if instance.exports.contains(settings::MAIN) {
@@ -97,7 +106,6 @@ pub fn run_main_gc(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Re
         bail!("No main");
     }
 }
-
 
 /// Library Input, take a `module` wasm built with the massa environment,
 /// run a function of that module with the given parameter:
@@ -114,7 +122,7 @@ pub fn run_function(
     bytecode: &[u8],
     limit: u64,
     function: &str,
-    param: &str,
+    param: &[u8],
     interface: &dyn Interface,
 ) -> Result<u64> {
     let module = get_module(interface, bytecode)?;

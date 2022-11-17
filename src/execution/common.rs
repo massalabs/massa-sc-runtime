@@ -25,7 +25,7 @@ pub(crate) fn call_module<T: WasmerEnv>(
     env: &impl MassaEnv<T>,
     address: &str,
     function: &str,
-    param: &str,
+    param: &[u8],
     raw_coins: i64,
 ) -> ABIResult<Response> {
     let raw_coins: u64 = match raw_coins.try_into() {

@@ -98,7 +98,7 @@ pub(crate) fn assembly_script_call_module(
     let memory = get_memory!(env);
     let address = &get_string(memory, address)?;
     let function = &get_string(memory, function)?;
-    let param = &get_string(memory, param)?;
+    let param = &read_buffer(memory, param)?;
     let response = call_module(env, address, function, param, call_coins)?;
     match StringPtr::alloc(&response.ret, env.get_wasm_env()) {
         Ok(ret) => Ok(ret.offset() as i32),
@@ -517,7 +517,7 @@ pub(crate) fn assembly_script_send_message(
         max_gas as u64,
         gas_price as u64,
         raw_coins as u64,
-        get_string(memory, data)?.as_bytes(),
+        &read_buffer(memory, data)?,
     ) {
         Err(err) => abi_bail!(err),
         Ok(_) => Ok(()),
@@ -617,7 +617,7 @@ fn pointer_from_bytearray(env: &ASEnv, value: &Vec<u8>) -> ABIResult<BufferPtr> 
     }
 }
 
-/// Tooling that take read a String in memory and subtract remaining gas
+/// Tooling that reads a String in memory and subtract remaining gas
 /// with a multiplicator (String.len * mult).
 ///
 /// Sub function of `assembly_script_set_data_for`, `assembly_script_set_data`
@@ -639,7 +639,15 @@ fn read_string_and_sub_gas(
     }
 }
 
-/// Tooling that take read a buffer (Vec<u8>) in memory and subtract remaining gas
+/// Tooling that reads a buffer (Vec<u8>) in memory
+fn read_buffer(memory: &Memory, offset: i32) -> ABIResult<Vec<u8>> {
+    match BufferPtr::new(offset as u32).read(memory) {
+        Ok(buffer) => Ok(buffer),
+        Err(err) => abi_bail!(err),
+    }
+}
+
+/// Tooling that reads a buffer (Vec<u8>) in memory and subtract remaining gas
 /// with a multiplicator (buffer len * mult).
 ///
 /// Return the buffer in the BufferPtr
@@ -649,7 +657,6 @@ fn read_buffer_and_sub_gas(
     offset: i32,
     mult: usize,
 ) -> ABIResult<Vec<u8>> {
-    // HERE
     match BufferPtr::new(offset as u32).read(memory) {
         Ok(buffer) => {
             sub_remaining_gas_with_mult(env, buffer.len(), mult)?;
