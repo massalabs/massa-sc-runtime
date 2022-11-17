@@ -95,36 +95,36 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("print")
     }
 
-    fn raw_get_data(&self, key: &str) -> Result<Vec<u8>> {
+    fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("raw_get_data")
     }
 
-    fn raw_set_data(&self, key: &str, value: &[u8]) -> Result<()> {
+    fn raw_set_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
         unimplemented!("raw_set_data")
     }
 
-    fn raw_append_data(&self, key: &str, value: &[u8]) -> Result<()> {
+    fn raw_append_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
         unimplemented!("raw_append_data")
     }
 
-    fn raw_delete_data(&self, key: &str) -> Result<()> {
+    fn raw_delete_data(&self, key: &[u8]) -> Result<()> {
         unimplemented!("raw_delete_data")
     }
 
     /// Requires the data at the address
-    fn raw_get_data_for(&self, address: &str, key: &str) -> Result<Vec<u8>> {
+    fn raw_get_data_for(&self, address: &str, key: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("raw_get_data_for")
     }
 
-    fn raw_set_data_for(&self, address: &str, key: &str, value: &[u8]) -> Result<()> {
+    fn raw_set_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()> {
         unimplemented!("raw_set_data_for")
     }
 
-    fn raw_append_data_for(&self, address: &str, key: &str, value: &[u8]) -> Result<()> {
+    fn raw_append_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()> {
         unimplemented!("raw_append_data_for")
     }
 
-    fn raw_delete_data_for(&self, address: &str, key: &str) -> Result<()> {
+    fn raw_delete_data_for(&self, address: &str, key: &[u8]) -> Result<()> {
         unimplemented!("raw_delete_data_for")
     }
 
@@ -132,11 +132,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ///
     /// Note:
     /// The execution lib will always use the current context address for the update
-    fn has_data(&self, key: &str) -> Result<bool> {
+    fn has_data(&self, key: &[u8]) -> Result<bool> {
         unimplemented!("has_data")
     }
 
-    fn has_data_for(&self, address: &str, _key: &str) -> Result<bool> {
+    fn has_data_for(&self, address: &str, key: &[u8]) -> Result<bool> {
         unimplemented!("has_data_for")
     }
 
@@ -254,23 +254,23 @@ pub trait Interface: Send + Sync + InterfaceClone {
 }
 
 impl dyn Interface {
-    pub fn get_data<T: DeserializeOwned>(&self, key: &str) -> Result<T> {
+    pub fn get_data<T: DeserializeOwned>(&self, key: &[u8]) -> Result<T> {
         Ok(serde_json::from_str::<T>(std::str::from_utf8(
             &self.raw_get_data(key)?,
         )?)?)
     }
 
-    pub fn set_data<T: Serialize>(&self, key: &str, value: &T) -> Result<()> {
+    pub fn set_data<T: Serialize>(&self, key: &[u8], value: &T) -> Result<()> {
         self.raw_set_data(key, serde_json::to_string::<T>(value)?.as_bytes())
     }
 
-    pub fn get_data_for<T: DeserializeOwned>(&self, address: &str, key: &str) -> Result<T> {
+    pub fn get_data_for<T: DeserializeOwned>(&self, address: &str, key: &[u8]) -> Result<T> {
         Ok(serde_json::from_str::<T>(std::str::from_utf8(
             &self.raw_get_data_for(address, key)?,
         )?)?)
     }
 
-    pub fn set_data_for<T: Serialize>(&self, address: &str, key: &str, value: &T) -> Result<()> {
+    pub fn set_data_for<T: Serialize>(&self, address: &str, key: &[u8], value: &T) -> Result<()> {
         self.raw_set_data_for(address, key, serde_json::to_string::<T>(value)?.as_bytes())
     }
 }
