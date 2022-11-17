@@ -100,7 +100,7 @@ pub(crate) fn assembly_script_call_module(
     let function = &get_string(memory, function)?;
     let param = &read_buffer(memory, param)?;
     let response = call_module(env, address, function, param, call_coins)?;
-    match StringPtr::alloc(&response.ret, env.get_wasm_env()) {
+    match BufferPtr::alloc(&response.ret, env.get_wasm_env()) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
             "Cannot allocate response in call {}::{}",

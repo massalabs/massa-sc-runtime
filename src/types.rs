@@ -4,7 +4,7 @@ use serde::{de::DeserializeOwned, Serialize};
 /// That's what is returned when a module is executed correctly since the end
 pub(crate) struct Response {
     /// returned value from the module call
-    pub ret: String,
+    pub ret: Vec<u8>,
     /// number of gas that remain after the execution (metering)
     pub remaining_gas: u64,
 }

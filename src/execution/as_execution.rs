@@ -57,20 +57,20 @@ impl MassaModule for ASModule {
                     };
 
                     return Ok(Response {
-                        ret: String::new(), // main return empty string
+                        ret: Vec::new(), // main return empty vec
                         remaining_gas: remaining_gas?,
                     });
                 }
                 let ret = if let Some(offset) = value.get(0) {
                     if let Some(offset) = offset.i32() {
-                        let str_ptr = StringPtr::new(offset as u32);
+                        let buffer_ptr = BufferPtr::new(offset as u32);
                         let memory = instance.exports.get_memory("memory")?;
-                        str_ptr.read(memory)?
+                        buffer_ptr.read(memory)?
                     } else {
                         bail!("Execution wasn't in capacity to read the return value")
                     }
                 } else {
-                    String::new()
+                    Vec::new()
                 };
                 let remaining_gas = if cfg!(feature = "gas_calibration") {
                     Ok(0_u64)
