@@ -546,21 +546,17 @@ pub(crate) fn assembly_script_get_current_thread(env: &ASEnv) -> ABIResult<i32> 
 pub(crate) fn assembly_script_set_bytecode_for(
     env: &ASEnv,
     address: i32,
-    bytecode_base64: i32,
+    bytecode: i32,
 ) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_set_bytecode_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
-    let bytecode_base64 = read_string_and_sub_gas(
+    let bytecode_raw = read_buffer_and_sub_gas(
         env,
         memory,
-        bytecode_base64,
+        bytecode,
         settings::metering_set_bytecode_mult(),
     )?;
-    let bytecode_raw = match base64::decode(bytecode_base64) {
-        Ok(v) => v,
-        Err(err) => abi_bail!(err),
-    };
     match env
         .get_interface()
         .raw_set_bytecode_for(&address, &bytecode_raw)
@@ -571,19 +567,15 @@ pub(crate) fn assembly_script_set_bytecode_for(
 }
 
 /// sets the executable bytecode of the current address
-pub(crate) fn assembly_script_set_bytecode(env: &ASEnv, bytecode_base64: i32) -> ABIResult<()> {
+pub(crate) fn assembly_script_set_bytecode(env: &ASEnv, bytecode: i32) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_set_bytecode_const())?;
     let memory = get_memory!(env);
-    let bytecode_base64 = read_string_and_sub_gas(
+    let bytecode_raw = read_buffer_and_sub_gas(
         env,
         memory,
-        bytecode_base64,
+        bytecode,
         settings::metering_set_bytecode_mult(),
     )?;
-    let bytecode_raw = match base64::decode(bytecode_base64) {
-        Ok(v) => v,
-        Err(err) => abi_bail!(err),
-    };
     match env.get_interface().raw_set_bytecode(&bytecode_raw) {
         Ok(()) => Ok(()),
         Err(err) => abi_bail!(err),
