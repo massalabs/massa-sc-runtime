@@ -33,7 +33,7 @@ fn test_caller() {
     settings::set_metering(0);
     let b = run_main(&module, 20_000, &*interface).expect("Failed to run_main caller.wasm");
     assert_eq!(a + prev_call_price, b);
-    let v_out = interface.raw_get_data("").unwrap();
+    let v_out = interface.raw_get_data(b"").unwrap();
     let output = std::str::from_utf8(&v_out).unwrap();
     assert_eq!(output, "hello you");
 
@@ -154,7 +154,7 @@ fn test_run_function() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/receive_message.wasm"
     ));
-    run_function(module, 100_000, "receive", "data", &*interface)
+    run_function(module, 100_000, "receive", b"data", &*interface)
         .expect("Failed to run_function receive_message.wasm");
 }
 
