@@ -16,7 +16,7 @@ fn test_caller() {
     let mut module = vec![1u8];
     module.extend_from_slice(include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/get_string.wasm"
+        "/wasm/get_string.wasm"
     )));
     interface
         .raw_set_bytecode_for("get_string", &module)
@@ -26,7 +26,7 @@ fn test_caller() {
     let mut module = vec![1u8];
     module.extend_from_slice(include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/caller.wasm"
+        "/wasm/caller.wasm"
     )));
     let a = run_main(&module, 20_000, &*interface).expect("Failed to run_main caller.wasm");
     let prev_call_price = settings::metering_call();
@@ -48,16 +48,13 @@ fn test_caller_no_return() {
     settings::reset_metering();
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/get_string.wasm"
-    ));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/get_string.wasm"));
     interface.create_module(module.as_ref()).unwrap();
     // test only if the module is valid
     run_main(module, 20_000, &*interface).expect("Failed to run get_string.wasm");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/caller_no_return.wasm"
+        "/wasm/caller_no_return.wasm"
     ));
     run_main(module, 20_000, &*interface).expect("Failed to run caller.wasm");
 }
@@ -70,17 +67,14 @@ fn test_local_hello_name_caller() {
     // we should never panic and just stop the call stack
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/get_string.wasm"
-    ));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/get_string.wasm"));
     interface
         .raw_set_bytecode_for("get_string", module.as_ref())
         .unwrap();
     run_main(module, 100, &*interface).expect("Failed to run_main get_string.wasm");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/local_hello_name_caller.wasm"
+        "/wasm/local_hello_name_caller.wasm"
     ));
     run_main(module, 20_000, &*interface)
         .expect_err("Succeeded to run_main local_hello_name_caller.wasm");
@@ -93,15 +87,9 @@ fn test_module_creation() {
     // This test should create a smartcontract module and call it
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/create_sc.wasm"
-    ));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/create_sc.wasm"));
     run_main(module, 100_000, &*interface).expect("Failed to run_main create_sc.wasm");
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/caller.wasm"
-    ));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/caller.wasm"));
     run_main(module, 20_000, &*interface).expect("Failed to run_main caller.wasm");
 }
 
@@ -112,15 +100,9 @@ fn test_not_enough_gas_error() {
     // This test should create a smartcontract module and call it
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/create_sc.wasm"
-    ));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/create_sc.wasm"));
     run_main(module, 100_000, &*interface).expect("Failed to run_main create_sc.wasm");
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/caller.wasm"
-    ));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/caller.wasm"));
     match run_main(module, 10000, &*interface) {
         Ok(_) => panic!("Shouldn't pass successfully =-("),
         Err(err) => {
@@ -139,7 +121,7 @@ fn test_send_message() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/send_message.wasm"
+        "/wasm/send_message.wasm"
     ));
     run_main(module, 100_000, &*interface).expect("Failed to run_main send_message.wasm");
 }
@@ -152,7 +134,7 @@ fn test_run_function() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/receive_message.wasm"
+        "/wasm/receive_message.wasm"
     ));
     run_function(module, 100_000, "receive", b"data", &*interface)
         .expect("Failed to run_function receive_message.wasm");
@@ -164,10 +146,7 @@ fn test_run_main_without_main() {
     settings::reset_metering();
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/no_main.wasm"
-    ));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/no_main.wasm"));
     run_main(module, 100_000, &*interface).expect_err("An error should spawn here");
 }
 
@@ -177,10 +156,7 @@ fn test_run_empty_main() {
     settings::reset_metering();
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/empty_main.wasm"
-    ));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/empty_main.wasm"));
     // Even if our SC is empty; there is still an initial and minimum metering cost
     // (mainly because we have a memory allocator to init)
     settings::set_metering_initial_cost(0);
@@ -202,10 +178,7 @@ fn test_op_fn() {
     settings::reset_metering();
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/op_fn.wasm"
-    ));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/op_fn.wasm"));
     run_main(module, 10_000_000, &*interface).expect("Failed to run op_fn.wasm");
 }
 
@@ -218,7 +191,7 @@ fn test_builtins() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/use_builtins.wasm"
+        "/wasm/use_builtins.wasm"
     ));
     match run_main(module, 10_000_000, &*interface) {
         Err(e) => {
