@@ -490,6 +490,8 @@ pub(crate) fn assembly_script_send_message(
     raw_fee: i64,
     raw_coins: i64,
     data: i32,
+    filter_address: i32,
+    filter_key: i32
 ) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_send_message())?;
     let validity_start: (u64, u8) = match (
@@ -527,6 +529,7 @@ pub(crate) fn assembly_script_send_message(
         raw_fee as u64,
         raw_coins as u64,
         get_string(memory, data)?.as_bytes(),
+        (&get_string(memory, filter_address)?, &get_string(memory, filter_key)?),
     ) {
         Err(err) => abi_bail!(err),
         Ok(_) => Ok(()),
