@@ -491,7 +491,7 @@ pub(crate) fn assembly_script_send_message(
     raw_coins: i64,
     data: i32,
     filter_address: i32,
-    filter_key: i32
+    filter_datastore_key: i32
 ) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_send_message())?;
     let validity_start: (u64, u8) = match (
@@ -520,6 +520,19 @@ pub(crate) fn assembly_script_send_message(
         abi_bail!("negative coins")
     }
     let memory = get_memory!(env);
+    let filter_address_string = &get_string(memory, filter_address)?;
+    let filter_address = if filter_address_string == &"" {
+        None
+    } else {
+        Some(filter_address_string)
+    };
+
+    let filter_key_string = &get_string(memory, filter_datastore_key)?;
+    let filter_key_datastore = if filter_key_string == &"" {
+        None
+    } else {
+        Some(filter_key_string)
+    };
     match env.get_interface().send_message(
         &get_string(memory, target_address)?,
         &get_string(memory, target_handler)?,
@@ -529,8 +542,8 @@ pub(crate) fn assembly_script_send_message(
         raw_fee as u64,
         raw_coins as u64,
         get_string(memory, data)?.as_bytes(),
-        (&get_string(memory, filter_address)?, &get_string(memory, filter_key)?),
-    ) {
+        (Some(&filter_address), Some(&filter_key_datastore)),
+     ) {
         Err(err) => abi_bail!(err),
         Ok(_) => Ok(()),
     }
