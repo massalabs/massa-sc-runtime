@@ -50,12 +50,12 @@ pub(crate) fn call_module<T: WasmerEnv>(
     match crate::execution_impl::exec(remaining_gas?, None, module, function, param) {
         Ok(resp) => {
             if cfg!(not(feature = "gas_calibration")) {
-                if let Err(err) = set_remaining_points(env, resp.remaining_gas) {
+                if let Err(err) = set_remaining_points(env, resp.0.remaining_gas) {
                     abi_bail!(err);
                 }
             }
             match env.get_interface().finish_call() {
-                Ok(_) => Ok(resp),
+                Ok(_) => Ok(resp.0),
                 Err(err) => abi_bail!(err),
             }
         }
