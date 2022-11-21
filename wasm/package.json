@@ -1,0 +1,27 @@
+{
+  "name": "wasm",
+  "version": "0.1.0",
+  "scripts": {
+    "sc_get_string": "massa-sc-scripts build-sc src/get_string.ts",
+    "sc_get_string_main": "massa-sc-scripts build-sc src/create_sc.ts",
+    "get_string_caller": "massa-sc-scripts build-sc src/caller.ts",
+    "local_hello_name_caller": "massa-sc-scripts build-sc src/local_hello_name_caller.ts",
+    "build_get_string": "yarn run sc_get_string && yarn run sc_get_string_main && yarn run get_string_caller && yarn run local_hello_name_caller",
+    "caller_no_return": "massa-sc-scripts build-sc src/caller_no_return.ts",
+    "no_main": "massa-sc-scripts build-sc src/no_main.ts",
+    "empty_main": "massa-sc-scripts build-sc src/empty_main.ts",
+    "sc_receive_message": "massa-sc-scripts build-sc src/receive_message.ts",
+    "send_message": "massa-sc-scripts build-sc src/send_message.ts",
+    "build_message": "yarn run sc_receive_message && yarn run send_message",
+    "build_use_builtins": "massa-sc-scripts build-sc src/use_builtins.ts",
+    "build": "yarn run build_get_string && yarn run no_main && yarn run build_message && yarn run caller_no_return && yarn run build_use_builtins",
+    "clean": "massa-sc-scripts clean"
+  },
+  "dependencies": {
+    "assemblyscript": "^0.19.20",
+    "json-as": "^0.2.6",
+    "massa-sc-scripts": "4.0.1",
+    "massa-sc-std": "3.2.2",
+    "visitor-as": "^0.6.0"
+  }
+}
