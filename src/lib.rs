@@ -15,6 +15,3 @@ pub use middlewares::gas_calibration::GasCalibrationResult;
 pub use types::*;
 
 mod middlewares;
-
-#[cfg(test)]
-mod tests;
