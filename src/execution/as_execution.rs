@@ -25,13 +25,16 @@ impl MassaModule for ASModule {
         &self.bytecode
     }
     fn execution(&self, instance: &Instance, function: &str, param: &str) -> Result<Response> {
-        // sub initial metering cost
-        let metering_initial_cost = settings::metering_initial_cost();
-        let remaining_gas = get_remaining_points(&self.env)?;
-        if metering_initial_cost > remaining_gas {
-            bail!("Not enough gas to launch the virtual machine")
+
+        if cfg!(not(feature = "gas_calibration")) {
+            // sub initial metering cost
+            let metering_initial_cost = settings::metering_initial_cost();
+            let remaining_gas = get_remaining_points(&self.env)?;
+            if metering_initial_cost > remaining_gas {
+                bail!("Not enough gas to launch the virtual machine")
+            }
+            set_remaining_points(&self.env, remaining_gas - metering_initial_cost)?;
         }
-        set_remaining_points(&self.env, remaining_gas - metering_initial_cost)?;
 
         // Now can exec
         let wasm_func = instance.exports.get_function(function)?;
@@ -48,9 +51,15 @@ impl MassaModule for ASModule {
         match res {
             Ok(value) => {
                 if function.eq(crate::settings::MAIN) {
+                    let remaining_gas = if cfg!(feature = "gas_calibration") {
+                        Ok(0_u64)
+                    } else {
+                        get_remaining_points(&self.env)
+                    };
+
                     return Ok(Response {
                         ret: String::new(), // main return empty string
-                        remaining_gas: get_remaining_points(&self.env)?,
+                        remaining_gas: remaining_gas?,
                     });
                 }
                 let ret = if let Some(offset) = value.get(0) {
@@ -64,9 +73,14 @@ impl MassaModule for ASModule {
                 } else {
                     String::new()
                 };
+                let remaining_gas = if cfg!(feature = "gas_calibration") {
+                    Ok(0_u64)
+                } else {
+                    get_remaining_points(&self.env)
+                };
                 Ok(Response {
                     ret,
-                    remaining_gas: get_remaining_points(&self.env)?,
+                    remaining_gas: remaining_gas?,
                 })
             }
             Err(error) => bail!(error),
