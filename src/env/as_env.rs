@@ -46,18 +46,22 @@ impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
 impl WasmerEnv for ASEnv {
     fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError> {
         self.wasm_env.init_with_instance(instance)?;
-        self.remaining_points = Some(
-            instance
-                .exports
-                .get_with_generics_weak("wasmer_metering_remaining_points")
-                .map_err(HostEnvInitError::from)?,
-        );
-        self.exhausted_points = Some(
-            instance
-                .exports
-                .get_with_generics_weak("wasmer_metering_points_exhausted")
-                .map_err(HostEnvInitError::from)?,
-        );
+
+        if cfg!(not(feature = "gas_calibration")) {
+            self.remaining_points = Some(
+                instance
+                    .exports
+                    .get_with_generics_weak("wasmer_metering_remaining_points")
+                    .map_err(HostEnvInitError::from)?,
+            );
+            self.exhausted_points = Some(
+                instance
+                    .exports
+                    .get_with_generics_weak("wasmer_metering_points_exhausted")
+                    .map_err(HostEnvInitError::from)?,
+            );
+        }
+
         Ok(())
     }
 }
@@ -95,7 +99,9 @@ pub fn assembly_script_abort(
 
 /// Assembly script builtin export `seed` function
 pub fn assembly_script_seed(env: &ASEnv) -> ABIResult<f64> {
-    sub_remaining_gas(env, settings::metering_unsafe_random())?;
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas(env, settings::metering_unsafe_random())?;
+    }
     match env.interface.unsafe_random_f64() {
         Ok(ret) => Ok(ret),
         _ => abi_bail!("failed to get random from interface"),
@@ -108,7 +114,9 @@ pub fn assembly_script_seed(env: &ASEnv) -> ABIResult<f64> {
 /// for the newest versions. Probably the signature will be soon () -> i64
 /// instead of () -> f64.
 pub fn assembly_script_date(env: &ASEnv) -> ABIResult<f64> {
-    sub_remaining_gas(env, settings::metering_get_time())?;
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas(env, settings::metering_get_time())?;
+    }
     let utime = match env.interface.get_time() {
         Ok(time) => time,
         _ => abi_bail!("failed to get time from interface"),

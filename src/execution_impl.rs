@@ -1,6 +1,8 @@
 use crate::execution::{create_instance, get_module, MassaModule};
 use crate::settings;
 use crate::types::{Interface, Response};
+use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
+
 use anyhow::{bail, Result};
 use wasmer::Instance;
 use wasmer_middlewares::metering::{self, MeteringPoints};
@@ -23,7 +25,7 @@ pub(crate) fn exec(
     mut module: impl MassaModule,
     function: &str,
     param: &str,
-) -> Result<Response> {
+) -> Result<(Response, Instance)> {
     let instance = match instance {
         Some(instance) => instance,
         None => create_instance(limit, &module)?,
@@ -31,12 +33,16 @@ pub(crate) fn exec(
     module.init_with_instance(&instance)?;
 
     match module.execution(&instance, function, param) {
-        Ok(response) => Ok(response),
+        Ok(response) => Ok((response, instance)),
         Err(err) => {
-            // Because the last needed more than the remaining points, we should have an error.
-            match metering::get_remaining_points(&instance) {
-                MeteringPoints::Remaining(..) => bail!(err),
-                MeteringPoints::Exhausted => bail!("Not enough gas, limit reached at: {function}"),
+            if cfg!(feature = "gas_calibration") {
+                bail!(err)
+            } else {
+                // Because the last needed more than the remaining points, we should have an error.
+                match metering::get_remaining_points(&instance) {
+                    MeteringPoints::Remaining(..) => bail!(err),
+                    MeteringPoints::Exhausted => bail!("Not enough gas, limit reached at: {function}"),
+                }
             }
         }
     }
@@ -57,7 +63,7 @@ pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Resul
     let module = get_module(interface, bytecode)?;
     let instance = create_instance(limit, &module)?;
     if instance.exports.contains(settings::MAIN) {
-        Ok(exec(limit, Some(instance), module, settings::MAIN, "")?.remaining_gas)
+        Ok(exec(limit, Some(instance), module, settings::MAIN, "")?.0.remaining_gas)
     } else {
         Ok(limit)
     }
@@ -82,5 +88,24 @@ pub fn run_function(
     interface: &dyn Interface,
 ) -> Result<u64> {
     let module = get_module(interface, bytecode)?;
-    Ok(exec(limit, None, module, function, param)?.remaining_gas)
+    Ok(exec(limit, None, module, function, param)?.0.remaining_gas)
 }
+
+/// Same as run_main but return a GasCalibrationResult
+#[cfg(feature = "gas_calibration")]
+pub fn run_main_gc(
+    bytecode: &[u8],
+    limit: u64,
+    interface: &dyn Interface,
+) -> Result<GasCalibrationResult> {
+    let module = get_module(interface, bytecode)?;
+    let instance = create_instance(limit, &module)?;
+    if instance.exports.contains(settings::MAIN) {
+        let (_resp, instance) = exec(u64::MAX, Some(instance.clone()), module,
+                                     settings::MAIN, "")?;
+        Ok(get_gas_calibration_result(&instance))
+    } else {
+        bail!("No main");
+    }
+}
+

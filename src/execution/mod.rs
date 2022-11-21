@@ -13,6 +13,7 @@ use wasmer_middlewares::Metering;
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::{Interface, Response};
+use crate::middlewares::gas_calibration::GasCalibration;
 
 use std::sync::Arc;
 
@@ -62,9 +63,15 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
         extended_const: false,
     };
 
-    // Add metering middleware
-    let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
-    compiler_config.push_middleware(metering);
+    if cfg!(feature = "gas_calibration") {
+        // Add gas calibration middleware
+        let gas_calibration = Arc::new(GasCalibration::new());
+        compiler_config.push_middleware(gas_calibration);
+    } else {
+        // Add metering middleware
+        let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
+        compiler_config.push_middleware(metering);
+    }
 
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
