@@ -678,15 +678,6 @@ fn alloc_string_array(env: &ASEnv, vec: &[String]) -> ABIResult<i32> {
     }
 }
 
-#[allow(dead_code)]
-/// Tooling, return a buffer (Vec<u8>) from a given offset
-fn get_buffer(memory: &Memory, ptr: i32) -> ABIResult<Vec<u8>> {
-    match BufferPtr::new(ptr as u32).read(memory) {
-        Ok(buffer) => Ok(buffer),
-        Err(err) => abi_bail!(err),
-    }
-}
-
 /// Flatten a Vec<Vec<u8>> to a Vec<u8> with the format:
 /// L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
 fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_length: usize) -> ABIResult<Vec<u8>> {
