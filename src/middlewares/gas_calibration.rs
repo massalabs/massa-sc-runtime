@@ -167,6 +167,7 @@ impl ModuleMiddleware for GasCalibration {
         // println!("module info passive elements: {:?}", module_info.passive_elements);
         // println!("module info signatures: {:?}", module_info.signatures);
 
+        /*
         let global_index = module_info
             .globals
             .push(GlobalType::new(Type::F64, Mutability::Var));
@@ -177,6 +178,7 @@ impl ModuleMiddleware for GasCalibration {
             String::from("wgc_elapsed_feed"),
             ExportIndex::Global(global_index),
         );
+        */
 
         // Append a global variable for time elapsed of this function.
         // Note: transform_module_info can take quite some time and thus we need this timing
@@ -210,143 +212,59 @@ impl FunctionMiddleware for FunctionGasCalibration {
         // println!("Operator: {:?}", operator);
         state.push_operator(operator.clone());
 
-        match operator {
-            // function call - branch source
-            Operator::Call { function_index } => {
-                // let f = self.global_indexes.imports_call_map.get(&function_index).unwrap();
-                // println!("Operator::Call {:?}", f);
+        if let Operator::Call { function_index } = operator {
+            // let f = self.global_indexes.imports_call_map.get(&function_index).unwrap();
+            // println!("Operator::Call {:?}", f);
 
-                //state.push_operator(operator);
+            //state.push_operator(operator);
 
-                if let Some(index) = self.global_indexes.imports_call_map.get(&function_index) {
-                    // println!("Found function index: {}", function_index);
-                    state.extend(&[
-                        // incr function call counter
-                        Operator::GlobalGet {
-                            global_index: index.1.as_u32(),
-                        },
-                        Operator::I64Const { value: 1_i64 },
-                        Operator::I64Add,
-                        Operator::GlobalSet {
-                            global_index: index.1.as_u32(),
-                        },
-                    ]);
-                } else {
-                    // Note: here we are skipping call to 'local function'
-                    // For instance, getOpKeys() use derOpKeys() (local) + get_op_keys() (abi)
-                    // Uncomment the line 'println!("...", module_info.functions);' to view the list of
-                    // all functions (import + local)
-                    // Note2: Signature of function (e.g. arguments types + return type) can be seen with:
-                    // println!("...", module_info.signatures);
-
-                    // println!("Skipping unknown function index: {}", function_index);
-                }
-
-                /*
-                if let Some(index) = self
-                    .global_indexes
-                    .param_size_map
-                    .get(&function_index) {
-
-                    state.extend(&[
-                       // add function call param size counter
-                        Operator::GlobalGet { global_index: index.as_u32() },
-                        Operator::GlobalGet { global_index: self.global_indexes.param_size_current.as_u32() },
-                        Operator::I64Add,
-                        Operator::GlobalSet { global_index: index.as_u32() },
-                        // now reset counter
-                        Operator::I64Const { value: 0 },
-                        Operator::GlobalSet { global_index: self.global_indexes.param_size_current.as_u32() }
-                    ]);
-                }
-                */
-            }
-
-            /*
-            Operator::LocalGet { local_index } => {
-
-                let m = MemoryImmediate {
-                    align: 2,
-                    offset: 0,
-                    memory: 0
-                };
-
-                let to_add = [
-                    Operator::LocalGet { local_index },
-                    Operator::I32Const { value: 4 },
-                    Operator::I32Sub,
-                    Operator::I32Load { memarg: m },
-
-                    Operator::GlobalSet {
-                        global_index: self.global_indexes
-                            .param_size_current
-                            .as_u32()
-                    },
-                ];
-                // TODO / FIXME
-                if local_index == 0 {
-                    state.extend(to_add);
-                }
-            },
-
-            Operator::I32Const { value } => {
-
-                let m = MemoryImmediate {
-                    align: 4,
-                    offset: 0,
-                    memory: 0
-                };
-
-                // TODO: how to get those memory values?
-                if value > 1048 && value < 1328 {
-                    let to_add = [
-                        // Operator::I32Const { value: 3 },
-                        Operator::I32Const { value: value - 4 },
-                        Operator::I32Load { memarg: m },
-                        Operator::GlobalSet {
-                            global_index: self.global_indexes
-                                .param_size_current
-                                .as_u32()
-                        },
-                    ];
-                    state.extend(to_add);
-                }
-            },
-            */
-            /*
-            Operator::End => {
-                // Reset
+            if let Some(index) = self.global_indexes.imports_call_map.get(&function_index) {
+                // println!("Found function index: {}", function_index);
                 state.extend(&[
-                    Operator::I32Const { value: 0 },
-                    Operator::GlobalSet { global_index: self.global_indexes.param_size_current.as_u32() },
-                ]);
-            },
-            */
-            _ => {
-                let op_name = operator_field_str(&operator);
-                let index = self
-                    .global_indexes
-                    .op_call_map
-                    .get(op_name)
-                    .ok_or_else(|| {
-                        MiddlewareError::new(
-                            "GasCalibration",
-                            format!("Unable to get index for op: {}", op_name),
-                        )
-                    })?;
-
-                state.extend(&[
+                    // incr function call counter
                     Operator::GlobalGet {
-                        global_index: index.as_u32(),
+                        global_index: index.1.as_u32(),
                     },
                     Operator::I64Const { value: 1_i64 },
                     Operator::I64Add,
                     Operator::GlobalSet {
-                        global_index: index.as_u32(),
+                        global_index: index.1.as_u32(),
                     },
                 ]);
+            } else {
+                // Note: here we are skipping call to 'local function'
+                // For instance, getOpKeys() use derOpKeys() (local) + get_op_keys() (abi)
+                // Uncomment the line 'println!("...", module_info.functions);' to view the list of
+                // all functions (import + local)
+                // Note2: Signature of function (e.g. arguments types + return type) can be seen with:
+                // println!("...", module_info.signatures);
+
+                // println!("Skipping unknown function index: {}", function_index);
             }
         }
+
+        let op_name = operator_field_str(&operator);
+        let index = self
+            .global_indexes
+            .op_call_map
+            .get(op_name)
+            .ok_or_else(|| {
+                MiddlewareError::new(
+                    "GasCalibration",
+                    format!("Unable to get index for op: {}", op_name),
+                )
+            })?;
+
+        state.extend(&[
+            Operator::GlobalGet {
+                global_index: index.as_u32(),
+            },
+            Operator::I64Const { value: 1_i64 },
+            Operator::I64Add,
+            Operator::GlobalSet {
+                global_index: index.as_u32(),
+            },
+        ]);
 
         // let duration = current.elapsed();
         // println!("Time elapsed in {}() is: {:?}", "feed", duration);
