@@ -3,6 +3,7 @@ mod as_execution;
 mod common;
 
 use anyhow::{bail, Result};
+use std::sync::Arc;
 use wasmer::{wasmparser::Operator, BaseTunables, Pages, Target};
 use wasmer::{
     CompilerConfig, Features, HostEnvInitError, ImportObject, Instance, Module, Store, Universal,
@@ -10,19 +11,18 @@ use wasmer::{
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
 
+use crate::middlewares::gas_calibration::GasCalibration;
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::{Interface, Response};
-use crate::middlewares::gas_calibration::GasCalibration;
-
-use std::sync::Arc;
 
 pub(crate) use as_execution::*;
 pub(crate) use common::*;
+
 pub(crate) trait MassaModule {
     fn init(interface: &dyn Interface, bytecode: &[u8]) -> Self;
     /// Closure for the execution allowing us to handle a gas error
-    fn execution(&self, instance: &Instance, function: &str, param: &str) -> Result<Response>;
+    fn execution(&self, instance: &Instance, function: &str, param: &[u8]) -> Result<Response>;
     fn resolver(&self, store: &Store) -> ImportObject;
     fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError>;
     fn get_bytecode(&self) -> &Vec<u8>;

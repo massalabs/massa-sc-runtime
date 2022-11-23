@@ -1,11 +1,13 @@
 use crate::execution::{create_instance, get_module, MassaModule};
 use crate::settings;
 use crate::types::{Interface, Response};
-use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 
 use anyhow::{bail, Result};
 use wasmer::Instance;
 use wasmer_middlewares::metering::{self, MeteringPoints};
+
+#[cfg(feature = "gas_calibration")]
+use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 
 /// Internal execution function, used on smart contract called from node or
 /// from another smart contract
@@ -24,7 +26,7 @@ pub(crate) fn exec(
     instance: Option<Instance>,
     mut module: impl MassaModule,
     function: &str,
-    param: &str,
+    param: &[u8],
 ) -> Result<(Response, Instance)> {
     let instance = match instance {
         Some(instance) => instance,
@@ -41,7 +43,9 @@ pub(crate) fn exec(
                 // Because the last needed more than the remaining points, we should have an error.
                 match metering::get_remaining_points(&instance) {
                     MeteringPoints::Remaining(..) => bail!(err),
-                    MeteringPoints::Exhausted => bail!("Not enough gas, limit reached at: {function}"),
+                    MeteringPoints::Exhausted => {
+                        bail!("Not enough gas, limit reached at: {function}")
+                    }
                 }
             }
         }
@@ -59,11 +63,15 @@ pub(crate) fn exec(
 ///     return 0;
 /// }
 /// ```
+/// Return:
+/// the remaining gas.
 pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
     let module = get_module(interface, bytecode)?;
     let instance = create_instance(limit, &module)?;
     if instance.exports.contains(settings::MAIN) {
-        Ok(exec(limit, Some(instance), module, settings::MAIN, "")?.0.remaining_gas)
+        Ok(exec(limit, Some(instance), module, settings::MAIN, b"")?
+            .0
+            .remaining_gas)
     } else {
         Ok(limit)
     }
@@ -84,7 +92,7 @@ pub fn run_function(
     bytecode: &[u8],
     limit: u64,
     function: &str,
-    param: &str,
+    param: &[u8],
     interface: &dyn Interface,
 ) -> Result<u64> {
     let module = get_module(interface, bytecode)?;
@@ -101,11 +109,15 @@ pub fn run_main_gc(
     let module = get_module(interface, bytecode)?;
     let instance = create_instance(limit, &module)?;
     if instance.exports.contains(settings::MAIN) {
-        let (_resp, instance) = exec(u64::MAX, Some(instance.clone()), module,
-                                     settings::MAIN, "")?;
+        let (_resp, instance) = exec(
+            u64::MAX,
+            Some(instance.clone()),
+            module,
+            settings::MAIN,
+            b"",
+        )?;
         Ok(get_gas_calibration_result(&instance))
     } else {
         bail!("No main");
     }
 }
-

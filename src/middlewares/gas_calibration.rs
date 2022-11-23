@@ -1,9 +1,8 @@
 use loupe::{MemoryUsage, MemoryUsageTracker};
-use regex::{Regex, RegexSet};
 use wasmer::wasmparser::Operator;
 use wasmer::{
-    Extern, FunctionMiddleware, Instance, LocalFunctionIndex, MiddlewareError,
-    MiddlewareReaderState, ModuleMiddleware,
+    FunctionMiddleware, LocalFunctionIndex, MiddlewareError, MiddlewareReaderState,
+    ModuleMiddleware,
 };
 use wasmer_types::{
     ExportIndex, GlobalIndex, GlobalInit, GlobalType, ModuleInfo, Mutability, Type,
@@ -16,6 +15,11 @@ use std::sync::Mutex;
 use std::time::Instant;
 
 use crate::middlewares::operator::{operator_field_str, OPERATOR_VARIANTS};
+
+#[cfg(feature = "gas_calibration")]
+use regex::{Regex, RegexSet};
+#[cfg(feature = "gas_calibration")]
+use wasmer::{Extern, Instance};
 
 #[derive(Debug, Clone, MemoryUsage)]
 struct GasCalibrationGlobalIndexes {
@@ -357,6 +361,7 @@ pub struct GasCalibrationResult {
     pub timers: HashMap<String, f64>,
 }
 
+#[cfg(feature = "gas_calibration")]
 pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
     let current = Instant::now();
 

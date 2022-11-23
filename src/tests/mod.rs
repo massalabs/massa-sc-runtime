@@ -79,11 +79,11 @@ impl Interface for TestInterface {
         Ok(vec![])
     }
 
-    fn has_data(&self, _key: &str) -> Result<bool> {
+    fn has_data(&self, _key: &[u8]) -> Result<bool> {
         Ok(false)
     }
 
-    fn has_data_for(&self, _address: &str, _key: &str) -> Result<bool> {
+    fn has_data_for(&self, _address: &str, _key: &[u8]) -> Result<bool> {
         Ok(false)
     }
 
@@ -95,33 +95,33 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn raw_append_data(&self, _key: &str, _value: &[u8]) -> Result<()> {
+    fn raw_append_data(&self, _key: &[u8], _value: &[u8]) -> Result<()> {
         Ok(())
     }
 
-    fn raw_append_data_for(&self, _address: &str, _key: &str, _value: &[u8]) -> Result<()> {
+    fn raw_append_data_for(&self, _address: &str, _key: &[u8], _value: &[u8]) -> Result<()> {
         Ok(())
     }
 
-    fn raw_delete_data(&self, _key: &str) -> Result<()> {
+    fn raw_delete_data(&self, _key: &[u8]) -> Result<()> {
         Ok(())
     }
 
-    fn raw_delete_data_for(&self, _address: &str, _key: &str) -> Result<()> {
+    fn raw_delete_data_for(&self, _address: &str, _key: &[u8]) -> Result<()> {
         Ok(())
     }
 
-    fn raw_get_data_for(&self, _address: &str, _key: &str) -> Result<Vec<u8>> {
+    fn raw_get_data_for(&self, _address: &str, _key: &[u8]) -> Result<Vec<u8>> {
         Ok(vec![])
     }
 
-    fn raw_set_data(&self, _key: &str, value: &[u8]) -> Result<()> {
+    fn raw_set_data(&self, _key: &[u8], value: &[u8]) -> Result<()> {
         let mut bytes = self.0.lock().clone();
         bytes.insert(String::from_str("print").unwrap(), value.to_vec());
         Ok(())
     }
 
-    fn raw_set_data_for(&self, _address: &str, _key: &str, value: &[u8]) -> Result<()> {
+    fn raw_set_data_for(&self, _address: &str, _key: &[u8], value: &[u8]) -> Result<()> {
         let mut bytes = self.0.lock().clone();
         bytes.insert(String::from_str("print").unwrap(), value.to_vec());
         Ok(())
@@ -158,7 +158,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn raw_get_data(&self, _: &str) -> Result<Vec<u8>> {
+    fn raw_get_data(&self, _: &[u8]) -> Result<Vec<u8>> {
         let bytes = self.0.lock().clone();
         match bytes.get(&"print".to_string()) {
             Some(bytes) => Ok(bytes.clone()),

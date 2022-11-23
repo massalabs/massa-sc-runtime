@@ -2124,4 +2124,5 @@ pub(crate) const OPERATOR_VARIANTS: [&str; 529] = [
     "F64x2RelaxedMax",
 ];
 
+#[cfg(all(feature = "gas_calibration", test))]
 pub const OPERATOR_CARDINALITY: usize = OPERATOR_VARIANTS.len();
