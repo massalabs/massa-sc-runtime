@@ -8,6 +8,7 @@ use crate::env::{
     get_memory, get_remaining_points, sub_remaining_gas, sub_remaining_gas_with_mult, ASEnv,
     MassaEnv,
 };
+use crate::middlewares::gas_calibration::param_size_update;
 use crate::settings;
 use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use wasmer::Memory;
@@ -119,11 +120,15 @@ pub(crate) fn assembly_script_get_remaining_gas(env: &ASEnv) -> ABIResult<i64> {
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
 pub(crate) fn assembly_script_print(env: &ASEnv, arg: i32) -> ABIResult<()> {
-    if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas(env, settings::metering_print())?;
-    }
+    sub_remaining_gas(env, settings::metering_print())?;
     let memory = get_memory!(env);
-    if let Err(err) = env.get_interface().print(&get_string(memory, arg)?) {
+    let message = get_string(memory, arg)?;
+
+    if cfg!(feature = "gas_calibration") {
+        param_size_update(env, "massa.assembly_script_print:0", message.len(), true);
+    }
+
+    if let Err(err) = env.get_interface().print(&message) {
         abi_bail!(err);
     }
     Ok(())
@@ -245,6 +250,12 @@ pub(crate) fn assembly_script_set_data(env: &ASEnv, key: i32, value: i32) -> ABI
     let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_set_data_key_mult())?;
     let value =
         read_buffer_and_sub_gas(env, memory, value, settings::metering_set_data_value_mult())?;
+
+    if cfg!(feature = "gas_calibration") {
+        param_size_update(env, "massa.assembly_script_set_data:0", key.len(), false);
+        param_size_update(env, "massa.assembly_script_set_data:1", value.len(), false);
+    }
+
     if let Err(err) = env.get_interface().raw_set_data(&key, &value) {
         abi_bail!(err)
     }
