@@ -105,6 +105,7 @@ pub fn run_main_gc(
     bytecode: &[u8],
     limit: u64,
     interface: &dyn Interface,
+    param: &[u8],
 ) -> Result<GasCalibrationResult> {
     let module = get_module(interface, bytecode)?;
     let instance = create_instance(limit, &module)?;
@@ -114,7 +115,7 @@ pub fn run_main_gc(
             Some(instance.clone()),
             module,
             settings::MAIN,
-            b"",
+            param,
         )?;
         Ok(get_gas_calibration_result(&instance))
     } else {

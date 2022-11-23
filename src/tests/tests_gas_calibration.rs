@@ -21,7 +21,7 @@ fn test_basic_abi_call_counter() -> Result<()> {
         "/wasm/build/gc_abi_call_basic.wasm"
     ));
 
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface)?;
+    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, "".as_bytes())?;
 
     // println!("gas_calibration_result: {:?}", gas_calibration_result);
 
@@ -60,7 +60,7 @@ fn test_basic_abi_call_loop() -> Result<()> {
         "/wasm/build/gc_abi_call_for.wasm"
     ));
 
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface)?;
+    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, "".as_bytes())?;
 
     assert_eq!(
         gas_calibration_result.counters.len(),
@@ -90,7 +90,7 @@ fn test_basic_op() -> Result<()> {
         "/wasm/build/gc_op_basic.wasm"
     ));
 
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface)?;
+    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, "".as_bytes())?;
 
     assert_eq!(
         gas_calibration_result.counters.len(),
