@@ -77,6 +77,11 @@ impl MassaModule for ASModule {
                 } else {
                     get_remaining_points(&self.env)
                 };
+                let remaining_gas = if cfg!(feature = "gas_calibration") {
+                    Ok(0_u64)
+                } else {
+                    get_remaining_points(&self.env)
+                };
                 Ok(Response {
                     ret,
                     remaining_gas: remaining_gas?,

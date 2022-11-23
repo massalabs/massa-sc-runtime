@@ -10,13 +10,13 @@ use wasmer::{
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
 
+use crate::middlewares::gas_calibration::GasCalibration;
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::{Interface, Response};
 
 use std::sync::Arc;
 
-use crate::middlewares::gas_calibration::GasCalibration;
 pub(crate) use as_execution::*;
 pub(crate) use common::*;
 

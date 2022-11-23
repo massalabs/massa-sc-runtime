@@ -40,13 +40,22 @@ pub(crate) fn call_module<T: WasmerEnv>(
         Ok(module) => module,
         Err(err) => abi_bail!(err),
     };
-    match crate::execution_impl::exec(get_remaining_points(env)?, None, module, function, param) {
+
+    let remaining_gas = if cfg!(feature = "gas_calibration") {
+        Ok(u64::MAX)
+    } else {
+        get_remaining_points(env)
+    };
+
+    match crate::execution_impl::exec(remaining_gas?, None, module, function, param) {
         Ok(resp) => {
-            if let Err(err) = set_remaining_points(env, resp.remaining_gas) {
-                abi_bail!(err);
+            if cfg!(not(feature = "gas_calibration")) {
+                if let Err(err) = set_remaining_points(env, resp.0.remaining_gas) {
+                    abi_bail!(err);
+                }
             }
             match env.get_interface().finish_call() {
-                Ok(_) => Ok(resp),
+                Ok(_) => Ok(resp.0),
                 Err(err) => abi_bail!(err),
             }
         }
