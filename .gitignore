@@ -2,3 +2,6 @@
 wasm/*.d.ts
 wasm/*.js
 wasm/*.wasm.map
+
+# IDE
+.idea
