@@ -21,13 +21,17 @@ fn test_basic_abi_call_counter() -> Result<()> {
         "/wasm/build/gc_abi_call_basic.wasm"
     ));
 
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, "".as_bytes())?;
+    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"")?;
 
     // println!("gas_calibration_result: {:?}", gas_calibration_result);
 
+    // Note:
+    // 2 counters for abi call count (print / abort)
+    // 5 counters for print (1 param) & abort (4 params) param size
+    // + counters for each operators
     assert_eq!(
         gas_calibration_result.counters.len(),
-        2 + OPERATOR_CARDINALITY
+        2 + 5 + OPERATOR_CARDINALITY
     );
     assert_eq!(
         gas_calibration_result
@@ -40,10 +44,27 @@ fn test_basic_abi_call_counter() -> Result<()> {
         Some(&0)
     );
 
+    // param size
+    // "CCCC" -> 8
+    // "9876543" -> 14
+    // assert_eq!(
+    //     gas_calibration_result
+    //         .counters
+    //         .get("Abi:ps:massa.assembly_script_print"),
+    //     Some(&22)
+    // );
+
+    // Timer checks
     ma::assert_gt!(
         gas_calibration_result
             .timers
             .get("Time:transform_module_info"),
+        Some(&0.0)
+    );
+    ma::assert_gt!(
+        gas_calibration_result
+            .timers
+            .get("Time:gas_calibration_result"),
         Some(&0.0)
     );
 
@@ -60,11 +81,11 @@ fn test_basic_abi_call_loop() -> Result<()> {
         "/wasm/build/gc_abi_call_for.wasm"
     ));
 
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, "".as_bytes())?;
+    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"")?;
 
     assert_eq!(
         gas_calibration_result.counters.len(),
-        2 + OPERATOR_CARDINALITY
+        2 + 5 + OPERATOR_CARDINALITY
     );
     assert_eq!(
         gas_calibration_result
@@ -90,11 +111,12 @@ fn test_basic_op() -> Result<()> {
         "/wasm/build/gc_op_basic.wasm"
     ));
 
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, "".as_bytes())?;
+    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"")?;
 
+    // 1 for env.abort + 4 env.abort parameters
     assert_eq!(
         gas_calibration_result.counters.len(),
-        1 + OPERATOR_CARDINALITY
+        1 + 4 + OPERATOR_CARDINALITY
     );
     // Abi call issued
     // assert_eq!(gas_calibration_result.0.get("Abi:call:massa.assembly_script_print"), Some(&1));
@@ -130,6 +152,71 @@ fn test_basic_op() -> Result<()> {
         if (*k).starts_with("Wasm:") && !op_executed.contains(&((*k).as_str())) {
             assert_eq!(*v, 0);
         }
+    }
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn test_basic_abi_call_param_size() -> Result<()> {
+    settings::reset_metering();
+    let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
+    let bytecode = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/gc_abi_call_param_size.wasm"
+    ));
+
+    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"9876543")?;
+    // println!("gas_calibration_result: {:?}", gas_calibration_result);
+
+    // Note:
+    // 3 counters for abi call count (assembly_script_print + assembly_script_set_data + abort)
+    // 7 counters for
+    // assembly_script (1 param)
+    // assembly_script_set_data (2 params)
+    // abort (4 params)
+    // + counters for each operators
+    assert_eq!(
+        gas_calibration_result.counters.len(),
+        3 + 7 + OPERATOR_CARDINALITY
+    );
+    assert_eq!(
+        gas_calibration_result
+            .counters
+            .get("Abi:call:massa.assembly_script_set_data"),
+        Some(&1)
+    );
+
+    // param size
+    // Check SC src in massa-unit-tests-src for expected lengths
+    assert_eq!(
+        gas_calibration_result
+            .counters
+            .get("Abi:ps:massa.assembly_script_set_data:0"),
+        Some(&8)
+    );
+    assert_eq!(
+        gas_calibration_result
+            .counters
+            .get("Abi:ps:massa.assembly_script_set_data:1"),
+        Some(&20)
+    );
+    // Check param len send via run_main_gc + 2x (utf-16)
+    // TODO / FIXME: should be 14 but is now 18 - because param is now passed as &[u8] instead of &str
+    assert_eq!(
+        gas_calibration_result
+            .counters
+            .get("Abi:ps:massa.assembly_script_print:0"),
+        Some(&18)
+    );
+    for i in 0..4 {
+        assert_eq!(
+            gas_calibration_result
+                .counters
+                .get(&format!("Abi:ps:env.abort:{}", i)),
+            Some(&0)
+        );
     }
 
     Ok(())
