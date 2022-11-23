@@ -6,7 +6,7 @@ use crate::env::{
 use crate::types::Response;
 use crate::{settings, Interface};
 use anyhow::{bail, Result};
-use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
+use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
 use wasmer::{imports, Function, ImportObject, Instance, Store, Val, WasmerEnv};
 
 pub(crate) struct ASModule {
@@ -71,11 +71,6 @@ impl MassaModule for ASModule {
                     }
                 } else {
                     Vec::new()
-                };
-                let remaining_gas = if cfg!(feature = "gas_calibration") {
-                    Ok(0_u64)
-                } else {
-                    get_remaining_points(&self.env)
                 };
                 let remaining_gas = if cfg!(feature = "gas_calibration") {
                     Ok(0_u64)

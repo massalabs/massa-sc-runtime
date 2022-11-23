@@ -3,6 +3,7 @@ mod as_execution;
 mod common;
 
 use anyhow::{bail, Result};
+use std::sync::Arc;
 use wasmer::{wasmparser::Operator, BaseTunables, Pages, Target};
 use wasmer::{
     CompilerConfig, Features, HostEnvInitError, ImportObject, Instance, Module, Store, Universal,
@@ -14,8 +15,6 @@ use crate::middlewares::gas_calibration::GasCalibration;
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::{Interface, Response};
-
-use std::sync::Arc;
 
 pub(crate) use as_execution::*;
 pub(crate) use common::*;

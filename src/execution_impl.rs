@@ -1,11 +1,13 @@
 use crate::execution::{create_instance, get_module, MassaModule};
-use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 use crate::settings;
 use crate::types::{Interface, Response};
 
 use anyhow::{bail, Result};
 use wasmer::Instance;
 use wasmer_middlewares::metering::{self, MeteringPoints};
+
+#[cfg(feature = "gas_calibration")]
+use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 
 /// Internal execution function, used on smart contract called from node or
 /// from another smart contract
@@ -50,22 +52,6 @@ pub(crate) fn exec(
     }
 }
 
-#[cfg(feature = "gas_calibration")]
-pub(crate) fn exec_gc(
-    instance: Instance,
-    mut module: impl MassaModule,
-    function: &str,
-    param: &str,
-) -> Result<(Response, Instance)> {
-    module.init_with_instance(&instance)?;
-    match module.execution(&instance, function, param) {
-        Ok(response) => Ok((response, instance)),
-        Err(err) => {
-            bail!(err)
-        }
-    }
-}
-
 /// Library Input, take a `module` wasm built with the massa environment,
 /// must have a main function inside written in AssemblyScript:
 ///
@@ -88,23 +74,6 @@ pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Resul
             .remaining_gas)
     } else {
         Ok(limit)
-    }
-}
-
-/// Same as run_main but return a GasCalibrationResult
-#[cfg(feature = "gas_calibration")]
-pub fn run_main_gc(
-    bytecode: &[u8],
-    limit: u64,
-    interface: &dyn Interface,
-) -> Result<GasCalibrationResult> {
-    let module = get_module(interface, bytecode)?;
-    let instance = create_instance(limit, &module)?;
-    if instance.exports.contains(settings::MAIN) {
-        let (_resp, instance) = exec_gc(instance.clone(), module, settings::MAIN, "ABCD")?;
-        Ok(get_gas_calibration_result(&instance))
-    } else {
-        bail!("No main");
     }
 }
 
@@ -140,7 +109,13 @@ pub fn run_main_gc(
     let module = get_module(interface, bytecode)?;
     let instance = create_instance(limit, &module)?;
     if instance.exports.contains(settings::MAIN) {
-        let (_resp, instance) = exec(u64::MAX, Some(instance.clone()), module, settings::MAIN, "")?;
+        let (_resp, instance) = exec(
+            u64::MAX,
+            Some(instance.clone()),
+            module,
+            settings::MAIN,
+            b"",
+        )?;
         Ok(get_gas_calibration_result(&instance))
     } else {
         bail!("No main");
