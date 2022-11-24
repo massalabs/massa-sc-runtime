@@ -86,6 +86,7 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
     ) {
         Ok(i) => Ok(i),
         Err(err) => {
+            // We filter the error created by the metering middleware when there is not enough gas at initialization.
             if let InstantiationError::Start(ref e) = err {
                 if let Some(trap) = e.clone().to_trap() {
                     if trap == TrapCode::UnreachableCodeReached && e.trace().len() == 0 {
