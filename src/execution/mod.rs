@@ -6,10 +6,12 @@ use anyhow::{bail, Result};
 use std::sync::Arc;
 use wasmer::{wasmparser::Operator, BaseTunables, Pages, Target};
 use wasmer::{
-    CompilerConfig, Features, HostEnvInitError, ImportObject, Instance, Module, Store, Universal,
+    CompilerConfig, Features, HostEnvInitError, ImportObject, Instance, InstantiationError, Module,
+    Store, Universal,
 };
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
+use wasmer_types::TrapCode;
 
 use crate::middlewares::gas_calibration::GasCalibration;
 use crate::settings::max_number_of_pages;
@@ -78,10 +80,22 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
     let engine = Universal::new(compiler_config).features(FEATURES).engine();
     let store = Store::new_with_tunables(&engine, tunables);
 
-    Ok(Instance::new(
-        &Module::new(&store, module.get_bytecode())?,
+    match Instance::new(
+        &Module::new(&store, &module.get_bytecode())?,
         &module.resolver(&store),
-    )?)
+    ) {
+        Ok(i) => Ok(i),
+        Err(err) => {
+            if let InstantiationError::Start(ref e) = err {
+                if let Some(trap) = e.clone().to_trap() {
+                    if trap == TrapCode::UnreachableCodeReached && e.trace().len() == 0 {
+                        bail!("RuntimeError: Not enough gas, limit reached at initialization");
+                    }
+                }
+            }
+            Err(err.into())
+        }
+    }
 }
 
 /// Dispatch module corresponding to the first bytecode.
