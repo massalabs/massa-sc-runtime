@@ -95,6 +95,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("print")
     }
 
+    /// Return datastore keys
+    fn get_keys(&self, address: &str) -> Result<Vec<Vec<u8>>> { unimplemented!("get_op_keys") }
+
     fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("raw_get_data")
     }
