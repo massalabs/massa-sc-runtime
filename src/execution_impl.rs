@@ -64,16 +64,15 @@ pub(crate) fn exec(
 /// }
 /// ```
 /// Return:
-/// the remaining gas.
-pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
+/// The return of the function executed as byte array and the remaining gas for the rest of the execution.
+pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Result<Response> {
     let module = get_module(interface, bytecode)?;
     let instance = create_instance(limit, &module)?;
     if instance.exports.contains(settings::MAIN) {
         Ok(exec(limit, Some(instance), module, settings::MAIN, b"")?
-            .0
-            .remaining_gas)
+            .0)
     } else {
-        Ok(limit)
+        Ok(Response{ ret: Vec::new(), remaining_gas : limit})
     }
 }
 
@@ -94,9 +93,9 @@ pub fn run_function(
     function: &str,
     param: &[u8],
     interface: &dyn Interface,
-) -> Result<u64> {
+) -> Result<Response> {
     let module = get_module(interface, bytecode)?;
-    Ok(exec(limit, None, module, function, param)?.0.remaining_gas)
+    Ok(exec(limit, None, module, function, param)?.0)
 }
 
 /// Same as run_main but return a GasCalibrationResult
