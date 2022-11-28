@@ -240,7 +240,7 @@ pub(crate) fn assembly_script_get_data(env: &ASEnv, key: i32) -> ABIResult<i32> 
     match env.get_interface().raw_get_data(&key) {
         Ok(data) => {
             sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_value_mult())?;
-            Ok(pointer_from_utf8(env, &data)?.offset() as i32)
+            Ok(data)
         }
         Err(err) => abi_bail!(err),
     }
@@ -324,7 +324,7 @@ pub(crate) fn assembly_script_get_data_for(env: &ASEnv, address: i32, key: i32) 
     match env.get_interface().raw_get_data_for(&address, &key) {
         Ok(data) => {
             sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_value_mult())?;
-            Ok(pointer_from_utf8(env, &data)?.offset() as i32)
+            Ok(data)
         }
         Err(err) => abi_bail!(err),
     }
