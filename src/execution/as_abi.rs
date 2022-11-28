@@ -590,17 +590,6 @@ fn pointer_from_string(env: &ASEnv, value: &str) -> ABIResult<StringPtr> {
     }
 }
 
-/// Tooling, return a StringPtr allocated from bytes with utf8 parsing
-fn pointer_from_utf8(env: &ASEnv, value: &[u8]) -> ABIResult<StringPtr> {
-    match std::str::from_utf8(value) {
-        Ok(data) => match StringPtr::alloc(&data.to_string(), env.get_wasm_env()) {
-            Ok(ptr) => Ok(*ptr),
-            Err(err) => abi_bail!(err),
-        },
-        Err(err) => abi_bail!(err),
-    }
-}
-
 /// Tooling, return a BufferPtr allocated from bytes
 fn pointer_from_bytearray(env: &ASEnv, value: &Vec<u8>) -> ABIResult<BufferPtr> {
     match BufferPtr::alloc(value, env.get_wasm_env()) {
