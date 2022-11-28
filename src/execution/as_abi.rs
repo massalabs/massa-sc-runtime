@@ -203,11 +203,27 @@ pub(crate) fn assembly_script_hash(env: &ASEnv, value: i32) -> ABIResult<i32> {
 }
 
 /// Get keys (aka entries) in the datastore
-pub(crate) fn assembly_script_get_keys(env: &ASEnv, address: i32) -> ABIResult<i32> {
-    // sub_remaining_gas(env, settings::metering_get_keys_const())?;
+pub(crate) fn assembly_script_get_keys(env: &ASEnv) -> ABIResult<i32> {
+    match env.get_interface().get_keys() {
+        Err(err) => abi_bail!(err),
+        Ok(k) => {
+            sub_remaining_gas_with_mult(
+                env,
+                k.iter().fold(0, |acc, v_| acc + v_.len()),
+                settings::get_keys_mult(),
+            )?;
+            let k_f = ser_bytearray_vec(&k, settings::max_datastore_entry_count())?;
+            let a = pointer_from_bytearray(env, &k_f)?.offset();
+            Ok(a as i32)
+        }
+    }
+}
+
+/// Get keys (aka entries) in the datastore
+pub(crate) fn assembly_script_get_keys_for(env: &ASEnv, address: i32) -> ABIResult<i32> {
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
-    match env.get_interface().get_keys(&address) {
+    match env.get_interface().get_keys_for(&address) {
         Err(err) => abi_bail!(err),
         Ok(k) => {
             sub_remaining_gas_with_mult(

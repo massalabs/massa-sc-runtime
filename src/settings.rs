@@ -91,7 +91,7 @@ struct Metering {
     pub get_op_keys_mult: usize,
     #[cornetto(const, 1)]
     pub get_keys_mult: usize,
-    #[cornetto(const, 512)]
+    #[cornetto(const, 100_000)]
     pub max_datastore_entry_count: usize,
 }
 
