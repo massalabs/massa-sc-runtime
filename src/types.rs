@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use anyhow::{bail, Result};
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -96,10 +97,10 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     /// Return datastore keys
-    fn get_keys(&self) -> Result<Vec<Vec<u8>>> { unimplemented!("get_op_keys") }
+    fn get_keys(&self) -> Result<BTreeSet<Vec<u8>>> { unimplemented!("get_op_keys") }
 
     /// Return datastore keys
-    fn get_keys_for(&self, address: &str) -> Result<Vec<Vec<u8>>> { unimplemented!("get_op_keys_for") }
+    fn get_keys_for(&self, address: &str) -> Result<BTreeSet<Vec<u8>>> { unimplemented!("get_op_keys_for") }
 
     fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("raw_get_data")
