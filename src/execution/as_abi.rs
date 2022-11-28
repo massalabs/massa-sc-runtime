@@ -240,7 +240,7 @@ pub(crate) fn assembly_script_get_data(env: &ASEnv, key: i32) -> ABIResult<i32> 
     match env.get_interface().raw_get_data(&key) {
         Ok(data) => {
             sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_value_mult())?;
-            Ok(pointer_from_array(env, &data)?.offset() as i32)
+            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
         }
         Err(err) => abi_bail!(err),
     }
@@ -324,7 +324,7 @@ pub(crate) fn assembly_script_get_data_for(env: &ASEnv, address: i32, key: i32) 
     match env.get_interface().raw_get_data_for(&address, &key) {
         Ok(data) => {
             sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_value_mult())?;
-            Ok(pointer_from_array(env, &data)?.offset() as i32)
+            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
         }
         Err(err) => abi_bail!(err),
     }
@@ -585,14 +585,6 @@ pub(crate) fn assembly_script_set_bytecode(env: &ASEnv, bytecode: i32) -> ABIRes
 /// Tooling, return a StringPtr allocated from a String
 fn pointer_from_string(env: &ASEnv, value: &str) -> ABIResult<StringPtr> {
     match StringPtr::alloc(&value.into(), env.get_wasm_env()) {
-        Ok(ptr) => Ok(*ptr),
-        Err(err) => abi_bail!(err),
-    }
-}
-
-/// Tooling, return a StringPtr allocated from bytes with utf8 parsing
-fn pointer_from_array(env: &ASEnv, value: &[u8]) -> ABIResult<BufferPtr> {
-    match BufferPtr::alloc(&value.to_vec(), env.get_wasm_env()) {
         Ok(ptr) => Ok(*ptr),
         Err(err) => abi_bail!(err),
     }
