@@ -139,7 +139,7 @@ pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
                 k.iter().fold(0, |acc, v_| acc + v_.len()),
                 settings::get_op_keys_mult(),
             )?;
-            let k_f = ser_bytearray_vec(&k, settings::max_op_datastore_entry_count())?;
+            let k_f = ser_bytearray_vec(&k, k.len(),settings::max_op_datastore_entry_count())?;
             let a = pointer_from_bytearray(env, &k_f)?.offset();
             Ok(a as i32)
         }
@@ -199,6 +199,42 @@ pub(crate) fn assembly_script_hash(env: &ASEnv, value: i32) -> ABIResult<i32> {
     match env.get_interface().hash(value.as_bytes()) {
         Ok(h) => Ok(pointer_from_string(env, &h)?.offset() as i32),
         Err(err) => abi_bail!(err),
+    }
+}
+
+/// Get keys (aka entries) in the datastore
+pub(crate) fn assembly_script_get_keys(env: &ASEnv) -> ABIResult<i32> {
+    match env.get_interface().get_keys() {
+        Err(err) => abi_bail!(err),
+        Ok(k) => {
+            sub_remaining_gas_with_mult(
+                env,
+                k.iter().fold(0, |acc, v_| acc + v_.len()),
+                settings::get_keys_mult(),
+            )?;
+            let k_f = ser_bytearray_vec(&k, k.len(),settings::max_datastore_entry_count())?;
+            let a = pointer_from_bytearray(env, &k_f)?.offset();
+            Ok(a as i32)
+        }
+    }
+}
+
+/// Get keys (aka entries) in the datastore
+pub(crate) fn assembly_script_get_keys_for(env: &ASEnv, address: i32) -> ABIResult<i32> {
+    let memory = get_memory!(env);
+    let address = get_string(memory, address)?;
+    match env.get_interface().get_keys_for(&address) {
+        Err(err) => abi_bail!(err),
+        Ok(k) => {
+            sub_remaining_gas_with_mult(
+                env,
+                k.iter().fold(0, |acc, v_| acc + v_.len()),
+                settings::get_keys_mult(),
+            )?;
+            let k_f = ser_bytearray_vec(&k, k.len(), settings::max_datastore_entry_count())?;
+            let a = pointer_from_bytearray(env, &k_f)?.offset();
+            Ok(a as i32)
+        }
     }
 }
 
@@ -667,30 +703,32 @@ fn alloc_string_array(env: &ASEnv, vec: &[String]) -> ABIResult<i32> {
     }
 }
 
-/// Flatten a Vec<Vec<u8>> to a Vec<u8> with the format:
-/// L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
-fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_length: usize) -> ABIResult<Vec<u8>> {
-    if data.is_empty() {
+/// Flatten a Vec<Vec<u8>> (or anything that can be turned into an iterator) to a Vec<u8>
+/// with the format: L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
+fn ser_bytearray_vec<'a, I>(data: I, data_len: usize, max_length: usize) -> ABIResult<Vec<u8>>
+    where I: IntoIterator<Item = &'a Vec<u8>>
+{
+    if data_len == 0 {
         return Ok(Vec::new());
     }
 
-    if data.len() > max_length {
+    if data_len > max_length {
         abi_bail!("Too many entries in the datastore");
     }
 
     // pre alloc with max capacity
-    let mut buffer = Vec::with_capacity(4 + (data.len() * (1 + 255)));
+    let mut buffer = Vec::with_capacity(4 + (data_len * (1 + 255)));
 
-    let entry_count = u32::try_from(data.len()).unwrap();
+    let entry_count = u32::try_from(data_len).unwrap();
     buffer.extend_from_slice(&entry_count.to_le_bytes());
 
-    for key in data.iter() {
+    for key in data.into_iter() {
         let k_len = match u8::try_from(key.len()) {
             Ok(l) => l,
             Err(_) => abi_bail!("Some Datastore keys are too long"),
         };
         buffer.push(k_len);
-        buffer.extend_from_slice(key);
+        buffer.extend_from_slice(&key[..]);
     }
 
     Ok(buffer)

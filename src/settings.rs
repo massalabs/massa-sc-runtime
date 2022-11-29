@@ -89,6 +89,10 @@ struct Metering {
     pub get_op_data_mult: usize,
     #[cornetto(const, 1)]
     pub get_op_keys_mult: usize,
+    #[cornetto(const, 1)]
+    pub get_keys_mult: usize,
+    #[cornetto(const, 100_000)]
+    pub max_datastore_entry_count: usize,
 }
 
 pub(crate) fn metering_call() -> u64 {
@@ -254,6 +258,15 @@ pub(crate) fn get_op_data_mult() -> usize {
 pub(crate) fn get_op_keys_mult() -> usize {
     METERING.get_op_keys_mult()
 }
+
+pub(crate) fn get_keys_mult() -> usize {
+    METERING.get_keys_mult()
+}
+
+pub(crate) fn max_datastore_entry_count() -> usize {
+    METERING.max_datastore_entry_count()
+}
+
 
 #[cfg(test)]
 pub(crate) fn set_metering(call_price: u64) {
