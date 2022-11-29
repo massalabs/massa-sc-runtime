@@ -29,6 +29,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "aho-corasick"
+version = "0.7.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4f55bd91a0978cbfd91c457a164bab8b4001c833b7f323132c0a4e1922dd44e"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "anyhow"
 version = "1.0.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -643,8 +652,10 @@ dependencies = [
  "cornetto",
  "lazy_static",
  "loupe",
+ "more-asserts 0.3.1",
  "parking_lot",
  "rand",
+ "regex",
  "serde",
  "serde_json",
  "serial_test",
@@ -652,6 +663,7 @@ dependencies = [
  "wasmer-compiler-singlepass",
  "wasmer-engine-universal",
  "wasmer-middlewares",
+ "wasmer-types",
 ]
 
 [[package]]
@@ -692,6 +704,12 @@ name = "more-asserts"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7843ec2de400bcbc6a6328c958dc38e5359da6e93e72e37bc5246bf1ae776389"
+
+[[package]]
+name = "more-asserts"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fafa6961cabd9c63bcd77a45d7e3b7f3b552b70417831fb0f56db717e72407e"
 
 [[package]]
 name = "num_cpus"
@@ -906,6 +924,23 @@ dependencies = [
  "rustc-hash",
  "smallvec",
 ]
+
+[[package]]
+name = "regex"
+version = "1.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e076559ef8e241f2ae3479e36f97bd5741c0330689e217ad51ce2c76808b868a"
+dependencies = [
+ "aho-corasick",
+ "memchr",
+ "regex-syntax",
+]
+
+[[package]]
+name = "regex-syntax"
+version = "0.6.28"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "456c603be3e8d448b072f410900c09faf164fbce2d480456f50eea6e25f9c848"
 
 [[package]]
 name = "region"
@@ -1266,7 +1301,7 @@ dependencies = [
  "indexmap",
  "js-sys",
  "loupe",
- "more-asserts",
+ "more-asserts 0.2.2",
  "target-lexicon",
  "thiserror",
  "wasm-bindgen",
@@ -1325,7 +1360,7 @@ dependencies = [
  "cranelift-frontend",
  "gimli",
  "loupe",
- "more-asserts",
+ "more-asserts 0.2.2",
  "rayon",
  "smallvec",
  "target-lexicon",
@@ -1346,7 +1381,7 @@ dependencies = [
  "gimli",
  "lazy_static",
  "loupe",
- "more-asserts",
+ "more-asserts 0.2.2",
  "rayon",
  "smallvec",
  "wasmer-compiler",
@@ -1376,7 +1411,7 @@ dependencies = [
  "lazy_static",
  "loupe",
  "memmap2",
- "more-asserts",
+ "more-asserts 0.2.2",
  "rustc-demangle",
  "serde",
  "serde_bytes",
@@ -1484,7 +1519,7 @@ dependencies = [
  "enum-iterator",
  "indexmap",
  "loupe",
- "more-asserts",
+ "more-asserts 0.2.2",
  "rkyv",
  "serde",
  "thiserror",
@@ -1507,7 +1542,7 @@ dependencies = [
  "loupe",
  "mach",
  "memoffset",
- "more-asserts",
+ "more-asserts 0.2.2",
  "region",
  "rkyv",
  "scopeguard",

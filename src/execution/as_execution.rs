@@ -6,7 +6,7 @@ use crate::env::{
 use crate::types::Response;
 use crate::{settings, Interface};
 use anyhow::{bail, Result};
-use as_ffi_bindings::{Read as ASRead, StringPtr, Write as ASWrite};
+use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
 use wasmer::{imports, Function, ImportObject, Instance, Store, Val, WasmerEnv};
 
 pub(crate) struct ASModule {
@@ -24,14 +24,16 @@ impl MassaModule for ASModule {
     fn get_bytecode(&self) -> &Vec<u8> {
         &self.bytecode
     }
-    fn execution(&self, instance: &Instance, function: &str, param: &str) -> Result<Response> {
-        // sub initial metering cost
-        let metering_initial_cost = settings::metering_initial_cost();
-        let remaining_gas = get_remaining_points(&self.env)?;
-        if metering_initial_cost > remaining_gas {
-            bail!("Not enough gas to launch the virtual machine")
+    fn execution(&self, instance: &Instance, function: &str, param: &[u8]) -> Result<Response> {
+        if cfg!(not(feature = "gas_calibration")) {
+            // sub initial metering cost
+            let metering_initial_cost = settings::metering_initial_cost();
+            let remaining_gas = get_remaining_points(&self.env)?;
+            if metering_initial_cost > remaining_gas {
+                bail!("Not enough gas to launch the virtual machine")
+            }
+            set_remaining_points(&self.env, remaining_gas - metering_initial_cost)?;
         }
-        set_remaining_points(&self.env, remaining_gas - metering_initial_cost)?;
 
         // Now can exec
         let wasm_func = instance.exports.get_function(function)?;
@@ -39,7 +41,7 @@ impl MassaModule for ASModule {
         let res = if argc == 0 && function == crate::settings::MAIN {
             wasm_func.call(&[])
         } else if argc == 1 {
-            let param_ptr = *StringPtr::alloc(&param.to_string(), self.env.get_wasm_env())?;
+            let param_ptr = *BufferPtr::alloc(&param.to_vec(), self.env.get_wasm_env())?;
             wasm_func.call(&[Val::I32(param_ptr.offset() as i32)])
         } else {
             bail!("Unexpected number of parameters in the function called")
@@ -48,25 +50,36 @@ impl MassaModule for ASModule {
         match res {
             Ok(value) => {
                 if function.eq(crate::settings::MAIN) {
+                    let remaining_gas = if cfg!(feature = "gas_calibration") {
+                        Ok(0_u64)
+                    } else {
+                        get_remaining_points(&self.env)
+                    };
+
                     return Ok(Response {
-                        ret: String::new(), // main return empty string
-                        remaining_gas: get_remaining_points(&self.env)?,
+                        ret: Vec::new(), // main return empty vec
+                        remaining_gas: remaining_gas?,
                     });
                 }
                 let ret = if let Some(offset) = value.get(0) {
                     if let Some(offset) = offset.i32() {
-                        let str_ptr = StringPtr::new(offset as u32);
+                        let buffer_ptr = BufferPtr::new(offset as u32);
                         let memory = instance.exports.get_memory("memory")?;
-                        str_ptr.read(memory)?
+                        buffer_ptr.read(memory)?
                     } else {
                         bail!("Execution wasn't in capacity to read the return value")
                     }
                 } else {
-                    String::new()
+                    Vec::new()
+                };
+                let remaining_gas = if cfg!(feature = "gas_calibration") {
+                    Ok(0_u64)
+                } else {
+                    get_remaining_points(&self.env)
                 };
                 Ok(Response {
                     ret,
-                    remaining_gas: get_remaining_points(&self.env)?,
+                    remaining_gas: remaining_gas?,
                 })
             }
             Err(error) => bail!(error),
