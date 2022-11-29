@@ -248,7 +248,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         raw_fee: u64,
         raw_coins: u64,
         data: &[u8],
-        filter: (Option<&str>, Option<&str>),
+        filter: Option<(&str, Option<&str>)>,
     ) -> Result<()> {
         unimplemented!("send_message")
     }

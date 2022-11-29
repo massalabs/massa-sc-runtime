@@ -512,18 +512,13 @@ pub(crate) fn assembly_script_send_message(
     }
     let memory = get_memory!(env);
     let filter_address_string = &get_string(memory, filter_address)?;
-    let filter_address = if filter_address_string == &"" {
-        None
-    } else {
-        Some(filter_address_string.as_str())
+    let filter_key_string = &get_string(memory, filter_datastore_key)?;
+    let filter = match (filter_address_string.as_str(), filter_key_string.as_str()) {
+        ("", _) => None,
+        (addr, "") => Some((addr, None)),
+        (addr, key) => Some((addr, Some(key))),
     };
 
-    let filter_key_string = &get_string(memory, filter_datastore_key)?;
-    let filter_key_datastore = if filter_key_string == &"" {
-        None
-    } else {
-        Some(filter_key_string.as_str())
-    };
     match env.get_interface().send_message(
         &get_string(memory, target_address)?,
         &get_string(memory, target_handler)?,
@@ -533,7 +528,7 @@ pub(crate) fn assembly_script_send_message(
         raw_fee as u64,
         raw_coins as u64,
         &read_buffer(memory, data)?,
-        (filter_address, filter_key_datastore)
+        filter,
     ) {
         Err(err) => abi_bail!(err),
         Ok(_) => Ok(()),
