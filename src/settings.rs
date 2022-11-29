@@ -267,7 +267,6 @@ pub(crate) fn max_datastore_entry_count() -> usize {
     METERING.max_datastore_entry_count()
 }
 
-
 #[cfg(test)]
 pub(crate) fn set_metering(call_price: u64) {
     METERING._reset(call_price, DEFAULT_METERING_INITIAL_COST);
