@@ -1,5 +1,7 @@
-.direnv/*
-.envrc
 /target
-shell.nix
+wasm/*.d.ts
+wasm/*.js
+wasm/*.wasm.map
+
+# IDE
 .idea

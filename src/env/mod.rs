@@ -29,6 +29,9 @@ pub(crate) trait MassaEnv<T: WasmerEnv>: WasmerEnv {
 /// Should be equivalent to
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L293
 pub(crate) fn get_remaining_points<T: WasmerEnv>(env: &impl MassaEnv<T>) -> ABIResult<u64> {
+    if cfg!(feature = "gas_calibration") {
+        return Ok(0);
+    }
     match env.get_exhausted_points().as_ref() {
         Some(exhausted_points) => match exhausted_points.get().try_into() {
             Ok::<i32, _>(exhausted) if exhausted > 0 => return Ok(0),
@@ -73,6 +76,9 @@ pub(crate) fn set_remaining_points<T: WasmerEnv>(
 }
 
 pub(crate) fn sub_remaining_gas<T: WasmerEnv>(env: &impl MassaEnv<T>, gas: u64) -> ABIResult<()> {
+    if cfg!(feature = "gas_calibration") {
+        return Ok(());
+    }
     let remaining_gas = get_remaining_points(env)?;
     if let Some(remaining_gas) = remaining_gas.checked_sub(gas) {
         set_remaining_points(env, remaining_gas)?;

@@ -98,9 +98,9 @@ pub(crate) fn assembly_script_call_module(
     let memory = get_memory!(env);
     let address = &get_string(memory, address)?;
     let function = &get_string(memory, function)?;
-    let param = &get_string(memory, param)?;
+    let param = &read_buffer(memory, param)?;
     let response = call_module(env, address, function, param, call_coins)?;
-    match StringPtr::alloc(&response.ret, env.get_wasm_env()) {
+    match BufferPtr::alloc(&response.ret, env.get_wasm_env()) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
             "Cannot allocate response in call {}::{}",
@@ -119,7 +119,9 @@ pub(crate) fn assembly_script_get_remaining_gas(env: &ASEnv) -> ABIResult<i64> {
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
 pub(crate) fn assembly_script_print(env: &ASEnv, arg: i32) -> ABIResult<()> {
-    sub_remaining_gas(env, settings::metering_print())?;
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas(env, settings::metering_print())?;
+    }
     let memory = get_memory!(env);
     if let Err(err) = env.get_interface().print(&get_string(memory, arg)?) {
         abi_bail!(err);
@@ -137,7 +139,7 @@ pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
                 k.iter().fold(0, |acc, v_| acc + v_.len()),
                 settings::get_op_keys_mult(),
             )?;
-            let k_f = ser_bytearray_vec(&k, settings::max_op_datastore_entry_count())?;
+            let k_f = ser_bytearray_vec(&k, k.len(), settings::max_op_datastore_entry_count())?;
             let a = pointer_from_bytearray(env, &k_f)?.offset();
             Ok(a as i32)
         }
@@ -145,10 +147,10 @@ pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
 }
 
 /// Check if a key is present in operation datastore
-pub(crate) fn assembly_script_has_op_key(env: &ASEnv, arg: i32) -> ABIResult<i32> {
+pub(crate) fn assembly_script_has_op_key(env: &ASEnv, key: i32) -> ABIResult<i32> {
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(env, memory, arg, settings::has_op_key_mult())?;
-    match env.get_interface().has_op_key(&key) {
+    let key_bytes = read_buffer_and_sub_gas(env, memory, key, settings::has_op_key_mult())?;
+    match env.get_interface().has_op_key(&key_bytes) {
         Err(err) => abi_bail!(err),
         Ok(b) => {
             // https://doc.rust-lang.org/reference/types/boolean.html
@@ -161,10 +163,10 @@ pub(crate) fn assembly_script_has_op_key(env: &ASEnv, arg: i32) -> ABIResult<i32
 }
 
 /// Get the operation datastore value associated to given key
-pub(crate) fn assembly_script_get_op_data(env: &ASEnv, arg: i32) -> ABIResult<i32> {
+pub(crate) fn assembly_script_get_op_data(env: &ASEnv, key: i32) -> ABIResult<i32> {
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(env, memory, arg, settings::get_op_data_mult())?;
-    match env.get_interface().get_op_data(&key) {
+    let key_bytes = read_buffer_and_sub_gas(env, memory, key, settings::get_op_data_mult())?;
+    match env.get_interface().get_op_data(&key_bytes) {
         Err(err) => abi_bail!(err),
         Ok(b) => {
             let a = pointer_from_bytearray(env, &b)?.offset();
@@ -177,16 +179,8 @@ pub(crate) fn assembly_script_get_op_data(env: &ASEnv, arg: i32) -> ABIResult<i3
 /// with in base64.
 pub(crate) fn assembly_script_create_sc(env: &ASEnv, bytecode: i32) -> ABIResult<i32> {
     let memory = get_memory!(env);
-    // Base64 to Binary
-    let bytecode = match base64::decode(read_string_and_sub_gas(
-        env,
-        memory,
-        bytecode,
-        settings::metering_create_sc_mult(),
-    )?) {
-        Ok(bytecode) => bytecode,
-        Err(err) => abi_bail!(err),
-    };
+    let bytecode: Vec<u8> =
+        read_buffer_and_sub_gas(env, memory, bytecode, settings::metering_create_sc_mult())?;
     let address = match create_sc(env, &bytecode) {
         Ok(address) => address,
         Err(err) => abi_bail!(err),
@@ -208,14 +202,50 @@ pub(crate) fn assembly_script_hash(env: &ASEnv, value: i32) -> ABIResult<i32> {
     }
 }
 
+/// Get keys (aka entries) in the datastore
+pub(crate) fn assembly_script_get_keys(env: &ASEnv) -> ABIResult<i32> {
+    match env.get_interface().get_keys() {
+        Err(err) => abi_bail!(err),
+        Ok(k) => {
+            sub_remaining_gas_with_mult(
+                env,
+                k.iter().fold(0, |acc, v_| acc + v_.len()),
+                settings::get_keys_mult(),
+            )?;
+            let k_f = ser_bytearray_vec(&k, k.len(), settings::max_datastore_entry_count())?;
+            let a = pointer_from_bytearray(env, &k_f)?.offset();
+            Ok(a as i32)
+        }
+    }
+}
+
+/// Get keys (aka entries) in the datastore
+pub(crate) fn assembly_script_get_keys_for(env: &ASEnv, address: i32) -> ABIResult<i32> {
+    let memory = get_memory!(env);
+    let address = get_string(memory, address)?;
+    match env.get_interface().get_keys_for(&address) {
+        Err(err) => abi_bail!(err),
+        Ok(k) => {
+            sub_remaining_gas_with_mult(
+                env,
+                k.iter().fold(0, |acc, v_| acc + v_.len()),
+                settings::get_keys_mult(),
+            )?;
+            let k_f = ser_bytearray_vec(&k, k.len(), settings::max_datastore_entry_count())?;
+            let a = pointer_from_bytearray(env, &k_f)?.offset();
+            Ok(a as i32)
+        }
+    }
+}
+
 /// sets a key-indexed data entry in the datastore, overwriting existing values if any
 pub(crate) fn assembly_script_set_data(env: &ASEnv, key: i32, value: i32) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_set_data_const())?;
     let memory = get_memory!(env);
-    let key = read_string_and_sub_gas(env, memory, key, settings::metering_set_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_set_data_key_mult())?;
     let value =
-        read_string_and_sub_gas(env, memory, value, settings::metering_set_data_value_mult())?;
-    if let Err(err) = env.get_interface().raw_set_data(&key, value.as_bytes()) {
+        read_buffer_and_sub_gas(env, memory, value, settings::metering_set_data_value_mult())?;
+    if let Err(err) = env.get_interface().raw_set_data(&key, &value) {
         abi_bail!(err)
     }
     Ok(())
@@ -225,14 +255,14 @@ pub(crate) fn assembly_script_set_data(env: &ASEnv, key: i32, value: i32) -> ABI
 pub(crate) fn assembly_script_append_data(env: &ASEnv, key: i32, value: i32) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_append_data_const())?;
     let memory = get_memory!(env);
-    let key = read_string_and_sub_gas(env, memory, key, settings::metering_append_data_key_mult())?;
-    let value = read_string_and_sub_gas(
+    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_append_data_key_mult())?;
+    let value = read_buffer_and_sub_gas(
         env,
         memory,
         value,
         settings::metering_append_data_value_mult(),
     )?;
-    if let Err(err) = env.get_interface().raw_append_data(&key, value.as_bytes()) {
+    if let Err(err) = env.get_interface().raw_append_data(&key, &value) {
         abi_bail!(err)
     }
     Ok(())
@@ -242,11 +272,11 @@ pub(crate) fn assembly_script_append_data(env: &ASEnv, key: i32, value: i32) -> 
 pub(crate) fn assembly_script_get_data(env: &ASEnv, key: i32) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_data_const())?;
     let memory = get_memory!(env);
-    let key = read_string_and_sub_gas(env, memory, key, settings::metering_get_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_get_data_key_mult())?;
     match env.get_interface().raw_get_data(&key) {
         Ok(data) => {
             sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_value_mult())?;
-            Ok(pointer_from_utf8(env, &data)?.offset() as i32)
+            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
         }
         Err(err) => abi_bail!(err),
     }
@@ -256,7 +286,7 @@ pub(crate) fn assembly_script_get_data(env: &ASEnv, key: i32) -> ABIResult<i32> 
 pub(crate) fn assembly_script_has_data(env: &ASEnv, key: i32) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_has_data_const())?;
     let memory = get_memory!(env);
-    let key = read_string_and_sub_gas(env, memory, key, settings::metering_has_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_has_data_key_mult())?;
     match env.get_interface().has_data(&key) {
         Ok(true) => Ok(1),
         Ok(false) => Ok(0),
@@ -268,7 +298,7 @@ pub(crate) fn assembly_script_has_data(env: &ASEnv, key: i32) -> ABIResult<i32> 
 pub(crate) fn assembly_script_delete_data(env: &ASEnv, key: i32) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_delete_data_const())?;
     let memory = get_memory!(env);
-    let key = read_string_and_sub_gas(env, memory, key, settings::metering_delete_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_delete_data_key_mult())?;
     match env.get_interface().raw_delete_data(&key) {
         Ok(_) => Ok(()),
         Err(err) => abi_bail!(err),
@@ -285,14 +315,11 @@ pub(crate) fn assembly_script_set_data_for(
 ) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_set_data_const())?;
     let memory = get_memory!(env);
-    let key = read_string_and_sub_gas(env, memory, key, settings::metering_set_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_set_data_key_mult())?;
     let value =
-        read_string_and_sub_gas(env, memory, value, settings::metering_set_data_value_mult())?;
+        read_buffer_and_sub_gas(env, memory, value, settings::metering_set_data_value_mult())?;
     let address = get_string(memory, address)?;
-    if let Err(err) = env
-        .get_interface()
-        .raw_set_data_for(&address, &key, value.as_bytes())
-    {
+    if let Err(err) = env.get_interface().raw_set_data_for(&address, &key, &value) {
         abi_bail!(err)
     }
     Ok(())
@@ -307,8 +334,8 @@ pub(crate) fn assembly_script_append_data_for(
 ) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_append_data_const())?;
     let memory = get_memory!(env);
-    let key = read_string_and_sub_gas(env, memory, key, settings::metering_append_data_key_mult())?;
-    let value = read_string_and_sub_gas(
+    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_append_data_key_mult())?;
+    let value = read_buffer_and_sub_gas(
         env,
         memory,
         value,
@@ -317,7 +344,7 @@ pub(crate) fn assembly_script_append_data_for(
     let address = get_string(memory, address)?;
     if let Err(err) = env
         .get_interface()
-        .raw_append_data_for(&address, &key, value.as_bytes())
+        .raw_append_data_for(&address, &key, &value)
     {
         abi_bail!(err)
     }
@@ -329,11 +356,11 @@ pub(crate) fn assembly_script_get_data_for(env: &ASEnv, address: i32, key: i32) 
     sub_remaining_gas(env, settings::metering_get_data_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
-    let key = read_string_and_sub_gas(env, memory, key, settings::metering_get_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_get_data_key_mult())?;
     match env.get_interface().raw_get_data_for(&address, &key) {
         Ok(data) => {
             sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_value_mult())?;
-            Ok(pointer_from_utf8(env, &data)?.offset() as i32)
+            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
         }
         Err(err) => abi_bail!(err),
     }
@@ -348,7 +375,7 @@ pub(crate) fn assembly_script_delete_data_for(
     sub_remaining_gas(env, settings::metering_delete_data_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
-    let key = read_string_and_sub_gas(env, memory, key, settings::metering_delete_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_delete_data_key_mult())?;
     match env.get_interface().raw_delete_data_for(&address, &key) {
         Ok(_) => Ok(()),
         Err(err) => abi_bail!(err),
@@ -359,7 +386,7 @@ pub(crate) fn assembly_script_has_data_for(env: &ASEnv, address: i32, key: i32) 
     sub_remaining_gas(env, settings::metering_has_data_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
-    let key = read_string_and_sub_gas(env, memory, key, settings::metering_has_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_has_data_key_mult())?;
     match env.get_interface().has_data_for(&address, &key) {
         Ok(true) => Ok(1),
         Ok(false) => Ok(0),
@@ -487,7 +514,7 @@ pub(crate) fn assembly_script_send_message(
     validity_end_period: i64,
     validity_end_thread: i32,
     max_gas: i64,
-    gas_price: i64,
+    raw_fee: i64,
     raw_coins: i64,
     data: i32,
 ) -> ABIResult<()> {
@@ -511,8 +538,8 @@ pub(crate) fn assembly_script_send_message(
     if max_gas.is_negative() {
         abi_bail!("negative max gas");
     }
-    if gas_price.is_negative() {
-        abi_bail!("negative gas price");
+    if raw_fee.is_negative() {
+        abi_bail!("negative raw_fee");
     }
     if raw_coins.is_negative() {
         abi_bail!("negative coins")
@@ -524,9 +551,9 @@ pub(crate) fn assembly_script_send_message(
         validity_start,
         validity_end,
         max_gas as u64,
-        gas_price as u64,
+        raw_fee as u64,
         raw_coins as u64,
-        get_string(memory, data)?.as_bytes(),
+        &read_buffer(memory, data)?,
     ) {
         Err(err) => abi_bail!(err),
         Ok(_) => Ok(()),
@@ -555,21 +582,17 @@ pub(crate) fn assembly_script_get_current_thread(env: &ASEnv) -> ABIResult<i32> 
 pub(crate) fn assembly_script_set_bytecode_for(
     env: &ASEnv,
     address: i32,
-    bytecode_base64: i32,
+    bytecode: i32,
 ) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_set_bytecode_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
-    let bytecode_base64 = read_string_and_sub_gas(
+    let bytecode_raw = read_buffer_and_sub_gas(
         env,
         memory,
-        bytecode_base64,
+        bytecode,
         settings::metering_set_bytecode_mult(),
     )?;
-    let bytecode_raw = match base64::decode(bytecode_base64) {
-        Ok(v) => v,
-        Err(err) => abi_bail!(err),
-    };
     match env
         .get_interface()
         .raw_set_bytecode_for(&address, &bytecode_raw)
@@ -580,19 +603,15 @@ pub(crate) fn assembly_script_set_bytecode_for(
 }
 
 /// sets the executable bytecode of the current address
-pub(crate) fn assembly_script_set_bytecode(env: &ASEnv, bytecode_base64: i32) -> ABIResult<()> {
+pub(crate) fn assembly_script_set_bytecode(env: &ASEnv, bytecode: i32) -> ABIResult<()> {
     sub_remaining_gas(env, settings::metering_set_bytecode_const())?;
     let memory = get_memory!(env);
-    let bytecode_base64 = read_string_and_sub_gas(
+    let bytecode_raw = read_buffer_and_sub_gas(
         env,
         memory,
-        bytecode_base64,
+        bytecode,
         settings::metering_set_bytecode_mult(),
     )?;
-    let bytecode_raw = match base64::decode(bytecode_base64) {
-        Ok(v) => v,
-        Err(err) => abi_bail!(err),
-    };
     match env.get_interface().raw_set_bytecode(&bytecode_raw) {
         Ok(()) => Ok(()),
         Err(err) => abi_bail!(err),
@@ -607,17 +626,6 @@ fn pointer_from_string(env: &ASEnv, value: &str) -> ABIResult<StringPtr> {
     }
 }
 
-/// Tooling, return a StringPtr allocated from bytes with utf8 parsing
-fn pointer_from_utf8(env: &ASEnv, value: &[u8]) -> ABIResult<StringPtr> {
-    match std::str::from_utf8(value) {
-        Ok(data) => match StringPtr::alloc(&data.to_string(), env.get_wasm_env()) {
-            Ok(ptr) => Ok(*ptr),
-            Err(err) => abi_bail!(err),
-        },
-        Err(err) => abi_bail!(err),
-    }
-}
-
 /// Tooling, return a BufferPtr allocated from bytes
 fn pointer_from_bytearray(env: &ASEnv, value: &Vec<u8>) -> ABIResult<BufferPtr> {
     match BufferPtr::alloc(value, env.get_wasm_env()) {
@@ -626,7 +634,7 @@ fn pointer_from_bytearray(env: &ASEnv, value: &Vec<u8>) -> ABIResult<BufferPtr> 
     }
 }
 
-/// Tooling that take read a String in memory and subtract remaining gas
+/// Tooling that reads a String in memory and subtract remaining gas
 /// with a multiplicator (String.len * mult).
 ///
 /// Sub function of `assembly_script_set_data_for`, `assembly_script_set_data`
@@ -648,7 +656,15 @@ fn read_string_and_sub_gas(
     }
 }
 
-/// Tooling that take read a buffer (Vec<u8>) in memory and subtract remaining gas
+/// Tooling that reads a buffer (Vec<u8>) in memory
+fn read_buffer(memory: &Memory, offset: i32) -> ABIResult<Vec<u8>> {
+    match BufferPtr::new(offset as u32).read(memory) {
+        Ok(buffer) => Ok(buffer),
+        Err(err) => abi_bail!(err),
+    }
+}
+
+/// Tooling that reads a buffer (Vec<u8>) in memory and subtract remaining gas
 /// with a multiplicator (buffer len * mult).
 ///
 /// Return the buffer in the BufferPtr
@@ -687,39 +703,33 @@ fn alloc_string_array(env: &ASEnv, vec: &[String]) -> ABIResult<i32> {
     }
 }
 
-#[allow(dead_code)]
-/// Tooling, return a buffer (Vec<u8>) from a given offset
-fn get_buffer(memory: &Memory, ptr: i32) -> ABIResult<Vec<u8>> {
-    match BufferPtr::new(ptr as u32).read(memory) {
-        Ok(buffer) => Ok(buffer),
-        Err(err) => abi_bail!(err),
-    }
-}
-
-/// Flatten a Vec<Vec<u8>> to a Vec<u8> with the format:
-/// L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
-fn ser_bytearray_vec(data: &Vec<Vec<u8>>, max_length: usize) -> ABIResult<Vec<u8>> {
-    if data.is_empty() {
+/// Flatten a Vec<Vec<u8>> (or anything that can be turned into an iterator) to a Vec<u8>
+/// with the format: L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L), V2_L ... VN (8 bits * VN_L)
+fn ser_bytearray_vec<'a, I>(data: I, data_len: usize, max_length: usize) -> ABIResult<Vec<u8>>
+where
+    I: IntoIterator<Item = &'a Vec<u8>>,
+{
+    if data_len == 0 {
         return Ok(Vec::new());
     }
 
-    if data.len() > max_length {
+    if data_len > max_length {
         abi_bail!("Too many entries in the datastore");
     }
 
     // pre alloc with max capacity
-    let mut buffer = Vec::with_capacity(4 + (data.len() * (1 + 255)));
+    let mut buffer = Vec::with_capacity(4 + (data_len * (1 + 255)));
 
-    let entry_count = u32::try_from(data.len()).unwrap();
+    let entry_count = u32::try_from(data_len).unwrap();
     buffer.extend_from_slice(&entry_count.to_le_bytes());
 
-    for key in data.iter() {
+    for key in data.into_iter() {
         let k_len = match u8::try_from(key.len()) {
             Ok(l) => l,
             Err(_) => abi_bail!("Some Datastore keys are too long"),
         };
         buffer.push(k_len);
-        buffer.extend_from_slice(key);
+        buffer.extend_from_slice(&key[..]);
     }
 
     Ok(buffer)
@@ -733,7 +743,7 @@ mod tests {
     fn test_ser() {
         let vb: Vec<Vec<u8>> = vec![vec![1, 2, 3], vec![255]];
 
-        let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
+        let vb_ser = ser_bytearray_vec(&vb, vb.len(), 10).unwrap();
         assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 1, 255]);
     }
 
@@ -743,14 +753,14 @@ mod tests {
 
         let vb: Vec<Vec<u8>> = vec![vec![1, 2, 3], vec![]];
 
-        let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
+        let vb_ser = ser_bytearray_vec(&vb, vb.len(), 10).unwrap();
         assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 0]);
 
-        let vb_ser = ser_bytearray_vec(&vb, 1);
+        let vb_ser = ser_bytearray_vec(&vb, vb.len(), 1);
         assert!(vb_ser.is_err());
 
         let vb: Vec<Vec<u8>> = vec![];
-        let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
+        let vb_ser = ser_bytearray_vec(&vb, vb.len(), 10).unwrap();
         let empty_vec: Vec<u8> = vec![];
         assert_eq!(vb_ser, empty_vec);
 
@@ -762,7 +772,7 @@ mod tests {
             .collect();
         assert_eq!(vb.len(), u16::MAX as usize);
 
-        let vb_ser = ser_bytearray_vec(&vb, u16::MAX as usize).unwrap();
+        let vb_ser = ser_bytearray_vec(&vb, vb.len(), u16::MAX as usize).unwrap();
         assert_eq!(vb_ser[0..4], [255, 255, 0, 0]);
         assert_eq!(vb_ser[4], 1);
         assert_eq!(vb_ser[4 + 1], 0);
