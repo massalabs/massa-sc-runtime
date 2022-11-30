@@ -743,7 +743,7 @@ mod tests {
     fn test_ser() {
         let vb: Vec<Vec<u8>> = vec![vec![1, 2, 3], vec![255]];
 
-        let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
+        let vb_ser = ser_bytearray_vec(&vb, vb.len(), 10).unwrap();
         assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 1, 255]);
     }
 
@@ -753,14 +753,14 @@ mod tests {
 
         let vb: Vec<Vec<u8>> = vec![vec![1, 2, 3], vec![]];
 
-        let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
+        let vb_ser = ser_bytearray_vec(&vb, vb.len(), 10).unwrap();
         assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 0]);
 
-        let vb_ser = ser_bytearray_vec(&vb, 1);
+        let vb_ser = ser_bytearray_vec(&vb, vb.len(), 1);
         assert!(vb_ser.is_err());
 
         let vb: Vec<Vec<u8>> = vec![];
-        let vb_ser = ser_bytearray_vec(&vb, 10).unwrap();
+        let vb_ser = ser_bytearray_vec(&vb, vb.len(), 10).unwrap();
         let empty_vec: Vec<u8> = vec![];
         assert_eq!(vb_ser, empty_vec);
 
@@ -772,7 +772,7 @@ mod tests {
             .collect();
         assert_eq!(vb.len(), u16::MAX as usize);
 
-        let vb_ser = ser_bytearray_vec(&vb, u16::MAX as usize).unwrap();
+        let vb_ser = ser_bytearray_vec(&vb, vb.len(), u16::MAX as usize).unwrap();
         assert_eq!(vb_ser[0..4], [255, 255, 0, 0]);
         assert_eq!(vb_ser[4], 1);
         assert_eq!(vb_ser[4 + 1], 0);
