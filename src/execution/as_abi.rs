@@ -548,10 +548,15 @@ pub(crate) fn assembly_script_send_message(
     }
     let memory = get_memory!(env);
     let filter_address_string = &get_string(memory, filter_address)?;
-    let filter_key_string = &get_string(memory, filter_datastore_key)?;
-    let filter = match (filter_address_string.as_str(), filter_key_string.as_str()) {
+    let key = read_buffer_and_sub_gas(
+        env,
+        memory,
+        filter_datastore_key,
+        settings::metering_has_data_key_mult(),
+    )?;
+    let filter = match (filter_address_string.as_str(), key.as_slice()) {
         ("", _) => None,
-        (addr, "") => Some((addr, None)),
+        (addr, &[]) => Some((addr, None)),
         (addr, key) => Some((addr, Some(key))),
     };
 
