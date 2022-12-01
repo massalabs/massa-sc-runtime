@@ -1,5 +1,3 @@
-use wasmer::WasmerEnv;
-
 use crate::env::{get_remaining_points, set_remaining_points, MassaEnv};
 use crate::Response;
 

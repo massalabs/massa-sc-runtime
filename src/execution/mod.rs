@@ -4,10 +4,10 @@ mod common;
 
 use anyhow::{bail, Result};
 use std::sync::Arc;
-use wasmer::{wasmparser::Operator, BaseTunables, Pages, Target};
+use wasmer::{wasmparser::Operator, BaseTunables, Pages, Target, EngineBuilder, Imports};
 use wasmer::{
-    CompilerConfig, Features, HostEnvInitError, ImportObject, Instance, InstantiationError, Module,
-    Store, Universal,
+    CompilerConfig, Features, Instance, InstantiationError, Module,
+    Store
 };
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
@@ -24,18 +24,18 @@ pub(crate) use common::*;
 pub(crate) trait MassaModule {
     fn init(interface: &dyn Interface, bytecode: &[u8]) -> Self;
     /// Closure for the execution allowing us to handle a gas error
-    fn execution(&self, instance: &Instance, function: &str, param: &[u8]) -> Result<Response>;
-    fn resolver(&self, store: &Store) -> ImportObject;
+    fn execution(&self, instance: &Instance, store: &mut Store, function: &str, param: &[u8]) -> Result<Response>;
+    fn resolver(&self, store: &Store) -> Imports;
     fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError>;
     fn get_bytecode(&self) -> &Vec<u8>;
 }
 
 /// Create an instance of VM from a module with a given interface, an operation
 /// number limit and a webassembly module
-pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<Instance> {
+pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<(Instance, Store)> {
     // We use the Singlepass compiler because it is fast and adapted to blockchains
     // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
-    let mut compiler_config = Singlepass::new();
+    let mut compiler = Singlepass::new();
 
     // Turning-off sources of potential non-determinism,
     // see https://github.com/WebAssembly/design/blob/037c6fe94151eb13e30d174f5f7ce851be0a573e/Nondeterminism.md
@@ -43,7 +43,7 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
     // Turning-off in the compiler:
 
     // Canonicalize NaN.
-    compiler_config.canonicalize_nans(true);
+    compiler.canonicalize_nans(true);
 
     // Default: Turning-off all wasmer feature flags
     // Exception(s):
@@ -68,23 +68,27 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
     if cfg!(feature = "gas_calibration") {
         // Add gas calibration middleware
         let gas_calibration = Arc::new(GasCalibration::new());
-        compiler_config.push_middleware(gas_calibration);
+        compiler.push_middleware(gas_calibration);
     } else {
         // Add metering middleware
         let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
-        compiler_config.push_middleware(metering);
+        compiler.push_middleware(metering);
     }
 
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
-    let engine = Universal::new(compiler_config).features(FEATURES).engine();
-    let store = Store::new_with_tunables(&engine, tunables);
+    // let engine = Universal::new(compiler_config).features(FEATURES).engine();
+    // let engine = Singlepass:  new(compiler_config);
+
+    let engine = EngineBuilder::new(compiler).set_features(Some(FEATURES)).engine();
+    let mut store = Store::new_with_tunables(&engine, tunables);
 
     match Instance::new(
+        &mut store,
         &Module::new(&store, &module.get_bytecode())?,
         &module.resolver(&store),
     ) {
-        Ok(i) => Ok(i),
+        Ok(i) => Ok((i, store)),
         Err(err) => {
             // We filter the error created by the metering middleware when there is not enough gas at initialization.
             if let InstantiationError::Start(ref e) = err {

@@ -1,11 +1,11 @@
 mod as_env;
 
+use wasmer::Global;
 use crate::{
     execution::{abi_bail, ABIResult},
     Interface,
 };
 pub(crate) use as_env::*;
-use wasmer::{Global, WasmerEnv};
 
 macro_rules! get_memory {
     ($env:ident) => {

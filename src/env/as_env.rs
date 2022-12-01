@@ -8,7 +8,7 @@ use crate::{
 };
 use anyhow::Result;
 use as_ffi_bindings::{Read, StringPtr};
-use wasmer::{Global, HostEnvInitError, Instance, WasmerEnv};
+use wasmer::{Global, Instance};
 
 use super::MassaEnv;
 
@@ -43,6 +43,7 @@ impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
     }
 }
 
+/*
 impl WasmerEnv for ASEnv {
     fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError> {
         self.wasm_env.init_with_instance(instance)?;
@@ -65,6 +66,7 @@ impl WasmerEnv for ASEnv {
         Ok(())
     }
 }
+*/
 
 /// Called by the instance when an error popped. It print the filename where the error
 /// had pop up, an error message and more stacktrace information as line and column
