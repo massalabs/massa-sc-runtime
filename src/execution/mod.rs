@@ -25,8 +25,8 @@ pub(crate) trait MassaModule {
     fn init(interface: &dyn Interface, bytecode: &[u8]) -> Self;
     /// Closure for the execution allowing us to handle a gas error
     fn execution(&self, instance: &Instance, store: &mut Store, function: &str, param: &[u8]) -> Result<Response>;
-    fn resolver(&self, store: &Store) -> Imports;
-    fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError>;
+    fn resolver(&self, store: &mut Store) -> Imports;
+    fn init_with_instance(&mut self, instance: &Instance, store: &Store) -> anyhow::Result<()>;
     fn get_bytecode(&self) -> &Vec<u8>;
 }
 
@@ -70,6 +70,7 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<(
         let gas_calibration = Arc::new(GasCalibration::new());
         compiler.push_middleware(gas_calibration);
     } else {
+        println!("Push metering middleware");
         // Add metering middleware
         let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
         compiler.push_middleware(metering);
@@ -77,16 +78,16 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<(
 
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
-    // let engine = Universal::new(compiler_config).features(FEATURES).engine();
-    // let engine = Singlepass:  new(compiler_config);
-
     let engine = EngineBuilder::new(compiler).set_features(Some(FEATURES)).engine();
     let mut store = Store::new_with_tunables(&engine, tunables);
 
+    // FIXME: rename module to as_module (ASModule) & module_ to module (type: Module)
+    let module_ = &Module::new(&store, &module.get_bytecode())?;
+    let imports = &module.resolver(&mut store);
     match Instance::new(
         &mut store,
-        &Module::new(&store, &module.get_bytecode())?,
-        &module.resolver(&store),
+        module_,
+        imports,
     ) {
         Ok(i) => Ok((i, store)),
         Err(err) => {

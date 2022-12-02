@@ -21,7 +21,7 @@ use regex::{Regex, RegexSet};
 #[cfg(feature = "gas_calibration")]
 use wasmer::{Extern, Instance};
 
-#[derive(Debug, Clone, MemoryUsage)]
+#[derive(Debug, Clone)]
 struct GasCalibrationGlobalIndexes {
     imports_call_map: HashMap<u32, (String, GlobalIndex)>,
     op_call_map: HashMap<String, GlobalIndex>,
@@ -54,12 +54,14 @@ impl Debug for GasCalibration {
     }
 }
 
+/*
 impl MemoryUsage for GasCalibration {
     fn size_of_val(&self, tracker: &mut dyn MemoryUsageTracker) -> usize {
         mem::size_of_val(self) + self.global_indexes.size_of_val(tracker)
             - mem::size_of_val(&self.global_indexes)
     }
 }
+*/
 
 impl ModuleMiddleware for GasCalibration {
     fn generate_function_middleware(
@@ -101,6 +103,53 @@ impl ModuleMiddleware for GasCalibration {
             // param_size_map: Default::default()
         };
 
+        for (import_key, import_index) in module_info.imports.iter() {
+
+            // FIXME: is this correct?
+            let module_name = import_key.module.clone();
+            let function_name = import_key.field.clone();
+            let index = import_key.import_idx;
+
+            // -> env.abort OR massa.assembly_script_print
+            let function_fullname = format!("{}.{}", module_name, function_name);
+
+            // Append a global for this 'imports' (== abi call) and initialize it.
+            let global_index = module_info
+                .globals
+                .push(GlobalType::new(Type::I64, Mutability::Var));
+            module_info
+                .global_initializers
+                .push(GlobalInit::I64Const(0));
+            module_info.exports.insert(
+                format!("wgc_abi_{}", function_fullname),
+                ExportIndex::Global(global_index),
+            );
+
+            indexes
+                .imports_call_map
+                .insert(index, (function_fullname.clone(), global_index));
+
+            /*
+            // Append a global for param size per 'imports' (== abi call)
+            let global_index = module_info
+                .globals
+                .push(GlobalType::new(Type::I64, Mutability::Var));
+            module_info
+                .global_initializers
+                .push(GlobalInit::I64Const(0));
+
+            println!("function_fullname: {}", function_fullname);
+            module_info.exports.insert(
+                format!("wgc_ps_{}", function_fullname),
+                ExportIndex::Global(global_index),
+            );
+
+            indexes.param_size_map.insert(*index, global_index);
+            */
+
+        }
+
+        /*
         for ((module_name, function_name, index), _import_index) in module_info.imports.iter() {
             // -> env.abort OR massa.assembly_script_print
             let function_fullname = format!("{}.{}", module_name, function_name);
@@ -139,6 +188,7 @@ impl ModuleMiddleware for GasCalibration {
             indexes.param_size_map.insert(*index, global_index);
             */
         }
+        */
 
         for op_name in OPERATOR_VARIANTS {
             // Append a global for this operator and initialize it.

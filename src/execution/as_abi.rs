@@ -10,10 +10,11 @@ use crate::env::{
 };
 use crate::settings;
 use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
-use wasmer::Memory;
+use wasmer::{AsStoreRef, FunctionEnvMut, Memory, Store};
 
 use super::common::{abi_bail, call_module, create_sc, ABIResult};
 
+/*
 /// Get the coins that have been made available for a specific purpose for the current call.
 pub(crate) fn assembly_script_get_call_coins(env: &ASEnv) -> ABIResult<i64> {
     sub_remaining_gas(env, settings::metering_get_call_coins())?;
@@ -113,22 +114,27 @@ pub(crate) fn assembly_script_get_remaining_gas(env: &ASEnv) -> ABIResult<i64> {
     sub_remaining_gas(env, settings::metering_remaining_gas())?;
     Ok(get_remaining_points(env)? as i64)
 }
+*/
 
 /// Create an instance of VM from a module with a
 /// given interface, an operation number limit and a webassembly module
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
-pub(crate) fn assembly_script_print(env: &ASEnv, arg: i32) -> ABIResult<()> {
+pub(crate) fn assembly_script_print(mut ctx: FunctionEnvMut<ASEnv>, arg: i32) -> ABIResult<()> {
+
+    let env = ctx.data().clone();
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas(env, settings::metering_print())?;
+        sub_remaining_gas(&env, &mut ctx,settings::metering_print())?;
     }
-    let memory = get_memory!(env);
-    if let Err(err) = env.get_interface().print(&get_string(memory, arg)?) {
+    // let memory = get_memory!(env);
+    let memory = env.get_wasm_env().memory.as_ref().expect("mem");
+    if let Err(err) = env.get_interface().print(&get_string(memory, &ctx, arg)?) {
         abi_bail!(err);
     }
     Ok(())
 }
 
+/*
 /// Get the operation datastore keys (aka entries)
 pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
     match env.get_interface().get_op_keys() {
@@ -698,15 +704,17 @@ fn read_buffer_and_sub_gas(
         Err(err) => abi_bail!(err),
     }
 }
+*/
 
 /// Tooling, return a string from a given offset
-fn get_string(memory: &Memory, ptr: i32) -> ABIResult<String> {
-    match StringPtr::new(ptr as u32).read(memory) {
+fn get_string(memory: &Memory, store: &impl AsStoreRef, ptr: i32) -> ABIResult<String> {
+    match StringPtr::new(ptr as u32).read(memory, store) {
         Ok(str) => Ok(str),
         Err(err) => abi_bail!(err),
     }
 }
 
+/*
 /// Tooling, return a pointer offset of a serialized list in json
 fn alloc_string_array(env: &ASEnv, vec: &[String]) -> ABIResult<i32> {
     let addresses = match serde_json::to_string(vec) {
@@ -798,3 +806,4 @@ mod tests {
         assert_eq!(vb_ser[vb_ser.len() - 1], 254);
     }
 }
+*/

@@ -32,9 +32,9 @@ pub(crate) fn exec(
         Some((instance, store)) => (instance, store),
         None => create_instance(limit, &module)?,
     };
-    module.init_with_instance(&instance)?;
+    module.init_with_instance(&instance, &store)?;
 
-    match module.execution(&instance, &store, function, param) {
+    match module.execution(&instance, &mut store, function, param) {
         Ok(response) => Ok((response, instance)),
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
@@ -69,7 +69,7 @@ pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Resul
     let module = get_module(interface, bytecode)?;
     let (instance, store) = create_instance(limit, &module)?;
     if instance.exports.contains(settings::MAIN) {
-        Ok(exec(limit, Some(instance), module, settings::MAIN, b"")?
+        Ok(exec(limit, Some((instance, store)), module, settings::MAIN, b"")?
             .0
             .remaining_gas)
     } else {

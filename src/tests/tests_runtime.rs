@@ -187,7 +187,7 @@ fn test_run_empty_main() {
     // (mainly because we have a memory allocator to init)
     settings::set_metering_initial_cost(0);
     let a = run_main(module, 10_000_000, &*interface).expect("Failed to run empty_main.wasm");
-    // Here we avoid hard-coding a value (that can change in future wasmer release)$
+    // Here we avoid hard-coding a value (that can change in future wasmer release)
     assert!(a > 0);
 
     let mut rng = rand::thread_rng();

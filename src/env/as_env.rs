@@ -8,7 +8,7 @@ use crate::{
 };
 use anyhow::Result;
 use as_ffi_bindings::{Read, StringPtr};
-use wasmer::{Global, Instance};
+use wasmer::{FunctionEnvMut, Global, Instance};
 
 use super::MassaEnv;
 
@@ -40,6 +40,9 @@ impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
     }
     fn get_wasm_env(&self) -> &as_ffi_bindings::Env {
         &self.wasm_env
+    }
+    fn get_wasm_env_as_mut(&mut self) -> &mut as_ffi_bindings::Env {
+        &mut self.wasm_env
     }
 }
 
@@ -78,31 +81,39 @@ impl WasmerEnv for ASEnv {
 /// - To create an instance, this function has to be in the ImportObject in the "env" namespace.
 /// - We can take advantage of the behaviours printing the assemblyscript error
 pub fn assembly_script_abort(
-    env: &ASEnv,
+    ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
     filename: StringPtr,
     line: i32,
     col: i32,
 ) -> ABIResult<()> {
-    let memory = get_memory!(env);
-    let message = message.read(memory);
-    let filename = filename.read(memory);
-    if message.is_err() || filename.is_err() {
+
+    let memory = ctx.data().get_wasm_env().memory.as_ref().expect("mem??").clone();
+    let message_ = message
+        .read(&memory, &ctx)
+        .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
+    let filename_ = filename
+        .read(&memory, &ctx)
+        .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
+
+    if message_.is_err() || filename_.is_err() {
         abi_bail!("aborting failed to load message or filename")
     }
     abi_bail!(format!(
         "error: {} at {}:{} col: {}",
-        message.unwrap(),
-        filename.unwrap(),
+        message_.unwrap(),
+        filename_.unwrap(),
         line,
         col
     ));
 }
 
 /// Assembly script builtin export `seed` function
-pub fn assembly_script_seed(env: &ASEnv) -> ABIResult<f64> {
+pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
+
+    let env = ctx.data().clone();
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas(env, settings::metering_unsafe_random())?;
+        sub_remaining_gas(&env, &mut ctx, settings::metering_unsafe_random())?;
     }
     match env.interface.unsafe_random_f64() {
         Ok(ret) => Ok(ret),
@@ -115,10 +126,13 @@ pub fn assembly_script_seed(env: &ASEnv) -> ABIResult<f64> {
 /// Note for developpers: It seems that AS as updated the output of that function
 /// for the newest versions. Probably the signature will be soon () -> i64
 /// instead of () -> f64.
-pub fn assembly_script_date(env: &ASEnv) -> ABIResult<f64> {
+pub fn assembly_script_date(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
+
+    let env = ctx.data().clone();
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas(env, settings::metering_get_time())?;
+        sub_remaining_gas(&env, &mut ctx, settings::metering_get_time())?;
     }
+
     let utime = match env.interface.get_time() {
         Ok(time) => time,
         _ => abi_bail!("failed to get time from interface"),
