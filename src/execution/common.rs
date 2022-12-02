@@ -1,4 +1,5 @@
-use crate::env::{get_remaining_points, set_remaining_points, MassaEnv};
+use wasmer::FunctionEnvMut;
+use crate::env::{get_remaining_points, set_remaining_points, MassaEnv, ASEnv};
 use crate::Response;
 
 use super::get_module;
@@ -19,8 +20,9 @@ pub(crate) use abi_bail;
 /// It take in argument the environment defined in env.rs
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
-pub(crate) fn call_module<T: WasmerEnv>(
-    env: &impl MassaEnv<T>,
+pub(crate) fn call_module<T>(
+    // env: &impl MassaEnv<T>,
+    mut ctx: FunctionEnvMut<ASEnv>,
     address: &str,
     function: &str,
     param: &[u8],
@@ -30,6 +32,8 @@ pub(crate) fn call_module<T: WasmerEnv>(
         Ok(v) => v,
         Err(_) => abi_bail!("negative amount of coins in Call"),
     };
+
+    let env = ctx.data().clone();
     let bytecode = &match env.get_interface().init_call(address, raw_coins) {
         Ok(bytecode) => bytecode,
         Err(err) => abi_bail!(err),
@@ -42,13 +46,13 @@ pub(crate) fn call_module<T: WasmerEnv>(
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         Ok(u64::MAX)
     } else {
-        get_remaining_points(env)
+        get_remaining_points(&env, &mut ctx)
     };
 
     match crate::execution_impl::exec(remaining_gas?, None, module, function, param) {
         Ok(resp) => {
             if cfg!(not(feature = "gas_calibration")) {
-                if let Err(err) = set_remaining_points(env, resp.0.remaining_gas) {
+                if let Err(err) = set_remaining_points(&env, &mut ctx,resp.0.remaining_gas) {
                     abi_bail!(err);
                 }
             }
@@ -62,10 +66,12 @@ pub(crate) fn call_module<T: WasmerEnv>(
 }
 
 /// Create a smart contract with the given `bytecode`
-pub(crate) fn create_sc<T: WasmerEnv>(
-    env: &impl MassaEnv<T>,
+pub(crate) fn create_sc<T>(
+    mut ctx: FunctionEnvMut<ASEnv>,
     bytecode: &[u8],
 ) -> ABIResult<String> {
+
+    let env = ctx.data();
     match env.get_interface().create_module(bytecode) {
         Ok(address) => Ok(address),
         Err(err) => abi_bail!(err),
