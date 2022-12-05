@@ -227,6 +227,11 @@ fn test_basic_abi_call_param_size() -> Result<()> {
 
 #[test]
 fn test_operators_definition() {
+    // Check that OPERATOR_* are ~ "valid"
+    // OPERATOR_* arrays are defined manually or using some python scripts so we need to
+    // ensure that everything defined in ok
+    // Here we assume that OPERATOR_VARIANTS is valid (e.g. contains all wasm op name)
+
     let op_variants = HashSet::from(OPERATOR_VARIANTS);
     assert_eq!(op_variants.len(), OPERATOR_VARIANTS.len());
 
