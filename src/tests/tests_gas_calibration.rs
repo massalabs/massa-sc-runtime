@@ -1,4 +1,7 @@
-use crate::middlewares::operator::OPERATOR_CARDINALITY;
+use crate::middlewares::operator::{
+    OPERATOR_BULK_MEMORY, OPERATOR_NON_TRAPPING_FLOAT_TO_INT, OPERATOR_THREAD, OPERATOR_VECTOR,
+};
+use crate::middlewares::operator::{OPERATOR_CARDINALITY, OPERATOR_VARIANTS};
 use crate::run_main_gc;
 use crate::settings;
 use crate::tests::{Ledger, TestInterface};
@@ -220,4 +223,21 @@ fn test_basic_abi_call_param_size() -> Result<()> {
     }
 
     Ok(())
+}
+
+#[test]
+fn test_operators_definition() {
+    let op_variants = HashSet::from(OPERATOR_VARIANTS);
+    assert_eq!(op_variants.len(), OPERATOR_VARIANTS.len());
+
+    let op_iterator = OPERATOR_THREAD
+        .iter()
+        .chain(OPERATOR_VECTOR.iter())
+        .chain(OPERATOR_BULK_MEMORY.iter())
+        .chain(OPERATOR_NON_TRAPPING_FLOAT_TO_INT.iter());
+
+    for operator_name in op_iterator {
+        println!("Checking operator name: {}", operator_name);
+        assert!(op_variants.contains(operator_name))
+    }
 }
