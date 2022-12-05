@@ -16,8 +16,8 @@ use super::MassaEnv;
 pub struct ASEnv {
     wasm_env: as_ffi_bindings::Env,
     interface: Box<dyn Interface>,
-    remaining_points: Option<Global>,
-    exhausted_points: Option<Global>,
+    pub remaining_points: Option<Global>,
+    pub exhausted_points: Option<Global>,
 }
 
 impl MassaEnv<as_ffi_bindings::Env> for ASEnv {

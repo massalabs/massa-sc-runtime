@@ -112,6 +112,18 @@ impl MassaModule for ASModule {
             Some(fn_collect),
         );
 
+        let g_1 = instance
+            .exports
+            .get_global("wasmer_metering_remaining_points")?
+            .clone();
+        self.env.remaining_points = Some(g_1);
+        let g_2 = instance
+            .exports
+            .get_global("wasmer_metering_points_exhausted")?
+            .clone();
+        self.env.exhausted_points = Some(g_2);
+
+
         Ok(())
     }
 
@@ -128,46 +140,44 @@ impl MassaModule for ASModule {
             },
             "massa" => {
                 "assembly_script_print" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_print),
-                /*
-                "assembly_script_call" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_call_module),
-                "assembly_script_get_remaining_gas" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_remaining_gas),
-                "assembly_script_create_sc" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_create_sc),
-                "assembly_script_set_data" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_set_data),
-                "assembly_script_set_data_for" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_set_data_for),
-                "assembly_script_get_data" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_data),
-                "assembly_script_get_data_for" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_data_for),
-                "assembly_script_delete_data" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_delete_data),
-                "assembly_script_delete_data_for" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_delete_data_for),
-                "assembly_script_append_data" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_append_data),
-                "assembly_script_append_data_for" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_append_data_for),
-                "assembly_script_has_data" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_has_data),
-                "assembly_script_has_data_for" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_has_data_for),
-                "assembly_script_get_owned_addresses" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_owned_addresses),
-                "assembly_script_get_owned_addresses_raw" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_owned_addresses_raw),
-                "assembly_script_get_call_stack" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_call_stack),
-                "assembly_script_get_call_stack_raw" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_call_stack_raw),
-                "assembly_script_generate_event" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_generate_event),
-                "assembly_script_transfer_coins" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_transfer_coins),
-                "assembly_script_transfer_coins_for" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_transfer_coins_for),
-                "assembly_script_get_balance" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_balance),
-                "assembly_script_get_balance_for" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_balance_for),
-                "assembly_script_hash" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_hash),
-                "assembly_script_signature_verify" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_signature_verify),
-                "assembly_script_address_from_public_key" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_address_from_public_key),
-                "assembly_script_unsafe_random" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_unsafe_random),
-                "assembly_script_get_call_coins" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_call_coins),
-                "assembly_script_get_time" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_time),
-                "assembly_script_send_message" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_send_message),
-                "assembly_script_get_current_period" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_current_period),
-                "assembly_script_get_current_thread" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_current_thread),
-                "assembly_script_set_bytecode" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_set_bytecode),
-                "assembly_script_set_bytecode_for" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_set_bytecode_for),
-                "assembly_script_get_op_keys" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_op_keys),
-                "assembly_script_get_keys" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_keys),
-                "assembly_script_get_keys_for" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_keys_for),
-                "assembly_script_has_op_key" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_has_op_key),
-                "assembly_script_get_op_data" => Function::new_typed_with_env(store, fenv.clone(), assembly_script_get_op_data),
-                */
+                "assembly_script_call" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_call_module),
+                "assembly_script_get_remaining_gas" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_remaining_gas),
+                "assembly_script_create_sc" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_create_sc),
+                "assembly_script_set_data" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_set_data),
+                "assembly_script_set_data_for" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_set_data_for),
+                "assembly_script_get_data" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_data),
+                "assembly_script_get_data_for" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_data_for),
+                "assembly_script_delete_data" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_delete_data),
+                "assembly_script_delete_data_for" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_delete_data_for),
+                "assembly_script_append_data" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_append_data),
+                "assembly_script_append_data_for" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_append_data_for),
+                "assembly_script_has_data" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_has_data),
+                "assembly_script_has_data_for" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_has_data_for),
+                "assembly_script_get_owned_addresses" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_owned_addresses),
+                "assembly_script_get_owned_addresses_raw" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_owned_addresses_raw),
+                "assembly_script_get_call_stack" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_call_stack),
+                "assembly_script_get_call_stack_raw" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_call_stack_raw),
+                "assembly_script_generate_event" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_generate_event),
+                "assembly_script_transfer_coins" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_transfer_coins),
+                "assembly_script_transfer_coins_for" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_transfer_coins_for),
+                "assembly_script_get_balance" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_balance),
+                "assembly_script_get_balance_for" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_balance_for),
+                "assembly_script_hash" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_hash),
+                "assembly_script_signature_verify" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_signature_verify),
+                "assembly_script_address_from_public_key" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_address_from_public_key),
+                "assembly_script_unsafe_random" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_unsafe_random),
+                "assembly_script_get_call_coins" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_call_coins),
+                "assembly_script_get_time" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_time),
+                "assembly_script_send_message" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_send_message),
+                "assembly_script_get_current_period" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_current_period),
+                "assembly_script_get_current_thread" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_current_thread),
+                "assembly_script_set_bytecode" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_set_bytecode),
+                "assembly_script_set_bytecode_for" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_set_bytecode_for),
+                "assembly_script_get_op_keys" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_op_keys),
+                "assembly_script_get_keys" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_keys),
+                "assembly_script_get_keys_for" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_keys_for),
+                "assembly_script_has_op_key" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_has_op_key),
+                "assembly_script_get_op_data" => Function::new_typed_with_env(store, &fenv.clone(), assembly_script_get_op_data),
             },
         }
     }

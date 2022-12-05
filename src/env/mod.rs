@@ -9,7 +9,7 @@ pub(crate) use as_env::*;
 
 macro_rules! get_memory {
     ($env:ident) => {
-        match $env.get_wasm_env().memory.get_ref() {
+        match $env.get_wasm_env().memory.as_ref() {
             Some(mem) => mem,
             _ => abi_bail!("uninitialized memory"),
         }
@@ -34,15 +34,16 @@ pub(crate) fn get_remaining_points<T>(env: &impl MassaEnv<T>, store: &mut impl A
         return Ok(0);
     }
 
-    match env.get_exhausted_points().as_ref() {
+    //match env.get_exhausted_points().as_ref() {
+    match env.get_exhausted_points() {
         Some(exhausted_points) => match exhausted_points.get(store).try_into() {
             Ok::<i32, _>(exhausted) if exhausted > 0 => return Ok(0),
             Ok::<i32, _>(_) => (),
             Err(_) => abi_bail!("exhausted_points has wrong type"),
         },
-        None => abi_bail!("Lost reference to exhausted_points"),
+        None => abi_bail!("Lost reference to exhausted_points XX"),
     };
-    match env.get_remaining_points().as_ref() {
+    match env.get_remaining_points() {
         Some(remaining_points) => match remaining_points.get(store).try_into() {
             Ok::<u64, _>(remaining) => Ok(remaining),
             Err(_) => abi_bail!("remaining_points has wrong type"),
@@ -95,7 +96,7 @@ pub(crate) fn sub_remaining_gas<T>(env: &impl MassaEnv<T>, store: &mut impl AsSt
 /// the result.
 pub(crate) fn sub_remaining_gas_with_mult<T>(
     env: &impl MassaEnv<T>,
-    store: &mut Store,
+    store: &mut impl AsStoreMut,
     a: usize,
     b: usize,
 ) -> ABIResult<()> {

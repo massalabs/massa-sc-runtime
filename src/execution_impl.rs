@@ -35,14 +35,18 @@ pub(crate) fn exec(
     module.init_with_instance(&instance, &store)?;
 
     match module.execution(&instance, &mut store, function, param) {
-        Ok(response) => Ok((response, instance)),
+        Ok(response) => {
+            Ok((response, instance))
+        },
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
                 bail!(err)
             } else {
                 // Because the last needed more than the remaining points, we should have an error.
                 match metering::get_remaining_points(&mut store, &instance) {
-                    MeteringPoints::Remaining(..) => bail!(err),
+                    MeteringPoints::Remaining(..) => {
+                        bail!(err)
+                    },
                     MeteringPoints::Exhausted => {
                         bail!("Not enough gas, limit reached at: {function}")
                     }
