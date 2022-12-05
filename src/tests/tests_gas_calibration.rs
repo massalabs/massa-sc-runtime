@@ -230,6 +230,17 @@ fn test_operators_definition() {
     let op_variants = HashSet::from(OPERATOR_VARIANTS);
     assert_eq!(op_variants.len(), OPERATOR_VARIANTS.len());
 
+    assert_eq!(HashSet::from(OPERATOR_THREAD).len(), OPERATOR_THREAD.len());
+    assert_eq!(HashSet::from(OPERATOR_VECTOR).len(), OPERATOR_VECTOR.len());
+    assert_eq!(
+        HashSet::from(OPERATOR_BULK_MEMORY).len(),
+        OPERATOR_BULK_MEMORY.len()
+    );
+    assert_eq!(
+        HashSet::from(OPERATOR_NON_TRAPPING_FLOAT_TO_INT).len(),
+        OPERATOR_NON_TRAPPING_FLOAT_TO_INT.len()
+    );
+
     let op_iterator = OPERATOR_THREAD
         .iter()
         .chain(OPERATOR_VECTOR.iter())
