@@ -1,9 +1,6 @@
 use loupe::{MemoryUsage, MemoryUsageTracker};
 use wasmer::wasmparser::Operator;
-use wasmer::{
-    FunctionMiddleware, LocalFunctionIndex, MiddlewareError, MiddlewareReaderState,
-    ModuleMiddleware,
-};
+use wasmer::{AsStoreMut, FunctionMiddleware, LocalFunctionIndex, MiddlewareError, MiddlewareReaderState, ModuleMiddleware, Store};
 use wasmer_types::{
     ExportIndex, GlobalIndex, GlobalInit, GlobalType, ModuleInfo, Mutability, Type,
 };
@@ -412,7 +409,7 @@ pub struct GasCalibrationResult {
 }
 
 #[cfg(feature = "gas_calibration")]
-pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
+pub fn get_gas_calibration_result(instance: &Instance, store: &mut Store) -> GasCalibrationResult {
     let current = Instant::now();
 
     let mut result = GasCalibrationResult {
@@ -446,11 +443,11 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
         let (export_name, extern_) = export_.unwrap();
 
         let counter_value: Option<i64> = match extern_ {
-            Extern::Global(g) => g.get().try_into().ok(),
+            Extern::Global(g) => g.get(store).try_into().ok(),
             _ => None,
         };
         let timer_value: Option<f64> = match extern_ {
-            Extern::Global(g) => g.get().try_into().ok(),
+            Extern::Global(g) => g.get(store).try_into().ok(),
             _ => None,
         };
 

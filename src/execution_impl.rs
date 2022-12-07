@@ -27,7 +27,7 @@ pub(crate) fn exec(
     mut module: impl MassaModule,
     function: &str,
     param: &[u8],
-) -> Result<(Response, Instance)> {
+) -> Result<(Response, Instance, Store)> {
     let (instance, mut store) = match instance_and_store {
         Some((instance, store)) => (instance, store),
         None => create_instance(limit, &mut module)?,
@@ -36,7 +36,7 @@ pub(crate) fn exec(
 
     match module.execution(&instance, &mut store, function, param) {
         Ok(response) => {
-            Ok((response, instance))
+            Ok((response, instance, store))
         },
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
@@ -110,17 +110,18 @@ pub fn run_main_gc(
     limit: u64,
     interface: &dyn Interface,
 ) -> Result<GasCalibrationResult> {
-    let module = get_module(interface, bytecode)?;
-    let (instance, store) = create_instance(limit, &module)?;
+
+    let mut module = get_module(interface, bytecode)?;
+    let (instance, mut store) = create_instance(limit, &mut module)?;
     if instance.exports.contains(settings::MAIN) {
-        let (_resp, instance) = exec(
+        let (_resp, instance, mut store) = exec(
             u64::MAX,
-            Some(instance.clone()),
+            Some((instance.clone(), store)),
             module,
             settings::MAIN,
             b"",
         )?;
-        Ok(get_gas_calibration_result(&instance))
+        Ok(get_gas_calibration_result(&instance, &mut store))
     } else {
         bail!("No main");
     }

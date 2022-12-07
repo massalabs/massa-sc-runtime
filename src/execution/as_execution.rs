@@ -112,20 +112,7 @@ impl MassaModule for ASModule {
             Some(fn_collect.clone()),
         );
 
-        let g_1 = instance
-            .exports
-            .get_global("wasmer_metering_remaining_points")?
-            .clone();
-        fenv.as_mut(store).remaining_points = Some(g_1.clone());
-        let g_2 = instance
-            .exports
-            .get_global("wasmer_metering_points_exhausted")?
-            .clone();
-        fenv.as_mut(store).exhausted_points = Some(g_2.clone());
-
         // Update self.env as well
-        self.env.remaining_points = Some(g_1);
-        self.env.exhausted_points = Some(g_2);
         self.env.get_wasm_env_as_mut().init_with(
             Some(memory.clone()),
             Some(fn_new),
@@ -133,6 +120,24 @@ impl MassaModule for ASModule {
             Some(fn_unpin),
             Some(fn_collect),
         );
+
+        // metering counters
+        if cfg!(not(feature = "gas_calibration")) {
+
+            let g_1 = instance
+                .exports
+                .get_global("wasmer_metering_remaining_points")?
+                .clone();
+            fenv.as_mut(store).remaining_points = Some(g_1.clone());
+            let g_2 = instance
+                .exports
+                .get_global("wasmer_metering_points_exhausted")?
+                .clone();
+            fenv.as_mut(store).exhausted_points = Some(g_2.clone());
+
+            self.env.remaining_points = Some(g_1);
+            self.env.exhausted_points = Some(g_2);
+        }
 
         Ok(())
     }

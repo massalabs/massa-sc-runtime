@@ -33,7 +33,7 @@ fn test_basic_abi_call_counter() -> Result<()> {
         gas_calibration_result
             .counters
             .get("Abi:call:massa.assembly_script_print"),
-        Some(&2)
+        Some(&4)
     );
     assert_eq!(
         gas_calibration_result.counters.get("Abi:call:env.abort"),
