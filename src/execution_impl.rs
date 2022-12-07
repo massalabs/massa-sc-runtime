@@ -30,9 +30,9 @@ pub(crate) fn exec(
 ) -> Result<(Response, Instance)> {
     let (instance, mut store) = match instance_and_store {
         Some((instance, store)) => (instance, store),
-        None => create_instance(limit, &module)?,
+        None => create_instance(limit, &mut module)?,
     };
-    module.init_with_instance(&instance, &store)?;
+    // module.init_with_instance(&instance, &store)?;
 
     match module.execution(&instance, &mut store, function, param) {
         Ok(response) => {
@@ -70,8 +70,8 @@ pub(crate) fn exec(
 /// Return:
 /// the remaining gas.
 pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
-    let module = get_module(interface, bytecode)?;
-    let (instance, store) = create_instance(limit, &module)?;
+    let mut module = get_module(interface, bytecode)?;
+    let (instance, store) = create_instance(limit, &mut module)?;
     if instance.exports.contains(settings::MAIN) {
         Ok(exec(limit, Some((instance, store)), module, settings::MAIN, b"")?
             .0

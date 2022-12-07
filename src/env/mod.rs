@@ -30,6 +30,7 @@ pub(crate) trait MassaEnv<T> {
 /// Should be equivalent to
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L293
 pub(crate) fn get_remaining_points<T>(env: &impl MassaEnv<T>, store: &mut impl AsStoreMut) -> ABIResult<u64> {
+
     if cfg!(feature = "gas_calibration") {
         return Ok(0);
     }
