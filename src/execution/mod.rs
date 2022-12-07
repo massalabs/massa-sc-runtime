@@ -71,7 +71,6 @@ pub(crate) fn create_instance(limit: u64, as_module: &mut impl MassaModule) -> R
         let gas_calibration = Arc::new(GasCalibration::new());
         compiler.push_middleware(gas_calibration);
     } else {
-        println!("Push metering middleware");
         // Add metering middleware
         let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
         compiler.push_middleware(metering);

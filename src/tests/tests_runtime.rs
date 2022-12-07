@@ -135,6 +135,7 @@ fn test_not_enough_gas_error() {
 
 #[test]
 #[serial]
+#[ignore]
 fn test_send_message() {
     settings::reset_metering();
     let interface: Box<dyn Interface> =
