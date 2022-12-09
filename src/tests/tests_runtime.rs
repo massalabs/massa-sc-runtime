@@ -232,3 +232,26 @@ fn test_builtins() {
         _ => panic!("Failed to run use_builtins.wasm"),
     }
 }
+
+/// Test seed, now and abort
+#[test]
+#[serial]
+fn test_wat() {
+    settings::reset_metering();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/build/dummy.wat"));
+
+    use crate::execution::{create_instance, get_module, MassaModule};
+    use crate::execution_impl::exec;
+
+    let gas_limit = 10_000;
+    let module = get_module(&*interface, bytecode).unwrap();
+    let instance = create_instance(gas_limit, &module).unwrap();
+    let (response, instance) =
+        exec(gas_limit, Some(instance), module, settings::MAIN, b"").unwrap();
+    // println!("response: {:?}", response.ret);
+
+    // Note: for now, exec main always return an empty vec
+    assert(response, Vec::new())
+}
