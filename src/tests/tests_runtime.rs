@@ -233,7 +233,6 @@ fn test_builtins() {
     }
 }
 
-/// Test seed, now and abort
 #[test]
 #[serial]
 fn test_wat() {
