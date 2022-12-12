@@ -21,9 +21,11 @@ impl MassaModule for ASModule {
             bytecode: bytecode.to_vec(),
         }
     }
+
     fn get_bytecode(&self) -> &Vec<u8> {
         &self.bytecode
     }
+
     fn execution(&self, instance: &Instance, function: &str, param: &[u8]) -> Result<Response> {
         if cfg!(not(feature = "gas_calibration")) {
             // sub initial metering cost

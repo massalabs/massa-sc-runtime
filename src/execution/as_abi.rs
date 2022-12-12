@@ -353,6 +353,7 @@ pub(crate) fn assembly_script_append_data_for(
 
 /// Gets the value of a datastore entry for an arbitrary address, fails if the entry or address does not exist
 pub(crate) fn assembly_script_get_data_for(env: &ASEnv, address: i32, key: i32) -> ABIResult<i32> {
+    // here
     sub_remaining_gas(env, settings::metering_get_data_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
@@ -614,6 +615,38 @@ pub(crate) fn assembly_script_set_bytecode(env: &ASEnv, bytecode: i32) -> ABIRes
     )?;
     match env.get_interface().raw_set_bytecode(&bytecode_raw) {
         Ok(()) => Ok(()),
+        Err(err) => abi_bail!(err),
+    }
+}
+
+pub(crate) fn assembly_script_get_bytecode(env: &ASEnv) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
+    match env.get_interface().raw_get_bytecode() {
+        Ok(data) => {
+            sub_remaining_gas_with_mult(
+                env,
+                data.len(),
+                settings::metering_get_bytecode_value_mult(),
+            )?;
+            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
+        }
+        Err(err) => abi_bail!(err),
+    }
+}
+
+pub(crate) fn assembly_script_get_bytecode_for(env: &ASEnv, address: i32) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
+    let memory = get_memory!(env);
+    let address = get_string(memory, address)?;
+    match env.get_interface().raw_get_bytecode_for(&address) {
+        Ok(data) => {
+            sub_remaining_gas_with_mult(
+                env,
+                data.len(),
+                settings::metering_get_bytecode_value_mult(),
+            )?;
+            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
+        }
         Err(err) => abi_bail!(err),
     }
 }
