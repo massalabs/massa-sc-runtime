@@ -70,10 +70,6 @@ pub(crate) fn local_call<T: WasmerEnv>(
     function: &str,
     param: &[u8],
 ) -> ABIResult<Response> {
-    let raw_coins: u64 = match env.get_interface().get_balance() {
-        Ok(coins) => coins,
-        Err(err) => abi_bail!(err),
-    };
     let module = match get_module(&*env.get_interface(), bytecode) {
         Ok(module) => module,
         Err(err) => abi_bail!(err),
