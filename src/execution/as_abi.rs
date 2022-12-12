@@ -13,6 +13,7 @@ use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use wasmer::Memory;
 
 use super::common::{abi_bail, call_module, create_sc, ABIResult};
+use super::local_call;
 
 /// Get the coins that have been made available for a specific purpose for the current call.
 pub(crate) fn assembly_script_get_call_coins(env: &ASEnv) -> ABIResult<i64> {
@@ -86,7 +87,7 @@ pub(crate) fn assembly_script_get_balance_for(env: &ASEnv, address: i32) -> ABIR
 }
 
 /// Raw call that have the right type signature to be able to be call a module
-/// directly form AssemblyScript:
+/// directly from AssemblyScript:
 pub(crate) fn assembly_script_call_module(
     env: &ASEnv,
     address: i32,
@@ -619,6 +620,7 @@ pub(crate) fn assembly_script_set_bytecode(env: &ASEnv, bytecode: i32) -> ABIRes
     }
 }
 
+/// TODO
 pub(crate) fn assembly_script_get_bytecode(env: &ASEnv) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
     match env.get_interface().raw_get_bytecode() {
@@ -634,6 +636,7 @@ pub(crate) fn assembly_script_get_bytecode(env: &ASEnv) -> ABIResult<i32> {
     }
 }
 
+/// TODO
 pub(crate) fn assembly_script_get_bytecode_for(env: &ASEnv, address: i32) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
     let memory = get_memory!(env);
@@ -648,6 +651,31 @@ pub(crate) fn assembly_script_get_bytecode_for(env: &ASEnv, address: i32) -> ABI
             Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
         }
         Err(err) => abi_bail!(err),
+    }
+}
+
+/// TODO
+pub(crate) fn assembly_script_local_call(
+    env: &ASEnv,
+    bytecode: i32,
+    function: i32,
+    param: i32,
+) -> ABIResult<i32> {
+    /// NOTE: do we want a different metering for that?
+    sub_remaining_gas(env, settings::metering_call())?;
+    let memory = get_memory!(env);
+
+    let bytecode = &read_buffer(memory, bytecode)?;
+    let function = &get_string(memory, function)?;
+    let param = &read_buffer(memory, param)?;
+
+    let response = local_call(env, bytecode, function, param)?;
+    match BufferPtr::alloc(&response.ret, env.get_wasm_env()) {
+        Ok(ret) => Ok(ret.offset() as i32),
+        _ => abi_bail!(format!(
+            "Cannot allocate response in local call of {}",
+            function
+        )),
     }
 }
 
