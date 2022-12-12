@@ -655,7 +655,7 @@ pub(crate) fn assembly_script_get_bytecode_for(env: &ASEnv, address: i32) -> ABI
 }
 
 /// TODO
-pub(crate) fn assembly_script_local_call(
+pub(crate) fn assembly_script_local_execution(
     env: &ASEnv,
     bytecode: i32,
     function: i32,
@@ -680,7 +680,7 @@ pub(crate) fn assembly_script_local_call(
 }
 
 /// TODO
-pub(crate) fn assembly_script_local_execution(
+pub(crate) fn assembly_script_local_call(
     env: &ASEnv,
     address: i32,
     function: i32,
