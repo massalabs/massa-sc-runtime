@@ -107,7 +107,7 @@ pub(crate) fn assembly_script_get_balance_for(env: &ASEnv, address: i32) -> ABIR
 /// Raw call that have the right type signature to be able to be call a module
 /// directly form AssemblyScript:
 #[named]
-pub(crate) fn assembly_script_call_module(
+pub(crate) fn assembly_script_call(
     env: &ASEnv,
     address: i32,
     function: i32,

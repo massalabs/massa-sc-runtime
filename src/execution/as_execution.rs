@@ -100,7 +100,7 @@ impl MassaModule for ASModule {
             },
             "massa" => {
                 "assembly_script_print" => Function::new_native_with_env(store, self.env.clone(), assembly_script_print),
-                "assembly_script_call" => Function::new_native_with_env(store, self.env.clone(), assembly_script_call_module),
+                "assembly_script_call" => Function::new_native_with_env(store, self.env.clone(), assembly_script_call),
                 "assembly_script_get_remaining_gas" => Function::new_native_with_env(store, self.env.clone(), assembly_script_get_remaining_gas),
                 "assembly_script_create_sc" => Function::new_native_with_env(store, self.env.clone(), assembly_script_create_sc),
                 "assembly_script_set_data" => Function::new_native_with_env(store, self.env.clone(), assembly_script_set_data),
