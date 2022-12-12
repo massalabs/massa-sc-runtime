@@ -661,7 +661,7 @@ pub(crate) fn assembly_script_local_call(
     function: i32,
     param: i32,
 ) -> ABIResult<i32> {
-    /// NOTE: do we want a different metering for that?
+    // NOTE: do we want a different metering for that?
     sub_remaining_gas(env, settings::metering_call())?;
     let memory = get_memory!(env);
 
@@ -670,6 +670,35 @@ pub(crate) fn assembly_script_local_call(
     let param = &read_buffer(memory, param)?;
 
     let response = local_call(env, bytecode, function, param)?;
+    match BufferPtr::alloc(&response.ret, env.get_wasm_env()) {
+        Ok(ret) => Ok(ret.offset() as i32),
+        _ => abi_bail!(format!(
+            "Cannot allocate response in local call of {}",
+            function
+        )),
+    }
+}
+
+/// TODO
+pub(crate) fn assembly_script_local_execution(
+    env: &ASEnv,
+    address: i32,
+    function: i32,
+    param: i32,
+) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_call())?;
+    let memory = get_memory!(env);
+
+    let address = &get_string(memory, address)?;
+    sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
+    let bytecode = env
+        .get_interface()
+        .raw_get_bytecode_for(address)
+        .map_or_else(|e| abi_bail!(e), |v| Ok(v))?;
+    let function = &get_string(memory, function)?;
+    let param = &read_buffer(memory, param)?;
+
+    let response = local_call(env, &bytecode, function, param)?;
     match BufferPtr::alloc(&response.ret, env.get_wasm_env()) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(

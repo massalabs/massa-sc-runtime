@@ -151,10 +151,12 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("has_data_for")
     }
 
+    /// TODO
     fn raw_get_bytecode(&self) -> Result<Vec<u8>> {
         unimplemented!("raw_get_bytecode")
     }
 
+    /// TODO
     fn raw_get_bytecode_for(&self, address: &str) -> Result<Vec<u8>> {
         unimplemented!("raw_get_bytecode_for")
     }
