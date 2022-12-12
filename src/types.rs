@@ -1,5 +1,6 @@
 use anyhow::{bail, Result};
 use serde::{de::DeserializeOwned, Serialize};
+use std::collections::BTreeSet;
 
 /// That's what is returned when a module is executed correctly since the end
 pub(crate) struct Response {
@@ -93,6 +94,16 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Print function for examples
     fn print(&self, message: &str) -> Result<()> {
         unimplemented!("print")
+    }
+
+    /// Return datastore keys
+    fn get_keys(&self) -> Result<BTreeSet<Vec<u8>>> {
+        unimplemented!("get_op_keys")
+    }
+
+    /// Return datastore keys
+    fn get_keys_for(&self, address: &str) -> Result<BTreeSet<Vec<u8>>> {
+        unimplemented!("get_op_keys_for")
     }
 
     fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>> {

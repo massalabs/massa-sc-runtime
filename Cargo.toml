@@ -1,6 +1,6 @@
 [package]
 name = "massa-sc-runtime"
-version = "0.9.0"
+version = "0.10.0"
 edition = "2021"
 
 [dependencies]
@@ -11,6 +11,7 @@ serde_json = "1.0"
 wasmer = { version = "2.3.0" }
 as-ffi-bindings = "0.2.7"
 wasmer-compiler-singlepass = { version = "2.3.0" }
+wasmer-types = { version = "2.3.0" }
 wasmer-engine-universal = { version = "2.3.0" }
 wasmer-middlewares = { version = "2.3.0" }
 cornetto = "0.1"
@@ -20,9 +21,9 @@ loupe = "0.1"
 parking_lot = "0.12"
 rand = "0.8"
 # for gas_calibration middleware
-wasmer-types = { version = "2.3.0" }
 regex = "1"
 more-asserts = "0.3"
+function_name = "0.3"
 
 [features]
 gas_calibration = []
