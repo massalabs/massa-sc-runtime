@@ -8,7 +8,8 @@ use crate::{
 };
 use anyhow::Result;
 use as_ffi_bindings::{Read, StringPtr};
-use wasmer::{Global, HostEnvInitError, Instance, WasmerEnv};
+use std::collections::HashMap;
+use wasmer::{Extern, Global, HostEnvInitError, Instance, WasmerEnv};
 
 use super::MassaEnv;
 
@@ -18,6 +19,7 @@ pub struct ASEnv {
     interface: Box<dyn Interface>,
     remaining_points: Option<Global>,
     exhausted_points: Option<Global>,
+    param_size_map: HashMap<String, Option<Global>>,
 }
 
 impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
@@ -27,6 +29,7 @@ impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
             interface: interface.clone_box(),
             remaining_points: None,
             exhausted_points: None,
+            param_size_map: Default::default(),
         }
     }
     fn get_exhausted_points(&self) -> Option<&Global> {
@@ -34,6 +37,9 @@ impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
     }
     fn get_remaining_points(&self) -> Option<&Global> {
         self.remaining_points.as_ref()
+    }
+    fn get_gc_param(&self, name: &str) -> Option<&Global> {
+        self.param_size_map.get(name)?.as_ref()
     }
     fn get_interface(&self) -> Box<dyn Interface> {
         self.interface.clone()
@@ -47,7 +53,29 @@ impl WasmerEnv for ASEnv {
     fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError> {
         self.wasm_env.init_with_instance(instance)?;
 
-        if cfg!(not(feature = "gas_calibration")) {
+        if cfg!(feature = "gas_calibration") {
+            // Find exports (like wgc_ps_massa.assembly_script_print) and get weak ref
+            for (ex_name, extern_idx) in instance
+                .exports
+                .iter()
+                .filter(|(ex_name, _)| ex_name.starts_with("wgc_ps"))
+            {
+                match extern_idx {
+                    Extern::Global(_global) => {
+                        let global_ref = instance
+                            .exports
+                            .get_with_generics_weak(ex_name)
+                            .map_err(HostEnvInitError::from)?;
+
+                        self.param_size_map
+                            .insert((*ex_name).clone(), Some(global_ref));
+                    }
+                    _ => {
+                        println!("Unhandled exports: {}", ex_name)
+                    }
+                }
+            }
+        } else {
             self.remaining_points = Some(
                 instance
                     .exports
