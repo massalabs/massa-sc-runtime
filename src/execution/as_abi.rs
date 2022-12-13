@@ -694,7 +694,7 @@ pub(crate) fn assembly_script_local_call(
     let bytecode = env
         .get_interface()
         .raw_get_bytecode_for(address)
-        .map_or_else(|e| abi_bail!(e), |v| Ok(v))?;
+        .map_or_else(|e| abi_bail!(e), Ok)?;
     let function = &get_string(memory, function)?;
     let param = &read_buffer(memory, param)?;
 

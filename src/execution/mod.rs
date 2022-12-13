@@ -81,7 +81,7 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
     let store = Store::new_with_tunables(&engine, tunables);
 
     match Instance::new(
-        &Module::new(&store, &module.get_bytecode())?,
+        &Module::new(&store, module.get_bytecode())?,
         &module.resolver(&store),
     ) {
         Ok(i) => Ok(i),
@@ -89,7 +89,7 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
             // We filter the error created by the metering middleware when there is not enough gas at initialization.
             if let InstantiationError::Start(ref e) = err {
                 if let Some(trap) = e.clone().to_trap() {
-                    if trap == TrapCode::UnreachableCodeReached && e.trace().len() == 0 {
+                    if trap == TrapCode::UnreachableCodeReached && e.trace().is_empty() {
                         bail!("RuntimeError: Not enough gas, limit reached at initialization");
                     }
                 }
