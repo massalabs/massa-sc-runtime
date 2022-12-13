@@ -620,7 +620,7 @@ pub(crate) fn assembly_script_set_bytecode(env: &ASEnv, bytecode: i32) -> ABIRes
     }
 }
 
-/// TODO
+/// get bytecode of the current address
 pub(crate) fn assembly_script_get_bytecode(env: &ASEnv) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
     match env.get_interface().raw_get_bytecode() {
@@ -636,7 +636,7 @@ pub(crate) fn assembly_script_get_bytecode(env: &ASEnv) -> ABIResult<i32> {
     }
 }
 
-/// TODO
+/// get bytecode of the target address
 pub(crate) fn assembly_script_get_bytecode_for(env: &ASEnv, address: i32) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
     let memory = get_memory!(env);
@@ -654,7 +654,7 @@ pub(crate) fn assembly_script_get_bytecode_for(env: &ASEnv, address: i32) -> ABI
     }
 }
 
-/// TODO
+/// execute `function` of the given bytecode in the current context
 pub(crate) fn assembly_script_local_execution(
     env: &ASEnv,
     bytecode: i32,
@@ -679,7 +679,7 @@ pub(crate) fn assembly_script_local_execution(
     }
 }
 
-/// TODO
+/// execute `function` of the bytecode located at `address` in the current context
 pub(crate) fn assembly_script_local_call(
     env: &ASEnv,
     address: i32,

@@ -63,7 +63,7 @@ pub(crate) fn call_module<T: WasmerEnv>(
     }
 }
 
-/// TODO
+/// Alternative to `call_module` to execute bytecode in a local context
 pub(crate) fn local_call<T: WasmerEnv>(
     env: &impl MassaEnv<T>,
     bytecode: &[u8],
