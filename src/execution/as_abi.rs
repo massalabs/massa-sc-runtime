@@ -354,7 +354,6 @@ pub(crate) fn assembly_script_append_data_for(
 
 /// Gets the value of a datastore entry for an arbitrary address, fails if the entry or address does not exist
 pub(crate) fn assembly_script_get_data_for(env: &ASEnv, address: i32, key: i32) -> ABIResult<i32> {
-    // here
     sub_remaining_gas(env, settings::metering_get_data_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
