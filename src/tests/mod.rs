@@ -186,6 +186,7 @@ impl Interface for TestInterface {
         _raw_fee: u64,
         _coins: u64,
         _data: &[u8],
+        _filter: Option<(&str, Option<&[u8]>)>,
     ) -> Result<()> {
         Ok(())
     }

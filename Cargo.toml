@@ -1,6 +1,6 @@
 [package]
 name = "massa-sc-runtime"
-version = "0.9.0"
+version = "0.10.0"
 edition = "2021"
 
 [dependencies]
@@ -23,6 +23,7 @@ rand = "0.8"
 # for gas_calibration middleware
 regex = "1"
 more-asserts = "0.3"
+function_name = "0.3"
 
 [features]
 gas_calibration = []
