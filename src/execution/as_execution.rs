@@ -144,6 +144,8 @@ impl MassaModule for ASModule {
                 "assembly_script_get_bytecode_for" => Function::new_native_with_env(store, self.env.clone(), assembly_script_get_bytecode_for),
                 "assembly_script_local_call" => Function::new_native_with_env(store, self.env.clone(), assembly_script_local_call),
                 "assembly_script_local_execution" => Function::new_native_with_env(store, self.env.clone(), assembly_script_local_execution),
+                "assembly_caller_has_write_access" => Function::new_native_with_env(store, self.env.clone(), assembly_caller_has_write_access),
+                "assembly_function_exists" => Function::new_native_with_env(store, self.env.clone(), assembly_function_exists),
             },
         }
     }

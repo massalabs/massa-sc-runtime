@@ -890,6 +890,30 @@ pub(crate) fn assembly_script_local_call(
     }
 }
 
+/// Check whether or not the caller has write access in the current context
+pub fn assembly_caller_has_write_access(env: &ASEnv) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_local_call_const())?;
+    match env.get_interface().caller_has_write_access() {
+        Ok(true) => Ok(1),
+        Ok(false) => Ok(0),
+        Err(err) => abi_bail!(err),
+    }
+}
+
+/// Check whether or not the given function exists at the given address
+pub fn assembly_function_exists(env: &ASEnv, address: i32, function: i32) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_local_call_const())?;
+    let memory = get_memory!(env);
+
+    let address = &get_string(memory, address)?;
+    let function = &get_string(memory, function)?;
+    match env.get_interface().function_exists(address, function) {
+        Ok(true) => Ok(1),
+        Ok(false) => Ok(0),
+        Err(err) => abi_bail!(err),
+    }
+}
+
 /// Tooling, return a StringPtr allocated from a String
 fn pointer_from_string(env: &ASEnv, value: &str) -> ABIResult<StringPtr> {
     match StringPtr::alloc(&value.into(), env.get_wasm_env()) {

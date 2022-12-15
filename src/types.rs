@@ -176,6 +176,16 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("get_op_data")
     }
 
+    /// Check whether or not the caller has write access in the current context
+    fn caller_has_write_access(&self) -> Result<bool> {
+        unimplemented!("caller_has_write_access")
+    }
+
+    /// Check whether or not the given function exists at the given address
+    fn function_exists(&self, address: &str, function: &str) -> Result<bool> {
+        unimplemented!("function_exists")
+    }
+
     // Hash data
     fn hash(&self, data: &[u8]) -> Result<String> {
         unimplemented!("hash")
