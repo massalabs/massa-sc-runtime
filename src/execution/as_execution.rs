@@ -21,9 +21,11 @@ impl MassaModule for ASModule {
             bytecode: bytecode.to_vec(),
         }
     }
+
     fn get_bytecode(&self) -> &Vec<u8> {
         &self.bytecode
     }
+
     fn execution(&self, instance: &Instance, function: &str, param: &[u8]) -> Result<Response> {
         if cfg!(not(feature = "gas_calibration")) {
             // sub initial metering cost
@@ -138,6 +140,10 @@ impl MassaModule for ASModule {
                 "assembly_script_get_keys_for" => Function::new_native_with_env(store, self.env.clone(), assembly_script_get_keys_for),
                 "assembly_script_has_op_key" => Function::new_native_with_env(store, self.env.clone(), assembly_script_has_op_key),
                 "assembly_script_get_op_data" => Function::new_native_with_env(store, self.env.clone(), assembly_script_get_op_data),
+                "assembly_script_get_bytecode" => Function::new_native_with_env(store, self.env.clone(), assembly_script_get_bytecode),
+                "assembly_script_get_bytecode_for" => Function::new_native_with_env(store, self.env.clone(), assembly_script_get_bytecode_for),
+                "assembly_script_local_call" => Function::new_native_with_env(store, self.env.clone(), assembly_script_local_call),
+                "assembly_script_local_execution" => Function::new_native_with_env(store, self.env.clone(), assembly_script_local_execution),
             },
         }
     }

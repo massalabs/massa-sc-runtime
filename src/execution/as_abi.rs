@@ -15,6 +15,7 @@ use function_name::named;
 use wasmer::Memory;
 
 use super::common::{abi_bail, call_module, create_sc, ABIResult};
+use super::local_call;
 
 /// Get the coins that have been made available for a specific purpose for the current call.
 pub(crate) fn assembly_script_get_call_coins(env: &ASEnv) -> ABIResult<i64> {
@@ -799,6 +800,93 @@ pub(crate) fn assembly_script_set_bytecode(env: &ASEnv, bytecode: i32) -> ABIRes
     match env.get_interface().raw_set_bytecode(&bytecode_raw) {
         Ok(()) => Ok(()),
         Err(err) => abi_bail!(err),
+    }
+}
+
+/// get bytecode of the current address
+pub(crate) fn assembly_script_get_bytecode(env: &ASEnv) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
+    match env.get_interface().raw_get_bytecode() {
+        Ok(data) => {
+            sub_remaining_gas_with_mult(
+                env,
+                data.len(),
+                settings::metering_get_bytecode_value_mult(),
+            )?;
+            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
+        }
+        Err(err) => abi_bail!(err),
+    }
+}
+
+/// get bytecode of the target address
+pub(crate) fn assembly_script_get_bytecode_for(env: &ASEnv, address: i32) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
+    let memory = get_memory!(env);
+    let address = get_string(memory, address)?;
+    match env.get_interface().raw_get_bytecode_for(&address) {
+        Ok(data) => {
+            sub_remaining_gas_with_mult(
+                env,
+                data.len(),
+                settings::metering_get_bytecode_value_mult(),
+            )?;
+            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
+        }
+        Err(err) => abi_bail!(err),
+    }
+}
+
+/// execute `function` of the given bytecode in the current context
+pub(crate) fn assembly_script_local_execution(
+    env: &ASEnv,
+    bytecode: i32,
+    function: i32,
+    param: i32,
+) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_local_execution_const())?;
+    let memory = get_memory!(env);
+
+    let bytecode = &read_buffer(memory, bytecode)?;
+    let function = &get_string(memory, function)?;
+    let param = &read_buffer(memory, param)?;
+
+    let response = local_call(env, bytecode, function, param)?;
+    match BufferPtr::alloc(&response.ret, env.get_wasm_env()) {
+        Ok(ret) => Ok(ret.offset() as i32),
+        _ => abi_bail!(format!(
+            "Cannot allocate response in local call of {}",
+            function
+        )),
+    }
+}
+
+/// execute `function` of the bytecode located at `address` in the current context
+pub(crate) fn assembly_script_local_call(
+    env: &ASEnv,
+    address: i32,
+    function: i32,
+    param: i32,
+) -> ABIResult<i32> {
+    sub_remaining_gas(env, settings::metering_local_call_const())?;
+    let memory = get_memory!(env);
+
+    let address = &get_string(memory, address)?;
+    sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
+    let bytecode = env
+        .get_interface()
+        .raw_get_bytecode_for(address)
+        .map_or_else(|e| abi_bail!(e), Ok)?;
+    let function = &get_string(memory, function)?;
+    let param = &read_buffer(memory, param)?;
+
+    let response = local_call(env, &bytecode, function, param)?;
+    match BufferPtr::alloc(&response.ret, env.get_wasm_env()) {
+        Ok(ret) => Ok(ret.offset() as i32),
+        _ => abi_bail!(format!(
+            "Cannot allocate response in local call of {}",
+            function
+        )),
     }
 }
 

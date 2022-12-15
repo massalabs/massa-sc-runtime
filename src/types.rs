@@ -151,6 +151,16 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("has_data_for")
     }
 
+    /// Returns bytecode of the current address
+    fn raw_get_bytecode(&self) -> Result<Vec<u8>> {
+        unimplemented!("raw_get_bytecode")
+    }
+
+    /// Returns bytecode of the target address
+    fn raw_get_bytecode_for(&self, address: &str) -> Result<Vec<u8>> {
+        unimplemented!("raw_get_bytecode_for")
+    }
+
     /// Return operation datastore keys
     fn get_op_keys(&self) -> Result<Vec<Vec<u8>>> {
         unimplemented!("get_op_keys")
