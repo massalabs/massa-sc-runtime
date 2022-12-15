@@ -660,8 +660,7 @@ pub(crate) fn assembly_script_local_execution(
     function: i32,
     param: i32,
 ) -> ABIResult<i32> {
-    // NOTE: do we want a different metering for that?
-    sub_remaining_gas(env, settings::metering_call())?;
+    sub_remaining_gas(env, settings::metering_local_execution_const())?;
     let memory = get_memory!(env);
 
     let bytecode = &read_buffer(memory, bytecode)?;
@@ -685,7 +684,7 @@ pub(crate) fn assembly_script_local_call(
     function: i32,
     param: i32,
 ) -> ABIResult<i32> {
-    sub_remaining_gas(env, settings::metering_call())?;
+    sub_remaining_gas(env, settings::metering_local_call_const())?;
     let memory = get_memory!(env);
 
     let address = &get_string(memory, address)?;

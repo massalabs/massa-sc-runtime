@@ -43,6 +43,12 @@ struct Metering {
     pub has_data_key_mult: usize,
     // TODO: define
     #[cornetto(const, 42)]
+    pub local_execution_const: u64,
+    // TODO: define
+    #[cornetto(const, 42)]
+    pub local_call_const: u64,
+    // TODO: define
+    #[cornetto(const, 42)]
     pub get_bytecode_const: u64,
     // TODO: define
     #[cornetto(const, 42)]
@@ -183,6 +189,14 @@ pub(crate) fn metering_has_data_const() -> u64 {
 
 pub(crate) fn metering_has_data_key_mult() -> usize {
     METERING.has_data_key_mult()
+}
+
+pub(crate) fn metering_local_execution_const() -> u64 {
+    METERING.local_execution_const()
+}
+
+pub(crate) fn metering_local_call_const() -> u64 {
+    METERING.local_call_const()
 }
 
 pub(crate) fn metering_get_bytecode_const() -> u64 {
