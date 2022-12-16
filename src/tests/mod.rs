@@ -51,10 +51,6 @@ impl Interface for TestInterface {
         Ok(public_key.to_string())
     }
 
-    fn exit_success(&self) -> Result<()> {
-        Ok(())
-    }
-
     fn generate_event(&self, _event: String) -> Result<()> {
         Ok(())
     }
@@ -89,10 +85,6 @@ impl Interface for TestInterface {
 
     fn hash(&self, data: &[u8]) -> Result<String> {
         Ok(String::from_utf8(data.to_vec())?)
-    }
-
-    fn module_called(&self) -> Result<()> {
-        Ok(())
     }
 
     fn raw_append_data(&self, _key: &[u8], _value: &[u8]) -> Result<()> {
