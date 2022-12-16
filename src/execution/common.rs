@@ -19,17 +19,11 @@ pub enum ABIError {
     SerdeError(#[from] serde_json::Error),
 }
 
-impl ABIError {
-    pub fn new_runtime_error(err: String) -> Self {
-        Self::Error(anyhow::anyhow!(err))
-    }
-}
-
 macro_rules! abi_bail {
     ($err:expr) => {
-        return Err(crate::execution::ABIError::new_runtime_error(
-            $err.to_string(),
-        ))
+        return Err(crate::execution::ABIError::Error(anyhow::anyhow!(
+            $err.to_string()
+        )))
     };
 }
 
