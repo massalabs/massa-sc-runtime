@@ -778,7 +778,8 @@ pub fn assembly_function_exists(env: &ASEnv, address: i32, function: i32) -> ABI
 
     let module = get_module(&*env.get_interface(), &bytecode)?;
     // NOTE: is it maybe possible to retrieve a module function without creating an instance?
-    let instance = create_instance(settings::metering_initial_cost(), &module)?;
+    // NOTE: if not determine initial cost
+    let instance = create_instance(100_000, &module)?;
     Ok(module.has_function(&instance, function) as i32)
 }
 
