@@ -14,7 +14,7 @@ use wasmer_middlewares::Metering;
 use wasmer_types::TrapCode;
 
 use crate::middlewares::gas_calibration::GasCalibration;
-use crate::settings::max_number_of_pages;
+use crate::settings::{max_number_of_pages, OPERATOR_COST};
 use crate::tunable_memory::LimitingTunables;
 use crate::{Interface, Response};
 
@@ -71,7 +71,9 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
         compiler_config.push_middleware(gas_calibration);
     } else {
         // Add metering middleware
-        let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 { 1 }));
+        let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 {
+            *OPERATOR_COST as u64
+        }));
         compiler_config.push_middleware(metering);
     }
 
