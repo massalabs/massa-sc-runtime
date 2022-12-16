@@ -262,9 +262,7 @@ pub(crate) fn assembly_script_set_data(env: &ASEnv, key: i32, value: i32) -> ABI
         param_size_update(env, "massa.assembly_script_set_data:1", value.len(), false);
     }
 
-    if let Err(err) = env.get_interface().raw_set_data(&key, &value) {
-        abi_bail!(err)
-    }
+    env.get_interface().raw_set_data(&key, &value)?;
     Ok(())
 }
 
@@ -286,9 +284,7 @@ pub(crate) fn assembly_script_append_data(env: &ASEnv, key: i32, value: i32) -> 
         let fname = format!("massa.{}:1", function_name!());
         param_size_update(env, &fname, value.len(), true);
     }
-    if let Err(err) = env.get_interface().raw_append_data(&key, &value) {
-        abi_bail!(err)
-    }
+    env.get_interface().raw_append_data(&key, &value)?;
     Ok(())
 }
 
@@ -302,13 +298,9 @@ pub(crate) fn assembly_script_get_data(env: &ASEnv, key: i32) -> ABIResult<i32> 
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, key.len(), true);
     }
-    match env.get_interface().raw_get_data(&key) {
-        Ok(data) => {
-            sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_value_mult())?;
-            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
-        }
-        Err(err) => abi_bail!(err),
-    }
+    let data = env.get_interface().raw_get_data(&key)?;
+    sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_value_mult())?;
+    Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
 }
 
 /// checks if a key-indexed data entry exists in the datastore
@@ -321,11 +313,7 @@ pub(crate) fn assembly_script_has_data(env: &ASEnv, key: i32) -> ABIResult<i32> 
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, key.len(), true);
     }
-    match env.get_interface().has_data(&key) {
-        Ok(true) => Ok(1),
-        Ok(false) => Ok(0),
-        Err(err) => abi_bail!(err),
-    }
+    Ok(env.get_interface().has_data(&key)? as i32)
 }
 
 /// deletes a key-indexed data entry in the datastore of the current address, fails if the entry is absent
@@ -338,10 +326,8 @@ pub(crate) fn assembly_script_delete_data(env: &ASEnv, key: i32) -> ABIResult<()
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, key.len(), true);
     }
-    match env.get_interface().raw_delete_data(&key) {
-        Ok(_) => Ok(()),
-        Err(err) => abi_bail!(err),
-    }
+    env.get_interface().raw_delete_data(&key)?;
+    Ok(())
 }
 
 /// Sets the value of a datastore entry of an arbitrary address, creating the entry if it does not exist.
@@ -367,9 +353,8 @@ pub(crate) fn assembly_script_set_data_for(
         let fname = format!("massa.{}:2", function_name!());
         param_size_update(env, &fname, value.len(), true);
     }
-    if let Err(err) = env.get_interface().raw_set_data_for(&address, &key, &value) {
-        abi_bail!(err)
-    }
+    env.get_interface()
+        .raw_set_data_for(&address, &key, &value)?;
     Ok(())
 }
 
@@ -399,12 +384,8 @@ pub(crate) fn assembly_script_append_data_for(
         let fname = format!("massa.{}:2", function_name!());
         param_size_update(env, &fname, value.len(), true);
     }
-    if let Err(err) = env
-        .get_interface()
-        .raw_append_data_for(&address, &key, &value)
-    {
-        abi_bail!(err)
-    }
+    env.get_interface()
+        .raw_append_data_for(&address, &key, &value)?;
     Ok(())
 }
 
@@ -422,13 +403,9 @@ pub(crate) fn assembly_script_get_data_for(env: &ASEnv, address: i32, key: i32) 
         param_size_update(env, &fname, key.len(), true);
     }
 
-    match env.get_interface().raw_get_data_for(&address, &key) {
-        Ok(data) => {
-            sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_value_mult())?;
-            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
-        }
-        Err(err) => abi_bail!(err),
-    }
+    let data = env.get_interface().raw_get_data_for(&address, &key)?;
+    sub_remaining_gas_with_mult(env, data.len(), settings::metering_get_data_value_mult())?;
+    Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
 }
 
 /// Deletes a datastore entry for an address. Fails if the entry or address does not exist.
@@ -448,10 +425,8 @@ pub(crate) fn assembly_script_delete_data_for(
         let fname = format!("massa.{}:1", function_name!());
         param_size_update(env, &fname, key.len(), true);
     }
-    match env.get_interface().raw_delete_data_for(&address, &key) {
-        Ok(_) => Ok(()),
-        Err(err) => abi_bail!(err),
-    }
+    env.get_interface().raw_delete_data_for(&address, &key)?;
+    Ok(())
 }
 
 #[named]
@@ -466,51 +441,31 @@ pub(crate) fn assembly_script_has_data_for(env: &ASEnv, address: i32, key: i32) 
         let fname = format!("massa.{}:1", function_name!());
         param_size_update(env, &fname, key.len(), true);
     }
-    match env.get_interface().has_data_for(&address, &key) {
-        Ok(true) => Ok(1),
-        Ok(false) => Ok(0),
-        Err(err) => abi_bail!(err),
-    }
+    Ok(env.get_interface().has_data_for(&address, &key)? as i32)
 }
 
 pub(crate) fn assembly_script_get_owned_addresses_raw(env: &ASEnv) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_owned_addrs())?;
-    let data = match env.get_interface().get_owned_addresses() {
-        Ok(data) => data,
-        Err(err) => abi_bail!(err),
-    };
-    match StringPtr::alloc(&data.join(";"), env.get_wasm_env()) {
-        Ok(ptr) => Ok(ptr.offset() as i32),
-        Err(err) => abi_bail!(err),
-    }
+    let data = env.get_interface().get_owned_addresses()?;
+    Ok(StringPtr::alloc(&data.join(";"), env.get_wasm_env())?.offset() as i32)
 }
 
 pub(crate) fn assembly_script_get_call_stack_raw(env: &ASEnv) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_call_stack())?;
-    let data = match env.get_interface().get_call_stack() {
-        Ok(data) => data,
-        Err(err) => abi_bail!(err),
-    };
-    match StringPtr::alloc(&data.join(";"), env.get_wasm_env()) {
-        Ok(ptr) => Ok(ptr.offset() as i32),
-        Err(err) => abi_bail!(err),
-    }
+    let data = env.get_interface().get_call_stack()?;
+    Ok(StringPtr::alloc(&data.join(";"), env.get_wasm_env())?.offset() as i32)
 }
 
 pub(crate) fn assembly_script_get_owned_addresses(env: &ASEnv) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_owned_addrs())?;
-    match env.get_interface().get_owned_addresses() {
-        Ok(data) => alloc_string_array(env, &data),
-        Err(err) => abi_bail!(err),
-    }
+    let data = env.get_interface().get_owned_addresses()?;
+    alloc_string_array(env, &data)
 }
 
 pub(crate) fn assembly_script_get_call_stack(env: &ASEnv) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_call_stack())?;
-    match env.get_interface().get_call_stack() {
-        Ok(data) => alloc_string_array(env, &data),
-        Err(err) => abi_bail!(err),
-    }
+    let data = env.get_interface().get_call_stack()?;
+    alloc_string_array(env, &data)
 }
 
 #[named]
@@ -522,9 +477,7 @@ pub(crate) fn assembly_script_generate_event(env: &ASEnv, event: i32) -> ABIResu
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, event.len(), true);
     }
-    if let Err(err) = env.get_interface().generate_event(event) {
-        abi_bail!(err)
-    }
+    env.get_interface().generate_event(event)?;
     Ok(())
 }
 
@@ -554,14 +507,9 @@ pub(crate) fn assembly_script_signature_verify(
         let fname = format!("massa.{}:2", function_name!());
         param_size_update(env, &fname, public_key.len(), true);
     }
-    match env
+    Ok(env
         .get_interface()
-        .signature_verify(data.as_bytes(), &signature, &public_key)
-    {
-        Err(err) => abi_bail!(err),
-        Ok(false) => Ok(0),
-        Ok(true) => Ok(1),
-    }
+        .signature_verify(data.as_bytes(), &signature, &public_key)? as i32)
 }
 
 /// converts a public key to an address
@@ -577,28 +525,20 @@ pub(crate) fn assembly_script_address_from_public_key(
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, public_key.len(), true);
     }
-    match env.get_interface().address_from_public_key(&public_key) {
-        Err(err) => abi_bail!(err),
-        Ok(addr) => Ok(pointer_from_string(env, &addr)?.offset() as i32),
-    }
+    let addr = env.get_interface().address_from_public_key(&public_key)?;
+    Ok(pointer_from_string(env, &addr)?.offset() as i32)
 }
 
 /// generates an unsafe random number
 pub(crate) fn assembly_script_unsafe_random(env: &ASEnv) -> ABIResult<i64> {
     sub_remaining_gas(env, settings::metering_unsafe_random())?;
-    match env.get_interface().unsafe_random() {
-        Err(err) => abi_bail!(err),
-        Ok(rnd) => Ok(rnd),
-    }
+    Ok(env.get_interface().unsafe_random()?)
 }
 
 /// gets the current unix timestamp in milliseconds
 pub(crate) fn assembly_script_get_time(env: &ASEnv) -> ABIResult<i64> {
     sub_remaining_gas(env, settings::metering_get_time())?;
-    match env.get_interface().get_time() {
-        Err(err) => abi_bail!(err),
-        Ok(t) => Ok(t as i64),
-    }
+    Ok(env.get_interface().get_time()? as i64)
 }
 
 /// sends an async message
@@ -670,7 +610,7 @@ pub(crate) fn assembly_script_send_message(
         (addr, key) => Some((addr, Some(key))),
     };
 
-    match env.get_interface().send_message(
+    env.get_interface().send_message(
         target_address,
         target_handler,
         validity_start,
@@ -680,28 +620,20 @@ pub(crate) fn assembly_script_send_message(
         raw_coins as u64,
         data,
         filter,
-    ) {
-        Err(err) => abi_bail!(err),
-        Ok(_) => Ok(()),
-    }
+    )?;
+    Ok(())
 }
 
 /// gets the period of the current execution slot
 pub(crate) fn assembly_script_get_current_period(env: &ASEnv) -> ABIResult<i64> {
     sub_remaining_gas(env, settings::metering_get_current_period())?;
-    match env.get_interface().get_current_period() {
-        Err(err) => abi_bail!(err),
-        Ok(v) => Ok(v as i64),
-    }
+    Ok(env.get_interface().get_current_period()? as i64)
 }
 
 /// gets the thread of the current execution slot
 pub(crate) fn assembly_script_get_current_thread(env: &ASEnv) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_current_thread())?;
-    match env.get_interface().get_current_thread() {
-        Err(err) => abi_bail!(err),
-        Ok(v) => Ok(v as i32),
-    }
+    Ok(env.get_interface().get_current_thread()? as i32)
 }
 
 /// sets the executable bytecode of an arbitrary address
@@ -726,13 +658,9 @@ pub(crate) fn assembly_script_set_bytecode_for(
         let fname = format!("massa.{}:1", function_name!());
         param_size_update(env, &fname, bytecode_raw.len(), true);
     }
-    match env
-        .get_interface()
-        .raw_set_bytecode_for(&address, &bytecode_raw)
-    {
-        Ok(()) => Ok(()),
-        Err(err) => abi_bail!(err),
-    }
+    env.get_interface()
+        .raw_set_bytecode_for(&address, &bytecode_raw)?;
+    Ok(())
 }
 
 /// sets the executable bytecode of the current address
@@ -750,26 +678,20 @@ pub(crate) fn assembly_script_set_bytecode(env: &ASEnv, bytecode: i32) -> ABIRes
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, bytecode_raw.len(), true);
     }
-    match env.get_interface().raw_set_bytecode(&bytecode_raw) {
-        Ok(()) => Ok(()),
-        Err(err) => abi_bail!(err),
-    }
+    env.get_interface().raw_set_bytecode(&bytecode_raw)?;
+    Ok(())
 }
 
 /// get bytecode of the current address
 pub(crate) fn assembly_script_get_bytecode(env: &ASEnv) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
-    match env.get_interface().raw_get_bytecode() {
-        Ok(data) => {
-            sub_remaining_gas_with_mult(
-                env,
-                data.len(),
-                settings::metering_get_bytecode_value_mult(),
-            )?;
-            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
-        }
-        Err(err) => abi_bail!(err),
-    }
+    let data = env.get_interface().raw_get_bytecode()?;
+    sub_remaining_gas_with_mult(
+        env,
+        data.len(),
+        settings::metering_get_bytecode_value_mult(),
+    )?;
+    Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
 }
 
 /// get bytecode of the target address
@@ -777,17 +699,13 @@ pub(crate) fn assembly_script_get_bytecode_for(env: &ASEnv, address: i32) -> ABI
     sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
-    match env.get_interface().raw_get_bytecode_for(&address) {
-        Ok(data) => {
-            sub_remaining_gas_with_mult(
-                env,
-                data.len(),
-                settings::metering_get_bytecode_value_mult(),
-            )?;
-            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
-        }
-        Err(err) => abi_bail!(err),
-    }
+    let data = env.get_interface().raw_get_bytecode_for(&address)?;
+    sub_remaining_gas_with_mult(
+        env,
+        data.len(),
+        settings::metering_get_bytecode_value_mult(),
+    )?;
+    Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
 }
 
 /// execute `function` of the given bytecode in the current context
@@ -827,10 +745,7 @@ pub(crate) fn assembly_script_local_call(
     let address = &get_string(memory, address)?;
     // NOTE: how do we handle metering for those cases?
     sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
-    let bytecode = env
-        .get_interface()
-        .raw_get_bytecode_for(address)
-        .map_or_else(|e| abi_bail!(e), Ok)?;
+    let bytecode = env.get_interface().raw_get_bytecode_for(address)?;
     let function = &get_string(memory, function)?;
     let param = &read_buffer(memory, param)?;
 
@@ -847,11 +762,7 @@ pub(crate) fn assembly_script_local_call(
 /// Check whether or not the caller has write access in the current context
 pub fn assembly_caller_has_write_access(env: &ASEnv) -> ABIResult<i32> {
     sub_remaining_gas(env, settings::metering_local_call_const())?;
-    match env.get_interface().caller_has_write_access() {
-        Ok(true) => Ok(1),
-        Ok(false) => Ok(0),
-        Err(err) => abi_bail!(err),
-    }
+    Ok(env.get_interface().caller_has_write_access()? as i32)
 }
 
 /// Check whether or not the given function exists at the given address
@@ -863,35 +774,22 @@ pub fn assembly_function_exists(env: &ASEnv, address: i32, function: i32) -> ABI
     let function = &get_string(memory, function)?;
     // NOTE: how do we handle metering for those cases?
     sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
-    let bytecode = env
-        .get_interface()
-        .raw_get_bytecode_for(&address)
-        .map_or_else(|e| abi_bail!(e), Ok)?;
+    let bytecode = env.get_interface().raw_get_bytecode_for(address)?;
 
-    let module = match get_module(&*env.get_interface(), &bytecode) {
-        Ok(module) => module,
-        Err(err) => abi_bail!(err),
-    };
+    let module = get_module(&*env.get_interface(), &bytecode)?;
     // NOTE: is there no other way to do this?
-    let instance = create_instance(settings::metering_initial_cost(), &module)
-        .map_or_else(|e| abi_bail!(e), Ok)?;
+    let instance = create_instance(settings::metering_initial_cost(), &module)?;
     Ok(module.has_function(&instance, function) as i32)
 }
 
 /// Tooling, return a StringPtr allocated from a String
 fn pointer_from_string(env: &ASEnv, value: &str) -> ABIResult<StringPtr> {
-    match StringPtr::alloc(&value.into(), env.get_wasm_env()) {
-        Ok(ptr) => Ok(*ptr),
-        Err(err) => abi_bail!(err),
-    }
+    Ok(*StringPtr::alloc(&value.into(), env.get_wasm_env())?)
 }
 
 /// Tooling, return a BufferPtr allocated from bytes
 fn pointer_from_bytearray(env: &ASEnv, value: &Vec<u8>) -> ABIResult<BufferPtr> {
-    match BufferPtr::alloc(value, env.get_wasm_env()) {
-        Ok(ptr) => Ok(*ptr),
-        Err(e) => abi_bail!(e),
-    }
+    Ok(*BufferPtr::alloc(value, env.get_wasm_env())?)
 }
 
 /// Tooling that reads a String in memory and subtract remaining gas
@@ -907,21 +805,14 @@ fn read_string_and_sub_gas(
     offset: i32,
     mult: usize,
 ) -> ABIResult<String> {
-    match StringPtr::new(offset as u32).read(memory) {
-        Ok(value) => {
-            sub_remaining_gas_with_mult(env, value.len(), mult)?;
-            Ok(value)
-        }
-        Err(err) => abi_bail!(err),
-    }
+    let value = StringPtr::new(offset as u32).read(memory)?;
+    sub_remaining_gas_with_mult(env, value.len(), mult)?;
+    Ok(value)
 }
 
 /// Tooling that reads a buffer (Vec<u8>) in memory
 fn read_buffer(memory: &Memory, offset: i32) -> ABIResult<Vec<u8>> {
-    match BufferPtr::new(offset as u32).read(memory) {
-        Ok(buffer) => Ok(buffer),
-        Err(err) => abi_bail!(err),
-    }
+    Ok(BufferPtr::new(offset as u32).read(memory)?)
 }
 
 /// Tooling that reads a buffer (Vec<u8>) in memory and subtract remaining gas
@@ -934,33 +825,20 @@ fn read_buffer_and_sub_gas(
     offset: i32,
     mult: usize,
 ) -> ABIResult<Vec<u8>> {
-    match BufferPtr::new(offset as u32).read(memory) {
-        Ok(buffer) => {
-            sub_remaining_gas_with_mult(env, buffer.len(), mult)?;
-            Ok(buffer)
-        }
-        Err(err) => abi_bail!(err),
-    }
+    let buffer = BufferPtr::new(offset as u32).read(memory)?;
+    sub_remaining_gas_with_mult(env, buffer.len(), mult)?;
+    Ok(buffer)
 }
 
 /// Tooling, return a string from a given offset
 fn get_string(memory: &Memory, ptr: i32) -> ABIResult<String> {
-    match StringPtr::new(ptr as u32).read(memory) {
-        Ok(str) => Ok(str),
-        Err(err) => abi_bail!(err),
-    }
+    Ok(StringPtr::new(ptr as u32).read(memory)?)
 }
 
 /// Tooling, return a pointer offset of a serialized list in json
 fn alloc_string_array(env: &ASEnv, vec: &[String]) -> ABIResult<i32> {
-    let addresses = match serde_json::to_string(vec) {
-        Ok(list) => list,
-        Err(err) => abi_bail!(err),
-    };
-    match StringPtr::alloc(&addresses, env.get_wasm_env()) {
-        Ok(ptr) => Ok(ptr.offset() as i32),
-        Err(err) => abi_bail!(err),
-    }
+    let addresses = serde_json::to_string(vec)?;
+    Ok(StringPtr::alloc(&addresses, env.get_wasm_env())?.offset() as i32)
 }
 
 /// Flatten a Vec<Vec<u8>> (or anything that can be turned into an iterator) to a Vec<u8>

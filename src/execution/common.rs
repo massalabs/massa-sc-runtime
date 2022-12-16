@@ -11,15 +11,17 @@ pub(crate) type ABIResult<T, E = ABIError> = core::result::Result<T, E>;
 
 #[derive(Display, Error, Debug)]
 pub enum ABIError {
-    /// Runtime wasmer error: {0}
-    WasmerError(#[from] wasmer::RuntimeError),
     /// Runtime error: {0}
     Error(#[from] anyhow::Error),
+    /// Runtime wasmer error: {0}
+    WasmerError(#[from] wasmer::RuntimeError),
+    /// Runtime serde_json error: {0}
+    SerdeError(#[from] serde_json::Error),
 }
 
 impl ABIError {
     pub fn new_runtime_error(err: String) -> Self {
-        Self::Error(anyhow::anyhow!(err.to_string()))
+        Self::Error(anyhow::anyhow!(err))
     }
 }
 
