@@ -15,7 +15,7 @@ use function_name::named;
 use wasmer::Memory;
 
 use super::common::{abi_bail, call_module, create_sc, ABIResult};
-use super::local_call;
+use super::{create_instance, get_module, local_call, MassaModule};
 
 /// Get the coins that have been made available for a specific purpose for the current call.
 pub(crate) fn assembly_script_get_call_coins(env: &ASEnv) -> ABIResult<i64> {
@@ -872,6 +872,7 @@ pub(crate) fn assembly_script_local_call(
     let memory = get_memory!(env);
 
     let address = &get_string(memory, address)?;
+    // NOTE: how do we handle metering for those cases?
     sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
     let bytecode = env
         .get_interface()
@@ -907,11 +908,21 @@ pub fn assembly_function_exists(env: &ASEnv, address: i32, function: i32) -> ABI
 
     let address = &get_string(memory, address)?;
     let function = &get_string(memory, function)?;
-    match env.get_interface().function_exists(address, function) {
-        Ok(true) => Ok(1),
-        Ok(false) => Ok(0),
+    // NOTE: how do we handle metering for those cases?
+    sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
+    let bytecode = env
+        .get_interface()
+        .raw_get_bytecode_for(&address)
+        .map_or_else(|e| abi_bail!(e), Ok)?;
+
+    let module = match get_module(&*env.get_interface(), &bytecode) {
+        Ok(module) => module,
         Err(err) => abi_bail!(err),
-    }
+    };
+    // NOTE: is there no other way to do this?
+    let instance = create_instance(settings::metering_initial_cost(), &module)
+        .map_or_else(|e| abi_bail!(e), Ok)?;
+    Ok(module.has_function(&instance, function) as i32)
 }
 
 /// Tooling, return a StringPtr allocated from a String

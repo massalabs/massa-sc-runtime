@@ -92,6 +92,10 @@ impl MassaModule for ASModule {
         self.env.init_with_instance(instance)
     }
 
+    fn has_function(&self, instance: &Instance, function: &str) -> bool {
+        instance.exports.get_function(function).is_ok()
+    }
+
     fn resolver(&self, store: &Store) -> ImportObject {
         imports! {
             "env" => {
