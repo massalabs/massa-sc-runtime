@@ -20,10 +20,7 @@ use super::{create_instance, get_module, local_call, MassaModule};
 /// Get the coins that have been made available for a specific purpose for the current call.
 pub(crate) fn assembly_script_get_call_coins(env: &ASEnv) -> ABIResult<i64> {
     sub_remaining_gas(env, settings::metering_get_call_coins())?;
-    match env.get_interface().get_call_coins() {
-        Ok(res) => Ok(res as i64),
-        Err(err) => abi_bail!(err),
-    }
+    Ok(env.get_interface().get_call_coins()? as i64)
 }
 
 /// Transfer an amount from the address on the current call stack to a target address.
@@ -43,13 +40,9 @@ pub(crate) fn assembly_script_transfer_coins(
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, to_address.len(), true);
     }
-    match env
+    Ok(env
         .get_interface()
-        .transfer_coins(to_address, raw_amount as u64)
-    {
-        Ok(res) => Ok(res),
-        Err(err) => abi_bail!(err),
-    }
+        .transfer_coins(to_address, raw_amount as u64)?)
 }
 
 /// Transfer an amount from the specified address to a target address.
@@ -73,21 +66,14 @@ pub(crate) fn assembly_script_transfer_coins_for(
         let fname = format!("massa.{}:1", function_name!());
         param_size_update(env, &fname, to_address.len(), true);
     }
-    match env
+    Ok(env
         .get_interface()
-        .transfer_coins_for(from_address, to_address, raw_amount as u64)
-    {
-        Ok(res) => Ok(res),
-        Err(err) => abi_bail!(err),
-    }
+        .transfer_coins_for(from_address, to_address, raw_amount as u64)?)
 }
 
 pub(crate) fn assembly_script_get_balance(env: &ASEnv) -> ABIResult<i64> {
     sub_remaining_gas(env, settings::metering_get_balance())?;
-    match env.get_interface().get_balance() {
-        Ok(res) => Ok(res as i64),
-        Err(err) => abi_bail!(err),
-    }
+    Ok(env.get_interface().get_balance()? as i64)
 }
 
 #[named]
@@ -99,10 +85,7 @@ pub(crate) fn assembly_script_get_balance_for(env: &ASEnv, address: i32) -> ABIR
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, address.len(), true);
     }
-    match env.get_interface().get_balance_for(address) {
-        Ok(res) => Ok(res as i64),
-        Err(err) => abi_bail!(err),
-    }
+    Ok(env.get_interface().get_balance_for(address)? as i64)
 }
 
 /// Raw call that have the right type signature to be able to be call a module
@@ -160,9 +143,7 @@ pub(crate) fn assembly_script_print(env: &ASEnv, arg: i32) -> ABIResult<()> {
         param_size_update(env, &fname, message.len(), true);
     }
 
-    if let Err(err) = env.get_interface().print(&message) {
-        abi_bail!(err);
-    }
+    env.get_interface().print(&message)?;
     Ok(())
 }
 
@@ -170,15 +151,16 @@ pub(crate) fn assembly_script_print(env: &ASEnv, arg: i32) -> ABIResult<()> {
 pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
     match env.get_interface().get_op_keys() {
         Err(err) => abi_bail!(err),
-        Ok(k) => {
+        Ok(keys) => {
             sub_remaining_gas_with_mult(
                 env,
-                k.iter().fold(0, |acc, v_| acc + v_.len()),
+                keys.iter().fold(0, |acc, v_| acc + v_.len()),
                 settings::get_op_keys_mult(),
             )?;
-            let k_f = ser_bytearray_vec(&k, k.len(), settings::max_op_datastore_entry_count())?;
-            let a = pointer_from_bytearray(env, &k_f)?.offset();
-            Ok(a as i32)
+            let fmt_keys =
+                ser_bytearray_vec(&keys, keys.len(), settings::max_op_datastore_entry_count())?;
+            let ptr = pointer_from_bytearray(env, &fmt_keys)?.offset();
+            Ok(ptr as i32)
         }
     }
 }
@@ -193,16 +175,7 @@ pub(crate) fn assembly_script_has_op_key(env: &ASEnv, key: i32) -> ABIResult<i32
         param_size_update(env, &fname, key_bytes.len(), true);
     }
 
-    match env.get_interface().has_op_key(&key_bytes) {
-        Err(err) => abi_bail!(err),
-        Ok(b) => {
-            // https://doc.rust-lang.org/reference/types/boolean.html
-            // 'true' is explicitly defined as: 0x01 while 'false' is: 0x00
-            let b_vec: Vec<u8> = vec![b as u8];
-            let a = pointer_from_bytearray(env, &b_vec)?.offset();
-            Ok(a as i32)
-        }
-    }
+    Ok(env.get_interface().has_op_key(&key_bytes)? as i32)
 }
 
 /// Get the operation datastore value associated to given key
@@ -214,13 +187,9 @@ pub(crate) fn assembly_script_get_op_data(env: &ASEnv, key: i32) -> ABIResult<i3
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, key_bytes.len(), true);
     }
-    match env.get_interface().get_op_data(&key_bytes) {
-        Err(err) => abi_bail!(err),
-        Ok(b) => {
-            let a = pointer_from_bytearray(env, &b)?.offset();
-            Ok(a as i32)
-        }
-    }
+    let data = env.get_interface().get_op_data(&key_bytes)?;
+    let ptr = pointer_from_bytearray(env, &data)?.offset() as i32;
+    Ok(ptr)
 }
 
 /// Read a bytecode string, representing the webassembly module binary encoded
@@ -234,14 +203,8 @@ pub(crate) fn assembly_script_create_sc(env: &ASEnv, bytecode: i32) -> ABIResult
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, bytecode.len(), true);
     }
-    let address = match create_sc(env, &bytecode) {
-        Ok(address) => address,
-        Err(err) => abi_bail!(err),
-    };
-    match StringPtr::alloc(&address, env.get_wasm_env()) {
-        Ok(ptr) => Ok(ptr.offset() as i32),
-        Err(err) => abi_bail!(err),
-    }
+    let address = create_sc(env, &bytecode)?;
+    Ok(StringPtr::alloc(&address, env.get_wasm_env())?.offset() as i32)
 }
 
 /// performs a hash on a string and returns the bs58check encoded hash
@@ -254,46 +217,36 @@ pub(crate) fn assembly_script_hash(env: &ASEnv, value: i32) -> ABIResult<i32> {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, value.len(), true);
     }
-    match env.get_interface().hash(value.as_bytes()) {
-        Ok(h) => Ok(pointer_from_string(env, &h)?.offset() as i32),
-        Err(err) => abi_bail!(err),
-    }
+    let hash = env.get_interface().hash(value.as_bytes())?;
+    Ok(pointer_from_string(env, &hash)?.offset() as i32)
 }
 
 /// Get keys (aka entries) in the datastore
 pub(crate) fn assembly_script_get_keys(env: &ASEnv) -> ABIResult<i32> {
-    match env.get_interface().get_keys() {
-        Err(err) => abi_bail!(err),
-        Ok(k) => {
-            sub_remaining_gas_with_mult(
-                env,
-                k.iter().fold(0, |acc, v_| acc + v_.len()),
-                settings::get_keys_mult(),
-            )?;
-            let k_f = ser_bytearray_vec(&k, k.len(), settings::max_datastore_entry_count())?;
-            let a = pointer_from_bytearray(env, &k_f)?.offset();
-            Ok(a as i32)
-        }
-    }
+    let keys = env.get_interface().get_keys()?;
+    sub_remaining_gas_with_mult(
+        env,
+        keys.iter().fold(0, |acc, v_| acc + v_.len()),
+        settings::get_keys_mult(),
+    )?;
+    let fmt_keys = ser_bytearray_vec(&keys, keys.len(), settings::max_datastore_entry_count())?;
+    let ptr = pointer_from_bytearray(env, &fmt_keys)?.offset();
+    Ok(ptr as i32)
 }
 
 /// Get keys (aka entries) in the datastore
 pub(crate) fn assembly_script_get_keys_for(env: &ASEnv, address: i32) -> ABIResult<i32> {
     let memory = get_memory!(env);
     let address = get_string(memory, address)?;
-    match env.get_interface().get_keys_for(&address) {
-        Err(err) => abi_bail!(err),
-        Ok(k) => {
-            sub_remaining_gas_with_mult(
-                env,
-                k.iter().fold(0, |acc, v_| acc + v_.len()),
-                settings::get_keys_mult(),
-            )?;
-            let k_f = ser_bytearray_vec(&k, k.len(), settings::max_datastore_entry_count())?;
-            let a = pointer_from_bytearray(env, &k_f)?.offset();
-            Ok(a as i32)
-        }
-    }
+    let keys = env.get_interface().get_keys_for(&address)?;
+    sub_remaining_gas_with_mult(
+        env,
+        keys.iter().fold(0, |acc, v_| acc + v_.len()),
+        settings::get_keys_mult(),
+    )?;
+    let fmt_keys = ser_bytearray_vec(&keys, keys.len(), settings::max_datastore_entry_count())?;
+    let ptr = pointer_from_bytearray(env, &fmt_keys)?.offset();
+    Ok(ptr as i32)
 }
 
 /// sets a key-indexed data entry in the datastore, overwriting existing values if any

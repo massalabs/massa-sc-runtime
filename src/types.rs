@@ -171,7 +171,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("has_op_data")
     }
 
-    /// Return operation datastore keys
+    /// Return operation datastore data for a given key
     fn get_op_data(&self, key: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("get_op_data")
     }
