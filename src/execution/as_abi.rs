@@ -9,7 +9,7 @@ use crate::env::{
     MassaEnv,
 };
 use crate::middlewares::gas_calibration::param_size_update;
-use crate::settings;
+use crate::settings::{self, GAS_COSTS};
 use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use function_name::named;
 use wasmer::Memory;

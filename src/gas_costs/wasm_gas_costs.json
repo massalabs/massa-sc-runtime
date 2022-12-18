@@ -1,5 +1,4 @@
 {
-  "Launch": 10260,
   "Wasm:Drop": 8,
   "Wasm:GlobalGet": 34,
   "Wasm:GlobalSet": 56,
