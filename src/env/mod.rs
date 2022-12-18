@@ -2,7 +2,7 @@ mod as_env;
 
 use crate::{
     execution::{abi_bail, ABIResult},
-    Interface,
+    Interface, settings::GAS_COSTS,
 };
 pub(crate) use as_env::*;
 use wasmer::{Global, WasmerEnv};
@@ -92,15 +92,17 @@ pub(crate) fn sub_remaining_gas<T: WasmerEnv>(env: &impl MassaEnv<T>, gas: u64) 
     Ok(())
 }
 
-/// Try to subtract remaining gas computing the gas with a*b and ceiling
-/// the result.
-pub(crate) fn sub_remaining_gas_with_mult<T: WasmerEnv>(
+pub(crate) fn sub_remaining_gas_abi<T: WasmerEnv>(
     env: &impl MassaEnv<T>,
-    a: usize,
-    b: usize,
+    abi_name: &str,
 ) -> ABIResult<()> {
-    match a.checked_mul(b) {
-        Some(gas) => sub_remaining_gas(env, gas as u64),
-        None => abi_bail!(format!("Multiplication overflow {a} {b}")),
-    }
+    sub_remaining_gas(
+        env,
+        *GAS_COSTS
+            .get(abi_name)
+            .ok_or(wasmer::RuntimeError::new(format!(
+                "Failed to get gas for {} ABI",
+                abi_name
+            )))?,
+    )
 }
