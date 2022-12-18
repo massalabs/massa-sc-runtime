@@ -33,7 +33,15 @@ pub(crate) fn assembly_script_transfer_coins(
     to_address: i32,
     raw_amount: i64,
 ) -> ABIResult<()> {
-    sub_remaining_gas(env, settings::metering_transfer())?;
+    sub_remaining_gas(
+        env,
+        *GAS_COSTS
+            .get(function_name!())
+            .ok_or(wasmer::RuntimeError::new(format!(
+                "Failed to get gas for {} ABI",
+                function_name!()
+            )))?,
+    )?;
     if raw_amount.is_negative() {
         abi_bail!("Negative raw amount.");
     }

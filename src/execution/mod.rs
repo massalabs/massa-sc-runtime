@@ -14,7 +14,7 @@ use wasmer_middlewares::Metering;
 use wasmer_types::TrapCode;
 
 use crate::middlewares::gas_calibration::GasCalibration;
-use crate::settings::{max_number_of_pages, OPERATOR_COST, GAS_COSTS};
+use crate::settings::{max_number_of_pages, GAS_COSTS, OPERATOR_COST};
 use crate::tunable_memory::LimitingTunables;
 use crate::{Interface, Response};
 
@@ -70,11 +70,11 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
         let gas_calibration = Arc::new(GasCalibration::new());
         compiler_config.push_middleware(gas_calibration);
     } else {
-        println!("AURELIEN : GASCOST : {}", *GAS_COSTS);
+        println!("AURELIEN : GASCOST : {:#?}", *GAS_COSTS);
         println!("AURELIEN : COST : {}", *OPERATOR_COST);
         // Add metering middleware
         let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 {
-            *OPERATOR_COST as u64
+            *OPERATOR_COST
         }));
         compiler_config.push_middleware(metering);
     }

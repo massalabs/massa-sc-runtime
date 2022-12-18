@@ -5,7 +5,7 @@ use std::collections::HashMap;
 pub(crate) const MAIN: &str = "main";
 
 lazy_static::lazy_static!(
-    pub static ref GAS_COSTS: HashMap<String, u32> = {
+    pub static ref GAS_COSTS: HashMap<String, u64> = {
         let abi_costs_filename = concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/src/gas_costs/abi_gas_costs.json"
@@ -13,13 +13,13 @@ lazy_static::lazy_static!(
         serde_json::from_str(&std::fs::read_to_string(abi_costs_filename).unwrap()).unwrap()
     };
 
-    pub static ref OPERATOR_COST: u32 = {
+    pub static ref OPERATOR_COST: u64 = {
         let wasm_costs_filename = concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/src/gas_costs/wasm_gas_costs.json"
         );
-        let costs: HashMap<String, u32> = serde_json::from_str(&std::fs::read_to_string(wasm_costs_filename).unwrap()).unwrap();
-        costs.iter().map(|(_, v)| v).sum::<u32>() / costs.len() as u32
+        let costs: HashMap<String, u64> = serde_json::from_str(&std::fs::read_to_string(wasm_costs_filename).unwrap()).unwrap();
+        costs.iter().map(|(_, v)| v).sum::<u64>() / costs.len() as u64
     };
 );
 // Metering private implementation
