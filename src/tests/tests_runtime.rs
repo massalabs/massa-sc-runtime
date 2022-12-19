@@ -227,7 +227,7 @@ fn test_builtins() {
             println!("Error: {}", e);
             assert!(e
                 .to_string()
-                .starts_with("RuntimeError: error: abord with date and rnd at use_builtins.ts"));
+                .starts_with("RuntimeError: Runtime error: error: abord with date and rnd at use_builtins.ts"));
         }
         _ => panic!("Failed to run use_builtins.wasm"),
     }
