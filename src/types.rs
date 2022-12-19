@@ -26,7 +26,7 @@ macro_rules! unimplemented {
     };
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct GasCosts {
     pub operator_cost: u64,
     pub launch_cost: u64,
