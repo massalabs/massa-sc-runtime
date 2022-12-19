@@ -1,6 +1,9 @@
-use anyhow::{bail, Result, anyhow};
+use anyhow::{anyhow, bail, Result};
 use serde::{de::DeserializeOwned, Serialize};
-use std::{collections::{BTreeSet, HashMap}, path::PathBuf};
+use std::{
+    collections::{BTreeSet, HashMap},
+    path::PathBuf,
+};
 
 /// That's what is returned when a module is executed correctly since the end
 pub(crate) struct Response {
@@ -39,10 +42,12 @@ impl GasCosts {
         let abi_costs: HashMap<String, u64> = serde_json::from_str(&abi_cost_file)?;
         let wasm_abi_file = std::fs::read_to_string(wasm_abi_file)?;
         let wasm_costs: HashMap<String, u64> = serde_json::from_str(&wasm_abi_file)?;
-        Ok(
-            Self {
-            operator_cost: wasm_costs.iter().map(|(_, v)| *v).sum::<u64>() / wasm_costs.len() as u64,
-            launch_cost: *abi_costs.get("Launch").ok_or(anyhow!("operator_cost not found in abi_cost_file"))?,
+        Ok(Self {
+            operator_cost: wasm_costs.iter().map(|(_, v)| *v).sum::<u64>()
+                / wasm_costs.len() as u64,
+            launch_cost: *abi_costs
+                .get("Launch")
+                .ok_or(anyhow!("launch cost not found in ABI gas cost file."))?,
             abi_costs,
         })
     }
