@@ -14,14 +14,14 @@ use wasmer_middlewares::Metering;
 use wasmer_types::TrapCode;
 
 use crate::middlewares::gas_calibration::GasCalibration;
-use crate::settings::{max_number_of_pages};
+use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
-use crate::{Interface, Response, GasCosts};
+use crate::{GasCosts, Interface, Response};
 
 pub(crate) use as_execution::*;
 pub(crate) use common::*;
 
-pub(crate) trait MassaModule {
+pub(crate) trait MassaModule: Send + Sync {
     fn init(interface: &dyn Interface, bytecode: &[u8], gas_costs: GasCosts) -> Self;
     /// Closure for the execution allowing us to handle a gas error
     fn execution(&self, instance: &Instance, function: &str, param: &[u8]) -> Result<Response>;
@@ -67,7 +67,7 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
         extended_const: false,
     };
 
-    let operator_cost = Arc::new(module.get_gas_costs().operator_cost);
+    let operator_cost = module.get_gas_costs().operator_cost;
 
     if cfg!(feature = "gas_calibration") {
         // Add gas calibration middleware
@@ -75,8 +75,8 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
         compiler_config.push_middleware(gas_calibration);
     } else {
         // Add metering middleware
-        let metering = Arc::new(Metering::new(limit, |_: &Operator| -> u64 {
-            *operator_cost
+        let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
+            operator_cost
         }));
         compiler_config.push_middleware(metering);
     }
@@ -109,7 +109,11 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
 /// 1: target AssemblyScript
 /// 2: todo: another target
 /// _: target AssemblyScript and use the full bytecode
-pub(crate) fn get_module(interface: &dyn Interface, bytecode: &[u8], gas_costs: GasCosts) -> Result<impl MassaModule> {
+pub(crate) fn get_module(
+    interface: &dyn Interface,
+    bytecode: &[u8],
+    gas_costs: GasCosts,
+) -> Result<impl MassaModule> {
     if bytecode.is_empty() {
         bail!("error: module is empty")
     }

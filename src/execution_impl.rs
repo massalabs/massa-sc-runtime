@@ -2,10 +2,10 @@ use crate::execution::{create_instance, get_module, MassaModule};
 use crate::settings;
 use crate::types::{Interface, Response};
 
+use crate::GasCosts;
 use anyhow::{bail, Result};
 use wasmer::Instance;
 use wasmer_middlewares::metering::{self, MeteringPoints};
-use crate::GasCosts;
 
 #[cfg(feature = "gas_calibration")]
 use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
@@ -66,7 +66,12 @@ pub(crate) fn exec(
 /// ```
 /// Return:
 /// the remaining gas.
-pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface, gas_costs: GasCosts) -> Result<u64> {
+pub fn run_main(
+    bytecode: &[u8],
+    limit: u64,
+    interface: &dyn Interface,
+    gas_costs: GasCosts,
+) -> Result<u64> {
     let module = get_module(interface, bytecode, gas_costs)?;
     let instance = create_instance(limit, &module)?;
     if instance.exports.contains(settings::MAIN) {
@@ -95,7 +100,7 @@ pub fn run_function(
     function: &str,
     param: &[u8],
     interface: &dyn Interface,
-    gas_costs: GasCosts
+    gas_costs: GasCosts,
 ) -> Result<u64> {
     let module = get_module(interface, bytecode, gas_costs)?;
     Ok(exec(limit, None, module, function, param)?.0.remaining_gas)
@@ -108,7 +113,7 @@ pub fn run_main_gc(
     limit: u64,
     interface: &dyn Interface,
     param: &[u8],
-    gas_costs: GasCosts
+    gas_costs: GasCosts,
 ) -> Result<GasCalibrationResult> {
     let module = get_module(interface, bytecode, gas_costs)?;
     let instance = create_instance(limit, &module)?;

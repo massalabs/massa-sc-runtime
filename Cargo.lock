@@ -668,7 +668,6 @@ dependencies = [
  "base64",
  "displaydoc",
  "function_name",
- "lazy_static",
  "loupe",
  "more-asserts 0.3.1",
  "parking_lot",

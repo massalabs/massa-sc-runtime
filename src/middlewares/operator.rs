@@ -2125,7 +2125,8 @@ pub(crate) const OPERATOR_VARIANTS: [&str; 529] = [
 ];
 
 // From https://github.com/WebAssembly/threads/blob/main/proposals/threads/Overview.md
-pub(crate) const OPERATOR_THREAD: [&str; 67] = [
+#[cfg(feature = "gas_calibration")]
+pub(crate) const _OPERATOR_THREAD: [&str; 67] = [
     // Load/Store
     "I32AtomicLoad8U",
     "I32AtomicLoad16U",
@@ -2202,7 +2203,8 @@ pub(crate) const OPERATOR_THREAD: [&str; 67] = [
 // From https://webassembly.github.io/spec/core/_download/WebAssembly.pdf
 // Section 7.6 Change History -> 7.6.1 Release 2.0 -> Non-trapping float-to-int conversions
 // https://github.com/WebAssembly/spec/blob/main/proposals/nontrapping-float-to-int-conversion/Overview.md
-pub(crate) const OPERATOR_NON_TRAPPING_FLOAT_TO_INT: [&str; 8] = [
+#[cfg(feature = "gas_calibration")]
+pub(crate) const _OPERATOR_NON_TRAPPING_FLOAT_TO_INT: [&str; 8] = [
     "I32TruncSatF32S",
     "I32TruncSatF32U",
     "I32TruncSatF64S",
@@ -2215,7 +2217,8 @@ pub(crate) const OPERATOR_NON_TRAPPING_FLOAT_TO_INT: [&str; 8] = [
 
 // From https://webassembly.github.io/spec/core/_download/WebAssembly.pdf
 // Section 7.6 Change History -> 7.6.1 Release 2.0 -> Bulk memory
-pub(crate) const OPERATOR_BULK_MEMORY: [&str; 8] = [
+#[cfg(feature = "gas_calibration")]
+pub(crate) const _OPERATOR_BULK_MEMORY: [&str; 8] = [
     "MemoryFill",
     "MemoryInit",
     "MemoryCopy",
@@ -2226,7 +2229,8 @@ pub(crate) const OPERATOR_BULK_MEMORY: [&str; 8] = [
     "ElemDrop",
 ];
 
-pub(crate) const OPERATOR_VECTOR: [&str; 236] = [
+#[cfg(feature = "gas_calibration")]
+pub(crate) const _OPERATOR_VECTOR: [&str; 236] = [
     "V128Load",
     "V128Load8x8S",
     "V128Load8x8U",

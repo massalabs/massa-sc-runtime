@@ -3,9 +3,8 @@ use crate::env::{
     assembly_script_abort, assembly_script_date, assembly_script_seed, get_remaining_points,
     set_remaining_points, ASEnv, MassaEnv,
 };
-use crate::settings::GAS_COSTS;
 use crate::types::Response;
-use crate::{Interface, GasCosts};
+use crate::{GasCosts, Interface};
 use anyhow::{bail, Result};
 use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
 use wasmer::{imports, Function, ImportObject, Instance, Store, Val, WasmerEnv};

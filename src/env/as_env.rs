@@ -3,7 +3,8 @@
 use crate::{
     env::{get_memory, sub_remaining_gas_abi},
     execution::{abi_bail, ABIResult},
-    types::Interface, GasCosts,
+    types::Interface,
+    GasCosts,
 };
 use anyhow::Result;
 use as_ffi_bindings::{Read, StringPtr};

@@ -2,8 +2,7 @@ mod as_env;
 
 use crate::{
     execution::{abi_bail, ABIResult},
-    settings::GAS_COSTS,
-    Interface, GasCosts,
+    GasCosts, Interface,
 };
 pub(crate) use as_env::*;
 use wasmer::{Global, WasmerEnv};
@@ -100,7 +99,8 @@ pub(crate) fn sub_remaining_gas_abi<T: WasmerEnv>(
 ) -> ABIResult<()> {
     sub_remaining_gas(
         env,
-        *GAS_COSTS
+        *env.get_gas_costs()
+            .abi_costs
             .get(abi_name)
             .ok_or(wasmer::RuntimeError::new(format!(
                 "Failed to get gas for {} ABI",

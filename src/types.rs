@@ -30,7 +30,7 @@ macro_rules! unimplemented {
 pub struct GasCosts {
     pub operator_cost: u64,
     pub launch_cost: u64,
-    pub abi_costs: HashMap<String, u64>
+    pub abi_costs: HashMap<String, u64>,
 }
 
 #[allow(unused_variables)]
