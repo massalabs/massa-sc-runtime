@@ -1,6 +1,9 @@
 use loupe::{MemoryUsage, MemoryUsageTracker};
 use wasmer::wasmparser::Operator;
-use wasmer::{AsStoreMut, FunctionMiddleware, LocalFunctionIndex, MiddlewareError, MiddlewareReaderState, ModuleMiddleware, Store};
+use wasmer::{
+    AsStoreMut, FunctionMiddleware, LocalFunctionIndex, MiddlewareError, MiddlewareReaderState,
+    ModuleMiddleware, Store,
+};
 use wasmer_types::{
     ExportIndex, GlobalIndex, GlobalInit, GlobalType, ModuleInfo, Mutability, Type,
 };
@@ -101,7 +104,6 @@ impl ModuleMiddleware for GasCalibration {
         };
 
         for (import_key, import_index) in module_info.imports.iter() {
-
             // FIXME: is this correct?
             let module_name = import_key.module.clone();
             let function_name = import_key.field.clone();
@@ -143,7 +145,6 @@ impl ModuleMiddleware for GasCalibration {
 
             indexes.param_size_map.insert(*index, global_index);
             */
-
         }
 
         /*

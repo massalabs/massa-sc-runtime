@@ -1,6 +1,6 @@
-use wasmer::FunctionEnvMut;
-use crate::env::{get_remaining_points, set_remaining_points, MassaEnv, ASEnv};
+use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
 use crate::Response;
+use wasmer::FunctionEnvMut;
 
 use super::get_module;
 
@@ -51,7 +51,7 @@ pub(crate) fn call_module(
     match crate::execution_impl::exec(remaining_gas?, None, module, function, param) {
         Ok(resp) => {
             if cfg!(not(feature = "gas_calibration")) {
-                if let Err(err) = set_remaining_points(&env, ctx,resp.0.remaining_gas) {
+                if let Err(err) = set_remaining_points(&env, ctx, resp.0.remaining_gas) {
                     abi_bail!(err);
                 }
             }
@@ -65,10 +65,7 @@ pub(crate) fn call_module(
 }
 
 /// Create a smart contract with the given `bytecode`
-pub(crate) fn create_sc(
-    ctx: &mut FunctionEnvMut<ASEnv>,
-    bytecode: &[u8],
-) -> ABIResult<String> {
+pub(crate) fn create_sc(ctx: &mut FunctionEnvMut<ASEnv>, bytecode: &[u8]) -> ABIResult<String> {
     let env = ctx.data();
     match env.get_interface().create_module(bytecode) {
         Ok(address) => Ok(address),

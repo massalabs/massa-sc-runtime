@@ -10,7 +10,7 @@ use crate::env::{
 };
 use crate::settings;
 use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
-use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory, Store};
+use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory, RuntimeError, Store};
 
 use super::common::{abi_bail, call_module, create_sc, ABIResult};
 
@@ -36,7 +36,7 @@ pub(crate) fn assembly_script_transfer_coins(
         abi_bail!("Negative raw amount.");
     }
     let memory = get_memory!(env);
-    let to_address = &get_string(memory, &mut ctx,to_address)?;
+    let to_address = &get_string(memory, &mut ctx, to_address)?;
     match env
         .get_interface()
         .transfer_coins(to_address, raw_amount as u64)
@@ -79,11 +79,14 @@ pub(crate) fn assembly_script_get_balance(mut ctx: FunctionEnvMut<ASEnv>) -> ABI
     }
 }
 
-pub(crate) fn assembly_script_get_balance_for(mut ctx: FunctionEnvMut<ASEnv>, address: i32) -> ABIResult<i64> {
+pub(crate) fn assembly_script_get_balance_for(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    address: i32,
+) -> ABIResult<i64> {
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_get_balance())?;
     let memory = get_memory!(env);
-    let address = &get_string(memory, &mut ctx,address)?;
+    let address = &get_string(memory, &mut ctx, address)?;
     match env.get_interface().get_balance_for(address) {
         Ok(res) => Ok(res as i64),
         Err(err) => abi_bail!(err),
@@ -121,16 +124,14 @@ pub(crate) fn assembly_script_get_remaining_gas(mut ctx: FunctionEnvMut<ASEnv>) 
     Ok(get_remaining_points(&env, &mut ctx)? as i64)
 }
 
-
 /// Create an instance of VM from a module with a
 /// given interface, an operation number limit and a webassembly module
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
 pub(crate) fn assembly_script_print(mut ctx: FunctionEnvMut<ASEnv>, arg: i32) -> ABIResult<()> {
-
     let env = ctx.data().clone();
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas(&env, &mut ctx,settings::metering_print())?;
+        sub_remaining_gas(&env, &mut ctx, settings::metering_print())?;
     }
     let memory = get_memory!(env);
     if let Err(err) = env.get_interface().print(&get_string(memory, &ctx, arg)?) {
@@ -141,7 +142,6 @@ pub(crate) fn assembly_script_print(mut ctx: FunctionEnvMut<ASEnv>, arg: i32) ->
 
 /// Get the operation datastore keys (aka entries)
 pub(crate) fn assembly_script_get_op_keys(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
-
     let env = ctx.data().clone();
     let memory = get_memory!(env);
     match env.get_interface().get_op_keys() {
@@ -154,40 +154,44 @@ pub(crate) fn assembly_script_get_op_keys(mut ctx: FunctionEnvMut<ASEnv>) -> ABI
                 settings::get_op_keys_mult(),
             )?;
             let k_f = ser_bytearray_vec(&k, k.len(), settings::max_op_datastore_entry_count())?;
-            let a = pointer_from_bytearray(&env, memory, &mut ctx, &k_f)?.offset();
+            let a = pointer_from_bytearray(&env, &mut ctx, &k_f)?.offset();
             Ok(a as i32)
         }
     }
 }
 
 /// Check if a key is present in operation datastore
-pub(crate) fn assembly_script_has_op_key(mut ctx: FunctionEnvMut<ASEnv>, key: i32) -> ABIResult<i32> {
-
+pub(crate) fn assembly_script_has_op_key(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    key: i32,
+) -> ABIResult<i32> {
     let env = ctx.data().clone();
     let memory = get_memory!(env);
-    let key_bytes = read_buffer_and_sub_gas(&mut ctx, memory, key, settings::has_op_key_mult())?;
+    let key_bytes = read_buffer_and_sub_gas(&mut ctx, key, settings::has_op_key_mult())?;
     match env.get_interface().has_op_key(&key_bytes) {
         Err(err) => abi_bail!(err),
         Ok(b) => {
             // https://doc.rust-lang.org/reference/types/boolean.html
             // 'true' is explicitly defined as: 0x01 while 'false' is: 0x00
             let b_vec: Vec<u8> = vec![b as u8];
-            let a = pointer_from_bytearray(&env, memory, &mut ctx,&b_vec)?.offset();
+            let a = pointer_from_bytearray(&env, &mut ctx, &b_vec)?.offset();
             Ok(a as i32)
         }
     }
 }
 
 /// Get the operation datastore value associated to given key
-pub(crate) fn assembly_script_get_op_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32) -> ABIResult<i32> {
-
+pub(crate) fn assembly_script_get_op_data(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    key: i32,
+) -> ABIResult<i32> {
     let env = ctx.data().clone();
     let memory = get_memory!(env);
-    let key_bytes = read_buffer_and_sub_gas(&mut ctx, memory, key, settings::get_op_data_mult())?;
+    let key_bytes = read_buffer_and_sub_gas(&mut ctx, key, settings::get_op_data_mult())?;
     match env.get_interface().get_op_data(&key_bytes) {
         Err(err) => abi_bail!(err),
         Ok(b) => {
-            let a = pointer_from_bytearray(&env, memory, &mut ctx,&b)?.offset();
+            let a = pointer_from_bytearray(&env, &mut ctx, &b)?.offset();
             Ok(a as i32)
         }
     }
@@ -195,12 +199,14 @@ pub(crate) fn assembly_script_get_op_data(mut ctx: FunctionEnvMut<ASEnv>, key: i
 
 /// Read a bytecode string, representing the webassembly module binary encoded
 /// with in base64.
-pub(crate) fn assembly_script_create_sc(mut ctx: FunctionEnvMut<ASEnv>, bytecode: i32) -> ABIResult<i32> {
-
+pub(crate) fn assembly_script_create_sc(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    bytecode: i32,
+) -> ABIResult<i32> {
     let env = ctx.data().clone();
     let memory = get_memory!(env);
     let bytecode: Vec<u8> =
-        read_buffer_and_sub_gas(&mut ctx, memory, bytecode, settings::metering_create_sc_mult())?;
+        read_buffer_and_sub_gas(&mut ctx, bytecode, settings::metering_create_sc_mult())?;
     let address = match create_sc(&mut ctx, &bytecode) {
         Ok(address) => address,
         Err(err) => abi_bail!(err),
@@ -213,20 +219,19 @@ pub(crate) fn assembly_script_create_sc(mut ctx: FunctionEnvMut<ASEnv>, bytecode
 
 /// performs a hash on a string and returns the bs58check encoded hash
 pub(crate) fn assembly_script_hash(mut ctx: FunctionEnvMut<ASEnv>, value: i32) -> ABIResult<i32> {
-
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_hash_const())?;
     let memory = get_memory!(env);
-    let value = read_string_and_sub_gas(&mut ctx, memory, value, settings::metering_hash_per_byte())?;
+    let value =
+        read_string_and_sub_gas(&mut ctx, memory, value, settings::metering_hash_per_byte())?;
     match env.get_interface().hash(value.as_bytes()) {
-        Ok(h) => Ok(pointer_from_string(&env, memory, &mut ctx,&h)?.offset() as i32),
+        Ok(h) => Ok(pointer_from_string(&env, &mut ctx, &h)?.offset() as i32),
         Err(err) => abi_bail!(err),
     }
 }
 
 /// Get keys (aka entries) in the datastore
 pub(crate) fn assembly_script_get_keys(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
-
     let env = ctx.data().clone();
     let memory = get_memory!(env);
     match env.get_interface().get_keys() {
@@ -239,15 +244,17 @@ pub(crate) fn assembly_script_get_keys(mut ctx: FunctionEnvMut<ASEnv>) -> ABIRes
                 settings::get_keys_mult(),
             )?;
             let k_f = ser_bytearray_vec(&k, k.len(), settings::max_datastore_entry_count())?;
-            let a = pointer_from_bytearray(&env, memory, &mut ctx,&k_f)?.offset();
+            let a = pointer_from_bytearray(&env, &mut ctx, &k_f)?.offset();
             Ok(a as i32)
         }
     }
 }
 
 /// Get keys (aka entries) in the datastore
-pub(crate) fn assembly_script_get_keys_for(mut ctx: FunctionEnvMut<ASEnv>, address: i32) -> ABIResult<i32> {
-
+pub(crate) fn assembly_script_get_keys_for(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    address: i32,
+) -> ABIResult<i32> {
     let env = ctx.data().clone();
     let memory = get_memory!(env);
     let address = get_string(memory, &mut ctx, address)?;
@@ -261,20 +268,23 @@ pub(crate) fn assembly_script_get_keys_for(mut ctx: FunctionEnvMut<ASEnv>, addre
                 settings::get_keys_mult(),
             )?;
             let k_f = ser_bytearray_vec(&k, k.len(), settings::max_datastore_entry_count())?;
-            let a = pointer_from_bytearray(&env, memory, &mut ctx, &k_f)?.offset();
+            let a = pointer_from_bytearray(&env, &mut ctx, &k_f)?.offset();
             Ok(a as i32)
         }
     }
 }
 
 /// sets a key-indexed data entry in the datastore, overwriting existing values if any
-pub(crate) fn assembly_script_set_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32, value: i32) -> ABIResult<()> {
+pub(crate) fn assembly_script_set_data(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    key: i32,
+    value: i32,
+) -> ABIResult<()> {
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_set_data_const())?;
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(&mut ctx, memory, key, settings::metering_set_data_key_mult())?;
-    let value =
-        read_buffer_and_sub_gas(&mut ctx, memory, value, settings::metering_set_data_value_mult())?;
+    let key = read_buffer_and_sub_gas(&mut ctx, key, settings::metering_set_data_key_mult())?;
+    let value = read_buffer_and_sub_gas(&mut ctx, value, settings::metering_set_data_value_mult())?;
     if let Err(err) = env.get_interface().raw_set_data(&key, &value) {
         abi_bail!(err)
     }
@@ -282,18 +292,17 @@ pub(crate) fn assembly_script_set_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32,
 }
 
 /// appends data to a key-indexed data entry in the datastore, fails if the entry does not exist
-pub(crate) fn assembly_script_append_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32, value: i32) -> ABIResult<()> {
-
+pub(crate) fn assembly_script_append_data(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    key: i32,
+    value: i32,
+) -> ABIResult<()> {
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_append_data_const())?;
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(&mut ctx, memory, key, settings::metering_append_data_key_mult())?;
-    let value = read_buffer_and_sub_gas(
-        &mut ctx,
-        memory,
-        value,
-        settings::metering_append_data_value_mult(),
-    )?;
+    let key = read_buffer_and_sub_gas(&mut ctx, key, settings::metering_append_data_key_mult())?;
+    let value =
+        read_buffer_and_sub_gas(&mut ctx, value, settings::metering_append_data_value_mult())?;
     if let Err(err) = env.get_interface().raw_append_data(&key, &value) {
         abi_bail!(err)
     }
@@ -302,15 +311,18 @@ pub(crate) fn assembly_script_append_data(mut ctx: FunctionEnvMut<ASEnv>, key: i
 
 /// gets a key-indexed data entry in the datastore, failing if non-existent
 pub(crate) fn assembly_script_get_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32) -> ABIResult<i32> {
-
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_get_data_const())?;
-    let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(&mut ctx, memory, key, settings::metering_get_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(&mut ctx, key, settings::metering_get_data_key_mult())?;
     match env.get_interface().raw_get_data(&key) {
         Ok(data) => {
-            sub_remaining_gas_with_mult(&env, &mut ctx, data.len(), settings::metering_get_data_value_mult())?;
-            Ok(pointer_from_bytearray(&env, memory, &mut ctx, &data)?.offset() as i32)
+            sub_remaining_gas_with_mult(
+                &env,
+                &mut ctx,
+                data.len(),
+                settings::metering_get_data_value_mult(),
+            )?;
+            Ok(pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32)
         }
         Err(err) => abi_bail!(err),
     }
@@ -318,11 +330,10 @@ pub(crate) fn assembly_script_get_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
 
 /// checks if a key-indexed data entry exists in the datastore
 pub(crate) fn assembly_script_has_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32) -> ABIResult<i32> {
-
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_has_data_const())?;
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(&mut ctx, memory, key, settings::metering_has_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(&mut ctx, key, settings::metering_has_data_key_mult())?;
     match env.get_interface().has_data(&key) {
         Ok(true) => Ok(1),
         Ok(false) => Ok(0),
@@ -331,11 +342,14 @@ pub(crate) fn assembly_script_has_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
 }
 
 /// deletes a key-indexed data entry in the datastore of the current address, fails if the entry is absent
-pub(crate) fn assembly_script_delete_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32) -> ABIResult<()> {
+pub(crate) fn assembly_script_delete_data(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    key: i32,
+) -> ABIResult<()> {
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_delete_data_const())?;
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(&mut ctx, memory, key, settings::metering_delete_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(&mut ctx, key, settings::metering_delete_data_key_mult())?;
     match env.get_interface().raw_delete_data(&key) {
         Ok(_) => Ok(()),
         Err(err) => abi_bail!(err),
@@ -350,13 +364,11 @@ pub(crate) fn assembly_script_set_data_for(
     key: i32,
     value: i32,
 ) -> ABIResult<()> {
-
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_set_data_const())?;
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(&mut ctx, memory, key, settings::metering_set_data_key_mult())?;
-    let value =
-        read_buffer_and_sub_gas(&mut ctx, memory, value, settings::metering_set_data_value_mult())?;
+    let key = read_buffer_and_sub_gas(&mut ctx, key, settings::metering_set_data_key_mult())?;
+    let value = read_buffer_and_sub_gas(&mut ctx, value, settings::metering_set_data_value_mult())?;
     let address = get_string(memory, &mut ctx, address)?;
     if let Err(err) = env.get_interface().raw_set_data_for(&address, &key, &value) {
         abi_bail!(err)
@@ -371,17 +383,12 @@ pub(crate) fn assembly_script_append_data_for(
     key: i32,
     value: i32,
 ) -> ABIResult<()> {
-
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_append_data_const())?;
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(&mut ctx, memory, key, settings::metering_append_data_key_mult())?;
-    let value = read_buffer_and_sub_gas(
-        &mut ctx,
-        memory,
-        value,
-        settings::metering_append_data_value_mult(),
-    )?;
+    let key = read_buffer_and_sub_gas(&mut ctx, key, settings::metering_append_data_key_mult())?;
+    let value =
+        read_buffer_and_sub_gas(&mut ctx, value, settings::metering_append_data_value_mult())?;
     let address = get_string(memory, &mut ctx, address)?;
     if let Err(err) = env
         .get_interface()
@@ -393,17 +400,25 @@ pub(crate) fn assembly_script_append_data_for(
 }
 
 /// Gets the value of a datastore entry for an arbitrary address, fails if the entry or address does not exist
-pub(crate) fn assembly_script_get_data_for(mut ctx: FunctionEnvMut<ASEnv>, address: i32, key: i32) -> ABIResult<i32> {
-
+pub(crate) fn assembly_script_get_data_for(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    address: i32,
+    key: i32,
+) -> ABIResult<i32> {
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_get_data_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, &mut ctx, address)?;
-    let key = read_buffer_and_sub_gas(&mut ctx, memory, key, settings::metering_get_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(&mut ctx, key, settings::metering_get_data_key_mult())?;
     match env.get_interface().raw_get_data_for(&address, &key) {
         Ok(data) => {
-            sub_remaining_gas_with_mult(&env, &mut ctx, data.len(), settings::metering_get_data_value_mult())?;
-            Ok(pointer_from_bytearray(&env, memory, &mut ctx,&data)?.offset() as i32)
+            sub_remaining_gas_with_mult(
+                &env,
+                &mut ctx,
+                data.len(),
+                settings::metering_get_data_value_mult(),
+            )?;
+            Ok(pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32)
         }
         Err(err) => abi_bail!(err),
     }
@@ -415,24 +430,27 @@ pub(crate) fn assembly_script_delete_data_for(
     address: i32,
     key: i32,
 ) -> ABIResult<()> {
-
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_delete_data_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, &mut ctx, address)?;
-    let key = read_buffer_and_sub_gas(&mut ctx, memory, key, settings::metering_delete_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(&mut ctx, key, settings::metering_delete_data_key_mult())?;
     match env.get_interface().raw_delete_data_for(&address, &key) {
         Ok(_) => Ok(()),
         Err(err) => abi_bail!(err),
     }
 }
 
-pub(crate) fn assembly_script_has_data_for(mut ctx: FunctionEnvMut<ASEnv>, address: i32, key: i32) -> ABIResult<i32> {
+pub(crate) fn assembly_script_has_data_for(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    address: i32,
+    key: i32,
+) -> ABIResult<i32> {
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_has_data_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, &mut ctx, address)?;
-    let key = read_buffer_and_sub_gas(&mut ctx, memory, key, settings::metering_has_data_key_mult())?;
+    let key = read_buffer_and_sub_gas(&mut ctx, key, settings::metering_has_data_key_mult())?;
     match env.get_interface().has_data_for(&address, &key) {
         Ok(true) => Ok(1),
         Ok(false) => Ok(0),
@@ -440,8 +458,9 @@ pub(crate) fn assembly_script_has_data_for(mut ctx: FunctionEnvMut<ASEnv>, addre
     }
 }
 
-pub(crate) fn assembly_script_get_owned_addresses_raw(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
-
+pub(crate) fn assembly_script_get_owned_addresses_raw(
+    mut ctx: FunctionEnvMut<ASEnv>,
+) -> ABIResult<i32> {
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_get_owned_addrs())?;
     let data = match env.get_interface().get_owned_addresses() {
@@ -456,7 +475,6 @@ pub(crate) fn assembly_script_get_owned_addresses_raw(mut ctx: FunctionEnvMut<AS
 }
 
 pub(crate) fn assembly_script_get_call_stack_raw(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
-
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_get_call_stack())?;
     let data = match env.get_interface().get_call_stack() {
@@ -470,8 +488,9 @@ pub(crate) fn assembly_script_get_call_stack_raw(mut ctx: FunctionEnvMut<ASEnv>)
     }
 }
 
-pub(crate) fn assembly_script_get_owned_addresses(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
-
+pub(crate) fn assembly_script_get_owned_addresses(
+    mut ctx: FunctionEnvMut<ASEnv>,
+) -> ABIResult<i32> {
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_get_owned_addrs())?;
     match env.get_interface().get_owned_addresses() {
@@ -489,8 +508,10 @@ pub(crate) fn assembly_script_get_call_stack(mut ctx: FunctionEnvMut<ASEnv>) -> 
     }
 }
 
-pub(crate) fn assembly_script_generate_event(mut ctx: FunctionEnvMut<ASEnv>, event: i32) -> ABIResult<()> {
-
+pub(crate) fn assembly_script_generate_event(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    event: i32,
+) -> ABIResult<()> {
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_generate_event())?;
     let memory = get_memory!(env);
@@ -508,7 +529,6 @@ pub(crate) fn assembly_script_signature_verify(
     signature: i32,
     public_key: i32,
 ) -> ABIResult<i32> {
-
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_signature_verify_const())?;
     let memory = get_memory!(env);
@@ -519,7 +539,7 @@ pub(crate) fn assembly_script_signature_verify(
         settings::metering_signature_verify_data_mult(),
     )?;
     let signature = get_string(memory, &mut ctx, signature)?;
-    let public_key = get_string(memory, &mut ctx,public_key)?;
+    let public_key = get_string(memory, &mut ctx, public_key)?;
     match env
         .get_interface()
         .signature_verify(data.as_bytes(), &signature, &public_key)
@@ -535,14 +555,13 @@ pub(crate) fn assembly_script_address_from_public_key(
     mut ctx: FunctionEnvMut<ASEnv>,
     public_key: i32,
 ) -> ABIResult<i32> {
-
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_address_from_public_key())?;
     let memory = get_memory!(env);
     let public_key = get_string(memory, &mut ctx, public_key)?;
     match env.get_interface().address_from_public_key(&public_key) {
         Err(err) => abi_bail!(err),
-        Ok(addr) => Ok(pointer_from_string(&env, memory, &mut ctx, &addr)?.offset() as i32),
+        Ok(addr) => Ok(pointer_from_string(&env, &mut ctx, &addr)?.offset() as i32),
     }
 }
 
@@ -558,7 +577,6 @@ pub(crate) fn assembly_script_unsafe_random(mut ctx: FunctionEnvMut<ASEnv>) -> A
 
 /// gets the current unix timestamp in milliseconds
 pub(crate) fn assembly_script_get_time(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
-
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_get_time())?;
     match env.get_interface().get_time() {
@@ -584,7 +602,6 @@ pub(crate) fn assembly_script_send_message(
     filter_address: i32,
     filter_datastore_key: i32,
 ) -> ABIResult<()> {
-
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_send_message())?;
     let validity_start: (u64, u8) = match (
@@ -616,7 +633,6 @@ pub(crate) fn assembly_script_send_message(
     let filter_address_string = &get_string(memory, &mut ctx, filter_address)?;
     let key = read_buffer_and_sub_gas(
         &mut ctx,
-        memory,
         filter_datastore_key,
         settings::metering_has_data_key_mult(),
     )?;
@@ -672,12 +688,8 @@ pub(crate) fn assembly_script_set_bytecode_for(
     sub_remaining_gas(&env, &mut ctx, settings::metering_set_bytecode_const())?;
     let memory = get_memory!(env);
     let address = get_string(memory, &mut ctx, address)?;
-    let bytecode_raw = read_buffer_and_sub_gas(
-        &mut ctx,
-        memory,
-        bytecode,
-        settings::metering_set_bytecode_mult(),
-    )?;
+    let bytecode_raw =
+        read_buffer_and_sub_gas(&mut ctx, bytecode, settings::metering_set_bytecode_mult())?;
     match env
         .get_interface()
         .raw_set_bytecode_for(&address, &bytecode_raw)
@@ -688,16 +700,15 @@ pub(crate) fn assembly_script_set_bytecode_for(
 }
 
 /// sets the executable bytecode of the current address
-pub(crate) fn assembly_script_set_bytecode(mut ctx: FunctionEnvMut<ASEnv>, bytecode: i32) -> ABIResult<()> {
+pub(crate) fn assembly_script_set_bytecode(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    bytecode: i32,
+) -> ABIResult<()> {
     let env = ctx.data().clone();
     sub_remaining_gas(&env, &mut ctx, settings::metering_set_bytecode_const())?;
     let memory = get_memory!(env);
-    let bytecode_raw = read_buffer_and_sub_gas(
-        &mut ctx,
-        memory,
-        bytecode,
-        settings::metering_set_bytecode_mult(),
-    )?;
+    let bytecode_raw =
+        read_buffer_and_sub_gas(&mut ctx, bytecode, settings::metering_set_bytecode_mult())?;
     match env.get_interface().raw_set_bytecode(&bytecode_raw) {
         Ok(()) => Ok(()),
         Err(err) => abi_bail!(err),
@@ -705,7 +716,11 @@ pub(crate) fn assembly_script_set_bytecode(mut ctx: FunctionEnvMut<ASEnv>, bytec
 }
 
 /// Tooling, return a StringPtr allocated from a String
-fn pointer_from_string(env: &ASEnv, memory: &Memory, store: &mut impl AsStoreMut, value: &str) -> ABIResult<StringPtr> {
+fn pointer_from_string(
+    env: &ASEnv,
+    store: &mut impl AsStoreMut,
+    value: &str,
+) -> ABIResult<StringPtr> {
     match StringPtr::alloc(&value.into(), env.get_wasm_env(), store) {
         Ok(ptr) => Ok(*ptr),
         Err(err) => abi_bail!(err),
@@ -713,7 +728,11 @@ fn pointer_from_string(env: &ASEnv, memory: &Memory, store: &mut impl AsStoreMut
 }
 
 /// Tooling, return a BufferPtr allocated from bytes
-fn pointer_from_bytearray(env: &ASEnv, memory: &Memory, store: &mut impl AsStoreMut, value: &Vec<u8>) -> ABIResult<BufferPtr> {
+fn pointer_from_bytearray(
+    env: &ASEnv,
+    store: &mut impl AsStoreMut,
+    value: &Vec<u8>,
+) -> ABIResult<BufferPtr> {
     match BufferPtr::alloc(value, env.get_wasm_env(), store) {
         Ok(ptr) => Ok(*ptr),
         Err(e) => abi_bail!(e),
@@ -733,7 +752,6 @@ fn read_string_and_sub_gas(
     offset: i32,
     mult: usize,
 ) -> ABIResult<String> {
-
     let env = ctx.data().clone();
     match StringPtr::new(offset as u32).read(memory, ctx) {
         Ok(value) => {
@@ -758,11 +776,15 @@ fn read_buffer(memory: &Memory, store: &impl AsStoreRef, offset: i32) -> ABIResu
 /// Return the buffer in the BufferPtr
 fn read_buffer_and_sub_gas(
     ctx: &mut FunctionEnvMut<ASEnv>,
-    memory: &Memory,
     offset: i32,
     mult: usize,
 ) -> ABIResult<Vec<u8>> {
-
+    let memory = ctx
+        .data()
+        .get_wasm_env()
+        .memory
+        .as_ref()
+        .ok_or(RuntimeError::new("Unable to get memory from env"))?;
     let env = ctx.data().clone();
     match BufferPtr::new(offset as u32).read(memory, &ctx) {
         Ok(buffer) => {

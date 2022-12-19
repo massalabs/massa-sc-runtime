@@ -46,31 +46,6 @@ impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
     }
 }
 
-/*
-impl WasmerEnv for ASEnv {
-    fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError> {
-        self.wasm_env.init_with_instance(instance)?;
-
-        if cfg!(not(feature = "gas_calibration")) {
-            self.remaining_points = Some(
-                instance
-                    .exports
-                    .get_with_generics_weak("wasmer_metering_remaining_points")
-                    .map_err(HostEnvInitError::from)?,
-            );
-            self.exhausted_points = Some(
-                instance
-                    .exports
-                    .get_with_generics_weak("wasmer_metering_points_exhausted")
-                    .map_err(HostEnvInitError::from)?,
-            );
-        }
-
-        Ok(())
-    }
-}
-*/
-
 /// Called by the instance when an error popped. It print the filename where the error
 /// had pop up, an error message and more stacktrace information as line and column
 ///
@@ -87,8 +62,11 @@ pub fn assembly_script_abort(
     line: i32,
     col: i32,
 ) -> ABIResult<()> {
-
-    let memory = ctx.data().get_wasm_env().memory.as_ref()
+    let memory = ctx
+        .data()
+        .get_wasm_env()
+        .memory
+        .as_ref()
         .expect("Failed to get memory on env")
         .clone();
     let message_ = message
@@ -112,7 +90,6 @@ pub fn assembly_script_abort(
 
 /// Assembly script builtin export `seed` function
 pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
-
     let env = ctx.data().clone();
     if cfg!(not(feature = "gas_calibration")) {
         sub_remaining_gas(&env, &mut ctx, settings::metering_unsafe_random())?;
@@ -129,7 +106,6 @@ pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
 /// for the newest versions. Probably the signature will be soon () -> i64
 /// instead of () -> f64.
 pub fn assembly_script_date(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
-
     let env = ctx.data().clone();
     if cfg!(not(feature = "gas_calibration")) {
         sub_remaining_gas(&env, &mut ctx, settings::metering_get_time())?;

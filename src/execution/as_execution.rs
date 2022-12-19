@@ -7,7 +7,7 @@ use crate::types::Response;
 use crate::{settings, Interface};
 use anyhow::{bail, Result};
 use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
-use wasmer::{imports, Function, Instance, Store, Value, Imports, FunctionEnv};
+use wasmer::{imports, Function, FunctionEnv, Imports, Instance, Store, Value};
 
 pub(crate) struct ASModule {
     env: ASEnv,
@@ -24,7 +24,13 @@ impl MassaModule for ASModule {
     fn get_bytecode(&self) -> &Vec<u8> {
         &self.bytecode
     }
-    fn execution(&self, instance: &Instance, store: &mut Store, function: &str, param: &[u8]) -> Result<Response> {
+    fn execution(
+        &self,
+        instance: &Instance,
+        store: &mut Store,
+        function: &str,
+        param: &[u8],
+    ) -> Result<Response> {
         if cfg!(not(feature = "gas_calibration")) {
             // sub initial metering cost
             let metering_initial_cost = settings::metering_initial_cost();
@@ -86,8 +92,12 @@ impl MassaModule for ASModule {
         }
     }
 
-    fn init_with_instance(&mut self, instance: &Instance, store: &mut Store, fenv: &mut FunctionEnv<ASEnv>) -> anyhow::Result<()> {
-
+    fn init_with_instance(
+        &mut self,
+        instance: &Instance,
+        store: &mut Store,
+        fenv: &mut FunctionEnv<ASEnv>,
+    ) -> anyhow::Result<()> {
         let memory = instance.exports.get_memory("memory")?;
         let fn_new = instance
             .exports
@@ -121,7 +131,6 @@ impl MassaModule for ASModule {
 
         // metering counters
         if cfg!(not(feature = "gas_calibration")) {
-
             let g_1 = instance
                 .exports
                 .get_global("wasmer_metering_remaining_points")?
@@ -141,8 +150,7 @@ impl MassaModule for ASModule {
     }
 
     fn resolver(&self, store: &mut Store) -> (Imports, FunctionEnv<ASEnv>) {
-
-        let fenv = FunctionEnv::new(store,self.env.clone());
+        let fenv = FunctionEnv::new(store, self.env.clone());
 
         let imports = imports! {
             "env" => {

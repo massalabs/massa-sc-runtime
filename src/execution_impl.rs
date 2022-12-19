@@ -34,9 +34,7 @@ pub(crate) fn exec(
     };
 
     match module.execution(&instance, &mut store, function, param) {
-        Ok(response) => {
-            Ok((response, instance, store))
-        },
+        Ok(response) => Ok((response, instance, store)),
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
                 bail!(err)
@@ -45,7 +43,7 @@ pub(crate) fn exec(
                 match metering::get_remaining_points(&mut store, &instance) {
                     MeteringPoints::Remaining(..) => {
                         bail!(err)
-                    },
+                    }
                     MeteringPoints::Exhausted => {
                         bail!("Not enough gas, limit reached at: {function}")
                     }
@@ -72,9 +70,11 @@ pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Resul
     let mut module = get_module(interface, bytecode)?;
     let (instance, store) = create_instance(limit, &mut module)?;
     if instance.exports.contains(settings::MAIN) {
-        Ok(exec(limit, Some((instance, store)), module, settings::MAIN, b"")?
-            .0
-            .remaining_gas)
+        Ok(
+            exec(limit, Some((instance, store)), module, settings::MAIN, b"")?
+                .0
+                .remaining_gas,
+        )
     } else {
         Ok(limit)
     }
@@ -109,7 +109,6 @@ pub fn run_main_gc(
     limit: u64,
     interface: &dyn Interface,
 ) -> Result<GasCalibrationResult> {
-
     let mut module = get_module(interface, bytecode)?;
     let (instance, mut store) = create_instance(limit, &mut module)?;
     if instance.exports.contains(settings::MAIN) {

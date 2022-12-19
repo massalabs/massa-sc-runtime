@@ -4,11 +4,10 @@ mod common;
 
 use anyhow::{bail, Result};
 use std::sync::Arc;
-use wasmer::{wasmparser::Operator, BaseTunables, Pages, Target, EngineBuilder, Imports, FunctionEnv};
 use wasmer::{
-    CompilerConfig, Features, Instance, InstantiationError, Module,
-    Store
+    wasmparser::Operator, BaseTunables, EngineBuilder, FunctionEnv, Imports, Pages, Target,
 };
+use wasmer::{CompilerConfig, Features, Instance, InstantiationError, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
 use wasmer_types::TrapCode;
@@ -18,22 +17,36 @@ use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::{Interface, Response};
 
+use crate::env::ASEnv;
 pub(crate) use as_execution::*;
 pub(crate) use common::*;
-use crate::env::ASEnv;
 
 pub(crate) trait MassaModule {
     fn init(interface: &dyn Interface, bytecode: &[u8]) -> Self;
     /// Closure for the execution allowing us to handle a gas error
-    fn execution(&self, instance: &Instance, store: &mut Store, function: &str, param: &[u8]) -> Result<Response>;
+    fn execution(
+        &self,
+        instance: &Instance,
+        store: &mut Store,
+        function: &str,
+        param: &[u8],
+    ) -> Result<Response>;
     fn resolver(&self, store: &mut Store) -> (Imports, FunctionEnv<ASEnv>);
-    fn init_with_instance(&mut self, instance: &Instance, store: &mut Store, fenv: &mut FunctionEnv<ASEnv>) -> anyhow::Result<()>;
+    fn init_with_instance(
+        &mut self,
+        instance: &Instance,
+        store: &mut Store,
+        fenv: &mut FunctionEnv<ASEnv>,
+    ) -> anyhow::Result<()>;
     fn get_bytecode(&self) -> &Vec<u8>;
 }
 
 /// Create an instance of VM from a module with a given interface, an operation
 /// number limit and a webassembly module
-pub(crate) fn create_instance(limit: u64, as_module: &mut impl MassaModule) -> Result<(Instance, Store)> {
+pub(crate) fn create_instance(
+    limit: u64,
+    as_module: &mut impl MassaModule,
+) -> Result<(Instance, Store)> {
     // We use the Singlepass compiler because it is fast and adapted to blockchains
     // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
     let mut compiler = Singlepass::new();
@@ -78,21 +91,19 @@ pub(crate) fn create_instance(limit: u64, as_module: &mut impl MassaModule) -> R
 
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
-    let engine = EngineBuilder::new(compiler).set_features(Some(FEATURES)).engine();
+    let engine = EngineBuilder::new(compiler)
+        .set_features(Some(FEATURES))
+        .engine();
     let mut store = Store::new_with_tunables(&engine, tunables);
 
     let module = &Module::new(&store, &as_module.get_bytecode())?;
     let (imports, mut fenv) = as_module.resolver(&mut store);
 
-    match Instance::new(
-        &mut store,
-        module,
-        &imports,
-    ) {
+    match Instance::new(&mut store, module, &imports) {
         Ok(i) => {
             as_module.init_with_instance(&i, &mut store, &mut fenv)?;
             Ok((i, store))
-        },
+        }
         Err(err) => {
             // We filter the error created by the metering middleware when there is not enough gas at initialization.
             if let InstantiationError::Start(ref e) = err {

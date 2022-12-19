@@ -1,11 +1,11 @@
 mod as_env;
 
-use wasmer::{AsStoreMut, Global, Store};
 use crate::{
     execution::{abi_bail, ABIResult},
     Interface,
 };
 pub(crate) use as_env::*;
+use wasmer::{AsStoreMut, Global, Store};
 
 macro_rules! get_memory {
     ($env:ident) => {
@@ -29,13 +29,14 @@ pub(crate) trait MassaEnv<T> {
 /// Get remaining metering points
 /// Should be equivalent to
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L293
-pub(crate) fn get_remaining_points<T>(env: &impl MassaEnv<T>, store: &mut impl AsStoreMut) -> ABIResult<u64> {
-
+pub(crate) fn get_remaining_points<T>(
+    env: &impl MassaEnv<T>,
+    store: &mut impl AsStoreMut,
+) -> ABIResult<u64> {
     if cfg!(feature = "gas_calibration") {
         return Ok(0);
     }
 
-    //match env.get_exhausted_points().as_ref() {
     match env.get_exhausted_points() {
         Some(exhausted_points) => match exhausted_points.get(store).try_into() {
             Ok::<i32, _>(exhausted) if exhausted > 0 => return Ok(0),
@@ -63,7 +64,7 @@ pub(crate) fn set_remaining_points<T>(
 ) -> ABIResult<()> {
     match env.get_remaining_points().as_ref() {
         Some(remaining_points) => {
-            if remaining_points.set(store,points.into()).is_err() {
+            if remaining_points.set(store, points.into()).is_err() {
                 abi_bail!("Can't set remaining_points");
             }
         }
@@ -80,7 +81,11 @@ pub(crate) fn set_remaining_points<T>(
     Ok(())
 }
 
-pub(crate) fn sub_remaining_gas<T>(env: &impl MassaEnv<T>, store: &mut impl AsStoreMut, gas: u64) -> ABIResult<()> {
+pub(crate) fn sub_remaining_gas<T>(
+    env: &impl MassaEnv<T>,
+    store: &mut impl AsStoreMut,
+    gas: u64,
+) -> ABIResult<()> {
     if cfg!(feature = "gas_calibration") {
         return Ok(());
     }
