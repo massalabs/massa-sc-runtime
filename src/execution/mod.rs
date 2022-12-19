@@ -25,6 +25,7 @@ pub(crate) trait MassaModule {
     fn init(interface: &dyn Interface, bytecode: &[u8]) -> Self;
     /// Closure for the execution allowing us to handle a gas error
     fn execution(&self, instance: &Instance, function: &str, param: &[u8]) -> Result<Response>;
+    fn has_function(&self, instance: &Instance, function: &str) -> bool;
     fn resolver(&self, store: &Store) -> ImportObject;
     fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError>;
     fn get_bytecode(&self) -> &Vec<u8>;

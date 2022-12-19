@@ -106,18 +106,22 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("get_op_keys_for")
     }
 
+    /// Return the datastore value of the corresponding key
     fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("raw_get_data")
     }
 
+    /// Set the datastore value for the corresponding key
     fn raw_set_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
         unimplemented!("raw_set_data")
     }
 
+    /// Append a value to the current datastore value for the corresponding key
     fn raw_append_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
         unimplemented!("raw_append_data")
     }
 
+    /// Delete a datastore entry
     fn raw_delete_data(&self, key: &[u8]) -> Result<()> {
         unimplemented!("raw_delete_data")
     }
@@ -127,14 +131,17 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("raw_get_data_for")
     }
 
+    /// Set the datastore value for the corresponding key of the given address
     fn raw_set_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()> {
         unimplemented!("raw_set_data_for")
     }
 
+    /// Append a value to the current datastore value for the corresponding key and the given address
     fn raw_append_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()> {
         unimplemented!("raw_append_data_for")
     }
 
+    /// Delete a datastore entry at of the given address
     fn raw_delete_data_for(&self, address: &str, key: &[u8]) -> Result<()> {
         unimplemented!("raw_delete_data_for")
     }
@@ -147,6 +154,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("has_data")
     }
 
+    /// Check if a datastore entry exists
     fn has_data_for(&self, address: &str, key: &[u8]) -> Result<bool> {
         unimplemented!("has_data_for")
     }
@@ -171,9 +179,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("has_op_data")
     }
 
-    /// Return operation datastore keys
+    /// Return operation datastore data for a given key
     fn get_op_data(&self, key: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("get_op_data")
+    }
+
+    /// Check whether or not the caller has write access in the current context
+    fn caller_has_write_access(&self) -> Result<bool> {
+        unimplemented!("caller_has_write_access")
     }
 
     // Hash data
@@ -216,14 +229,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("get_current_thread")
     }
 
-    fn module_called(&self) -> Result<()> {
-        unimplemented!("module_called")
-    }
-
-    fn exit_success(&self) -> Result<()> {
-        unimplemented!("exit_success")
-    }
-
     /// Expect to return a list of owned addresses
     ///
     /// Required on smart-contract execute the imported function
@@ -240,7 +245,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("get_call_stack")
     }
 
-    // TODO should be a SCEvent
+    /// Generate a smart contract event
     fn generate_event(&self, _event: String) -> Result<()> {
         unimplemented!("generate_event")
     }
