@@ -88,7 +88,9 @@ pub fn assembly_script_abort(
     col: i32,
 ) -> ABIResult<()> {
 
-    let memory = ctx.data().get_wasm_env().memory.as_ref().expect("mem??").clone();
+    let memory = ctx.data().get_wasm_env().memory.as_ref()
+        .expect("Failed to get memory on env")
+        .clone();
     let message_ = message
         .read(&memory, &ctx)
         .map_err(|e| wasmer::RuntimeError::new(e.to_string()));

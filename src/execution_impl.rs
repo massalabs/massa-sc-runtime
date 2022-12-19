@@ -32,7 +32,6 @@ pub(crate) fn exec(
         Some((instance, store)) => (instance, store),
         None => create_instance(limit, &mut module)?,
     };
-    // module.init_with_instance(&instance, &store)?;
 
     match module.execution(&instance, &mut store, function, param) {
         Ok(response) => {

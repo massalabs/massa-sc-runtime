@@ -41,8 +41,6 @@ impl MassaModule for ASModule {
         let res = if argc == 0 && function == crate::settings::MAIN {
             wasm_func.call(store, &[])
         } else if argc == 1 {
-            // TODO: no unwrap() & need env in ::alloc()?
-            let memory = self.env.get_wasm_env().memory.as_ref().unwrap();
             let param_ptr = *BufferPtr::alloc(&param.to_vec(), self.env.get_wasm_env(), store)?;
             wasm_func.call(store, &[Value::I32(param_ptr.offset() as i32)])
         } else {

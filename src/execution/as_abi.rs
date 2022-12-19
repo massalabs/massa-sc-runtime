@@ -133,7 +133,6 @@ pub(crate) fn assembly_script_print(mut ctx: FunctionEnvMut<ASEnv>, arg: i32) ->
         sub_remaining_gas(&env, &mut ctx,settings::metering_print())?;
     }
     let memory = get_memory!(env);
-    // let memory = env.get_wasm_env().memory.as_ref().expect("mem");
     if let Err(err) = env.get_interface().print(&get_string(memory, &ctx, arg)?) {
         abi_bail!(err);
     }

@@ -81,7 +81,6 @@ pub(crate) fn create_instance(limit: u64, as_module: &mut impl MassaModule) -> R
     let engine = EngineBuilder::new(compiler).set_features(Some(FEATURES)).engine();
     let mut store = Store::new_with_tunables(&engine, tunables);
 
-    // FIXME: rename module to as_module (ASModule) & module_ to module (type: Module)
     let module = &Module::new(&store, &as_module.get_bytecode())?;
     let (imports, mut fenv) = as_module.resolver(&mut store);
 

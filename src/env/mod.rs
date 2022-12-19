@@ -42,7 +42,7 @@ pub(crate) fn get_remaining_points<T>(env: &impl MassaEnv<T>, store: &mut impl A
             Ok::<i32, _>(_) => (),
             Err(_) => abi_bail!("exhausted_points has wrong type"),
         },
-        None => abi_bail!("Lost reference to exhausted_points XX"),
+        None => abi_bail!("Lost reference to exhausted_points"),
     };
     match env.get_remaining_points() {
         Some(remaining_points) => match remaining_points.get(store).try_into() {
@@ -86,7 +86,7 @@ pub(crate) fn sub_remaining_gas<T>(env: &impl MassaEnv<T>, store: &mut impl AsSt
     }
     let remaining_gas = get_remaining_points(env, store)?;
     if let Some(remaining_gas) = remaining_gas.checked_sub(gas) {
-        set_remaining_points(env, store,remaining_gas)?;
+        set_remaining_points(env, store, remaining_gas)?;
     } else {
         abi_bail!("Remaining gas reach zero")
     }
