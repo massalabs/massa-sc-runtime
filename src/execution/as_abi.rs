@@ -106,7 +106,7 @@ pub(crate) fn assembly_script_call_module(
     let function = &get_string(memory, &mut ctx, function)?;
     let param = &read_buffer(memory, &mut ctx, param)?;
     let response = call_module(&mut ctx, address, function, param, call_coins)?;
-    match BufferPtr::alloc(&response.ret, env.get_wasm_env(), memory, &mut ctx) {
+    match BufferPtr::alloc(&response.ret, env.get_wasm_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
             "Cannot allocate response in call {}::{}",
@@ -206,7 +206,7 @@ pub(crate) fn assembly_script_create_sc(mut ctx: FunctionEnvMut<ASEnv>, bytecode
         Ok(address) => address,
         Err(err) => abi_bail!(err),
     };
-    match StringPtr::alloc(&address, env.get_wasm_env(), memory, &mut ctx) {
+    match StringPtr::alloc(&address, env.get_wasm_env(), &mut ctx) {
         Ok(ptr) => Ok(ptr.offset() as i32),
         Err(err) => abi_bail!(err),
     }
@@ -450,7 +450,7 @@ pub(crate) fn assembly_script_get_owned_addresses_raw(mut ctx: FunctionEnvMut<AS
         Err(err) => abi_bail!(err),
     };
     let memory = get_memory!(env);
-    match StringPtr::alloc(&data.join(";"), env.get_wasm_env(), memory, &mut ctx) {
+    match StringPtr::alloc(&data.join(";"), env.get_wasm_env(), &mut ctx) {
         Ok(ptr) => Ok(ptr.offset() as i32),
         Err(err) => abi_bail!(err),
     }
@@ -465,7 +465,7 @@ pub(crate) fn assembly_script_get_call_stack_raw(mut ctx: FunctionEnvMut<ASEnv>)
         Err(err) => abi_bail!(err),
     };
     let memory = get_memory!(env);
-    match StringPtr::alloc(&data.join(";"), env.get_wasm_env(), memory, &mut ctx) {
+    match StringPtr::alloc(&data.join(";"), env.get_wasm_env(), &mut ctx) {
         Ok(ptr) => Ok(ptr.offset() as i32),
         Err(err) => abi_bail!(err),
     }
@@ -707,7 +707,7 @@ pub(crate) fn assembly_script_set_bytecode(mut ctx: FunctionEnvMut<ASEnv>, bytec
 
 /// Tooling, return a StringPtr allocated from a String
 fn pointer_from_string(env: &ASEnv, memory: &Memory, store: &mut impl AsStoreMut, value: &str) -> ABIResult<StringPtr> {
-    match StringPtr::alloc(&value.into(), env.get_wasm_env(), memory, store) {
+    match StringPtr::alloc(&value.into(), env.get_wasm_env(), store) {
         Ok(ptr) => Ok(*ptr),
         Err(err) => abi_bail!(err),
     }
@@ -715,7 +715,7 @@ fn pointer_from_string(env: &ASEnv, memory: &Memory, store: &mut impl AsStoreMut
 
 /// Tooling, return a BufferPtr allocated from bytes
 fn pointer_from_bytearray(env: &ASEnv, memory: &Memory, store: &mut impl AsStoreMut, value: &Vec<u8>) -> ABIResult<BufferPtr> {
-    match BufferPtr::alloc(value, env.get_wasm_env(), memory, store) {
+    match BufferPtr::alloc(value, env.get_wasm_env(), store) {
         Ok(ptr) => Ok(*ptr),
         Err(e) => abi_bail!(e),
     }
@@ -790,7 +790,7 @@ fn alloc_string_array(ctx: &mut FunctionEnvMut<ASEnv>, vec: &[String]) -> ABIRes
         Ok(list) => list,
         Err(err) => abi_bail!(err),
     };
-    match StringPtr::alloc(&addresses, env.get_wasm_env(), memory, ctx) {
+    match StringPtr::alloc(&addresses, env.get_wasm_env(), ctx) {
         Ok(ptr) => Ok(ptr.offset() as i32),
         Err(err) => abi_bail!(err),
     }

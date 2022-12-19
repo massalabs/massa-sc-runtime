@@ -43,7 +43,7 @@ impl MassaModule for ASModule {
         } else if argc == 1 {
             // TODO: no unwrap() & need env in ::alloc()?
             let memory = self.env.get_wasm_env().memory.as_ref().unwrap();
-            let param_ptr = *BufferPtr::alloc(&param.to_vec(), self.env.get_wasm_env(), memory, store)?;
+            let param_ptr = *BufferPtr::alloc(&param.to_vec(), self.env.get_wasm_env(), store)?;
             wasm_func.call(store, &[Value::I32(param_ptr.offset() as i32)])
         } else {
             bail!("Unexpected number of parameters in the function called")
