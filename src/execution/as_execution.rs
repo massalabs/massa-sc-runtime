@@ -3,8 +3,9 @@ use crate::env::{
     assembly_script_abort, assembly_script_date, assembly_script_seed, get_remaining_points,
     set_remaining_points, ASEnv, MassaEnv,
 };
+use crate::settings::GAS_COSTS;
 use crate::types::Response;
-use crate::{settings, Interface};
+use crate::Interface;
 use anyhow::{bail, Result};
 use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
 use wasmer::{imports, Function, ImportObject, Instance, Store, Val, WasmerEnv};
@@ -29,7 +30,7 @@ impl MassaModule for ASModule {
     fn execution(&self, instance: &Instance, function: &str, param: &[u8]) -> Result<Response> {
         if cfg!(not(feature = "gas_calibration")) {
             // sub initial metering cost
-            let metering_initial_cost = settings::metering_initial_cost();
+            let metering_initial_cost = *GAS_COSTS.get("metering_initial_cost")?;
             let remaining_gas = get_remaining_points(&self.env)?;
             if metering_initial_cost > remaining_gas {
                 bail!("Not enough gas to launch the virtual machine")
@@ -116,9 +117,7 @@ impl MassaModule for ASModule {
                 "assembly_script_has_data" => Function::new_native_with_env(store, self.env.clone(), assembly_script_has_data),
                 "assembly_script_has_data_for" => Function::new_native_with_env(store, self.env.clone(), assembly_script_has_data_for),
                 "assembly_script_get_owned_addresses" => Function::new_native_with_env(store, self.env.clone(), assembly_script_get_owned_addresses),
-                "assembly_script_get_owned_addresses_raw" => Function::new_native_with_env(store, self.env.clone(), assembly_script_get_owned_addresses_raw),
                 "assembly_script_get_call_stack" => Function::new_native_with_env(store, self.env.clone(), assembly_script_get_call_stack),
-                "assembly_script_get_call_stack_raw" => Function::new_native_with_env(store, self.env.clone(), assembly_script_get_call_stack_raw),
                 "assembly_script_generate_event" => Function::new_native_with_env(store, self.env.clone(), assembly_script_generate_event),
                 "assembly_script_transfer_coins" => Function::new_native_with_env(store, self.env.clone(), assembly_script_transfer_coins),
                 "assembly_script_transfer_coins_for" => Function::new_native_with_env(store, self.env.clone(), assembly_script_transfer_coins_for),

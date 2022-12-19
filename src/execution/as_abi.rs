@@ -5,11 +5,10 @@
 //! module. You can look at the other side of the mirror in `massa.ts` and the
 //! rust side in `execution_impl.rs`.
 use crate::env::{
-    get_memory, get_remaining_points, sub_remaining_gas, ASEnv,
-    MassaEnv, sub_remaining_gas_abi,
+    get_memory, get_remaining_points, sub_remaining_gas, sub_remaining_gas_abi, ASEnv, MassaEnv,
 };
 use crate::middlewares::gas_calibration::param_size_update;
-use crate::settings::{self, GAS_COSTS};
+use crate::settings;
 use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use function_name::named;
 use wasmer::Memory;
@@ -39,7 +38,7 @@ pub(crate) fn assembly_script_transfer_coins(
         abi_bail!("Negative raw amount.");
     }
     let memory = get_memory!(env);
-    let to_address = &get_string(memory, to_address)?;
+    let to_address = &read_string(memory, to_address)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, to_address.len(), true);
@@ -66,8 +65,8 @@ pub(crate) fn assembly_script_transfer_coins_for(
         abi_bail!("Negative raw amount.");
     }
     let memory = get_memory!(env);
-    let from_address = &get_string(memory, from_address)?;
-    let to_address = &get_string(memory, to_address)?;
+    let from_address = &read_string(memory, from_address)?;
+    let to_address = &read_string(memory, to_address)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, from_address.len(), true);
@@ -96,7 +95,7 @@ pub(crate) fn assembly_script_get_balance(env: &ASEnv) -> ABIResult<i64> {
 pub(crate) fn assembly_script_get_balance_for(env: &ASEnv, address: i32) -> ABIResult<i64> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let address = &get_string(memory, address)?;
+    let address = &read_string(memory, address)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, address.len(), true);
@@ -119,8 +118,8 @@ pub(crate) fn assembly_script_call(
 ) -> ABIResult<i32> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let address = &get_string(memory, address)?;
-    let function = &get_string(memory, function)?;
+    let address = &read_string(memory, address)?;
+    let function = &read_string(memory, function)?;
     let param = &read_buffer(memory, param)?;
 
     if cfg!(feature = "gas_calibration") {
@@ -156,7 +155,7 @@ pub(crate) fn assembly_script_get_remaining_gas(env: &ASEnv) -> ABIResult<i64> {
 pub(crate) fn assembly_script_print(env: &ASEnv, arg: i32) -> ABIResult<()> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let message = get_string(memory, arg)?;
+    let message = read_string(memory, arg)?;
 
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
@@ -188,7 +187,7 @@ pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
 pub(crate) fn assembly_script_has_op_key(env: &ASEnv, key: i32) -> ABIResult<i32> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let key_bytes = read_buffer_and_sub_gas(env, memory, key, settings::has_op_key_mult())?;
+    let key_bytes = read_buffer(memory, key)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, key_bytes.len(), true);
@@ -211,7 +210,7 @@ pub(crate) fn assembly_script_has_op_key(env: &ASEnv, key: i32) -> ABIResult<i32
 pub(crate) fn assembly_script_get_op_data(env: &ASEnv, key: i32) -> ABIResult<i32> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let key_bytes = read_buffer_and_sub_gas(env, memory, key, settings::get_op_data_mult())?;
+    let key_bytes = read_buffer(memory, key)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, key_bytes.len(), true);
@@ -231,8 +230,7 @@ pub(crate) fn assembly_script_get_op_data(env: &ASEnv, key: i32) -> ABIResult<i3
 pub(crate) fn assembly_script_create_sc(env: &ASEnv, bytecode: i32) -> ABIResult<i32> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let bytecode: Vec<u8> =
-        read_buffer_and_sub_gas(env, memory, bytecode, settings::metering_create_sc_mult())?;
+    let bytecode: Vec<u8> = read_buffer(memory, bytecode)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, bytecode.len(), true);
@@ -252,7 +250,7 @@ pub(crate) fn assembly_script_create_sc(env: &ASEnv, bytecode: i32) -> ABIResult
 pub(crate) fn assembly_script_hash(env: &ASEnv, value: i32) -> ABIResult<i32> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let value = read_string_and_sub_gas(env, memory, value, settings::metering_hash_per_byte())?;
+    let value = read_string(memory, value)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, value.len(), true);
@@ -282,7 +280,7 @@ pub(crate) fn assembly_script_get_keys(env: &ASEnv) -> ABIResult<i32> {
 pub(crate) fn assembly_script_get_keys_for(env: &ASEnv, address: i32) -> ABIResult<i32> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let address = get_string(memory, address)?;
+    let address = read_string(memory, address)?;
     match env.get_interface().get_keys_for(&address) {
         Err(err) => abi_bail!(err),
         Ok(k) => {
@@ -298,9 +296,8 @@ pub(crate) fn assembly_script_get_keys_for(env: &ASEnv, address: i32) -> ABIResu
 pub(crate) fn assembly_script_set_data(env: &ASEnv, key: i32, value: i32) -> ABIResult<()> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_set_data_key_mult())?;
-    let value =
-        read_buffer_and_sub_gas(env, memory, value, settings::metering_set_data_value_mult())?;
+    let key = read_buffer(memory, key)?;
+    let value = read_buffer(memory, value)?;
 
     if cfg!(feature = "gas_calibration") {
         param_size_update(env, "massa.assembly_script_set_data:0", key.len(), false);
@@ -318,13 +315,8 @@ pub(crate) fn assembly_script_set_data(env: &ASEnv, key: i32, value: i32) -> ABI
 pub(crate) fn assembly_script_append_data(env: &ASEnv, key: i32, value: i32) -> ABIResult<()> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_append_data_key_mult())?;
-    let value = read_buffer_and_sub_gas(
-        env,
-        memory,
-        value,
-        settings::metering_append_data_value_mult(),
-    )?;
+    let key = read_buffer(memory, key)?;
+    let value = read_buffer(memory, value)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, key.len(), true);
@@ -342,15 +334,13 @@ pub(crate) fn assembly_script_append_data(env: &ASEnv, key: i32, value: i32) -> 
 pub(crate) fn assembly_script_get_data(env: &ASEnv, key: i32) -> ABIResult<i32> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_get_data_key_mult())?;
+    let key = read_buffer(memory, key)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, key.len(), true);
     }
     match env.get_interface().raw_get_data(&key) {
-        Ok(data) => {
-            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
-        }
+        Ok(data) => Ok(pointer_from_bytearray(env, &data)?.offset() as i32),
         Err(err) => abi_bail!(err),
     }
 }
@@ -360,7 +350,7 @@ pub(crate) fn assembly_script_get_data(env: &ASEnv, key: i32) -> ABIResult<i32> 
 pub(crate) fn assembly_script_has_data(env: &ASEnv, key: i32) -> ABIResult<i32> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_has_data_key_mult())?;
+    let key = read_buffer(memory, key)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, key.len(), true);
@@ -377,7 +367,7 @@ pub(crate) fn assembly_script_has_data(env: &ASEnv, key: i32) -> ABIResult<i32> 
 pub(crate) fn assembly_script_delete_data(env: &ASEnv, key: i32) -> ABIResult<()> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_delete_data_key_mult())?;
+    let key = read_buffer(memory, key)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, key.len(), true);
@@ -399,10 +389,9 @@ pub(crate) fn assembly_script_set_data_for(
 ) -> ABIResult<()> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_set_data_key_mult())?;
-    let value =
-        read_buffer_and_sub_gas(env, memory, value, settings::metering_set_data_value_mult())?;
-    let address = get_string(memory, address)?;
+    let key = read_buffer(memory, key)?;
+    let value = read_buffer(memory, value)?;
+    let address = read_string(memory, address)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, address.len(), true);
@@ -427,14 +416,9 @@ pub(crate) fn assembly_script_append_data_for(
 ) -> ABIResult<()> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_append_data_key_mult())?;
-    let value = read_buffer_and_sub_gas(
-        env,
-        memory,
-        value,
-        settings::metering_append_data_value_mult(),
-    )?;
-    let address = get_string(memory, address)?;
+    let key = read_buffer(memory, key)?;
+    let value = read_buffer(memory, value)?;
+    let address = read_string(memory, address)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, address.len(), true);
@@ -457,8 +441,8 @@ pub(crate) fn assembly_script_append_data_for(
 pub(crate) fn assembly_script_get_data_for(env: &ASEnv, address: i32, key: i32) -> ABIResult<i32> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let address = get_string(memory, address)?;
-    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_get_data_key_mult())?;
+    let address = read_string(memory, address)?;
+    let key = read_buffer(memory, key)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, address.len(), true);
@@ -467,9 +451,7 @@ pub(crate) fn assembly_script_get_data_for(env: &ASEnv, address: i32, key: i32) 
     }
 
     match env.get_interface().raw_get_data_for(&address, &key) {
-        Ok(data) => {
-            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
-        }
+        Ok(data) => Ok(pointer_from_bytearray(env, &data)?.offset() as i32),
         Err(err) => abi_bail!(err),
     }
 }
@@ -483,8 +465,8 @@ pub(crate) fn assembly_script_delete_data_for(
 ) -> ABIResult<()> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let address = get_string(memory, address)?;
-    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_delete_data_key_mult())?;
+    let address = read_string(memory, address)?;
+    let key = read_buffer(memory, key)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, address.len(), true);
@@ -501,8 +483,8 @@ pub(crate) fn assembly_script_delete_data_for(
 pub(crate) fn assembly_script_has_data_for(env: &ASEnv, address: i32, key: i32) -> ABIResult<i32> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let address = get_string(memory, address)?;
-    let key = read_buffer_and_sub_gas(env, memory, key, settings::metering_has_data_key_mult())?;
+    let address = read_string(memory, address)?;
+    let key = read_buffer(memory, key)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, address.len(), true);
@@ -512,30 +494,6 @@ pub(crate) fn assembly_script_has_data_for(env: &ASEnv, address: i32, key: i32) 
     match env.get_interface().has_data_for(&address, &key) {
         Ok(true) => Ok(1),
         Ok(false) => Ok(0),
-        Err(err) => abi_bail!(err),
-    }
-}
-
-pub(crate) fn assembly_script_get_owned_addresses_raw(env: &ASEnv) -> ABIResult<i32> {
-    sub_remaining_gas(env, settings::metering_get_owned_addrs())?;
-    let data = match env.get_interface().get_owned_addresses() {
-        Ok(data) => data,
-        Err(err) => abi_bail!(err),
-    };
-    match StringPtr::alloc(&data.join(";"), env.get_wasm_env()) {
-        Ok(ptr) => Ok(ptr.offset() as i32),
-        Err(err) => abi_bail!(err),
-    }
-}
-
-pub(crate) fn assembly_script_get_call_stack_raw(env: &ASEnv) -> ABIResult<i32> {
-    sub_remaining_gas(env, settings::metering_get_call_stack())?;
-    let data = match env.get_interface().get_call_stack() {
-        Ok(data) => data,
-        Err(err) => abi_bail!(err),
-    };
-    match StringPtr::alloc(&data.join(";"), env.get_wasm_env()) {
-        Ok(ptr) => Ok(ptr.offset() as i32),
         Err(err) => abi_bail!(err),
     }
 }
@@ -562,7 +520,7 @@ pub(crate) fn assembly_script_get_call_stack(env: &ASEnv) -> ABIResult<i32> {
 pub(crate) fn assembly_script_generate_event(env: &ASEnv, event: i32) -> ABIResult<()> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let event = get_string(memory, event)?;
+    let event = read_string(memory, event)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, event.len(), true);
@@ -583,14 +541,9 @@ pub(crate) fn assembly_script_signature_verify(
 ) -> ABIResult<i32> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let data = read_string_and_sub_gas(
-        env,
-        memory,
-        data,
-        settings::metering_signature_verify_data_mult(),
-    )?;
-    let signature = get_string(memory, signature)?;
-    let public_key = get_string(memory, public_key)?;
+    let data = read_string(memory, data)?;
+    let signature = read_string(memory, signature)?;
+    let public_key = read_string(memory, public_key)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, data.len(), true);
@@ -617,7 +570,7 @@ pub(crate) fn assembly_script_address_from_public_key(
 ) -> ABIResult<i32> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let public_key = get_string(memory, public_key)?;
+    let public_key = read_string(memory, public_key)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, public_key.len(), true);
@@ -691,8 +644,8 @@ pub(crate) fn assembly_script_send_message(
         abi_bail!("negative coins")
     }
     let memory = get_memory!(env);
-    let target_address = &get_string(memory, target_address)?;
-    let target_handler = &get_string(memory, target_handler)?;
+    let target_address = &read_string(memory, target_address)?;
+    let target_handler = &read_string(memory, target_handler)?;
     let data = &read_buffer(memory, data)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
@@ -702,13 +655,8 @@ pub(crate) fn assembly_script_send_message(
         let fname = format!("massa.{}:2", function_name!());
         param_size_update(env, &fname, data.len(), true);
     }
-    let filter_address_string = &get_string(memory, filter_address)?;
-    let key = read_buffer_and_sub_gas(
-        env,
-        memory,
-        filter_datastore_key,
-        settings::metering_has_data_key_mult(),
-    )?;
+    let filter_address_string = &read_string(memory, filter_address)?;
+    let key = read_buffer(memory, filter_datastore_key)?;
     let filter = match (filter_address_string.as_str(), key.as_slice()) {
         ("", _) => None,
         (addr, &[]) => Some((addr, None)),
@@ -758,15 +706,10 @@ pub(crate) fn assembly_script_set_bytecode_for(
     address: i32,
     bytecode: i32,
 ) -> ABIResult<()> {
-    sub_remaining_gas(env, settings::metering_set_bytecode_const())?;
+    sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let address = get_string(memory, address)?;
-    let bytecode_raw = read_buffer_and_sub_gas(
-        env,
-        memory,
-        bytecode,
-        settings::metering_set_bytecode_mult(),
-    )?;
+    let address = read_string(memory, address)?;
+    let bytecode_raw = read_buffer(memory, bytecode)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, address.len(), true);
@@ -787,12 +730,7 @@ pub(crate) fn assembly_script_set_bytecode_for(
 pub(crate) fn assembly_script_set_bytecode(env: &ASEnv, bytecode: i32) -> ABIResult<()> {
     sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let bytecode_raw = read_buffer_and_sub_gas(
-        env,
-        memory,
-        bytecode,
-        settings::metering_set_bytecode_mult(),
-    )?;
+    let bytecode_raw = read_buffer(memory, bytecode)?;
     if cfg!(feature = "gas_calibration") {
         let fname = format!("massa.{}:0", function_name!());
         param_size_update(env, &fname, bytecode_raw.len(), true);
@@ -806,11 +744,9 @@ pub(crate) fn assembly_script_set_bytecode(env: &ASEnv, bytecode: i32) -> ABIRes
 /// get bytecode of the current address
 #[named]
 pub(crate) fn assembly_script_get_bytecode(env: &ASEnv) -> ABIResult<i32> {
-    sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
+    sub_remaining_gas_abi(env, function_name!())?;
     match env.get_interface().raw_get_bytecode() {
-        Ok(data) => {
-            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
-        }
+        Ok(data) => Ok(pointer_from_bytearray(env, &data)?.offset() as i32),
         Err(err) => abi_bail!(err),
     }
 }
@@ -818,29 +754,28 @@ pub(crate) fn assembly_script_get_bytecode(env: &ASEnv) -> ABIResult<i32> {
 /// get bytecode of the target address
 #[named]
 pub(crate) fn assembly_script_get_bytecode_for(env: &ASEnv, address: i32) -> ABIResult<i32> {
-    sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
+    sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
-    let address = get_string(memory, address)?;
+    let address = read_string(memory, address)?;
     match env.get_interface().raw_get_bytecode_for(&address) {
-        Ok(data) => {
-            Ok(pointer_from_bytearray(env, &data)?.offset() as i32)
-        }
+        Ok(data) => Ok(pointer_from_bytearray(env, &data)?.offset() as i32),
         Err(err) => abi_bail!(err),
     }
 }
 
 /// execute `function` of the given bytecode in the current context
+#[named]
 pub(crate) fn assembly_script_local_execution(
     env: &ASEnv,
     bytecode: i32,
     function: i32,
     param: i32,
 ) -> ABIResult<i32> {
-    sub_remaining_gas(env, settings::metering_local_execution_const())?;
+    sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
 
     let bytecode = &read_buffer(memory, bytecode)?;
-    let function = &get_string(memory, function)?;
+    let function = &read_string(memory, function)?;
     let param = &read_buffer(memory, param)?;
 
     let response = local_call(env, bytecode, function, param)?;
@@ -854,22 +789,19 @@ pub(crate) fn assembly_script_local_execution(
 }
 
 /// execute `function` of the bytecode located at `address` in the current context
+#[named]
 pub(crate) fn assembly_script_local_call(
     env: &ASEnv,
     address: i32,
     function: i32,
     param: i32,
 ) -> ABIResult<i32> {
-    sub_remaining_gas(env, settings::metering_local_call_const())?;
+    sub_remaining_gas_abi(env, function_name!())?;
     let memory = get_memory!(env);
 
-    let address = &get_string(memory, address)?;
-    sub_remaining_gas(env, settings::metering_get_bytecode_const())?;
-    let bytecode = env
-        .get_interface()
-        .raw_get_bytecode_for(address)
-        .map_or_else(|e| abi_bail!(e), Ok)?;
-    let function = &get_string(memory, function)?;
+    let bytecode = assembly_script_get_bytecode_for(env, address)?;
+    let bytecode = &read_buffer(memory, bytecode)?;
+    let function = &read_string(memory, function)?;
     let param = &read_buffer(memory, param)?;
 
     let response = local_call(env, &bytecode, function, param)?;
@@ -898,27 +830,6 @@ fn pointer_from_bytearray(env: &ASEnv, value: &Vec<u8>) -> ABIResult<BufferPtr> 
     }
 }
 
-/// Tooling that reads a String in memory and subtract remaining gas
-/// with a multiplicator (String.len * mult).
-///
-/// Sub function of `assembly_script_set_data_for`, `assembly_script_set_data`
-/// and `assembly_script_create_sc`
-///
-/// Return the string value in the StringPtr
-fn read_string_and_sub_gas(
-    env: &ASEnv,
-    memory: &Memory,
-    offset: i32,
-    mult: usize,
-) -> ABIResult<String> {
-    match StringPtr::new(offset as u32).read(memory) {
-        Ok(value) => {
-            Ok(value)
-        }
-        Err(err) => abi_bail!(err),
-    }
-}
-
 /// Tooling that reads a buffer (Vec<u8>) in memory
 fn read_buffer(memory: &Memory, offset: i32) -> ABIResult<Vec<u8>> {
     match BufferPtr::new(offset as u32).read(memory) {
@@ -927,27 +838,8 @@ fn read_buffer(memory: &Memory, offset: i32) -> ABIResult<Vec<u8>> {
     }
 }
 
-/// Tooling that reads a buffer (Vec<u8>) in memory and subtract remaining gas
-/// with a multiplicator (buffer len * mult).
-///
-/// Return the buffer in the BufferPtr
-/// TODO: Remove but how we make a limit
-fn read_buffer_and_sub_gas(
-    env: &ASEnv,
-    memory: &Memory,
-    offset: i32,
-    mult: usize,
-) -> ABIResult<Vec<u8>> {
-    match BufferPtr::new(offset as u32).read(memory) {
-        Ok(buffer) => {
-            Ok(buffer)
-        }
-        Err(err) => abi_bail!(err),
-    }
-}
-
 /// Tooling, return a string from a given offset
-fn get_string(memory: &Memory, ptr: i32) -> ABIResult<String> {
+fn read_string(memory: &Memory, ptr: i32) -> ABIResult<String> {
     match StringPtr::new(ptr as u32).read(memory) {
         Ok(str) => Ok(str),
         Err(err) => abi_bail!(err),

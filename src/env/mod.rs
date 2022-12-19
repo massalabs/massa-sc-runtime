@@ -2,7 +2,8 @@ mod as_env;
 
 use crate::{
     execution::{abi_bail, ABIResult},
-    Interface, settings::GAS_COSTS,
+    settings::GAS_COSTS,
+    Interface,
 };
 pub(crate) use as_env::*;
 use wasmer::{Global, WasmerEnv};
