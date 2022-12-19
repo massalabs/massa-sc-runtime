@@ -12,18 +12,3 @@ pub(crate) fn max_datastore_entry_count() -> usize {
 pub(crate) fn max_op_datastore_entry_count() -> usize {
     128
 }
-
-#[cfg(test)]
-pub(crate) fn set_metering(call_price: u64) {
-    METERING._reset(call_price, 100);
-}
-
-#[cfg(test)]
-pub(crate) fn set_metering_initial_cost(initial_cost: u64) {
-    METERING._reset(200, initial_cost);
-}
-
-#[cfg(test)]
-pub(crate) fn reset_metering() {
-    METERING._reset(200, 100);
-}

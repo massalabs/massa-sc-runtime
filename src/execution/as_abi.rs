@@ -153,11 +153,10 @@ pub(crate) fn assembly_script_get_op_keys(env: &ASEnv) -> ABIResult<i32> {
     sub_remaining_gas_abi(env, function_name!())?;
     match env.get_interface().get_op_keys() {
         Err(err) => abi_bail!(err),
-        Ok(keys) => {
-            let fmt_keys =
-                ser_bytearray_vec(&keys, keys.len(), settings::max_op_datastore_entry_count())?;
-            let ptr = pointer_from_bytearray(env, &fmt_keys)?.offset();
-            Ok(ptr as i32)
+        Ok(k) => {
+            let k_f = ser_bytearray_vec(&k, k.len(), settings::max_op_datastore_entry_count())?;
+            let a = pointer_from_bytearray(env, &k_f)?.offset();
+            Ok(a as i32)
         }
     }
 }
@@ -173,7 +172,16 @@ pub(crate) fn assembly_script_has_op_key(env: &ASEnv, key: i32) -> ABIResult<i32
         param_size_update(env, &fname, key_bytes.len(), true);
     }
 
-    Ok(env.get_interface().has_op_key(&key_bytes)? as i32)
+    match env.get_interface().has_op_key(&key_bytes) {
+        Err(err) => abi_bail!(err),
+        Ok(b) => {
+            // https://doc.rust-lang.org/reference/types/boolean.html
+            // 'true' is explicitly defined as: 0x01 while 'false' is: 0x00
+            let b_vec: Vec<u8> = vec![b as u8];
+            let a = pointer_from_bytearray(env, &b_vec)?.offset();
+            Ok(a as i32)
+        }
+    }
 }
 
 /// Get the operation datastore value associated to given key
