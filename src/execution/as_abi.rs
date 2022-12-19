@@ -724,7 +724,7 @@ pub fn assembly_function_exists(env: &ASEnv, address: i32, function: i32) -> ABI
     let function = &read_string(memory, function)?;
     let bytecode = env.get_interface().raw_get_bytecode_for(address)?;
 
-    let module = get_module(&*env.get_interface(), &bytecode)?;
+    let module = get_module(&*env.get_interface(), &bytecode, env.get_gas_costs())?;
     let instance = create_instance(get_remaining_points(env)?, &module)?;
     Ok(module.has_function(&instance, function) as i32)
 }

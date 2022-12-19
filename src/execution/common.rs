@@ -48,7 +48,7 @@ pub(crate) fn call_module<T: WasmerEnv>(
         Err(_) => abi_bail!("negative amount of coins in Call"),
     };
     let bytecode = env.get_interface().init_call(address, raw_coins)?;
-    let module = get_module(&*env.get_interface(), &bytecode)?;
+    let module = get_module(&*env.get_interface(), &bytecode, env.get_gas_costs())?;
 
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         Ok(u64::MAX)
@@ -71,7 +71,7 @@ pub(crate) fn local_call<T: WasmerEnv>(
     function: &str,
     param: &[u8],
 ) -> ABIResult<Response> {
-    let module = get_module(&*env.get_interface(), bytecode)?;
+    let module = get_module(&*env.get_interface(), bytecode, env.get_gas_costs())?;
 
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         Ok(u64::MAX)

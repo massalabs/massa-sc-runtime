@@ -5,7 +5,7 @@ use crate::env::{
 };
 use crate::settings::GAS_COSTS;
 use crate::types::Response;
-use crate::Interface;
+use crate::{Interface, GasCosts};
 use anyhow::{bail, Result};
 use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
 use wasmer::{imports, Function, ImportObject, Instance, Store, Val, WasmerEnv};
@@ -16,9 +16,9 @@ pub(crate) struct ASModule {
 }
 
 impl MassaModule for ASModule {
-    fn init(interface: &dyn Interface, bytecode: &[u8]) -> Self {
+    fn init(interface: &dyn Interface, bytecode: &[u8], gas_costs: GasCosts) -> Self {
         Self {
-            env: ASEnv::new(interface),
+            env: ASEnv::new(interface, gas_costs),
             bytecode: bytecode.to_vec(),
         }
     }
@@ -30,7 +30,7 @@ impl MassaModule for ASModule {
     fn execution(&self, instance: &Instance, function: &str, param: &[u8]) -> Result<Response> {
         if cfg!(not(feature = "gas_calibration")) {
             // sub initial metering cost
-            let metering_initial_cost = *GAS_COSTS.get("metering_initial_cost")?;
+            let metering_initial_cost = self.env.get_gas_costs().launch_cost;
             let remaining_gas = get_remaining_points(&self.env)?;
             if metering_initial_cost > remaining_gas {
                 bail!("Not enough gas to launch the virtual machine")
@@ -95,6 +95,10 @@ impl MassaModule for ASModule {
 
     fn has_function(&self, instance: &Instance, function: &str) -> bool {
         instance.exports.get_function(function).is_ok()
+    }
+
+    fn get_gas_costs(&self) -> GasCosts {
+        self.env.get_gas_costs()
     }
 
     fn resolver(&self, store: &Store) -> ImportObject {

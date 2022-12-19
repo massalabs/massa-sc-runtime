@@ -1,4 +1,3 @@
-use cornetto::Cornetto;
 use std::collections::HashMap;
 
 // main function name in the webassembly module

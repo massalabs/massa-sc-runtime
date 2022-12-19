@@ -1,13 +1,13 @@
 //! Extends the env of wasmer-as
 
 use crate::{
-    env::{get_memory, sub_remaining_gas},
+    env::{get_memory, sub_remaining_gas_abi},
     execution::{abi_bail, ABIResult},
-    settings,
-    types::Interface,
+    types::Interface, GasCosts,
 };
 use anyhow::Result;
 use as_ffi_bindings::{Read, StringPtr};
+use function_name::named;
 use std::collections::HashMap;
 use wasmer::{Extern, Global, HostEnvInitError, Instance, WasmerEnv};
 
@@ -16,6 +16,7 @@ use super::MassaEnv;
 #[derive(Clone)]
 pub struct ASEnv {
     wasm_env: as_ffi_bindings::Env,
+    gas_costs: GasCosts,
     interface: Box<dyn Interface>,
     remaining_points: Option<Global>,
     exhausted_points: Option<Global>,
@@ -23,9 +24,10 @@ pub struct ASEnv {
 }
 
 impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
-    fn new(interface: &dyn Interface) -> Self {
+    fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
         Self {
             wasm_env: Default::default(),
+            gas_costs,
             interface: interface.clone_box(),
             remaining_points: None,
             exhausted_points: None,
@@ -40,6 +42,9 @@ impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
     }
     fn get_gc_param(&self, name: &str) -> Option<&Global> {
         self.param_size_map.get(name)?.as_ref()
+    }
+    fn get_gas_costs(&self) -> GasCosts {
+        self.gas_costs.clone()
     }
     fn get_interface(&self) -> Box<dyn Interface> {
         self.interface.clone()
@@ -126,9 +131,10 @@ pub fn assembly_script_abort(
 }
 
 /// Assembly script builtin export `seed` function
+#[named]
 pub fn assembly_script_seed(env: &ASEnv) -> ABIResult<f64> {
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas(env, settings::metering_unsafe_random())?;
+        sub_remaining_gas_abi(env, function_name!())?;
     }
     match env.interface.unsafe_random_f64() {
         Ok(ret) => Ok(ret),
@@ -141,9 +147,10 @@ pub fn assembly_script_seed(env: &ASEnv) -> ABIResult<f64> {
 /// Note for developpers: It seems that AS as updated the output of that function
 /// for the newest versions. Probably the signature will be soon () -> i64
 /// instead of () -> f64.
+#[named]
 pub fn assembly_script_date(env: &ASEnv) -> ABIResult<f64> {
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas(env, settings::metering_get_time())?;
+        sub_remaining_gas_abi(env, function_name!())?;
     }
     let utime = match env.interface.get_time() {
         Ok(time) => time,

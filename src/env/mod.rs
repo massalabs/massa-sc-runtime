@@ -3,7 +3,7 @@ mod as_env;
 use crate::{
     execution::{abi_bail, ABIResult},
     settings::GAS_COSTS,
-    Interface,
+    Interface, GasCosts,
 };
 pub(crate) use as_env::*;
 use wasmer::{Global, WasmerEnv};
@@ -19,10 +19,11 @@ macro_rules! get_memory {
 pub(crate) use get_memory;
 
 pub(crate) trait MassaEnv<T: WasmerEnv>: WasmerEnv {
-    fn new(interface: &dyn Interface) -> Self;
+    fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self;
     fn get_exhausted_points(&self) -> Option<&Global>;
     fn get_remaining_points(&self) -> Option<&Global>;
     fn get_gc_param(&self, name: &str) -> Option<&Global>;
+    fn get_gas_costs(&self) -> GasCosts;
     fn get_interface(&self) -> Box<dyn Interface>;
     fn get_wasm_env(&self) -> &T;
 }

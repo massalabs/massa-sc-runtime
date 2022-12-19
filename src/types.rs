@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 use serde::{de::DeserializeOwned, Serialize};
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 
 /// That's what is returned when a module is executed correctly since the end
 pub(crate) struct Response {
@@ -24,6 +24,13 @@ macro_rules! unimplemented {
     ($fn: expr) => {
         bail!(format!("unimplemented function {} in interface", $fn))
     };
+}
+
+#[derive(Clone)]
+pub struct GasCosts {
+    pub operator_cost: u64,
+    pub launch_cost: u64,
+    pub abi_costs: HashMap<String, u64>
 }
 
 #[allow(unused_variables)]
