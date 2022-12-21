@@ -117,16 +117,16 @@ pub fn run_main_gc(
     gas_costs: GasCosts,
 ) -> Result<GasCalibrationResult> {
     let mut module = get_module(interface, bytecode, gas_costs)?;
-    let instance = create_instance(limit, &mut module)?;
+    let (instance, store) = create_instance(limit, &mut module)?;
     if instance.exports.contains(settings::MAIN) {
-        let (_resp, instance) = exec(
+        let (_resp, instance, mut store) = exec(
             u64::MAX,
-            Some(instance.clone()),
+            Some((instance.clone(), store)),
             module,
             settings::MAIN,
             param,
         )?;
-        Ok(get_gas_calibration_result(&instance))
+        Ok(get_gas_calibration_result(&instance, &mut store))
     } else {
         bail!("No main");
     }
