@@ -97,7 +97,7 @@ impl Default for GasCosts {
         Self {
             operator_cost: 1,
             launch_cost: 10000,
-            abi_costs
+            abi_costs,
         }
     }
 }

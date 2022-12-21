@@ -1,7 +1,6 @@
-use loupe::{MemoryUsage, MemoryUsageTracker};
 use wasmer::wasmparser::Operator;
 use wasmer::{
-    FunctionMiddleware, LocalFunctionIndex, MiddlewareError, MiddlewareReaderState,
+    AsStoreMut, FunctionMiddleware, LocalFunctionIndex, MiddlewareError, MiddlewareReaderState,
     ModuleMiddleware,
 };
 use wasmer_types::{
@@ -11,7 +10,6 @@ use wasmer_types::{
 use crate::env::{ASEnv, MassaEnv};
 use std::collections::HashMap;
 use std::fmt::{self, Debug};
-use std::mem;
 use std::sync::Mutex;
 use std::time::Instant;
 
@@ -22,7 +20,7 @@ use regex::{Regex, RegexSet};
 #[cfg(feature = "gas_calibration")]
 use wasmer::{Extern, Instance};
 
-#[derive(Debug, Clone, MemoryUsage)]
+#[derive(Debug, Clone)]
 struct GasCalibrationGlobalIndexes {
     imports_call_map: HashMap<u32, (String, GlobalIndex)>,
     op_call_map: HashMap<String, GlobalIndex>,
@@ -54,13 +52,6 @@ impl Debug for GasCalibration {
     }
 }
 
-impl MemoryUsage for GasCalibration {
-    fn size_of_val(&self, tracker: &mut dyn MemoryUsageTracker) -> usize {
-        mem::size_of_val(self) + self.global_indexes.size_of_val(tracker)
-            - mem::size_of_val(&self.global_indexes)
-    }
-}
-
 impl ModuleMiddleware for GasCalibration {
     fn generate_function_middleware(
         &self,
@@ -88,7 +79,11 @@ impl ModuleMiddleware for GasCalibration {
             param_size_map: Default::default(),
         };
 
-        for ((module_name, function_name, index), import_index) in module_info.imports.iter() {
+        for (import_key, import_index) in module_info.imports.iter() {
+            let module_name = import_key.module.clone();
+            let function_name = import_key.field.clone();
+            let index = import_key.import_idx;
+
             // -> env.abort OR massa.assembly_script_print
             let function_fullname = format!("{}.{}", module_name, function_name);
 
@@ -106,7 +101,7 @@ impl ModuleMiddleware for GasCalibration {
 
             indexes
                 .imports_call_map
-                .insert(*index, (function_fullname.clone(), global_index));
+                .insert(index, (function_fullname.clone(), global_index));
 
             // Append a global per param size per 'imports' (== abi call)
             let function_sig = if let ImportIndex::Function(f) = import_index {
@@ -132,7 +127,7 @@ impl ModuleMiddleware for GasCalibration {
                     ExportIndex::Global(global_index),
                 );
 
-                indexes.param_size_map.insert(*index, global_index);
+                indexes.param_size_map.insert(index, global_index);
             }
         }
 
@@ -380,7 +375,13 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
     result
 }
 
-pub(crate) fn param_size_update(env: &ASEnv, function_name: &str, param_len: usize, is_str: bool) {
+pub(crate) fn param_size_update(
+    env: &ASEnv,
+    store: &mut impl AsStoreMut,
+    function_name: &str,
+    param_len: usize,
+    is_str: bool,
+) {
     // println!("Calling param_size_update: {} {}", function_name, param_len);
     let function_full_name = format!("wgc_ps_{}", function_name);
     let global_ref = env
@@ -388,7 +389,7 @@ pub(crate) fn param_size_update(env: &ASEnv, function_name: &str, param_len: usi
         .unwrap_or_else(|| panic!("Unable to find counter for {}", function_full_name));
     // Cannot fail as the middleware define it as i64
     let v: i64 = global_ref
-        .get()
+        .get(store)
         .try_into()
         .expect("Unable to convert global ref to i64");
 
@@ -398,5 +399,5 @@ pub(crate) fn param_size_update(env: &ASEnv, function_name: &str, param_len: usi
         false => param_len as i64,
     };
     let error_msg = format!("Unable to set global {:?} with value: {}", global_ref, s);
-    global_ref.set(s.into()).expect(&error_msg);
+    global_ref.set(store, s.into()).expect(&error_msg);
 }
