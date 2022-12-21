@@ -53,7 +53,7 @@ impl GasCosts {
     }
 }
 
-#[cfg(test)]
+#[cfg(any(test), feature = "gas_calibration")]
 impl Default for GasCosts {
     fn default() -> Self {
         let mut abi_costs = HashMap::new();
@@ -94,6 +94,13 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_transfer_coins"), 62);
         abi_costs.insert(String::from("assembly_script_transfer_coins_for"), 102);
         abi_costs.insert(String::from("assembly_script_unsafe_random"), 11);
+        abi_costs.insert(String::from("assembly_script_call"), 11);
+        abi_costs.insert(String::from("assembly_script_local_call"), 11);
+        abi_costs.insert(String::from("assembly_script_local_execution"), 11);
+        abi_costs.insert(String::from("assembly_script_get_bytecode"), 11);
+        abi_costs.insert(String::from("assembly_script_get_bytecode_for"), 11);
+        abi_costs.insert(String::from("assembly_caller_has_write_access"), 11);
+        abi_costs.insert(String::from("assembly_function_exists"), 11);
         Self {
             operator_cost: 1,
             launch_cost: 10000,
