@@ -53,7 +53,7 @@ impl GasCosts {
     }
 }
 
-#[cfg(any(test), feature = "gas_calibration")]
+#[cfg(any(test, feature = "gas_calibration"))]
 impl Default for GasCosts {
     fn default() -> Self {
         let mut abi_costs = HashMap::new();
