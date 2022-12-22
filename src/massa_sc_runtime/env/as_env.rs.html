@@ -124,35 +124,46 @@
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Extends the env of wasmer-as
 
 </span><span class="kw">use crate</span>::{
-    env::{get_memory, sub_remaining_gas},
+    env::sub_remaining_gas_abi,
     execution::{abi_bail, ABIResult},
-    settings,
     types::Interface,
+    GasCosts,
 };
-<span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>as_ffi_bindings::{Read, StringPtr};
-<span class="kw">use </span>wasmer::{Global, HostEnvInitError, Instance, WasmerEnv};
+<span class="kw">use </span>function_name::named;
+<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>wasmer::{FunctionEnvMut, Global};
 
 <span class="kw">use </span><span class="kw">super</span>::MassaEnv;
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>ASEnv {
     wasm_env: as_ffi_bindings::Env,
+    gas_costs: GasCosts,
     interface: Box&lt;<span class="kw">dyn </span>Interface&gt;,
-    remaining_points: <span class="prelude-ty">Option</span>&lt;Global&gt;,
-    exhausted_points: <span class="prelude-ty">Option</span>&lt;Global&gt;,
+    <span class="kw">pub </span>remaining_points: <span class="prelude-ty">Option</span>&lt;Global&gt;,
+    <span class="kw">pub </span>exhausted_points: <span class="prelude-ty">Option</span>&lt;Global&gt;,
+    param_size_map: HashMap&lt;String, <span class="prelude-ty">Option</span>&lt;Global&gt;&gt;,
 }
 
 <span class="kw">impl </span>MassaEnv&lt;as_ffi_bindings::Env&gt; <span class="kw">for </span>ASEnv {
-    <span class="kw">fn </span>new(interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>new(interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface, gas_costs: GasCosts) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             wasm_env: Default::default(),
+            gas_costs,
             interface: interface.clone_box(),
             remaining_points: <span class="prelude-val">None</span>,
             exhausted_points: <span class="prelude-val">None</span>,
+            param_size_map: Default::default(),
         }
     }
     <span class="kw">fn </span>get_exhausted_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Global&gt; {
@@ -161,34 +172,20 @@
     <span class="kw">fn </span>get_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Global&gt; {
         <span class="self">self</span>.remaining_points.as_ref()
     }
+    <span class="kw">fn </span>get_gc_param(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Global&gt; {
+        <span class="self">self</span>.param_size_map.get(name)<span class="question-mark">?</span>.as_ref()
+    }
+    <span class="kw">fn </span>get_gas_costs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GasCosts {
+        <span class="self">self</span>.gas_costs.clone()
+    }
     <span class="kw">fn </span>get_interface(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Interface&gt; {
         <span class="self">self</span>.interface.clone()
     }
     <span class="kw">fn </span>get_wasm_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>as_ffi_bindings::Env {
         <span class="kw-2">&amp;</span><span class="self">self</span>.wasm_env
     }
-}
-
-<span class="kw">impl </span>WasmerEnv <span class="kw">for </span>ASEnv {
-    <span class="kw">fn </span>init_with_instance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Instance) -&gt; <span class="prelude-ty">Result</span>&lt;(), HostEnvInitError&gt; {
-        <span class="self">self</span>.wasm_env.init_with_instance(instance)<span class="question-mark">?</span>;
-
-        <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
-            <span class="self">self</span>.remaining_points = <span class="prelude-val">Some</span>(
-                instance
-                    .exports
-                    .get_with_generics_weak(<span class="string">&quot;wasmer_metering_remaining_points&quot;</span>)
-                    .map_err(HostEnvInitError::from)<span class="question-mark">?</span>,
-            );
-            <span class="self">self</span>.exhausted_points = <span class="prelude-val">Some</span>(
-                instance
-                    .exports
-                    .get_with_generics_weak(<span class="string">&quot;wasmer_metering_points_exhausted&quot;</span>)
-                    .map_err(HostEnvInitError::from)<span class="question-mark">?</span>,
-            );
-        }
-
-        <span class="prelude-val">Ok</span>(())
+    <span class="kw">fn </span>get_wasm_env_as_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>as_ffi_bindings::Env {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.wasm_env
     }
 }
 
@@ -202,31 +199,44 @@
 /// - To create an instance, this function has to be in the ImportObject in the &quot;env&quot; namespace.
 /// - We can take advantage of the behaviours printing the assemblyscript error
 </span><span class="kw">pub fn </span>assembly_script_abort(
-    env: <span class="kw-2">&amp;</span>ASEnv,
+    ctx: FunctionEnvMut&lt;ASEnv&gt;,
     message: StringPtr,
     filename: StringPtr,
     line: i32,
     col: i32,
 ) -&gt; ABIResult&lt;()&gt; {
-    <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>message = message.read(memory);
-    <span class="kw">let </span>filename = filename.read(memory);
-    <span class="kw">if </span>message.is_err() || filename.is_err() {
+    <span class="kw">let </span>memory = ctx
+        .data()
+        .get_wasm_env()
+        .memory
+        .as_ref()
+        .expect(<span class="string">&quot;Failed to get memory on env&quot;</span>)
+        .clone();
+    <span class="kw">let </span>message_ = message
+        .read(<span class="kw-2">&amp;</span>memory, <span class="kw-2">&amp;</span>ctx)
+        .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
+    <span class="kw">let </span>filename_ = filename
+        .read(<span class="kw-2">&amp;</span>memory, <span class="kw-2">&amp;</span>ctx)
+        .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
+
+    <span class="kw">if </span>message_.is_err() || filename_.is_err() {
         <span class="macro">abi_bail!</span>(<span class="string">&quot;aborting failed to load message or filename&quot;</span>)
     }
     <span class="macro">abi_bail!</span>(<span class="macro">format!</span>(
         <span class="string">&quot;error: {} at {}:{} col: {}&quot;</span>,
-        message.unwrap(),
-        filename.unwrap(),
+        message_.unwrap(),
+        filename_.unwrap(),
         line,
         col
     ));
 }
 
 <span class="doccomment">/// Assembly script builtin export `seed` function
-</span><span class="kw">pub fn </span>assembly_script_seed(env: <span class="kw-2">&amp;</span>ASEnv) -&gt; ABIResult&lt;f64&gt; {
+</span><span class="attr">#[named]
+</span><span class="kw">pub fn </span>assembly_script_seed(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;f64&gt; {
+    <span class="kw">let </span>env = ctx.data().clone();
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
-        sub_remaining_gas(env, settings::metering_unsafe_random())<span class="question-mark">?</span>;
+        sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     }
     <span class="kw">match </span>env.interface.unsafe_random_f64() {
         <span class="prelude-val">Ok</span>(ret) =&gt; <span class="prelude-val">Ok</span>(ret),
@@ -238,10 +248,12 @@
 ///
 /// Note for developpers: It seems that AS as updated the output of that function
 /// for the newest versions. Probably the signature will be soon () -&gt; i64
-/// instead of () -&gt; f64.
-</span><span class="kw">pub fn </span>assembly_script_date(env: <span class="kw-2">&amp;</span>ASEnv) -&gt; ABIResult&lt;f64&gt; {
+/// instead of () -&gt; f64. This change is in AS 0.22 if we upgrade the version in our SCs we need to update this function.
+</span><span class="attr">#[named]
+</span><span class="kw">pub fn </span>assembly_script_date_now(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;f64&gt; {
+    <span class="kw">let </span>env = ctx.data().clone();
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
-        sub_remaining_gas(env, settings::metering_get_time())<span class="question-mark">?</span>;
+        sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     }
     <span class="kw">let </span>utime = <span class="kw">match </span>env.interface.get_time() {
         <span class="prelude-val">Ok</span>(time) =&gt; time,

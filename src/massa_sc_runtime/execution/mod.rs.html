@@ -112,17 +112,45 @@
 <a href="#112" id="112">112</a>
 <a href="#113" id="113">113</a>
 <a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>as_abi;
 <span class="kw">mod </span>as_execution;
 <span class="kw">mod </span>common;
 
 <span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>wasmer::{wasmparser::Operator, BaseTunables, Pages, Target};
 <span class="kw">use </span>wasmer::{
-    CompilerConfig, Features, HostEnvInitError, ImportObject, Instance, InstantiationError, Module,
-    Store, Universal,
+    wasmparser::Operator, BaseTunables, EngineBuilder, FunctionEnv, Imports, Pages, Target,
 };
+<span class="kw">use </span>wasmer::{CompilerConfig, Features, Instance, InstantiationError, Module, Store};
 <span class="kw">use </span>wasmer_compiler_singlepass::Singlepass;
 <span class="kw">use </span>wasmer_middlewares::Metering;
 <span class="kw">use </span>wasmer_types::TrapCode;
@@ -130,23 +158,40 @@
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::GasCalibration;
 <span class="kw">use </span><span class="kw">crate</span>::settings::max_number_of_pages;
 <span class="kw">use </span><span class="kw">crate</span>::tunable_memory::LimitingTunables;
-<span class="kw">use crate</span>::{Interface, Response};
+<span class="kw">use crate</span>::{GasCosts, Interface, Response};
 
+<span class="kw">use </span><span class="kw">crate</span>::env::ASEnv;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>as_execution::<span class="kw-2">*</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>common::<span class="kw-2">*</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>MassaModule {
-    <span class="kw">fn </span>init(interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface, bytecode: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>MassaModule: Send + Sync {
+    <span class="kw">fn </span>init(interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface, bytecode: <span class="kw-2">&amp;</span>[u8], gas_costs: GasCosts) -&gt; <span class="self">Self</span>;
     <span class="doccomment">/// Closure for the execution allowing us to handle a gas error
-    </span><span class="kw">fn </span>execution(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Instance, function: <span class="kw-2">&amp;</span>str, param: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Response&gt;;
-    <span class="kw">fn </span>resolver(<span class="kw-2">&amp;</span><span class="self">self</span>, store: <span class="kw-2">&amp;</span>Store) -&gt; ImportObject;
-    <span class="kw">fn </span>init_with_instance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Instance) -&gt; <span class="prelude-ty">Result</span>&lt;(), HostEnvInitError&gt;;
+    </span><span class="kw">fn </span>execution(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        instance: <span class="kw-2">&amp;</span>Instance,
+        store: <span class="kw-2">&amp;mut </span>Store,
+        function: <span class="kw-2">&amp;</span>str,
+        param: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Response&gt;;
+    <span class="kw">fn </span>has_function(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Instance, function: <span class="kw-2">&amp;</span>str) -&gt; bool;
+    <span class="kw">fn </span>resolver(<span class="kw-2">&amp;</span><span class="self">self</span>, store: <span class="kw-2">&amp;mut </span>Store) -&gt; (Imports, FunctionEnv&lt;ASEnv&gt;);
+    <span class="kw">fn </span>init_with_instance(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        instance: <span class="kw-2">&amp;</span>Instance,
+        store: <span class="kw-2">&amp;mut </span>Store,
+        fenv: <span class="kw-2">&amp;mut </span>FunctionEnv&lt;ASEnv&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
     <span class="kw">fn </span>get_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;u8&gt;;
+    <span class="kw">fn </span>get_gas_costs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GasCosts;
 }
 
 <span class="doccomment">/// Create an instance of VM from a module with a given interface, an operation
 /// number limit and a webassembly module
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_instance(limit: u64, module: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaModule) -&gt; <span class="prelude-ty">Result</span>&lt;Instance&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_instance(
+    limit: u64,
+    as_module: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>MassaModule,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(Instance, Store)&gt; {
     <span class="comment">// We use the Singlepass compiler because it is fast and adapted to blockchains
     // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
     </span><span class="kw">let </span><span class="kw-2">mut </span>compiler_config = Singlepass::new();
@@ -179,31 +224,40 @@
         </span>extended_const: <span class="bool-val">false</span>,
     };
 
+    <span class="kw">let </span>operator_cost = as_module.get_gas_costs().operator_cost;
+
     <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
         <span class="comment">// Add gas calibration middleware
         </span><span class="kw">let </span>gas_calibration = Arc::new(GasCalibration::new());
         compiler_config.push_middleware(gas_calibration);
     } <span class="kw">else </span>{
         <span class="comment">// Add metering middleware
-        </span><span class="kw">let </span>metering = Arc::new(Metering::new(limit, |<span class="kw">_</span>: <span class="kw-2">&amp;</span>Operator| -&gt; u64 { <span class="number">1 </span>}));
+        </span><span class="kw">let </span>metering = Arc::new(Metering::new(limit, <span class="kw">move </span>|<span class="kw">_</span>: <span class="kw-2">&amp;</span>Operator| -&gt; u64 {
+            operator_cost
+        }));
         compiler_config.push_middleware(metering);
     }
 
     <span class="kw">let </span>base = BaseTunables::for_target(<span class="kw-2">&amp;</span>Target::default());
     <span class="kw">let </span>tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
-    <span class="kw">let </span>engine = Universal::new(compiler_config).features(FEATURES).engine();
-    <span class="kw">let </span>store = Store::new_with_tunables(<span class="kw-2">&amp;</span>engine, tunables);
+    <span class="kw">let </span>engine = EngineBuilder::new(compiler_config)
+        .set_features(<span class="prelude-val">Some</span>(FEATURES))
+        .engine();
+    <span class="kw">let </span><span class="kw-2">mut </span>store = Store::new_with_tunables(<span class="kw-2">&amp;</span>engine, tunables);
 
-    <span class="kw">match </span>Instance::new(
-        <span class="kw-2">&amp;</span>Module::new(<span class="kw-2">&amp;</span>store, <span class="kw-2">&amp;</span>module.get_bytecode())<span class="question-mark">?</span>,
-        <span class="kw-2">&amp;</span>module.resolver(<span class="kw-2">&amp;</span>store),
-    ) {
-        <span class="prelude-val">Ok</span>(i) =&gt; <span class="prelude-val">Ok</span>(i),
+    <span class="kw">let </span>module = <span class="kw-2">&amp;</span>Module::new(<span class="kw-2">&amp;</span>store, <span class="kw-2">&amp;</span>as_module.get_bytecode())<span class="question-mark">?</span>;
+    <span class="kw">let </span>(imports, <span class="kw-2">mut </span>fenv) = as_module.resolver(<span class="kw-2">&amp;mut </span>store);
+
+    <span class="kw">match </span>Instance::new(<span class="kw-2">&amp;mut </span>store, module, <span class="kw-2">&amp;</span>imports) {
+        <span class="prelude-val">Ok</span>(i) =&gt; {
+            as_module.init_with_instance(<span class="kw-2">&amp;</span>i, <span class="kw-2">&amp;mut </span>store, <span class="kw-2">&amp;mut </span>fenv)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>((i, store))
+        }
         <span class="prelude-val">Err</span>(err) =&gt; {
             <span class="comment">// We filter the error created by the metering middleware when there is not enough gas at initialization.
             </span><span class="kw">if let </span>InstantiationError::Start(<span class="kw-2">ref </span>e) = err {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = e.clone().to_trap() {
-                    <span class="kw">if </span>trap == TrapCode::UnreachableCodeReached &amp;&amp; e.trace().len() == <span class="number">0 </span>{
+                    <span class="kw">if </span>trap == TrapCode::UnreachableCodeReached &amp;&amp; e.trace().is_empty() {
                         <span class="macro">bail!</span>(<span class="string">&quot;RuntimeError: Not enough gas, limit reached at initialization&quot;</span>);
                     }
                 }
@@ -217,13 +271,17 @@
 /// 1: target AssemblyScript
 /// 2: todo: another target
 /// _: target AssemblyScript and use the full bytecode
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_module(interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface, bytecode: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span>MassaModule&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_module(
+    interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
+    bytecode: <span class="kw-2">&amp;</span>[u8],
+    gas_costs: GasCosts,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span>MassaModule&gt; {
     <span class="kw">if </span>bytecode.is_empty() {
         <span class="macro">bail!</span>(<span class="string">&quot;error: module is empty&quot;</span>)
     }
     <span class="prelude-val">Ok</span>(<span class="kw">match </span>bytecode[<span class="number">0</span>] {
-        <span class="number">1 </span>=&gt; ASModule::init(interface, <span class="kw-2">&amp;</span>bytecode[<span class="number">1</span>..]),
-        <span class="kw">_ </span>=&gt; ASModule::init(interface, bytecode),
+        <span class="number">1 </span>=&gt; ASModule::init(interface, <span class="kw-2">&amp;</span>bytecode[<span class="number">1</span>..], gas_costs),
+        <span class="kw">_ </span>=&gt; ASModule::init(interface, bytecode, gas_costs),
     })
 }
 </code></pre></div>

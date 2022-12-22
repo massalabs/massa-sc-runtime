@@ -121,12 +121,23 @@
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::execution::{create_instance, get_module, MassaModule};
 <span class="kw">use </span><span class="kw">crate</span>::settings;
 <span class="kw">use </span><span class="kw">crate</span>::types::{Interface, Response};
 
+<span class="kw">use </span><span class="kw">crate</span>::GasCosts;
 <span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
-<span class="kw">use </span>wasmer::Instance;
+<span class="kw">use </span>wasmer::{Instance, Store};
 <span class="kw">use </span>wasmer_middlewares::metering::{<span class="self">self</span>, MeteringPoints};
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;gas_calibration&quot;</span>)]
@@ -146,25 +157,24 @@
 /// The return of the function executed as string and the remaining gas for the rest of the execution.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>exec(
     limit: u64,
-    instance: <span class="prelude-ty">Option</span>&lt;Instance&gt;,
+    instance_and_store: <span class="prelude-ty">Option</span>&lt;(Instance, Store)&gt;,
     <span class="kw-2">mut </span>module: <span class="kw">impl </span>MassaModule,
     function: <span class="kw-2">&amp;</span>str,
     param: <span class="kw-2">&amp;</span>[u8],
-) -&gt; <span class="prelude-ty">Result</span>&lt;(Response, Instance)&gt; {
-    <span class="kw">let </span>instance = <span class="kw">match </span>instance {
-        <span class="prelude-val">Some</span>(instance) =&gt; instance,
-        <span class="prelude-val">None </span>=&gt; create_instance(limit, <span class="kw-2">&amp;</span>module)<span class="question-mark">?</span>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(Response, Instance, Store)&gt; {
+    <span class="kw">let </span>(instance, <span class="kw-2">mut </span>store) = <span class="kw">match </span>instance_and_store {
+        <span class="prelude-val">Some</span>((instance, store)) =&gt; (instance, store),
+        <span class="prelude-val">None </span>=&gt; create_instance(limit, <span class="kw-2">&amp;mut </span>module)<span class="question-mark">?</span>,
     };
-    module.init_with_instance(<span class="kw-2">&amp;</span>instance)<span class="question-mark">?</span>;
 
-    <span class="kw">match </span>module.execution(<span class="kw-2">&amp;</span>instance, function, param) {
-        <span class="prelude-val">Ok</span>(response) =&gt; <span class="prelude-val">Ok</span>((response, instance)),
+    <span class="kw">match </span>module.execution(<span class="kw-2">&amp;</span>instance, <span class="kw-2">&amp;mut </span>store, function, param) {
+        <span class="prelude-val">Ok</span>(response) =&gt; <span class="prelude-val">Ok</span>((response, instance, store)),
         <span class="prelude-val">Err</span>(err) =&gt; {
             <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
                 <span class="macro">bail!</span>(err)
             } <span class="kw">else </span>{
                 <span class="comment">// Because the last needed more than the remaining points, we should have an error.
-                </span><span class="kw">match </span>metering::get_remaining_points(<span class="kw-2">&amp;</span>instance) {
+                </span><span class="kw">match </span>metering::get_remaining_points(<span class="kw-2">&amp;mut </span>store, <span class="kw-2">&amp;</span>instance) {
                     MeteringPoints::Remaining(..) =&gt; <span class="macro">bail!</span>(err),
                     MeteringPoints::Exhausted =&gt; {
                         <span class="macro">bail!</span>(<span class="string">&quot;Not enough gas, limit reached at: {function}&quot;</span>)
@@ -188,13 +198,20 @@
 /// ```
 /// Return:
 /// the remaining gas.
-</span><span class="kw">pub fn </span>run_main(bytecode: <span class="kw-2">&amp;</span>[u8], limit: u64, interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
-    <span class="kw">let </span>module = get_module(interface, bytecode)<span class="question-mark">?</span>;
-    <span class="kw">let </span>instance = create_instance(limit, <span class="kw-2">&amp;</span>module)<span class="question-mark">?</span>;
+</span><span class="kw">pub fn </span>run_main(
+    bytecode: <span class="kw-2">&amp;</span>[u8],
+    limit: u64,
+    interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
+    gas_costs: GasCosts,
+) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>module = get_module(interface, bytecode, gas_costs)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(instance, store) = create_instance(limit, <span class="kw-2">&amp;mut </span>module)<span class="question-mark">?</span>;
     <span class="kw">if </span>instance.exports.contains(settings::MAIN) {
-        <span class="prelude-val">Ok</span>(exec(limit, <span class="prelude-val">Some</span>(instance), module, settings::MAIN, <span class="string">b&quot;&quot;</span>)<span class="question-mark">?
-            </span>.<span class="number">0
-            </span>.remaining_gas)
+        <span class="prelude-val">Ok</span>(
+            exec(limit, <span class="prelude-val">Some</span>((instance, store)), module, settings::MAIN, <span class="string">b&quot;&quot;</span>)<span class="question-mark">?
+                </span>.<span class="number">0
+                </span>.remaining_gas,
+        )
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(limit)
     }
@@ -217,8 +234,9 @@
     function: <span class="kw-2">&amp;</span>str,
     param: <span class="kw-2">&amp;</span>[u8],
     interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
+    gas_costs: GasCosts,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
-    <span class="kw">let </span>module = get_module(interface, bytecode)<span class="question-mark">?</span>;
+    <span class="kw">let </span>module = get_module(interface, bytecode, gas_costs)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(exec(limit, <span class="prelude-val">None</span>, module, function, param)<span class="question-mark">?</span>.<span class="number">0</span>.remaining_gas)
 }
 
@@ -228,18 +246,20 @@
     bytecode: <span class="kw-2">&amp;</span>[u8],
     limit: u64,
     interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
+    param: <span class="kw-2">&amp;</span>[u8],
+    gas_costs: GasCosts,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;GasCalibrationResult&gt; {
-    <span class="kw">let </span>module = get_module(interface, bytecode)<span class="question-mark">?</span>;
-    <span class="kw">let </span>instance = create_instance(limit, <span class="kw-2">&amp;</span>module)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>module = get_module(interface, bytecode, gas_costs)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(instance, store) = create_instance(limit, <span class="kw-2">&amp;mut </span>module)<span class="question-mark">?</span>;
     <span class="kw">if </span>instance.exports.contains(settings::MAIN) {
-        <span class="kw">let </span>(_resp, instance) = exec(
+        <span class="kw">let </span>(_resp, instance, <span class="kw-2">mut </span>store) = exec(
             u64::MAX,
-            <span class="prelude-val">Some</span>(instance.clone()),
+            <span class="prelude-val">Some</span>((instance.clone(), store)),
             module,
             settings::MAIN,
-            <span class="string">b&quot;&quot;</span>,
+            param,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(get_gas_calibration_result(<span class="kw-2">&amp;</span>instance))
+        <span class="prelude-val">Ok</span>(get_gas_calibration_result(<span class="kw-2">&amp;</span>instance, <span class="kw-2">&amp;mut </span>store))
     } <span class="kw">else </span>{
         <span class="macro">bail!</span>(<span class="string">&quot;No main&quot;</span>);
     }

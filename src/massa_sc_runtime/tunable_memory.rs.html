@@ -122,18 +122,7 @@
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::ptr::NonNull;
-<span class="kw">use </span>std::sync::Arc;
-
-<span class="kw">use </span>loupe::MemoryUsage;
 <span class="kw">use </span>wasmer::{
     vm::{<span class="self">self</span>, MemoryError, MemoryStyle, TableStyle, VMMemoryDefinition, VMTableDefinition},
     MemoryType, Pages, TableType, Tunables,
@@ -145,7 +134,6 @@
 ///
 /// After adjusting the memory limits, it delegates all other logic
 /// to the base tunables.
-</span><span class="attr">#[derive(MemoryUsage)]
 </span><span class="kw">pub struct </span>LimitingTunables&lt;T: Tunables&gt; {
     <span class="doccomment">/// The maximum a linear memory is allowed to be (in Wasm pages, 64 KiB each).
     /// Since Wasmer ensures there is only none or one memory, this is practically
@@ -218,7 +206,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ty: <span class="kw-2">&amp;</span>MemoryType,
         style: <span class="kw-2">&amp;</span>MemoryStyle,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;<span class="kw">dyn </span>vm::Memory&gt;, MemoryError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;vm::VMMemory, MemoryError&gt; {
         <span class="kw">let </span>adjusted = <span class="self">self</span>.adjust_memory(ty);
         <span class="self">self</span>.validate_memory(<span class="kw-2">&amp;</span>adjusted)<span class="question-mark">?</span>;
         <span class="self">self</span>.base.create_host_memory(<span class="kw-2">&amp;</span>adjusted, style)
@@ -232,7 +220,7 @@
         ty: <span class="kw-2">&amp;</span>MemoryType,
         style: <span class="kw-2">&amp;</span>MemoryStyle,
         vm_definition_location: NonNull&lt;VMMemoryDefinition&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;<span class="kw">dyn </span>vm::Memory&gt;, MemoryError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;vm::VMMemory, MemoryError&gt; {
         <span class="kw">let </span>adjusted = <span class="self">self</span>.adjust_memory(ty);
         <span class="self">self</span>.validate_memory(<span class="kw-2">&amp;</span>adjusted)<span class="question-mark">?</span>;
         <span class="self">self</span>.base
@@ -242,11 +230,7 @@
     <span class="doccomment">/// Create a table owned by the host given a [`TableType`] and a [`TableStyle`].
     ///
     /// Delegated to base.
-    </span><span class="kw">fn </span>create_host_table(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ty: <span class="kw-2">&amp;</span>TableType,
-        style: <span class="kw-2">&amp;</span>TableStyle,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;<span class="kw">dyn </span>vm::Table&gt;, String&gt; {
+    </span><span class="kw">fn </span>create_host_table(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>TableType, style: <span class="kw-2">&amp;</span>TableStyle) -&gt; <span class="prelude-ty">Result</span>&lt;vm::VMTable, String&gt; {
         <span class="self">self</span>.base.create_host_table(ty, style)
     }
 
@@ -258,7 +242,7 @@
         ty: <span class="kw-2">&amp;</span>TableType,
         style: <span class="kw-2">&amp;</span>TableStyle,
         vm_definition_location: NonNull&lt;VMTableDefinition&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;<span class="kw">dyn </span>vm::Table&gt;, String&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;vm::VMTable, String&gt; {
         <span class="self">self</span>.base.create_vm_table(ty, style, vm_definition_location)
     }
 }

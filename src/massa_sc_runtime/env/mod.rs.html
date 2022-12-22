@@ -100,107 +100,145 @@
 <a href="#100" id="100">100</a>
 <a href="#101" id="101">101</a>
 <a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>as_env;
 
 <span class="kw">use crate</span>::{
     execution::{abi_bail, ABIResult},
-    Interface,
+    GasCosts, Interface,
 };
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>as_env::<span class="kw-2">*</span>;
-<span class="kw">use </span>wasmer::{Global, WasmerEnv};
+<span class="kw">use </span>wasmer::{AsStoreMut, Global};
 
 <span class="macro">macro_rules! </span>get_memory {
     (<span class="macro-nonterminal">$env</span>:ident) =&gt; {
-        <span class="kw">match </span><span class="macro-nonterminal">$env</span>.get_wasm_env().memory.get_ref() {
+        <span class="kw">match </span><span class="macro-nonterminal">$env</span>.get_wasm_env().memory.as_ref() {
             <span class="prelude-val">Some</span>(mem) =&gt; mem,
-            <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;uninitialized memory&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;No memory in env&quot;</span>),
         }
     };
 }
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>get_memory;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>MassaEnv&lt;T: WasmerEnv&gt;: WasmerEnv {
-    <span class="kw">fn </span>new(interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface) -&gt; <span class="self">Self</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>MassaEnv&lt;T&gt; {
+    <span class="kw">fn </span>new(interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface, gas_costs: GasCosts) -&gt; <span class="self">Self</span>;
     <span class="kw">fn </span>get_exhausted_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Global&gt;;
     <span class="kw">fn </span>get_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Global&gt;;
+    <span class="kw">fn </span>get_gc_param(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Global&gt;;
+    <span class="kw">fn </span>get_gas_costs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GasCosts;
     <span class="kw">fn </span>get_interface(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Interface&gt;;
     <span class="kw">fn </span>get_wasm_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T;
+    <span class="kw">fn </span>get_wasm_env_as_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T;
 }
 
 <span class="doccomment">/// Get remaining metering points
 /// Should be equivalent to
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L293
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_remaining_points&lt;T: WasmerEnv&gt;(env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;) -&gt; ABIResult&lt;u64&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_remaining_points&lt;T&gt;(
+    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;,
+    store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
+) -&gt; ABIResult&lt;u64&gt; {
     <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
-    }
-    <span class="kw">match </span>env.get_exhausted_points().as_ref() {
-        <span class="prelude-val">Some</span>(exhausted_points) =&gt; <span class="kw">match </span>exhausted_points.get().try_into() {
-            <span class="prelude-val">Ok</span>::&lt;i32, <span class="kw">_</span>&gt;(exhausted) <span class="kw">if </span>exhausted &gt; <span class="number">0 </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>),
-            <span class="prelude-val">Ok</span>::&lt;i32, <span class="kw">_</span>&gt;(<span class="kw">_</span>) =&gt; (),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;exhausted_points has wrong type&quot;</span>),
-        },
-        <span class="prelude-val">None </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;Lost reference to exhausted_points&quot;</span>),
-    };
-    <span class="kw">match </span>env.get_remaining_points().as_ref() {
-        <span class="prelude-val">Some</span>(remaining_points) =&gt; <span class="kw">match </span>remaining_points.get().try_into() {
-            <span class="prelude-val">Ok</span>::&lt;u64, <span class="kw">_</span>&gt;(remaining) =&gt; <span class="prelude-val">Ok</span>(remaining),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;remaining_points has wrong type&quot;</span>),
-        },
-        <span class="prelude-val">None </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;Lost reference to remaining_points&quot;</span>),
+        <span class="prelude-val">Ok</span>(u64::MAX)
+    } <span class="kw">else </span>{
+        <span class="kw">match </span>env.get_exhausted_points().as_ref() {
+            <span class="prelude-val">Some</span>(exhausted_points) =&gt; <span class="kw">match </span>exhausted_points.get(store).try_into() {
+                <span class="prelude-val">Ok</span>::&lt;i32, <span class="kw">_</span>&gt;(exhausted) <span class="kw">if </span>exhausted &gt; <span class="number">0 </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>),
+                <span class="prelude-val">Ok</span>::&lt;i32, <span class="kw">_</span>&gt;(<span class="kw">_</span>) =&gt; (),
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;exhausted_points has wrong type&quot;</span>),
+            },
+            <span class="prelude-val">None </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;Lost reference to exhausted_points&quot;</span>),
+        };
+        <span class="kw">match </span>env.get_remaining_points().as_ref() {
+            <span class="prelude-val">Some</span>(remaining_points) =&gt; <span class="kw">match </span>remaining_points.get(store).try_into() {
+                <span class="prelude-val">Ok</span>::&lt;u64, <span class="kw">_</span>&gt;(remaining) =&gt; <span class="prelude-val">Ok</span>(remaining),
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;remaining_points has wrong type&quot;</span>),
+            },
+            <span class="prelude-val">None </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;Lost reference to remaining_points&quot;</span>),
+        }
     }
 }
 
 <span class="doccomment">/// Set remaining metering points
 /// Should be equivalent to
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L343
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_remaining_points&lt;T: WasmerEnv&gt;(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_remaining_points&lt;T&gt;(
     env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;,
+    store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
     points: u64,
 ) -&gt; ABIResult&lt;()&gt; {
-    <span class="kw">match </span>env.get_remaining_points().as_ref() {
-        <span class="prelude-val">Some</span>(remaining_points) =&gt; {
-            <span class="kw">if </span>remaining_points.set(points.into()).is_err() {
-                <span class="macro">abi_bail!</span>(<span class="string">&quot;Can&#39;t set remaining_points&quot;</span>);
+    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+        <span class="kw">match </span>env.get_remaining_points().as_ref() {
+            <span class="prelude-val">Some</span>(remaining_points) =&gt; {
+                <span class="kw">if </span>remaining_points.set(store, points.into()).is_err() {
+                    <span class="macro">abi_bail!</span>(<span class="string">&quot;Can&#39;t set remaining_points&quot;</span>);
+                }
             }
-        }
-        <span class="prelude-val">None </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;Lost reference to remaining_points&quot;</span>),
-    };
-    <span class="kw">match </span>env.get_exhausted_points().as_ref() {
-        <span class="prelude-val">Some</span>(exhausted_points) =&gt; {
-            <span class="kw">if </span>exhausted_points.set(<span class="number">0i32</span>.into()).is_err() {
-                <span class="macro">abi_bail!</span>(<span class="string">&quot;Can&#39;t set exhausted_points&quot;</span>)
+            <span class="prelude-val">None </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;Lost reference to remaining_points&quot;</span>),
+        };
+        <span class="kw">match </span>env.get_exhausted_points().as_ref() {
+            <span class="prelude-val">Some</span>(exhausted_points) =&gt; {
+                <span class="kw">if </span>exhausted_points.set(store, <span class="number">0i32</span>.into()).is_err() {
+                    <span class="macro">abi_bail!</span>(<span class="string">&quot;Can&#39;t set exhausted_points&quot;</span>)
+                }
             }
-        }
-        <span class="prelude-val">None </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;Lost reference to exhausted_points&quot;</span>),
-    };
+            <span class="prelude-val">None </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;Lost reference to exhausted_points&quot;</span>),
+        };
+    }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sub_remaining_gas&lt;T: WasmerEnv&gt;(env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;, gas: u64) -&gt; ABIResult&lt;()&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sub_remaining_gas&lt;T&gt;(
+    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;,
+    store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
+    gas: u64,
+) -&gt; ABIResult&lt;()&gt; {
     <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(());
     }
-    <span class="kw">let </span>remaining_gas = get_remaining_points(env)<span class="question-mark">?</span>;
+    <span class="kw">let </span>remaining_gas = get_remaining_points(env, store)<span class="question-mark">?</span>;
     <span class="kw">if let </span><span class="prelude-val">Some</span>(remaining_gas) = remaining_gas.checked_sub(gas) {
-        set_remaining_points(env, remaining_gas)<span class="question-mark">?</span>;
+        set_remaining_points(env, store, remaining_gas)<span class="question-mark">?</span>;
     } <span class="kw">else </span>{
         <span class="macro">abi_bail!</span>(<span class="string">&quot;Remaining gas reach zero&quot;</span>)
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Try to subtract remaining gas computing the gas with a*b and ceiling
-/// the result.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sub_remaining_gas_with_mult&lt;T: WasmerEnv&gt;(
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sub_remaining_gas_abi&lt;T&gt;(
     env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;,
-    a: usize,
-    b: usize,
+    store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
+    abi_name: <span class="kw-2">&amp;</span>str,
 ) -&gt; ABIResult&lt;()&gt; {
-    <span class="kw">match </span>a.checked_mul(b) {
-        <span class="prelude-val">Some</span>(gas) =&gt; sub_remaining_gas(env, gas <span class="kw">as </span>u64),
-        <span class="prelude-val">None </span>=&gt; <span class="macro">abi_bail!</span>(<span class="macro">format!</span>(<span class="string">&quot;Multiplication overflow {a} {b}&quot;</span>)),
-    }
+    sub_remaining_gas(
+        env,
+        store,
+        <span class="kw-2">*</span>env.get_gas_costs()
+            .abi_costs
+            .get(abi_name)
+            .ok_or(wasmer::RuntimeError::new(<span class="macro">format!</span>(
+                <span class="string">&quot;Failed to get gas for {} ABI&quot;</span>,
+                abi_name
+            )))<span class="question-mark">?</span>,
+    )
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (b569c9dc5 2022-12-21)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-58836c674e2f7bd2.css" ></div></body></html>

@@ -73,17 +73,50 @@
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
-</pre><pre class="rust"><code><span class="kw">use </span>wasmer::WasmerEnv;
-
-<span class="kw">use </span><span class="kw">crate</span>::env::{get_remaining_points, set_remaining_points, MassaEnv};
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
 <span class="kw">use </span><span class="kw">crate</span>::Response;
+<span class="kw">use </span>displaydoc::Display;
+<span class="kw">use </span>thiserror::Error;
+<span class="kw">use </span>wasmer::FunctionEnvMut;
 
 <span class="kw">use </span><span class="kw">super</span>::get_module;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ABIResult&lt;T, E = wasmer::RuntimeError&gt; = core::result::Result&lt;T, E&gt;;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ABIResult&lt;T, E = ABIError&gt; = core::result::Result&lt;T, E&gt;;
+
+<span class="attr">#[derive(Display, Error, Debug)]
+</span><span class="kw">pub enum </span>ABIError {
+    <span class="doccomment">/// Runtime error: {0}
+    </span>Error(<span class="attr">#[from] </span>anyhow::Error),
+    <span class="doccomment">/// Runtime wasmer error: {0}
+    </span>WasmerError(<span class="attr">#[from] </span>wasmer::RuntimeError),
+    <span class="doccomment">/// Runtime serde_json error: {0}
+    </span>SerdeError(<span class="attr">#[from] </span>serde_json::Error),
+}
+
 <span class="macro">macro_rules! </span>abi_bail {
     (<span class="macro-nonterminal">$err</span>:expr) =&gt; {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(wasmer::RuntimeError::new(<span class="macro-nonterminal">$err</span>.to_string()))
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::execution::ABIError::Error(<span class="macro">anyhow::anyhow!</span>(
+            <span class="macro-nonterminal">$err</span>.to_string()
+        )))
     };
 }
 
@@ -96,8 +129,8 @@
 /// It take in argument the environment defined in env.rs
 /// this environment is automatically filled by the wasmer library
 /// And two pointers of string. (look at the readme in the wasm folder)
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>call_module&lt;T: WasmerEnv&gt;(
-    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>call_module(
+    ctx: <span class="kw-2">&amp;mut </span>FunctionEnvMut&lt;ASEnv&gt;,
     address: <span class="kw-2">&amp;</span>str,
     function: <span class="kw-2">&amp;</span>str,
     param: <span class="kw-2">&amp;</span>[u8],
@@ -107,46 +140,51 @@
         <span class="prelude-val">Ok</span>(v) =&gt; v,
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative amount of coins in Call&quot;</span>),
     };
-    <span class="kw">let </span>bytecode = <span class="kw-2">&amp;</span><span class="kw">match </span>env.get_interface().init_call(address, raw_coins) {
-        <span class="prelude-val">Ok</span>(bytecode) =&gt; bytecode,
-        <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
-    };
-    <span class="kw">let </span>module = <span class="kw">match </span>get_module(<span class="kw-2">&amp;*</span>env.get_interface(), bytecode) {
-        <span class="prelude-val">Ok</span>(module) =&gt; module,
-        <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
-    };
+    <span class="kw">let </span>env = ctx.data().clone();
+    <span class="kw">let </span>bytecode = env.get_interface().init_call(address, raw_coins)<span class="question-mark">?</span>;
+    <span class="kw">let </span>module = get_module(<span class="kw-2">&amp;*</span>env.get_interface(), <span class="kw-2">&amp;</span>bytecode, env.get_gas_costs())<span class="question-mark">?</span>;
 
     <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
         <span class="prelude-val">Ok</span>(u64::MAX)
     } <span class="kw">else </span>{
-        get_remaining_points(env)
+        get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)
     };
 
-    <span class="kw">match </span><span class="kw">crate</span>::execution_impl::exec(remaining_gas<span class="question-mark">?</span>, <span class="prelude-val">None</span>, module, function, param) {
-        <span class="prelude-val">Ok</span>(resp) =&gt; {
-            <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = set_remaining_points(env, resp.<span class="number">0</span>.remaining_gas) {
-                    <span class="macro">abi_bail!</span>(err);
-                }
-            }
-            <span class="kw">match </span>env.get_interface().finish_call() {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(resp.<span class="number">0</span>),
-                <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
-            }
-        }
-        <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
+    <span class="kw">let </span>resp = <span class="kw">crate</span>::execution_impl::exec(remaining_gas<span class="question-mark">?</span>, <span class="prelude-val">None</span>, module, function, param)<span class="question-mark">?</span>;
+    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+        set_remaining_points(<span class="kw-2">&amp;</span>env, ctx, resp.<span class="number">0</span>.remaining_gas)<span class="question-mark">?</span>;
     }
+    env.get_interface().finish_call()<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(resp.<span class="number">0</span>)
+}
+
+<span class="doccomment">/// Alternative to `call_module` to execute bytecode in a local context
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>local_call(
+    ctx: <span class="kw-2">&amp;mut </span>FunctionEnvMut&lt;ASEnv&gt;,
+    bytecode: <span class="kw-2">&amp;</span>[u8],
+    function: <span class="kw-2">&amp;</span>str,
+    param: <span class="kw-2">&amp;</span>[u8],
+) -&gt; ABIResult&lt;Response&gt; {
+    <span class="kw">let </span>env = ctx.data().clone();
+    <span class="kw">let </span>module = get_module(<span class="kw-2">&amp;*</span>env.get_interface(), bytecode, env.get_gas_costs())<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
+        <span class="prelude-val">Ok</span>(u64::MAX)
+    } <span class="kw">else </span>{
+        get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)
+    };
+
+    <span class="kw">let </span>resp = <span class="kw">crate</span>::execution_impl::exec(remaining_gas<span class="question-mark">?</span>, <span class="prelude-val">None</span>, module, function, param)<span class="question-mark">?</span>;
+    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+        set_remaining_points(<span class="kw-2">&amp;</span>env, ctx, resp.<span class="number">0</span>.remaining_gas)<span class="question-mark">?</span>;
+    }
+    <span class="prelude-val">Ok</span>(resp.<span class="number">0</span>)
 }
 
 <span class="doccomment">/// Create a smart contract with the given `bytecode`
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_sc&lt;T: WasmerEnv&gt;(
-    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;,
-    bytecode: <span class="kw-2">&amp;</span>[u8],
-) -&gt; ABIResult&lt;String&gt; {
-    <span class="kw">match </span>env.get_interface().create_module(bytecode) {
-        <span class="prelude-val">Ok</span>(address) =&gt; <span class="prelude-val">Ok</span>(address),
-        <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
-    }
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_sc(ctx: <span class="kw-2">&amp;mut </span>FunctionEnvMut&lt;ASEnv&gt;, bytecode: <span class="kw-2">&amp;</span>[u8]) -&gt; ABIResult&lt;String&gt; {
+    <span class="kw">let </span>env = ctx.data();
+    <span class="prelude-val">Ok</span>(env.get_interface().create_module(bytecode)<span class="question-mark">?</span>)
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (b569c9dc5 2022-12-21)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-58836c674e2f7bd2.css" ></div></body></html>
