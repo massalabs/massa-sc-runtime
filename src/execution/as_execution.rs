@@ -101,34 +101,41 @@ impl MassaModule for ASModule {
         fenv: &mut FunctionEnv<ASEnv>,
     ) -> Result<()> {
         let memory = instance.exports.get_memory("memory")?;
+
+        // Note: only add functions (__new, ...) if these exists in wasm/wat files
+        //       so we can still exec some very basic wat files
         let fn_new = instance
             .exports
-            .get_typed_function::<(i32, i32), i32>(&store, "__new")?;
+            .get_typed_function::<(i32, i32), i32>(&store, "__new")
+            .ok();
         let fn_pin = instance
             .exports
-            .get_typed_function::<i32, i32>(&store, "__pin")?;
+            .get_typed_function::<i32, i32>(&store, "__pin")
+            .ok();
         let fn_unpin = instance
             .exports
-            .get_typed_function::<i32, ()>(&store, "__unpin")?;
+            .get_typed_function::<i32, ()>(&store, "__unpin")
+            .ok();
         let fn_collect = instance
             .exports
-            .get_typed_function::<(), ()>(&store, "__collect")?;
+            .get_typed_function::<(), ()>(&store, "__collect")
+            .ok();
 
         fenv.as_mut(store).get_wasm_env_as_mut().init_with(
             Some(memory.clone()),
-            Some(fn_new.clone()),
-            Some(fn_pin.clone()),
-            Some(fn_unpin.clone()),
-            Some(fn_collect.clone()),
+            fn_new.clone(),
+            fn_pin.clone(),
+            fn_unpin.clone(),
+            fn_collect.clone(),
         );
 
         // Update self.env as well
         self.env.get_wasm_env_as_mut().init_with(
             Some(memory.clone()),
-            Some(fn_new),
-            Some(fn_pin),
-            Some(fn_unpin),
-            Some(fn_collect),
+            fn_new,
+            fn_pin,
+            fn_unpin,
+            fn_collect,
         );
 
         // metering counters
