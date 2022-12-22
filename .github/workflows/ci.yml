@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, staging, trying]
   pull_request:
-    branches: [main]
+    branches: [main, 'testnet_*']
 
 env:
   CARGO_TERM_COLOR: always
@@ -71,7 +71,7 @@ jobs:
 
   # Full cross-platform tests required by bors to merge on main branch
   full:
-    if: github.ref == 'refs/heads/staging'
+    # if: github.ref == 'refs/heads/staging'
     name: full
     needs: sanity
     runs-on: ${{ matrix.os }}
@@ -99,7 +99,7 @@ jobs:
           command: test
 
   build: # quick hack because bors wrongly detect matrix jobs status
-    if: github.ref == 'refs/heads/staging'
+    # if: github.ref == 'refs/heads/staging'
     needs: full
     runs-on: ubuntu-latest
     steps:
@@ -138,7 +138,7 @@ jobs:
 
   doc:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    # if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -157,3 +157,4 @@ jobs:
         with:
           branch: gh-pages
           folder: target/doc
+
