@@ -378,7 +378,7 @@ pub fn get_gas_calibration_result(
     result
 }
 
-pub(crate) fn param_size_update(
+pub(crate) fn _param_size_update(
     env: &ASEnv,
     store: &mut impl AsStoreMut,
     function_name: &str,

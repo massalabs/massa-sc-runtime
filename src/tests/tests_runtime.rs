@@ -270,9 +270,10 @@ fn test_wat() {
     use crate::execution_impl::exec;
 
     let gas_limit = 100_000;
-    let module = get_module(&*interface, bytecode, gas_costs).unwrap();
+    let mut module = get_module(&*interface, bytecode, gas_costs).unwrap();
     let instance = create_instance(gas_limit, &mut module).unwrap();
-    let (response, _i) = exec(gas_limit, Some(instance), module, settings::MAIN, b"").unwrap();
+    let (response, _i, _store) =
+        exec(gas_limit, Some(instance), module, settings::MAIN, b"").unwrap();
     // println!("response: {:?}", response.ret);
 
     // Note: for now, exec main always return an empty vec

@@ -5,7 +5,6 @@
 //! module. You can look at the other side of the mirror in `massa.ts` and the
 //! rust side in `execution_impl.rs`.
 use crate::env::{get_memory, get_remaining_points, sub_remaining_gas_abi, ASEnv, MassaEnv};
-use crate::middlewares::gas_calibration::param_size_update;
 use crate::settings;
 use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use function_name::named;
@@ -35,7 +34,7 @@ pub(crate) fn assembly_script_transfer_coins(
         abi_bail!("Negative raw amount.");
     }
     let memory = get_memory!(env);
-    let to_address = &read_string(memory, &mut ctx, to_address)?;
+    let to_address = &read_string(memory, &ctx, to_address)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, to_address.len(), true);
@@ -59,8 +58,8 @@ pub(crate) fn assembly_script_transfer_coins_for(
         abi_bail!("Negative raw amount.");
     }
     let memory = get_memory!(env);
-    let from_address = &read_string(memory, &mut ctx, from_address)?;
-    let to_address = &read_string(memory, &mut ctx, to_address)?;
+    let from_address = &read_string(memory, &ctx, from_address)?;
+    let to_address = &read_string(memory, &ctx, to_address)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, from_address.len(), true);
@@ -87,7 +86,7 @@ pub(crate) fn assembly_script_get_balance_for(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let address = &read_string(memory, &mut ctx, address)?;
+    let address = &read_string(memory, &ctx, address)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -108,9 +107,9 @@ pub(crate) fn assembly_script_call(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let address = &read_string(memory, &mut ctx, address)?;
-    let function = &read_string(memory, &mut ctx, function)?;
-    let param = &read_buffer(memory, &mut ctx, param)?;
+    let address = &read_string(memory, &ctx, address)?;
+    let function = &read_string(memory, &ctx, function)?;
+    let param = &read_buffer(memory, &ctx, param)?;
 
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
@@ -147,7 +146,7 @@ pub(crate) fn assembly_script_print(mut ctx: FunctionEnvMut<ASEnv>, arg: i32) ->
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let message = read_string(memory, &mut ctx, arg)?;
+    let message = read_string(memory, &ctx, arg)?;
 
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
@@ -184,7 +183,7 @@ pub(crate) fn assembly_script_has_op_key(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let env = ctx.data().clone();
     let memory = get_memory!(env);
-    let key_bytes = read_buffer(memory, &mut ctx, key)?;
+    let key_bytes = read_buffer(memory, &ctx, key)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key_bytes.len(), true);
@@ -211,7 +210,7 @@ pub(crate) fn assembly_script_get_op_data(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let key_bytes = read_buffer(memory, &mut ctx, key)?;
+    let key_bytes = read_buffer(memory, &ctx, key)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key_bytes.len(), true);
@@ -231,7 +230,7 @@ pub(crate) fn assembly_script_create_sc(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let bytecode: Vec<u8> = read_buffer(memory, &mut ctx, bytecode)?;
+    let bytecode: Vec<u8> = read_buffer(memory, &ctx, bytecode)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, bytecode.len(), true);
@@ -246,7 +245,7 @@ pub(crate) fn assembly_script_hash(mut ctx: FunctionEnvMut<ASEnv>, value: i32) -
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let value = read_string(memory, &mut ctx, value)?;
+    let value = read_string(memory, &ctx, value)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, value.len(), true);
@@ -275,7 +274,7 @@ pub(crate) fn assembly_script_get_keys_for(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let address = read_string(memory, &mut ctx, address)?;
+    let address = read_string(memory, &ctx, address)?;
     let keys = env.get_interface().get_keys_for(&address)?;
     let fmt_keys = ser_bytearray_vec(&keys, keys.len(), settings::max_datastore_entry_count())?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &fmt_keys)?.offset();
@@ -292,8 +291,8 @@ pub(crate) fn assembly_script_set_data(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer(memory, &mut ctx, key)?;
-    let value = read_buffer(memory, &mut ctx, value)?;
+    let key = read_buffer(memory, &ctx, key)?;
+    let value = read_buffer(memory, &ctx, value)?;
 
     // if cfg!(feature = "gas_calibration") {
     //     param_size_update(
@@ -326,8 +325,8 @@ pub(crate) fn assembly_script_append_data(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer(memory, &mut ctx, key)?;
-    let value = read_buffer(memory, &mut ctx, value)?;
+    let key = read_buffer(memory, &ctx, key)?;
+    let value = read_buffer(memory, &ctx, value)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
@@ -344,7 +343,7 @@ pub(crate) fn assembly_script_get_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer(memory, &mut ctx, key)?;
+    let key = read_buffer(memory, &ctx, key)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
@@ -359,7 +358,7 @@ pub(crate) fn assembly_script_has_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer(memory, &mut ctx, key)?;
+    let key = read_buffer(memory, &ctx, key)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
@@ -376,7 +375,7 @@ pub(crate) fn assembly_script_delete_data(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer(memory, &mut ctx, key)?;
+    let key = read_buffer(memory, &ctx, key)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
@@ -397,9 +396,9 @@ pub(crate) fn assembly_script_set_data_for(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer(memory, &mut ctx, key)?;
-    let value = read_buffer(memory, &mut ctx, value)?;
-    let address = read_string(memory, &mut ctx, address)?;
+    let key = read_buffer(memory, &ctx, key)?;
+    let value = read_buffer(memory, &ctx, value)?;
+    let address = read_string(memory, &ctx, address)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -424,9 +423,9 @@ pub(crate) fn assembly_script_append_data_for(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let key = read_buffer(memory, &mut ctx, key)?;
-    let value = read_buffer(memory, &mut ctx, value)?;
-    let address = read_string(memory, &mut ctx, address)?;
+    let key = read_buffer(memory, &ctx, key)?;
+    let value = read_buffer(memory, &ctx, value)?;
+    let address = read_string(memory, &ctx, address)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -450,8 +449,8 @@ pub(crate) fn assembly_script_get_data_for(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let address = read_string(memory, &mut ctx, address)?;
-    let key = read_buffer(memory, &mut ctx, key)?;
+    let address = read_string(memory, &ctx, address)?;
+    let key = read_buffer(memory, &ctx, key)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -473,8 +472,8 @@ pub(crate) fn assembly_script_delete_data_for(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let address = read_string(memory, &mut ctx, address)?;
-    let key = read_buffer(memory, &mut ctx, key)?;
+    let address = read_string(memory, &ctx, address)?;
+    let key = read_buffer(memory, &ctx, key)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -494,8 +493,8 @@ pub(crate) fn assembly_script_has_data_for(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let address = read_string(memory, &mut ctx, address)?;
-    let key = read_buffer(memory, &mut ctx, key)?;
+    let address = read_string(memory, &ctx, address)?;
+    let key = read_buffer(memory, &ctx, key)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -531,7 +530,7 @@ pub(crate) fn assembly_script_generate_event(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let event = read_string(memory, &mut ctx, event)?;
+    let event = read_string(memory, &ctx, event)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, event.len(), true);
@@ -551,9 +550,9 @@ pub(crate) fn assembly_script_signature_verify(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let data = read_string(memory, &mut ctx, data)?;
-    let signature = read_string(memory, &mut ctx, signature)?;
-    let public_key = read_string(memory, &mut ctx, public_key)?;
+    let data = read_string(memory, &ctx, data)?;
+    let signature = read_string(memory, &ctx, signature)?;
+    let public_key = read_string(memory, &ctx, public_key)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, data.len(), true);
@@ -576,7 +575,7 @@ pub(crate) fn assembly_script_address_from_public_key(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let public_key = read_string(memory, &mut ctx, public_key)?;
+    let public_key = read_string(memory, &ctx, public_key)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, public_key.len(), true);
@@ -647,9 +646,9 @@ pub(crate) fn assembly_script_send_message(
         abi_bail!("negative coins")
     }
     let memory = get_memory!(env);
-    let target_address = &read_string(memory, &mut ctx, target_address)?;
-    let target_handler = &read_string(memory, &mut ctx, target_handler)?;
-    let data = &read_buffer(memory, &mut ctx, data)?;
+    let target_address = &read_string(memory, &ctx, target_address)?;
+    let target_handler = &read_string(memory, &ctx, target_handler)?;
+    let data = &read_buffer(memory, &ctx, data)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, target_address.len(), true);
@@ -658,8 +657,8 @@ pub(crate) fn assembly_script_send_message(
     //     let fname = format!("massa.{}:2", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, data.len(), true);
     // }
-    let filter_address_string = &read_string(memory, &mut ctx, filter_address)?;
-    let key = read_buffer(memory, &mut ctx, filter_datastore_key)?;
+    let filter_address_string = &read_string(memory, &ctx, filter_address)?;
+    let key = read_buffer(memory, &ctx, filter_datastore_key)?;
     let filter = match (filter_address_string.as_str(), key.as_slice()) {
         ("", _) => None,
         (addr, &[]) => Some((addr, None)),
@@ -706,8 +705,8 @@ pub(crate) fn assembly_script_set_bytecode_for(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let address = read_string(memory, &mut ctx, address)?;
-    let bytecode_raw = read_buffer(memory, &mut ctx, bytecode)?;
+    let address = read_string(memory, &ctx, address)?;
+    let bytecode_raw = read_buffer(memory, &ctx, bytecode)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -728,7 +727,7 @@ pub(crate) fn assembly_script_set_bytecode(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let bytecode_raw = read_buffer(memory, &mut ctx, bytecode)?;
+    let bytecode_raw = read_buffer(memory, &ctx, bytecode)?;
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, bytecode_raw.len(), true);
@@ -755,7 +754,7 @@ pub(crate) fn assembly_script_get_bytecode_for(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let address = read_string(memory, &mut ctx, address)?;
+    let address = read_string(memory, &ctx, address)?;
     let data = env.get_interface().raw_get_bytecode_for(&address)?;
     Ok(pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32)
 }
@@ -772,9 +771,9 @@ pub(crate) fn assembly_script_local_execution(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
 
-    let bytecode = &read_buffer(memory, &mut ctx, bytecode)?;
-    let function = &read_string(memory, &mut ctx, function)?;
-    let param = &read_buffer(memory, &mut ctx, param)?;
+    let bytecode = &read_buffer(memory, &ctx, bytecode)?;
+    let function = &read_string(memory, &ctx, function)?;
+    let param = &read_buffer(memory, &ctx, param)?;
 
     let response = local_call(&mut ctx, bytecode, function, param)?;
     match BufferPtr::alloc(&response.ret, env.get_wasm_env(), &mut ctx) {
@@ -798,10 +797,10 @@ pub(crate) fn assembly_script_local_call(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
 
-    let address = &read_string(memory, &mut ctx, address)?;
+    let address = &read_string(memory, &ctx, address)?;
     let bytecode = env.get_interface().raw_get_bytecode_for(address)?;
-    let function = &read_string(memory, &mut ctx, function)?;
-    let param = &read_buffer(memory, &mut ctx, param)?;
+    let function = &read_string(memory, &ctx, function)?;
+    let param = &read_buffer(memory, &ctx, param)?;
 
     let response = local_call(&mut ctx, &bytecode, function, param)?;
     match BufferPtr::alloc(&response.ret, env.get_wasm_env(), &mut ctx) {
@@ -832,8 +831,8 @@ pub fn assembly_function_exists(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
 
-    let address = &read_string(memory, &mut ctx, address)?;
-    let function = &read_string(memory, &mut ctx, function)?;
+    let address = &read_string(memory, &ctx, address)?;
+    let function = &read_string(memory, &ctx, function)?;
     // NOTE: how do we handle metering for those cases?
     let bytecode = env.get_interface().raw_get_bytecode_for(address)?;
 

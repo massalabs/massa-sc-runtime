@@ -31,9 +31,9 @@ macro_rules! unimplemented {
 
 #[derive(Clone, Debug)]
 pub struct GasCosts {
-    pub operator_cost: u64,
-    pub launch_cost: u64,
-    pub abi_costs: HashMap<String, u64>,
+    pub(crate) operator_cost: u64,
+    pub(crate) launch_cost: u64,
+    pub(crate) abi_costs: HashMap<String, u64>,
 }
 
 impl GasCosts {
@@ -43,11 +43,10 @@ impl GasCosts {
         let wasm_abi_file = std::fs::read_to_string(wasm_abi_file)?;
         let wasm_costs: HashMap<String, u64> = serde_json::from_str(&wasm_abi_file)?;
         Ok(Self {
-            operator_cost: wasm_costs.iter().map(|(_, v)| *v).sum::<u64>()
-                / wasm_costs.len() as u64,
+            operator_cost: wasm_costs.values().copied().sum::<u64>() / wasm_costs.len() as u64,
             launch_cost: *abi_costs
                 .get("Launch")
-                .ok_or(anyhow!("launch cost not found in ABI gas cost file."))?,
+                .ok_or_else(|| anyhow!("launch cost not found in ABI gas cost file."))?,
             abi_costs,
         })
     }

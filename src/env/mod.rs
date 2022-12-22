@@ -110,12 +110,8 @@ pub(crate) fn sub_remaining_gas_abi<T>(
     sub_remaining_gas(
         env,
         store,
-        *env.get_gas_costs()
-            .abi_costs
-            .get(abi_name)
-            .ok_or(wasmer::RuntimeError::new(format!(
-                "Failed to get gas for {} ABI",
-                abi_name
-            )))?,
+        *env.get_gas_costs().abi_costs.get(abi_name).ok_or_else(|| {
+            wasmer::RuntimeError::new(format!("Failed to get gas for {} ABI", abi_name))
+        })?,
     )
 }

@@ -102,7 +102,7 @@ pub(crate) fn create_instance(
         .engine();
     let mut store = Store::new_with_tunables(&engine, tunables);
 
-    let module = &Module::new(&store, &as_module.get_bytecode())?;
+    let module = &Module::new(&store, as_module.get_bytecode())?;
     let (imports, mut fenv) = as_module.resolver(&mut store);
 
     match Instance::new(&mut store, module, &imports) {
