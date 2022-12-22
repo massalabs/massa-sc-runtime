@@ -115,10 +115,6 @@
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>as_env;
 
 <span class="kw">use crate</span>::{
@@ -231,13 +227,9 @@
     sub_remaining_gas(
         env,
         store,
-        <span class="kw-2">*</span>env.get_gas_costs()
-            .abi_costs
-            .get(abi_name)
-            .ok_or(wasmer::RuntimeError::new(<span class="macro">format!</span>(
-                <span class="string">&quot;Failed to get gas for {} ABI&quot;</span>,
-                abi_name
-            )))<span class="question-mark">?</span>,
+        <span class="kw-2">*</span>env.get_gas_costs().abi_costs.get(abi_name).ok_or_else(|| {
+            wasmer::RuntimeError::new(<span class="macro">format!</span>(<span class="string">&quot;Failed to get gas for {} ABI&quot;</span>, abi_name))
+        })<span class="question-mark">?</span>,
     )
 }
 </code></pre></div>

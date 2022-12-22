@@ -957,7 +957,6 @@
 <a href="#957" id="957">957</a>
 <a href="#958" id="958">958</a>
 <a href="#959" id="959">959</a>
-<a href="#960" id="960">960</a>
 </pre><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -965,7 +964,6 @@
 //! module. You can look at the other side of the mirror in `massa.ts` and the
 //! rust side in `execution_impl.rs`.
 </span><span class="kw">use </span><span class="kw">crate</span>::env::{get_memory, get_remaining_points, sub_remaining_gas_abi, ASEnv, MassaEnv};
-<span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::param_size_update;
 <span class="kw">use </span><span class="kw">crate</span>::settings;
 <span class="kw">use </span>as_ffi_bindings::{BufferPtr, Read <span class="kw">as </span>ASRead, StringPtr, Write <span class="kw">as </span>ASWrite};
 <span class="kw">use </span>function_name::named;
@@ -995,7 +993,7 @@
         <span class="macro">abi_bail!</span>(<span class="string">&quot;Negative raw amount.&quot;</span>);
     }
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>to_address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, to_address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>to_address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, to_address)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, to_address.len(), true);
@@ -1019,8 +1017,8 @@
         <span class="macro">abi_bail!</span>(<span class="string">&quot;Negative raw amount.&quot;</span>);
     }
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>from_address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, from_address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>to_address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, to_address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>from_address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, from_address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>to_address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, to_address)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, from_address.len(), true);
@@ -1047,7 +1045,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
@@ -1068,9 +1066,9 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>function = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, function)<span class="question-mark">?</span>;
-    <span class="kw">let </span>param = <span class="kw-2">&amp;</span>read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, param)<span class="question-mark">?</span>;
+    <span class="kw">let </span>address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>function = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, function)<span class="question-mark">?</span>;
+    <span class="kw">let </span>param = <span class="kw-2">&amp;</span>read_buffer(memory, <span class="kw-2">&amp;</span>ctx, param)<span class="question-mark">?</span>;
 
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
@@ -1107,7 +1105,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>message = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, arg)<span class="question-mark">?</span>;
+    <span class="kw">let </span>message = read_string(memory, <span class="kw-2">&amp;</span>ctx, arg)<span class="question-mark">?</span>;
 
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
@@ -1144,7 +1142,7 @@
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>env = ctx.data().clone();
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>key_bytes = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>key_bytes = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key_bytes.len(), true);
@@ -1171,7 +1169,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>key_bytes = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>key_bytes = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key_bytes.len(), true);
@@ -1191,7 +1189,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>bytecode: Vec&lt;u8&gt; = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, bytecode)<span class="question-mark">?</span>;
+    <span class="kw">let </span>bytecode: Vec&lt;u8&gt; = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, bytecode)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, bytecode.len(), true);
@@ -1206,7 +1204,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>value = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, value)<span class="question-mark">?</span>;
+    <span class="kw">let </span>value = read_string(memory, <span class="kw-2">&amp;</span>ctx, value)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, value.len(), true);
@@ -1235,7 +1233,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="kw">let </span>keys = env.get_interface().get_keys_for(<span class="kw-2">&amp;</span>address)<span class="question-mark">?</span>;
     <span class="kw">let </span>fmt_keys = ser_bytearray_vec(<span class="kw-2">&amp;</span>keys, keys.len(), settings::max_datastore_entry_count())<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>fmt_keys)<span class="question-mark">?</span>.offset();
@@ -1252,8 +1250,8 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, key)<span class="question-mark">?</span>;
-    <span class="kw">let </span>value = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, value)<span class="question-mark">?</span>;
+    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>value = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, value)<span class="question-mark">?</span>;
 
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     param_size_update(
@@ -1286,8 +1284,8 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, key)<span class="question-mark">?</span>;
-    <span class="kw">let </span>value = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, value)<span class="question-mark">?</span>;
+    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>value = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, value)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key.len(), true);
@@ -1304,7 +1302,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key.len(), true);
@@ -1319,7 +1317,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key.len(), true);
@@ -1336,7 +1334,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key.len(), true);
@@ -1357,9 +1355,9 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, key)<span class="question-mark">?</span>;
-    <span class="kw">let </span>value = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, value)<span class="question-mark">?</span>;
-    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>value = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, value)<span class="question-mark">?</span>;
+    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
@@ -1384,9 +1382,9 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, key)<span class="question-mark">?</span>;
-    <span class="kw">let </span>value = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, value)<span class="question-mark">?</span>;
-    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>value = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, value)<span class="question-mark">?</span>;
+    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
@@ -1410,8 +1408,8 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
@@ -1433,8 +1431,8 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
@@ -1454,8 +1452,8 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
@@ -1491,7 +1489,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>event = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, event)<span class="question-mark">?</span>;
+    <span class="kw">let </span>event = read_string(memory, <span class="kw-2">&amp;</span>ctx, event)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, event.len(), true);
@@ -1511,9 +1509,9 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>data = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, data)<span class="question-mark">?</span>;
-    <span class="kw">let </span>signature = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, signature)<span class="question-mark">?</span>;
-    <span class="kw">let </span>public_key = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, public_key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>data = read_string(memory, <span class="kw-2">&amp;</span>ctx, data)<span class="question-mark">?</span>;
+    <span class="kw">let </span>signature = read_string(memory, <span class="kw-2">&amp;</span>ctx, signature)<span class="question-mark">?</span>;
+    <span class="kw">let </span>public_key = read_string(memory, <span class="kw-2">&amp;</span>ctx, public_key)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, data.len(), true);
@@ -1536,7 +1534,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>public_key = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, public_key)<span class="question-mark">?</span>;
+    <span class="kw">let </span>public_key = read_string(memory, <span class="kw-2">&amp;</span>ctx, public_key)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, public_key.len(), true);
@@ -1607,9 +1605,9 @@
         <span class="macro">abi_bail!</span>(<span class="string">&quot;negative coins&quot;</span>)
     }
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>target_address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, target_address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>target_handler = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, target_handler)<span class="question-mark">?</span>;
-    <span class="kw">let </span>data = <span class="kw-2">&amp;</span>read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, data)<span class="question-mark">?</span>;
+    <span class="kw">let </span>target_address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, target_address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>target_handler = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, target_handler)<span class="question-mark">?</span>;
+    <span class="kw">let </span>data = <span class="kw-2">&amp;</span>read_buffer(memory, <span class="kw-2">&amp;</span>ctx, data)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, target_address.len(), true);
@@ -1618,8 +1616,8 @@
     //     let fname = format!(&quot;massa.{}:2&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, data.len(), true);
     // }
-    </span><span class="kw">let </span>filter_address_string = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, filter_address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, filter_datastore_key)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>filter_address_string = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, filter_address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, filter_datastore_key)<span class="question-mark">?</span>;
     <span class="kw">let </span>filter = <span class="kw">match </span>(filter_address_string.as_str(), key.as_slice()) {
         (<span class="string">&quot;&quot;</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         (addr, <span class="kw-2">&amp;</span>[]) =&gt; <span class="prelude-val">Some</span>((addr, <span class="prelude-val">None</span>)),
@@ -1666,8 +1664,8 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>bytecode_raw = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, bytecode)<span class="question-mark">?</span>;
+    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>bytecode_raw = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, bytecode)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
@@ -1688,7 +1686,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>bytecode_raw = read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, bytecode)<span class="question-mark">?</span>;
+    <span class="kw">let </span>bytecode_raw = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, bytecode)<span class="question-mark">?</span>;
     <span class="comment">// if cfg!(feature = &quot;gas_calibration&quot;) {
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, bytecode_raw.len(), true);
@@ -1715,7 +1713,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;mut </span>ctx, address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="kw">let </span>data = env.get_interface().raw_get_bytecode_for(<span class="kw-2">&amp;</span>address)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32)
 }
@@ -1732,9 +1730,9 @@
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
 
-    <span class="kw">let </span>bytecode = <span class="kw-2">&amp;</span>read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, bytecode)<span class="question-mark">?</span>;
-    <span class="kw">let </span>function = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, function)<span class="question-mark">?</span>;
-    <span class="kw">let </span>param = <span class="kw-2">&amp;</span>read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, param)<span class="question-mark">?</span>;
+    <span class="kw">let </span>bytecode = <span class="kw-2">&amp;</span>read_buffer(memory, <span class="kw-2">&amp;</span>ctx, bytecode)<span class="question-mark">?</span>;
+    <span class="kw">let </span>function = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, function)<span class="question-mark">?</span>;
+    <span class="kw">let </span>param = <span class="kw-2">&amp;</span>read_buffer(memory, <span class="kw-2">&amp;</span>ctx, param)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>response = local_call(<span class="kw-2">&amp;mut </span>ctx, bytecode, function, param)<span class="question-mark">?</span>;
     <span class="kw">match </span>BufferPtr::alloc(<span class="kw-2">&amp;</span>response.ret, env.get_wasm_env(), <span class="kw-2">&amp;mut </span>ctx) {
@@ -1758,10 +1756,10 @@
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
 
-    <span class="kw">let </span>address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="kw">let </span>bytecode = env.get_interface().raw_get_bytecode_for(address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>function = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, function)<span class="question-mark">?</span>;
-    <span class="kw">let </span>param = <span class="kw-2">&amp;</span>read_buffer(memory, <span class="kw-2">&amp;mut </span>ctx, param)<span class="question-mark">?</span>;
+    <span class="kw">let </span>function = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, function)<span class="question-mark">?</span>;
+    <span class="kw">let </span>param = <span class="kw-2">&amp;</span>read_buffer(memory, <span class="kw-2">&amp;</span>ctx, param)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>response = local_call(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>bytecode, function, param)<span class="question-mark">?</span>;
     <span class="kw">match </span>BufferPtr::alloc(<span class="kw-2">&amp;</span>response.ret, env.get_wasm_env(), <span class="kw-2">&amp;mut </span>ctx) {
@@ -1792,8 +1790,8 @@
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
 
-    <span class="kw">let </span>address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>function = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;mut </span>ctx, function)<span class="question-mark">?</span>;
+    <span class="kw">let </span>address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>function = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, function)<span class="question-mark">?</span>;
     <span class="comment">// NOTE: how do we handle metering for those cases?
     </span><span class="kw">let </span>bytecode = env.get_interface().raw_get_bytecode_for(address)<span class="question-mark">?</span>;
 

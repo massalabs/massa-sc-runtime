@@ -386,7 +386,6 @@
 <a href="#386" id="386">386</a>
 <a href="#387" id="387">387</a>
 <a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
 </pre><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>serde::{de::DeserializeOwned, Serialize};
 <span class="kw">use </span>std::{
@@ -420,9 +419,9 @@
 
 <span class="attr">#[<span class="macro-nonterminal">derive</span>(Clone, Debug)]
 </span><span class="kw">pub struct </span>GasCosts {
-    <span class="kw">pub </span>operator_cost: u64,
-    <span class="kw">pub </span>launch_cost: u64,
-    <span class="kw">pub </span>abi_costs: HashMap&lt;String, u64&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) operator_cost: u64,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) launch_cost: u64,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) abi_costs: HashMap&lt;String, u64&gt;,
 }
 
 <span class="kw">impl </span>GasCosts {
@@ -432,11 +431,10 @@
         <span class="kw">let </span>wasm_abi_file = std::fs::read_to_string(wasm_abi_file)<span class="question-mark">?</span>;
         <span class="kw">let </span>wasm_costs: HashMap&lt;String, u64&gt; = serde_json::from_str(<span class="kw-2">&amp;</span>wasm_abi_file)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
-            operator_cost: wasm_costs.iter().map(|(<span class="kw">_</span>, v)| <span class="kw-2">*</span>v).sum::&lt;u64&gt;()
-                / wasm_costs.len() <span class="kw">as </span>u64,
+            operator_cost: wasm_costs.values().copied().sum::&lt;u64&gt;() / wasm_costs.len() <span class="kw">as </span>u64,
             launch_cost: <span class="kw-2">*</span>abi_costs
                 .get(<span class="string">&quot;Launch&quot;</span>)
-                .ok_or(<span class="macro">anyhow!</span>(<span class="string">&quot;launch cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
+                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;launch cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
             abi_costs,
         })
     }

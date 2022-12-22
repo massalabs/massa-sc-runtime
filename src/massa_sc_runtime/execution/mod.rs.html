@@ -245,7 +245,7 @@
         .engine();
     <span class="kw">let </span><span class="kw-2">mut </span>store = Store::new_with_tunables(<span class="kw-2">&amp;</span>engine, tunables);
 
-    <span class="kw">let </span>module = <span class="kw-2">&amp;</span>Module::new(<span class="kw-2">&amp;</span>store, <span class="kw-2">&amp;</span>as_module.get_bytecode())<span class="question-mark">?</span>;
+    <span class="kw">let </span>module = <span class="kw-2">&amp;</span>Module::new(<span class="kw-2">&amp;</span>store, as_module.get_bytecode())<span class="question-mark">?</span>;
     <span class="kw">let </span>(imports, <span class="kw-2">mut </span>fenv) = as_module.resolver(<span class="kw-2">&amp;mut </span>store);
 
     <span class="kw">match </span>Instance::new(<span class="kw-2">&amp;mut </span>store, module, <span class="kw-2">&amp;</span>imports) {
