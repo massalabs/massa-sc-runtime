@@ -116,9 +116,9 @@ pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
 ///
 /// Note for developpers: It seems that AS as updated the output of that function
 /// for the newest versions. Probably the signature will be soon () -> i64
-/// instead of () -> f64.
+/// instead of () -> f64. This change is in AS 0.22 if we upgrade the version in our SCs we need to update this function.
 #[named]
-pub fn assembly_script_date(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
+pub fn assembly_script_date_now(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
     let env = ctx.data().clone();
     if cfg!(not(feature = "gas_calibration")) {
         sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
