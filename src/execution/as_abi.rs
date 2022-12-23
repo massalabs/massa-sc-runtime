@@ -35,6 +35,7 @@ pub(crate) fn assembly_script_transfer_coins(
     }
     let memory = get_memory!(env);
     let to_address = &read_string(memory, &ctx, to_address)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, to_address.len(), true);
@@ -60,6 +61,7 @@ pub(crate) fn assembly_script_transfer_coins_for(
     let memory = get_memory!(env);
     let from_address = &read_string(memory, &ctx, from_address)?;
     let to_address = &read_string(memory, &ctx, to_address)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, from_address.len(), true);
@@ -87,6 +89,7 @@ pub(crate) fn assembly_script_get_balance_for(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let address = &read_string(memory, &ctx, address)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -111,6 +114,7 @@ pub(crate) fn assembly_script_call(
     let function = &read_string(memory, &ctx, function)?;
     let param = &read_buffer(memory, &ctx, param)?;
 
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -148,6 +152,7 @@ pub(crate) fn assembly_script_print(mut ctx: FunctionEnvMut<ASEnv>, arg: i32) ->
     let memory = get_memory!(env);
     let message = read_string(memory, &ctx, arg)?;
 
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, message.len(), true);
@@ -184,6 +189,7 @@ pub(crate) fn assembly_script_has_op_key(
     let env = ctx.data().clone();
     let memory = get_memory!(env);
     let key_bytes = read_buffer(memory, &ctx, key)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key_bytes.len(), true);
@@ -211,6 +217,7 @@ pub(crate) fn assembly_script_get_op_data(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let key_bytes = read_buffer(memory, &ctx, key)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key_bytes.len(), true);
@@ -231,6 +238,7 @@ pub(crate) fn assembly_script_create_sc(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let bytecode: Vec<u8> = read_buffer(memory, &ctx, bytecode)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, bytecode.len(), true);
@@ -246,6 +254,7 @@ pub(crate) fn assembly_script_hash(mut ctx: FunctionEnvMut<ASEnv>, value: i32) -
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let value = read_string(memory, &ctx, value)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, value.len(), true);
@@ -294,6 +303,7 @@ pub(crate) fn assembly_script_set_data(
     let key = read_buffer(memory, &ctx, key)?;
     let value = read_buffer(memory, &ctx, value)?;
 
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     param_size_update(
     //         &env,
@@ -327,6 +337,7 @@ pub(crate) fn assembly_script_append_data(
     let memory = get_memory!(env);
     let key = read_buffer(memory, &ctx, key)?;
     let value = read_buffer(memory, &ctx, value)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
@@ -344,6 +355,7 @@ pub(crate) fn assembly_script_get_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let key = read_buffer(memory, &ctx, key)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
@@ -359,6 +371,7 @@ pub(crate) fn assembly_script_has_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let key = read_buffer(memory, &ctx, key)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
@@ -376,6 +389,7 @@ pub(crate) fn assembly_script_delete_data(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let key = read_buffer(memory, &ctx, key)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
@@ -399,6 +413,7 @@ pub(crate) fn assembly_script_set_data_for(
     let key = read_buffer(memory, &ctx, key)?;
     let value = read_buffer(memory, &ctx, value)?;
     let address = read_string(memory, &ctx, address)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -426,6 +441,7 @@ pub(crate) fn assembly_script_append_data_for(
     let key = read_buffer(memory, &ctx, key)?;
     let value = read_buffer(memory, &ctx, value)?;
     let address = read_string(memory, &ctx, address)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -451,6 +467,7 @@ pub(crate) fn assembly_script_get_data_for(
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let key = read_buffer(memory, &ctx, key)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -474,6 +491,7 @@ pub(crate) fn assembly_script_delete_data_for(
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let key = read_buffer(memory, &ctx, key)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -495,6 +513,7 @@ pub(crate) fn assembly_script_has_data_for(
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let key = read_buffer(memory, &ctx, key)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -531,6 +550,7 @@ pub(crate) fn assembly_script_generate_event(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let event = read_string(memory, &ctx, event)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, event.len(), true);
@@ -553,6 +573,7 @@ pub(crate) fn assembly_script_signature_verify(
     let data = read_string(memory, &ctx, data)?;
     let signature = read_string(memory, &ctx, signature)?;
     let public_key = read_string(memory, &ctx, public_key)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, data.len(), true);
@@ -576,6 +597,7 @@ pub(crate) fn assembly_script_address_from_public_key(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let public_key = read_string(memory, &ctx, public_key)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, public_key.len(), true);
@@ -649,6 +671,7 @@ pub(crate) fn assembly_script_send_message(
     let target_address = &read_string(memory, &ctx, target_address)?;
     let target_handler = &read_string(memory, &ctx, target_handler)?;
     let data = &read_buffer(memory, &ctx, data)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, target_address.len(), true);
@@ -707,6 +730,7 @@ pub(crate) fn assembly_script_set_bytecode_for(
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let bytecode_raw = read_buffer(memory, &ctx, bytecode)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
@@ -728,6 +752,7 @@ pub(crate) fn assembly_script_set_bytecode(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let bytecode_raw = read_buffer(memory, &ctx, bytecode)?;
+    // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, bytecode_raw.len(), true);
