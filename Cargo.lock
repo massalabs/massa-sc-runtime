@@ -46,6 +46,7 @@ checksum = "98161a4e3e2184da77bb14f02184cdd111e83bbbcc9979dfee3c44b9a85f5602"
 [[package]]
 name = "as-ffi-bindings"
 version = "0.2.5"
+source = "git+https://github.com/massalabs/as-ffi-bindings.git?tag=v0.3.0#d40a1586953d396508ef739f39f48e1a18e0b0cc"
 dependencies = [
  "anyhow",
  "wasmer",
@@ -134,19 +135,6 @@ name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
-
-[[package]]
-name = "cornetto"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a47c2a04089d9de013f44c298c551919be450885957facba37c7831826fc63f"
-dependencies = [
- "anyhow",
- "lazy_static",
- "proc-macro2",
- "quote",
- "syn",
-]
 
 [[package]]
 name = "corosensei"
@@ -647,10 +635,8 @@ dependencies = [
  "anyhow",
  "as-ffi-bindings",
  "base64",
- "cornetto",
  "displaydoc",
  "function_name",
- "lazy_static",
  "loupe",
  "more-asserts 0.3.1",
  "parking_lot",

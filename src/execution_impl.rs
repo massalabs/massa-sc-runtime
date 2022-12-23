@@ -2,6 +2,7 @@ use crate::execution::{create_instance, get_module, MassaModule};
 use crate::settings;
 use crate::types::{Interface, Response};
 
+use crate::GasCosts;
 use anyhow::{bail, Result};
 use wasmer::{Instance, Store};
 use wasmer_middlewares::metering::{self, MeteringPoints};
@@ -33,7 +34,7 @@ pub(crate) fn exec(
         None => create_instance(limit, &mut module)?,
     };
 
-    match module.execution(&instance,  &mut store, function, param) {
+    match module.execution(&instance, &mut store, function, param) {
         Ok(response) => Ok((response, instance, store)),
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
@@ -64,13 +65,20 @@ pub(crate) fn exec(
 /// ```
 /// Return:
 /// the remaining gas.
-pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
-    let mut module = get_module(interface, bytecode)?;
+pub fn run_main(
+    bytecode: &[u8],
+    limit: u64,
+    interface: &dyn Interface,
+    gas_costs: GasCosts,
+) -> Result<u64> {
+    let mut module = get_module(interface, bytecode, gas_costs)?;
     let (instance, store) = create_instance(limit, &mut module)?;
     if instance.exports.contains(settings::MAIN) {
-        Ok(exec(limit, Some((instance, store)), module, settings::MAIN, b"")?
-            .0
-            .remaining_gas)
+        Ok(
+            exec(limit, Some((instance, store)), module, settings::MAIN, b"")?
+                .0
+                .remaining_gas,
+        )
     } else {
         Ok(limit)
     }
@@ -93,8 +101,9 @@ pub fn run_function(
     function: &str,
     param: &[u8],
     interface: &dyn Interface,
+    gas_costs: GasCosts,
 ) -> Result<u64> {
-    let module = get_module(interface, bytecode)?;
+    let module = get_module(interface, bytecode, gas_costs)?;
     Ok(exec(limit, None, module, function, param)?.0.remaining_gas)
 }
 
@@ -105,18 +114,19 @@ pub fn run_main_gc(
     limit: u64,
     interface: &dyn Interface,
     param: &[u8],
+    gas_costs: GasCosts,
 ) -> Result<GasCalibrationResult> {
-    let mut module = get_module(interface, bytecode)?;
-    let instance = create_instance(limit, &mut module)?;
+    let mut module = get_module(interface, bytecode, gas_costs)?;
+    let (instance, store) = create_instance(limit, &mut module)?;
     if instance.exports.contains(settings::MAIN) {
-        let (_resp, instance) = exec(
+        let (_resp, instance, mut store) = exec(
             u64::MAX,
-            Some(instance.clone()),
+            Some((instance.clone(), store)),
             module,
             settings::MAIN,
             param,
         )?;
-        Ok(get_gas_calibration_result(&instance))
+        Ok(get_gas_calibration_result(&instance, &mut store))
     } else {
         bail!("No main");
     }

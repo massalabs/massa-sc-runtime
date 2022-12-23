@@ -1,4 +1,4 @@
-use crate::env::{get_remaining_points, set_remaining_points, MassaEnv, ASEnv};
+use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
 use crate::Response;
 use displaydoc::Display;
 use thiserror::Error;
@@ -48,7 +48,7 @@ pub(crate) fn call_module(
     };
     let env = ctx.data().clone();
     let bytecode = env.get_interface().init_call(address, raw_coins)?;
-    let module = get_module(&*env.get_interface(), &bytecode)?;
+    let module = get_module(&*env.get_interface(), &bytecode, env.get_gas_costs())?;
 
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         Ok(u64::MAX)
@@ -72,7 +72,7 @@ pub(crate) fn local_call(
     param: &[u8],
 ) -> ABIResult<Response> {
     let env = ctx.data().clone();
-    let module = get_module(&*env.get_interface(), bytecode)?;
+    let module = get_module(&*env.get_interface(), bytecode, env.get_gas_costs())?;
 
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         Ok(u64::MAX)
@@ -88,10 +88,7 @@ pub(crate) fn local_call(
 }
 
 /// Create a smart contract with the given `bytecode`
-pub(crate) fn create_sc(
-    ctx: &mut FunctionEnvMut<ASEnv>,
-    bytecode: &[u8],
-) -> ABIResult<String> {
+pub(crate) fn create_sc(ctx: &mut FunctionEnvMut<ASEnv>, bytecode: &[u8]) -> ABIResult<String> {
     let env = ctx.data();
     Ok(env.get_interface().create_module(bytecode)?)
 }

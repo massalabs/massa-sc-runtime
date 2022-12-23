@@ -1,6 +1,9 @@
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 use serde::{de::DeserializeOwned, Serialize};
-use std::collections::BTreeSet;
+use std::{
+    collections::{BTreeSet, HashMap},
+    path::PathBuf,
+};
 
 /// That's what is returned when a module is executed correctly since the end
 pub(crate) struct Response {
@@ -24,6 +27,88 @@ macro_rules! unimplemented {
     ($fn: expr) => {
         bail!(format!("unimplemented function {} in interface", $fn))
     };
+}
+
+#[derive(Clone, Debug)]
+pub struct GasCosts {
+    pub(crate) operator_cost: u64,
+    pub(crate) launch_cost: u64,
+    pub(crate) abi_costs: HashMap<String, u64>,
+}
+
+impl GasCosts {
+    pub fn new(abi_cost_file: PathBuf, wasm_abi_file: PathBuf) -> Result<Self> {
+        let abi_cost_file = std::fs::read_to_string(abi_cost_file)?;
+        let abi_costs: HashMap<String, u64> = serde_json::from_str(&abi_cost_file)?;
+        let wasm_abi_file = std::fs::read_to_string(wasm_abi_file)?;
+        let wasm_costs: HashMap<String, u64> = serde_json::from_str(&wasm_abi_file)?;
+        Ok(Self {
+            operator_cost: wasm_costs.values().copied().sum::<u64>() / wasm_costs.len() as u64,
+            launch_cost: *abi_costs
+                .get("launch")
+                .ok_or_else(|| anyhow!("launch cost not found in ABI gas cost file."))?,
+            abi_costs,
+        })
+    }
+}
+
+#[cfg(any(test, feature = "gas_calibration"))]
+impl Default for GasCosts {
+    fn default() -> Self {
+        let mut abi_costs = HashMap::new();
+        abi_costs.insert(String::from("assembly_script_address_from_public_key"), 147);
+        abi_costs.insert(String::from("assembly_script_append_data"), 162);
+        abi_costs.insert(String::from("assembly_script_append_data_for"), 200);
+        abi_costs.insert(String::from("assembly_script_call"), 30466);
+        abi_costs.insert(String::from("assembly_script_create_sc"), 160);
+        abi_costs.insert(String::from("assembly_script_delete_data"), 78);
+        abi_costs.insert(String::from("assembly_script_delete_data_for"), 120);
+        abi_costs.insert(String::from("assembly_script_generate_event"), 36);
+        abi_costs.insert(String::from("assembly_script_get_balance"), 4);
+        abi_costs.insert(String::from("assembly_script_get_balance_for"), 41);
+        abi_costs.insert(String::from("assembly_script_get_call_coins"), 9);
+        abi_costs.insert(String::from("assembly_script_get_call_stack"), 56);
+        abi_costs.insert(String::from("assembly_script_get_current_period"), 9);
+        abi_costs.insert(String::from("assembly_script_get_current_thread"), 8);
+        abi_costs.insert(String::from("assembly_script_get_data"), 85);
+        abi_costs.insert(String::from("assembly_script_get_data_for"), 139);
+        abi_costs.insert(String::from("assembly_script_get_keys"), 26);
+        abi_costs.insert(String::from("assembly_script_get_keys_for"), 48);
+        abi_costs.insert(String::from("assembly_script_get_op_data"), 71);
+        abi_costs.insert(String::from("assembly_script_get_op_keys"), 138);
+        abi_costs.insert(String::from("assembly_script_get_owned_addresses"), 52);
+        abi_costs.insert(String::from("assembly_script_get_remaining_gas"), 7);
+        abi_costs.insert(String::from("assembly_script_get_time"), 4);
+        abi_costs.insert(String::from("assembly_script_has_data"), 69);
+        abi_costs.insert(String::from("assembly_script_has_data_for"), 115);
+        abi_costs.insert(String::from("assembly_script_has_op_key"), 78);
+        abi_costs.insert(String::from("assembly_script_hash"), 83);
+        abi_costs.insert(String::from("assembly_script_print"), 35);
+        abi_costs.insert(String::from("assembly_script_send_message"), 316);
+        abi_costs.insert(String::from("assembly_script_set_bytecode"), 74);
+        abi_costs.insert(String::from("assembly_script_set_bytecode_for"), 129);
+        abi_costs.insert(String::from("assembly_script_set_data"), 158);
+        abi_costs.insert(String::from("assembly_script_set_data_for"), 165);
+        abi_costs.insert(String::from("assembly_script_signature_verify"), 98);
+        abi_costs.insert(String::from("assembly_script_transfer_coins"), 62);
+        abi_costs.insert(String::from("assembly_script_transfer_coins_for"), 102);
+        abi_costs.insert(String::from("assembly_script_unsafe_random"), 11);
+        abi_costs.insert(String::from("assembly_script_call"), 11);
+        abi_costs.insert(String::from("assembly_script_local_call"), 11);
+        abi_costs.insert(String::from("assembly_script_local_execution"), 11);
+        abi_costs.insert(String::from("assembly_script_get_bytecode"), 11);
+        abi_costs.insert(String::from("assembly_script_get_bytecode_for"), 11);
+        abi_costs.insert(String::from("assembly_caller_has_write_access"), 11);
+        abi_costs.insert(String::from("assembly_function_exists"), 11);
+        abi_costs.insert(String::from("assembly_script_seed"), 11);
+        abi_costs.insert(String::from("assembly_script_abort"), 11);
+        abi_costs.insert(String::from("assembly_script_date_now"), 11);
+        Self {
+            operator_cost: 1,
+            launch_cost: 10000,
+            abi_costs,
+        }
+    }
 }
 
 #[allow(unused_variables)]

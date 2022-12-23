@@ -2,7 +2,7 @@ mod as_env;
 
 use crate::{
     execution::{abi_bail, ABIResult},
-    Interface,
+    GasCosts, Interface,
 };
 pub(crate) use as_env::*;
 use wasmer::{AsStoreMut, Global};
@@ -18,10 +18,11 @@ macro_rules! get_memory {
 pub(crate) use get_memory;
 
 pub(crate) trait MassaEnv<T> {
-    fn new(interface: &dyn Interface) -> Self;
+    fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self;
     fn get_exhausted_points(&self) -> Option<&Global>;
     fn get_remaining_points(&self) -> Option<&Global>;
     fn get_gc_param(&self, name: &str) -> Option<&Global>;
+    fn get_gas_costs(&self) -> GasCosts;
     fn get_interface(&self) -> Box<dyn Interface>;
     fn get_wasm_env(&self) -> &T;
     fn get_wasm_env_as_mut(&mut self) -> &mut T;
@@ -30,7 +31,10 @@ pub(crate) trait MassaEnv<T> {
 /// Get remaining metering points
 /// Should be equivalent to
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L293
-pub(crate) fn get_remaining_points<T>(env: &impl MassaEnv<T>, store: &mut impl AsStoreMut) -> ABIResult<u64> {
+pub(crate) fn get_remaining_points<T>(
+    env: &impl MassaEnv<T>,
+    store: &mut impl AsStoreMut,
+) -> ABIResult<u64> {
     if cfg!(feature = "gas_calibration") {
         Ok(u64::MAX)
     } else {
@@ -81,7 +85,11 @@ pub(crate) fn set_remaining_points<T>(
     Ok(())
 }
 
-pub(crate) fn sub_remaining_gas<T>(env: &impl MassaEnv<T>, store: &mut impl AsStoreMut, gas: u64) -> ABIResult<()> {
+pub(crate) fn sub_remaining_gas<T>(
+    env: &impl MassaEnv<T>,
+    store: &mut impl AsStoreMut,
+    gas: u64,
+) -> ABIResult<()> {
     if cfg!(feature = "gas_calibration") {
         return Ok(());
     }
@@ -94,16 +102,16 @@ pub(crate) fn sub_remaining_gas<T>(env: &impl MassaEnv<T>, store: &mut impl AsSt
     Ok(())
 }
 
-/// Try to subtract remaining gas computing the gas with a*b and ceiling
-/// the result.
-pub(crate) fn sub_remaining_gas_with_mult<T>(
+pub(crate) fn sub_remaining_gas_abi<T>(
     env: &impl MassaEnv<T>,
     store: &mut impl AsStoreMut,
-    a: usize,
-    b: usize,
+    abi_name: &str,
 ) -> ABIResult<()> {
-    match a.checked_mul(b) {
-        Some(gas) => sub_remaining_gas(env, store, gas as u64),
-        None => abi_bail!(format!("Multiplication overflow {a} {b}")),
-    }
+    sub_remaining_gas(
+        env,
+        store,
+        *env.get_gas_costs().abi_costs.get(abi_name).ok_or_else(|| {
+            wasmer::RuntimeError::new(format!("Failed to get gas for {} ABI", abi_name))
+        })?,
+    )
 }

@@ -1,6 +1,8 @@
-use loupe::{MemoryUsage, MemoryUsageTracker};
 use wasmer::wasmparser::Operator;
-use wasmer::{AsStoreMut, FunctionMiddleware, LocalFunctionIndex, MiddlewareError, MiddlewareReaderState, ModuleMiddleware};
+use wasmer::{
+    AsStoreMut, FunctionMiddleware, LocalFunctionIndex, MiddlewareError, MiddlewareReaderState,
+    ModuleMiddleware,
+};
 use wasmer_types::{
     ExportIndex, GlobalIndex, GlobalInit, GlobalType, ImportIndex, ModuleInfo, Mutability, Type,
 };
@@ -8,7 +10,6 @@ use wasmer_types::{
 use crate::env::{ASEnv, MassaEnv};
 use std::collections::HashMap;
 use std::fmt::{self, Debug};
-use std::mem;
 use std::sync::Mutex;
 use std::time::Instant;
 
@@ -79,7 +80,6 @@ impl ModuleMiddleware for GasCalibration {
         };
 
         for (import_key, import_index) in module_info.imports.iter() {
-
             let module_name = import_key.module.clone();
             let function_name = import_key.field.clone();
             let index = import_key.import_idx;
@@ -258,7 +258,10 @@ pub struct GasCalibrationResult {
 }
 
 #[cfg(feature = "gas_calibration")]
-pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
+pub fn get_gas_calibration_result(
+    instance: &Instance,
+    store: &mut impl AsStoreMut,
+) -> GasCalibrationResult {
     let current = Instant::now();
 
     let mut result = GasCalibrationResult {
@@ -292,11 +295,11 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
         let (export_name, extern_) = export_.unwrap();
 
         let counter_value: Option<i64> = match extern_ {
-            Extern::Global(g) => g.get().try_into().ok(),
+            Extern::Global(g) => g.get(store).try_into().ok(),
             _ => None,
         };
         let timer_value: Option<f64> = match extern_ {
-            Extern::Global(g) => g.get().try_into().ok(),
+            Extern::Global(g) => g.get(store).try_into().ok(),
             _ => None,
         };
 
@@ -375,7 +378,13 @@ pub fn get_gas_calibration_result(instance: &Instance) -> GasCalibrationResult {
     result
 }
 
-pub(crate) fn param_size_update(env: &ASEnv, store: &mut impl AsStoreMut, function_name: &str, param_len: usize, is_str: bool) {
+pub(crate) fn _param_size_update(
+    env: &ASEnv,
+    store: &mut impl AsStoreMut,
+    function_name: &str,
+    param_len: usize,
+    is_str: bool,
+) {
     // println!("Calling param_size_update: {} {}", function_name, param_len);
     let function_full_name = format!("wgc_ps_{}", function_name);
     let global_ref = env
