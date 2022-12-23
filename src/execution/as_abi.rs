@@ -864,7 +864,7 @@ pub fn assembly_function_exists(
     let mut module = get_module(&*env.get_interface(), &bytecode, env.get_gas_costs())?;
     // NOTE: is it maybe possible to retrieve a module function without creating an instance?
     // NOTE: if not determine initial cost
-    let (instance, _store) = create_instance(100_000, &mut module)?;
+    let (instance, _store) = create_instance(u64::MAX, &mut module)?;
     Ok(module.has_function(&instance, function) as i32)
 }
 
