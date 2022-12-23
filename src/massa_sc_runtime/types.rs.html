@@ -433,7 +433,7 @@
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             operator_cost: wasm_costs.values().copied().sum::&lt;u64&gt;() / wasm_costs.len() <span class="kw">as </span>u64,
             launch_cost: <span class="kw-2">*</span>abi_costs
-                .get(<span class="string">&quot;Launch&quot;</span>)
+                .get(<span class="string">&quot;launch&quot;</span>)
                 .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;launch cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
             abi_costs,
         })
