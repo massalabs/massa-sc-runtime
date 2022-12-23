@@ -45,7 +45,7 @@ impl GasCosts {
         Ok(Self {
             operator_cost: wasm_costs.values().copied().sum::<u64>() / wasm_costs.len() as u64,
             launch_cost: *abi_costs
-                .get("Launch")
+                .get("launch")
                 .ok_or_else(|| anyhow!("launch cost not found in ABI gas cost file."))?,
             abi_costs,
         })
