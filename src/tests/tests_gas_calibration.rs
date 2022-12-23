@@ -1,10 +1,10 @@
-use crate::middlewares::operator::{
-    OPERATOR_BULK_MEMORY, OPERATOR_NON_TRAPPING_FLOAT_TO_INT, OPERATOR_THREAD, OPERATOR_VECTOR,
-};
 use crate::middlewares::operator::{OPERATOR_CARDINALITY, OPERATOR_VARIANTS};
-use crate::run_main_gc;
+use crate::middlewares::operator::{
+    _OPERATOR_BULK_MEMORY, _OPERATOR_NON_TRAPPING_FLOAT_TO_INT, _OPERATOR_THREAD, _OPERATOR_VECTOR,
+};
 use crate::settings;
 use crate::tests::{Ledger, TestInterface};
+use crate::{run_main_gc, GasCosts};
 use std::collections::HashSet;
 
 use anyhow::Result;
@@ -17,14 +17,14 @@ use std::sync::Arc;
 #[test]
 #[serial]
 fn test_basic_abi_call_counter() -> Result<()> {
-    settings::reset_metering();
     let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/gc_abi_call_basic.wasm"
     ));
 
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"")?;
+    let gas_costs = GasCosts::default();
+    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"", gas_costs)?;
 
     // println!("gas_calibration_result: {:?}", gas_calibration_result);
 
@@ -77,14 +77,14 @@ fn test_basic_abi_call_counter() -> Result<()> {
 #[test]
 #[serial]
 fn test_basic_abi_call_loop() -> Result<()> {
-    settings::reset_metering();
     let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/gc_abi_call_for.wasm"
     ));
 
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"")?;
+    let gas_costs = GasCosts::default();
+    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"", gas_costs)?;
 
     assert_eq!(
         gas_calibration_result.counters.len(),
@@ -107,14 +107,14 @@ fn test_basic_abi_call_loop() -> Result<()> {
 #[test]
 #[serial]
 fn test_basic_op() -> Result<()> {
-    settings::reset_metering();
     let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/gc_op_basic.wasm"
     ));
 
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"")?;
+    let gas_costs = GasCosts::default();
+    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"", gas_costs)?;
 
     // 1 for env.abort + 4 env.abort parameters
     assert_eq!(
@@ -163,14 +163,14 @@ fn test_basic_op() -> Result<()> {
 #[test]
 #[serial]
 fn test_basic_abi_call_param_size() -> Result<()> {
-    settings::reset_metering();
     let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/gc_abi_call_param_size.wasm"
     ));
 
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"9876543")?;
+    let gas_costs = GasCosts::default();
+    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"9876543", gas_costs)?;
     // println!("gas_calibration_result: {:?}", gas_calibration_result);
 
     // Note:
@@ -235,22 +235,28 @@ fn test_operators_definition() {
     let op_variants = HashSet::from(OPERATOR_VARIANTS);
     assert_eq!(op_variants.len(), OPERATOR_VARIANTS.len());
 
-    assert_eq!(HashSet::from(OPERATOR_THREAD).len(), OPERATOR_THREAD.len());
-    assert_eq!(HashSet::from(OPERATOR_VECTOR).len(), OPERATOR_VECTOR.len());
     assert_eq!(
-        HashSet::from(OPERATOR_BULK_MEMORY).len(),
-        OPERATOR_BULK_MEMORY.len()
+        HashSet::from(_OPERATOR_THREAD).len(),
+        _OPERATOR_THREAD.len()
     );
     assert_eq!(
-        HashSet::from(OPERATOR_NON_TRAPPING_FLOAT_TO_INT).len(),
-        OPERATOR_NON_TRAPPING_FLOAT_TO_INT.len()
+        HashSet::from(_OPERATOR_VECTOR).len(),
+        _OPERATOR_VECTOR.len()
+    );
+    assert_eq!(
+        HashSet::from(_OPERATOR_BULK_MEMORY).len(),
+        _OPERATOR_BULK_MEMORY.len()
+    );
+    assert_eq!(
+        HashSet::from(_OPERATOR_NON_TRAPPING_FLOAT_TO_INT).len(),
+        _OPERATOR_NON_TRAPPING_FLOAT_TO_INT.len()
     );
 
-    let op_iterator = OPERATOR_THREAD
+    let op_iterator = _OPERATOR_THREAD
         .iter()
-        .chain(OPERATOR_VECTOR.iter())
-        .chain(OPERATOR_BULK_MEMORY.iter())
-        .chain(OPERATOR_NON_TRAPPING_FLOAT_TO_INT.iter());
+        .chain(_OPERATOR_VECTOR.iter())
+        .chain(_OPERATOR_BULK_MEMORY.iter())
+        .chain(_OPERATOR_NON_TRAPPING_FLOAT_TO_INT.iter());
 
     for operator_name in op_iterator {
         println!("Checking operator name: {}", operator_name);
