@@ -70,17 +70,16 @@ pub fn run_main(
     limit: u64,
     interface: &dyn Interface,
     gas_costs: GasCosts,
-) -> Result<u64> {
+) -> Result<Response> {
     let mut module = get_module(interface, bytecode, gas_costs)?;
     let (instance, store) = create_instance(limit, &mut module)?;
     if instance.exports.contains(settings::MAIN) {
-        Ok(
-            exec(limit, Some((instance, store)), module, settings::MAIN, b"")?
-                .0
-                .remaining_gas,
-        )
+        Ok(exec(limit, Some((instance, store)), module, settings::MAIN, b"")?.0)
     } else {
-        Ok(limit)
+        Ok(Response {
+            ret: Vec::new(),
+            remaining_gas: limit,
+        })
     }
 }
 
@@ -102,9 +101,9 @@ pub fn run_function(
     param: &[u8],
     interface: &dyn Interface,
     gas_costs: GasCosts,
-) -> Result<u64> {
+) -> Result<Response> {
     let module = get_module(interface, bytecode, gas_costs)?;
-    Ok(exec(limit, None, module, function, param)?.0.remaining_gas)
+    Ok(exec(limit, None, module, function, param)?.0)
 }
 
 /// Same as run_main but return a GasCalibrationResult

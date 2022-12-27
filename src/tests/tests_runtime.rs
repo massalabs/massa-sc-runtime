@@ -41,7 +41,7 @@ fn test_caller() {
     let b = run_main(&module, 200_000, &*interface, gas_costs.clone())
         .expect("Failed to run_main caller.wasm");
     //assert_eq!(a + prev_call_price, b);
-    assert_eq!(a, b);
+    assert_eq!(a.remaining_gas, b.remaining_gas);
     let v_out = interface.raw_get_data(b"").unwrap();
     let output = std::str::from_utf8(&v_out).unwrap();
     assert_eq!(output, "hello you");
@@ -212,7 +212,7 @@ fn test_run_empty_main() {
     let a = run_main(module, 10_000_000, &*interface, gas_costs.clone())
         .expect("Failed to run empty_main.wasm");
     // Here we avoid hard-coding a value (that can change in future wasmer release)$
-    assert!(a > 0);
+    assert!(a.remaining_gas > 0);
 
     let mut rng = rand::thread_rng();
     let cost = rng.gen_range(1..1_000_000);
@@ -220,7 +220,7 @@ fn test_run_empty_main() {
     let b = run_main(module, 10_000_000, &*interface, gas_costs)
         .expect("Failed to run empty_main.wasm");
     // Between 2 calls, the metering cost should be the difference
-    assert_eq!(a - b, cost);
+    assert_eq!(a.remaining_gas - b.remaining_gas, cost);
 }
 
 #[test]

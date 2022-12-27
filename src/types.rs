@@ -6,7 +6,8 @@ use std::{
 };
 
 /// That's what is returned when a module is executed correctly since the end
-pub(crate) struct Response {
+#[derive(Debug)]
+pub struct Response {
     /// returned value from the module call
     pub ret: Vec<u8>,
     /// number of gas that remain after the execution (metering)
