@@ -74,12 +74,12 @@ pub fn run_main(
     let mut module = get_module(interface, bytecode, gas_costs)?;
     let (instance, store) = create_instance(limit, &mut module)?;
     if instance.exports.contains(settings::MAIN) {
-        Ok(
-            exec(limit, Some((instance, store)), module, settings::MAIN, b"")?
-                .0,
-        )
+        Ok(exec(limit, Some((instance, store)), module, settings::MAIN, b"")?.0)
     } else {
-        Ok(Response{ ret: Vec::new(), remaining_gas : limit})
+        Ok(Response {
+            ret: Vec::new(),
+            remaining_gas: limit,
+        })
     }
 }
 
