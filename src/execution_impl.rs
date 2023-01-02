@@ -2,8 +2,9 @@ use crate::execution::{create_instance, get_module, MassaModule};
 use crate::settings;
 use crate::types::{Interface, Response};
 
+use crate::GasCosts;
 use anyhow::{bail, Result};
-use wasmer::Instance;
+use wasmer::{Instance, Store};
 use wasmer_middlewares::metering::{self, MeteringPoints};
 
 #[cfg(feature = "gas_calibration")]
@@ -23,25 +24,24 @@ use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibra
 /// The return of the function executed as string and the remaining gas for the rest of the execution.
 pub(crate) fn exec(
     limit: u64,
-    instance: Option<Instance>,
+    instance_and_store: Option<(Instance, Store)>,
     mut module: impl MassaModule,
     function: &str,
     param: &[u8],
-) -> Result<(Response, Instance)> {
-    let instance = match instance {
-        Some(instance) => instance,
-        None => create_instance(limit, &module)?,
+) -> Result<(Response, Instance, Store)> {
+    let (instance, mut store) = match instance_and_store {
+        Some((instance, store)) => (instance, store),
+        None => create_instance(limit, &mut module)?,
     };
-    module.init_with_instance(&instance)?;
 
-    match module.execution(&instance, function, param) {
-        Ok(response) => Ok((response, instance)),
+    match module.execution(&instance, &mut store, function, param) {
+        Ok(response) => Ok((response, instance, store)),
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
                 bail!(err)
             } else {
                 // Because the last needed more than the remaining points, we should have an error.
-                match metering::get_remaining_points(&instance) {
+                match metering::get_remaining_points(&mut store, &instance) {
                     MeteringPoints::Remaining(..) => bail!(err),
                     MeteringPoints::Exhausted => {
                         bail!("Not enough gas, limit reached at: {function}")
@@ -65,15 +65,21 @@ pub(crate) fn exec(
 /// ```
 /// Return:
 /// the remaining gas.
-pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
-    let module = get_module(interface, bytecode)?;
-    let instance = create_instance(limit, &module)?;
+pub fn run_main(
+    bytecode: &[u8],
+    limit: u64,
+    interface: &dyn Interface,
+    gas_costs: GasCosts,
+) -> Result<Response> {
+    let mut module = get_module(interface, bytecode, gas_costs)?;
+    let (instance, store) = create_instance(limit, &mut module)?;
     if instance.exports.contains(settings::MAIN) {
-        Ok(exec(limit, Some(instance), module, settings::MAIN, b"")?
-            .0
-            .remaining_gas)
+        Ok(exec(limit, Some((instance, store)), module, settings::MAIN, b"")?.0)
     } else {
-        Ok(limit)
+        Ok(Response {
+            ret: Vec::new(),
+            remaining_gas: limit,
+        })
     }
 }
 
@@ -94,9 +100,10 @@ pub fn run_function(
     function: &str,
     param: &[u8],
     interface: &dyn Interface,
-) -> Result<u64> {
-    let module = get_module(interface, bytecode)?;
-    Ok(exec(limit, None, module, function, param)?.0.remaining_gas)
+    gas_costs: GasCosts,
+) -> Result<Response> {
+    let module = get_module(interface, bytecode, gas_costs)?;
+    Ok(exec(limit, None, module, function, param)?.0)
 }
 
 /// Same as run_main but return a GasCalibrationResult
@@ -105,18 +112,20 @@ pub fn run_main_gc(
     bytecode: &[u8],
     limit: u64,
     interface: &dyn Interface,
+    param: &[u8],
+    gas_costs: GasCosts,
 ) -> Result<GasCalibrationResult> {
-    let module = get_module(interface, bytecode)?;
-    let instance = create_instance(limit, &module)?;
+    let mut module = get_module(interface, bytecode, gas_costs)?;
+    let (instance, store) = create_instance(limit, &mut module)?;
     if instance.exports.contains(settings::MAIN) {
-        let (_resp, instance) = exec(
+        let (_resp, instance, mut store) = exec(
             u64::MAX,
-            Some(instance.clone()),
+            Some((instance.clone(), store)),
             module,
             settings::MAIN,
-            b"",
+            param,
         )?;
-        Ok(get_gas_calibration_result(&instance))
+        Ok(get_gas_calibration_result(&instance, &mut store))
     } else {
         bail!("No main");
     }
