@@ -42,13 +42,12 @@ pub(crate) fn call_module<T: WasmerEnv>(
         get_remaining_points(env)?
     };
 
-    let module = match examine_and_compile_bytecode(&*env.get_interface(), remaining_gas, bytecode)
-    {
+    let binary_module = match examine_and_compile_bytecode(bytecode, remaining_gas) {
         Ok(module) => module,
         Err(err) => abi_bail!(err),
     };
 
-    match crate::execution_impl::exec(module, function, param) {
+    match crate::execution_impl::exec(&*env.get_interface(), binary_module, function, param) {
         Ok(resp) => {
             if cfg!(not(feature = "gas_calibration")) {
                 if let Err(err) = set_remaining_points(env, resp.0.remaining_gas) {

@@ -1,4 +1,4 @@
-use crate::execution::{examine_and_compile_bytecode, MassaModule};
+use crate::execution::{examine_and_compile_bytecode, BinaryModule, ContextModule};
 use crate::settings;
 use crate::types::{Interface, Response};
 
@@ -22,13 +22,15 @@ use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibra
 /// Return:
 /// The return of the function executed as string and the remaining gas for the rest of the execution.
 pub(crate) fn exec(
-    mut module: impl MassaModule,
+    interface: &dyn Interface,
+    binary_module: impl BinaryModule,
     function: &str,
     param: &[u8],
 ) -> Result<(Response, Instance)> {
-    let instance = module.create_vm_instance_and_init_env()?;
+    let mut context_module = ContextModule::new(interface, binary_module);
+    let instance = context_module.create_vm_instance_and_init_env()?;
 
-    match module.execution(&instance, function, param) {
+    match context_module.execution(&instance, function, param) {
         Ok(response) => Ok((response, instance)),
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
@@ -60,8 +62,10 @@ pub(crate) fn exec(
 /// Return:
 /// the remaining gas.
 pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
-    let module = examine_and_compile_bytecode(interface, limit, bytecode)?;
-    Ok(exec(module, settings::MAIN, b"")?.0.remaining_gas)
+    let binary_module = examine_and_compile_bytecode(bytecode, limit)?;
+    Ok(exec(interface, binary_module, settings::MAIN, b"")?
+        .0
+        .remaining_gas)
     // IMPORTANT TODO: do not forget this
     // if instance.exports.contains(settings::MAIN) {
     //     Ok(exec(module, settings::MAIN, b"")?.0.remaining_gas)
@@ -88,8 +92,10 @@ pub fn run_function(
     param: &[u8],
     interface: &dyn Interface,
 ) -> Result<u64> {
-    let module = examine_and_compile_bytecode(interface, limit, bytecode)?;
-    Ok(exec(module, function, param)?.0.remaining_gas)
+    let binary_module = examine_and_compile_bytecode(bytecode, limit)?;
+    Ok(exec(interface, binary_module, function, param)?
+        .0
+        .remaining_gas)
 }
 
 /// Same as run_main but return a GasCalibrationResult
