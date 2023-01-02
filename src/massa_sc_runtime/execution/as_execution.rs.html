@@ -226,10 +226,11 @@
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{as_abi::<span class="kw-2">*</span>, MassaModule};
 <span class="kw">use </span><span class="kw">crate</span>::env::{
-    assembly_script_abort, assembly_script_date_now, assembly_script_seed, get_remaining_points,
-    set_remaining_points, ASEnv, MassaEnv,
+    assembly_script_abort, assembly_script_console_log, assembly_script_date_now,
+    assembly_script_seed, get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
 };
 <span class="kw">use </span><span class="kw">crate</span>::types::Response;
 <span class="kw">use crate</span>::{GasCosts, Interface};
@@ -403,6 +404,7 @@
                 </span><span class="string">&quot;abort&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_abort),
                 <span class="string">&quot;seed&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_seed),
                 <span class="string">&quot;Date.now&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_date_now),
+                <span class="string">&quot;console.log&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_log),
             },
             <span class="string">&quot;massa&quot; </span>=&gt; {
                 <span class="string">&quot;assembly_script_print&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_print),
