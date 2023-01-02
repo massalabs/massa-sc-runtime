@@ -1,7 +1,7 @@
 use super::{as_abi::*, MassaModule};
 use crate::env::{
-    assembly_script_abort, assembly_script_date_now, assembly_script_seed, get_remaining_points,
-    set_remaining_points, ASEnv, MassaEnv,
+    assembly_script_abort, assembly_script_console_log, assembly_script_date_now,
+    assembly_script_seed, get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
 };
 use crate::types::Response;
 use crate::{GasCosts, Interface};
@@ -175,6 +175,7 @@ impl MassaModule for ASModule {
                 "abort" =>  Function::new_typed_with_env(store, &fenv, assembly_script_abort),
                 "seed" => Function::new_typed_with_env(store, &fenv, assembly_script_seed),
                 "Date.now" =>  Function::new_typed_with_env(store, &fenv, assembly_script_date_now),
+                "console.log" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_log),
             },
             "massa" => {
                 "assembly_script_print" => Function::new_typed_with_env(store, &fenv, assembly_script_print),
