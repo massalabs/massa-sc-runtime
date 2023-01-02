@@ -3,8 +3,6 @@ use wasmer::WasmerEnv;
 use crate::env::{get_remaining_points, set_remaining_points, MassaEnv};
 use crate::Response;
 
-use super::get_module;
-
 pub(crate) type ABIResult<T, E = wasmer::RuntimeError> = core::result::Result<T, E>;
 macro_rules! abi_bail {
     ($err:expr) => {
@@ -13,6 +11,8 @@ macro_rules! abi_bail {
 }
 
 pub(crate) use abi_bail;
+
+use super::examine_and_compile_bytecode;
 
 /// `Call` ABI called by the webassembly VM
 ///
@@ -36,18 +36,19 @@ pub(crate) fn call_module<T: WasmerEnv>(
         Ok(bytecode) => bytecode,
         Err(err) => abi_bail!(err),
     };
-    let module = match get_module(&*env.get_interface(), bytecode) {
+    let remaining_gas = if cfg!(feature = "gas_calibration") {
+        u64::MAX
+    } else {
+        get_remaining_points(env)?
+    };
+
+    let module = match examine_and_compile_bytecode(&*env.get_interface(), remaining_gas, bytecode)
+    {
         Ok(module) => module,
         Err(err) => abi_bail!(err),
     };
 
-    let remaining_gas = if cfg!(feature = "gas_calibration") {
-        Ok(u64::MAX)
-    } else {
-        get_remaining_points(env)
-    };
-
-    match crate::execution_impl::exec(remaining_gas?, None, module, function, param) {
+    match crate::execution_impl::exec(module, function, param) {
         Ok(resp) => {
             if cfg!(not(feature = "gas_calibration")) {
                 if let Err(err) = set_remaining_points(env, resp.0.remaining_gas) {

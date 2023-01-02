@@ -1,4 +1,4 @@
-use crate::execution::{create_instance, get_module, MassaModule};
+use crate::execution::{examine_and_compile_bytecode, MassaModule};
 use crate::settings;
 use crate::types::{Interface, Response};
 
@@ -22,17 +22,11 @@ use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibra
 /// Return:
 /// The return of the function executed as string and the remaining gas for the rest of the execution.
 pub(crate) fn exec(
-    limit: u64,
-    instance: Option<Instance>,
     mut module: impl MassaModule,
     function: &str,
     param: &[u8],
 ) -> Result<(Response, Instance)> {
-    let instance = match instance {
-        Some(instance) => instance,
-        None => create_instance(limit, &module)?,
-    };
-    module.init_with_instance(&instance)?;
+    let instance = module.create_vm_instance_and_init_env()?;
 
     match module.execution(&instance, function, param) {
         Ok(response) => Ok((response, instance)),
@@ -66,15 +60,14 @@ pub(crate) fn exec(
 /// Return:
 /// the remaining gas.
 pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
-    let module = get_module(interface, bytecode)?;
-    let instance = create_instance(limit, &module)?;
-    if instance.exports.contains(settings::MAIN) {
-        Ok(exec(limit, Some(instance), module, settings::MAIN, b"")?
-            .0
-            .remaining_gas)
-    } else {
-        Ok(limit)
-    }
+    let module = examine_and_compile_bytecode(interface, limit, bytecode)?;
+    Ok(exec(module, settings::MAIN, b"")?.0.remaining_gas)
+    // IMPORTANT TODO: do not forget this
+    // if instance.exports.contains(settings::MAIN) {
+    //     Ok(exec(module, settings::MAIN, b"")?.0.remaining_gas)
+    // } else {
+    //     Ok(limit)
+    // }
 }
 
 /// Library Input, take a `module` wasm built with the massa environment,
@@ -95,8 +88,8 @@ pub fn run_function(
     param: &[u8],
     interface: &dyn Interface,
 ) -> Result<u64> {
-    let module = get_module(interface, bytecode)?;
-    Ok(exec(limit, None, module, function, param)?.0.remaining_gas)
+    let module = examine_and_compile_bytecode(interface, limit, bytecode)?;
+    Ok(exec(module, function, param)?.0.remaining_gas)
 }
 
 /// Same as run_main but return a GasCalibrationResult
@@ -106,6 +99,7 @@ pub fn run_main_gc(
     limit: u64,
     interface: &dyn Interface,
 ) -> Result<GasCalibrationResult> {
+    // IMPORTANT TODO: update this as well
     let module = get_module(interface, bytecode)?;
     let instance = create_instance(limit, &module)?;
     if instance.exports.contains(settings::MAIN) {

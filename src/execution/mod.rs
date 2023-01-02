@@ -5,13 +5,9 @@ mod common;
 use anyhow::{bail, Result};
 use std::sync::Arc;
 use wasmer::{wasmparser::Operator, BaseTunables, Pages, Target};
-use wasmer::{
-    CompilerConfig, Features, HostEnvInitError, ImportObject, Instance, InstantiationError, Module,
-    Store, Universal,
-};
+use wasmer::{CompilerConfig, Features, ImportObject, Instance, Module, Store, Universal};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
-use wasmer_types::TrapCode;
 
 use crate::middlewares::gas_calibration::GasCalibration;
 use crate::settings::max_number_of_pages;
@@ -22,17 +18,18 @@ pub(crate) use as_execution::*;
 pub(crate) use common::*;
 
 pub(crate) trait MassaModule {
-    fn init(interface: &dyn Interface, bytecode: &[u8]) -> Self;
+    fn new(interface: &dyn Interface, store: Store, module: Module) -> Self;
+    fn create_vm_instance_and_init_env(&mut self) -> Result<Instance>;
     /// Closure for the execution allowing us to handle a gas error
     fn execution(&self, instance: &Instance, function: &str, param: &[u8]) -> Result<Response>;
-    fn resolver(&self, store: &Store) -> ImportObject;
-    fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError>;
-    fn get_bytecode(&self) -> &Vec<u8>;
+    fn resolver(&self) -> ImportObject;
 }
 
-/// Create an instance of VM from a module with a given interface, an operation
-/// number limit and a webassembly module
-pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<Instance> {
+pub(crate) fn compile_bytecode(
+    interface: &dyn Interface,
+    limit: u64,
+    bytecode: &[u8],
+) -> Result<impl MassaModule> {
     // We use the Singlepass compiler because it is fast and adapted to blockchains
     // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
     let mut compiler_config = Singlepass::new();
@@ -79,36 +76,26 @@ pub(crate) fn create_instance(limit: u64, module: &impl MassaModule) -> Result<I
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
     let engine = Universal::new(compiler_config).features(FEATURES).engine();
     let store = Store::new_with_tunables(&engine, tunables);
+    let module = Module::new(&store, bytecode)?;
 
-    match Instance::new(
-        &Module::new(&store, &module.get_bytecode())?,
-        &module.resolver(&store),
-    ) {
-        Ok(i) => Ok(i),
-        Err(err) => {
-            // We filter the error created by the metering middleware when there is not enough gas at initialization.
-            if let InstantiationError::Start(ref e) = err {
-                if let Some(trap) = e.clone().to_trap() {
-                    if trap == TrapCode::UnreachableCodeReached && e.trace().len() == 0 {
-                        bail!("RuntimeError: Not enough gas, limit reached at initialization");
-                    }
-                }
-            }
-            Err(err.into())
-        }
-    }
+    // Return the Wasmer module
+    Ok(ASModule::new(interface, store, module))
 }
 
 /// Dispatch module corresponding to the first bytecode.
 /// 1: target AssemblyScript
 /// 2: todo: another target
 /// _: target AssemblyScript and use the full bytecode
-pub(crate) fn get_module(interface: &dyn Interface, bytecode: &[u8]) -> Result<impl MassaModule> {
+pub(crate) fn examine_and_compile_bytecode(
+    interface: &dyn Interface,
+    limit: u64,
+    bytecode: &[u8],
+) -> Result<impl MassaModule> {
     if bytecode.is_empty() {
         bail!("error: module is empty")
     }
     Ok(match bytecode[0] {
-        1 => ASModule::init(interface, &bytecode[1..]),
-        _ => ASModule::init(interface, bytecode),
+        1 => compile_bytecode(interface, limit, bytecode)?,
+        _ => compile_bytecode(interface, limit, bytecode)?,
     })
 }
