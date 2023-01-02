@@ -387,7 +387,6 @@
 <a href="#387" id="387">387</a>
 <a href="#388" id="388">388</a>
 <a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
 </pre><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>serde::{de::DeserializeOwned, Serialize};
 <span class="kw">use </span>std::{
@@ -494,8 +493,7 @@
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_seed&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_abort&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_date_now&quot;</span>), <span class="number">11</span>);
-        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_console_log&quot;</span>), <span class="number">35</span>); <span class="comment">// same cost for print
-        </span><span class="self">Self </span>{
+        <span class="self">Self </span>{
             operator_cost: <span class="number">1</span>,
             launch_cost: <span class="number">10000</span>,
             abi_costs,
