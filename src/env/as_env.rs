@@ -156,6 +156,6 @@ pub fn assembly_script_console_log(
         abi_bail!("aborting failed to load message");
     }
 
-    println!("[console] {}", message_.unwrap());
+    env.get_interface().generate_event(message_.unwrap())?;
     Ok(())
 }
