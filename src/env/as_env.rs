@@ -148,14 +148,7 @@ pub fn assembly_script_console_log(
         .as_ref()
         .expect("Failed to get memory on env")
         .clone();
-    let message_ = message
-        .read(&memory, &ctx)
-        .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
-
-    if message_.is_err() {
-        abi_bail!("aborting failed to load message");
-    }
-
-    env.get_interface().generate_event(message_.unwrap())?;
+    let message_ = message.read(&memory, &ctx)?;
+    env.get_interface().generate_event(message_)?;
     Ok(())
 }
