@@ -152,13 +152,6 @@
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Extends the env of wasmer-as
 
 </span><span class="kw">use crate</span>::{
@@ -309,15 +302,8 @@
         .as_ref()
         .expect(<span class="string">&quot;Failed to get memory on env&quot;</span>)
         .clone();
-    <span class="kw">let </span>message_ = message
-        .read(<span class="kw-2">&amp;</span>memory, <span class="kw-2">&amp;</span>ctx)
-        .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
-
-    <span class="kw">if </span>message_.is_err() {
-        <span class="macro">abi_bail!</span>(<span class="string">&quot;aborting failed to load message&quot;</span>);
-    }
-
-    env.get_interface().generate_event(message_.unwrap())<span class="question-mark">?</span>;
+    <span class="kw">let </span>message_ = message.read(<span class="kw-2">&amp;</span>memory, <span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
+    env.get_interface().generate_event(message_)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
