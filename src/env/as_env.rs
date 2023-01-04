@@ -148,7 +148,7 @@ pub fn assembly_script_console_log(
         .as_ref()
         .expect("Failed to get memory on env")
         .clone();
-    let message_ = message.read(&memory, &ctx)?;
-    env.get_interface().generate_event(message_)?;
+    let message = message.read(&memory, &ctx)?;
+    env.get_interface().generate_event(message)?;
     Ok(())
 }
