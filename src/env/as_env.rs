@@ -130,3 +130,25 @@ pub fn assembly_script_date_now(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64
     let ret = utime as f64;
     Ok(ret)
 }
+
+#[named]
+pub fn assembly_script_console_log(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+
+    let memory = ctx
+        .data()
+        .get_wasm_env()
+        .memory
+        .as_ref()
+        .expect("Failed to get memory on env")
+        .clone();
+    let message = message.read(&memory, &ctx)?;
+    env.get_interface().generate_event(message)?;
+    Ok(())
+}
