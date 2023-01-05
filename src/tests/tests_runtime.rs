@@ -280,3 +280,22 @@ fn test_wat() {
     let excepted: Vec<u8> = Vec::new();
     assert_eq!(response.ret, excepted);
 }
+
+/// Test wasm using simd instructions
+#[test]
+#[serial]
+fn test_simd() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/build/simd.wasm"));
+    match run_main(module, 10_000_000, &*interface, gas_costs) {
+        Err(e) => {
+            println!("Error: {}", e);
+            assert!(e
+                .to_string()
+                .starts_with("Validation error: SIMD support is not enabled"));
+        }
+        _ => panic!("Failed to run use_builtins.wasm"),
+    }
+}
