@@ -99,7 +99,7 @@ impl BinaryModule for ASBinaryModule {
 /// 1: target AssemblyScript
 /// 2: todo: another target
 /// _: target AssemblyScript and use the full bytecode
-pub(crate) fn examine_and_compile_bytecode(
+pub fn examine_and_compile_bytecode(
     bytecode: &[u8],
     limit: u64,
 ) -> Result<impl BinaryModule> {
