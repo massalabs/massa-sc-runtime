@@ -1,4 +1,4 @@
-use crate::execution::{examine_and_compile_bytecode, BinaryModule, ContextModule};
+use crate::execution::{BinaryModule, ContextModule};
 use crate::settings;
 use crate::types::{Interface, Response};
 
@@ -27,6 +27,7 @@ pub(crate) fn exec(
     function: &str,
     param: &[u8],
 ) -> Result<(Response, Instance)> {
+    // IMPORTANT TODO: update doc for all the runtime modifications
     let mut context_module = ContextModule::new(interface, binary_module);
     let instance = context_module.create_vm_instance_and_init_env()?;
 
@@ -62,15 +63,12 @@ pub(crate) fn exec(
 /// Return:
 /// the remaining gas.
 pub fn run_main(binary_module: impl BinaryModule, interface: &dyn Interface) -> Result<u64> {
+    // REVIEW NOTE: there is actually no need to check if MAIN exists here since execution will
+    // produce an error if it doesnt, which is actually what you would expect and not the other
+    // way around imho
     Ok(exec(interface, binary_module, settings::MAIN, b"")?
         .0
         .remaining_gas)
-    // IMPORTANT TODO: do not forget this
-    // if instance.exports.contains(settings::MAIN) {
-    //     Ok(exec(module, settings::MAIN, b"")?.0.remaining_gas)
-    // } else {
-    //     Ok(limit)
-    // }
 }
 
 /// Library Input, take a `module` wasm built with the massa environment,
@@ -102,7 +100,7 @@ pub fn run_main_gc(
     limit: u64,
     interface: &dyn Interface,
 ) -> Result<GasCalibrationResult> {
-    // IMPORTANT TODO: update this as well
+    // IMPORTANT TODO: consult how we'd like to have this update and update it
     let module = get_module(interface, bytecode)?;
     let instance = create_instance(limit, &module)?;
     if instance.exports.contains(settings::MAIN) {
