@@ -1,9 +1,10 @@
-use crate::execution::{BinaryModule, ContextModule};
+use crate::execution::{create_instance, get_module, MassaModule};
 use crate::settings;
 use crate::types::{Interface, Response};
 
+use crate::GasCosts;
 use anyhow::{bail, Result};
-use wasmer::Instance;
+use wasmer::{Instance, Store};
 use wasmer_middlewares::metering::{self, MeteringPoints};
 
 #[cfg(feature = "gas_calibration")]
@@ -22,23 +23,25 @@ use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibra
 /// Return:
 /// The return of the function executed as string and the remaining gas for the rest of the execution.
 pub(crate) fn exec(
-    interface: &dyn Interface,
-    binary_module: impl BinaryModule,
+    limit: u64,
+    instance_and_store: Option<(Instance, Store)>,
+    mut module: impl MassaModule,
     function: &str,
     param: &[u8],
-) -> Result<(Response, Instance)> {
-    // IMPORTANT TODO: update doc for all the runtime modifications
-    let mut context_module = ContextModule::new(interface, binary_module);
-    let instance = context_module.create_vm_instance_and_init_env()?;
+) -> Result<(Response, Instance, Store)> {
+    let (instance, mut store) = match instance_and_store {
+        Some((instance, store)) => (instance, store),
+        None => create_instance(limit, &mut module)?,
+    };
 
-    match context_module.execution(&instance, function, param) {
-        Ok(response) => Ok((response, instance)),
+    match module.execution(&instance, &mut store, function, param) {
+        Ok(response) => Ok((response, instance, store)),
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
                 bail!(err)
             } else {
                 // Because the last needed more than the remaining points, we should have an error.
-                match metering::get_remaining_points(&instance) {
+                match metering::get_remaining_points(&mut store, &instance) {
                     MeteringPoints::Remaining(..) => bail!(err),
                     MeteringPoints::Exhausted => {
                         bail!("Not enough gas, limit reached at: {function}")
@@ -62,13 +65,22 @@ pub(crate) fn exec(
 /// ```
 /// Return:
 /// the remaining gas.
-pub fn run_main(binary_module: impl BinaryModule, interface: &dyn Interface) -> Result<u64> {
-    // REVIEW NOTE: there is actually no need to check if MAIN exists here since execution will
-    // produce an error if it doesnt, which is actually what you would expect and not the other
-    // way around imho
-    Ok(exec(interface, binary_module, settings::MAIN, b"")?
-        .0
-        .remaining_gas)
+pub fn run_main(
+    bytecode: &[u8],
+    limit: u64,
+    interface: &dyn Interface,
+    gas_costs: GasCosts,
+) -> Result<Response> {
+    let mut module = get_module(interface, bytecode, gas_costs)?;
+    let (instance, store) = create_instance(limit, &mut module)?;
+    if instance.exports.contains(settings::MAIN) {
+        Ok(exec(limit, Some((instance, store)), module, settings::MAIN, b"")?.0)
+    } else {
+        Ok(Response {
+            ret: Vec::new(),
+            remaining_gas: limit,
+        })
+    }
 }
 
 /// Library Input, take a `module` wasm built with the massa environment,
@@ -83,14 +95,15 @@ pub fn run_main(binary_module: impl BinaryModule, interface: &dyn Interface) -> 
 /// }
 /// ```
 pub fn run_function(
-    binary_module: impl BinaryModule,
+    bytecode: &[u8],
+    limit: u64,
     function: &str,
     param: &[u8],
     interface: &dyn Interface,
-) -> Result<u64> {
-    Ok(exec(interface, binary_module, function, param)?
-        .0
-        .remaining_gas)
+    gas_costs: GasCosts,
+) -> Result<Response> {
+    let module = get_module(interface, bytecode, gas_costs)?;
+    Ok(exec(limit, None, module, function, param)?.0)
 }
 
 /// Same as run_main but return a GasCalibrationResult
@@ -99,19 +112,20 @@ pub fn run_main_gc(
     bytecode: &[u8],
     limit: u64,
     interface: &dyn Interface,
+    param: &[u8],
+    gas_costs: GasCosts,
 ) -> Result<GasCalibrationResult> {
-    // IMPORTANT TODO: consult how we'd like to have this update and update it
-    let module = get_module(interface, bytecode)?;
-    let instance = create_instance(limit, &module)?;
+    let mut module = get_module(interface, bytecode, gas_costs)?;
+    let (instance, store) = create_instance(limit, &mut module)?;
     if instance.exports.contains(settings::MAIN) {
-        let (_resp, instance) = exec(
+        let (_resp, instance, mut store) = exec(
             u64::MAX,
-            Some(instance.clone()),
+            Some((instance.clone(), store)),
             module,
             settings::MAIN,
-            b"",
+            param,
         )?;
-        Ok(get_gas_calibration_result(&instance))
+        Ok(get_gas_calibration_result(&instance, &mut store))
     } else {
         bail!("No main");
     }
