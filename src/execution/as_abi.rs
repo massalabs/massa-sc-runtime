@@ -11,7 +11,7 @@ use function_name::named;
 use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
 use super::common::{abi_bail, call_module, create_sc, ABIResult};
-use super::{create_instance, get_module, local_call, MassaModule};
+use super::{examine_and_compile_bytecode, local_call, ContextModule};
 
 /// Get the coins that have been made available for a specific purpose for the current call.
 #[named]
@@ -861,10 +861,14 @@ pub fn assembly_function_exists(
     // NOTE: how do we handle metering for those cases?
     let bytecode = env.get_interface().raw_get_bytecode_for(address)?;
 
-    let mut module = get_module(&*env.get_interface(), &bytecode, env.get_gas_costs())?;
+    // IMPORTANT TODO: use remaining gas
+    // IMPORTANT TODO: try to improve requirements
+    // IMPORTANT TODO: dont forget about Store ref
+    let binary_module = examine_and_compile_bytecode(&bytecode, 4242)?;
     // NOTE: is it maybe possible to retrieve a module function without creating an instance?
     // NOTE: if not determine initial cost
-    let (instance, _store) = create_instance(u64::MAX, &mut module)?;
+    let mut module = ContextModule::new(&*env.get_interface(), binary_module, env.get_gas_costs());
+    let instance = module.create_vm_instance_and_init_env()?;
     Ok(module.has_function(&instance, function) as i32)
 }
 

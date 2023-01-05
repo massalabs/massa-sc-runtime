@@ -1,4 +1,4 @@
-use crate::execution::{create_instance, get_module, MassaModule};
+use crate::execution::{BinaryModule, ContextModule};
 use crate::settings;
 use crate::types::{Interface, Response};
 
@@ -23,25 +23,23 @@ use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibra
 /// Return:
 /// The return of the function executed as string and the remaining gas for the rest of the execution.
 pub(crate) fn exec(
-    limit: u64,
-    instance_and_store: Option<(Instance, Store)>,
-    mut module: impl MassaModule,
+    mut binary_module: impl BinaryModule,
+    interface: &dyn Interface,
     function: &str,
     param: &[u8],
-) -> Result<(Response, Instance, Store)> {
-    let (instance, mut store) = match instance_and_store {
-        Some((instance, store)) => (instance, store),
-        None => create_instance(limit, &mut module)?,
-    };
+    gas_costs: GasCosts,
+) -> Result<(Response, Instance)> {
+    let mut module = ContextModule::new(interface, binary_module, gas_costs);
+    let instance = module.create_vm_instance_and_init_env()?;
 
-    match module.execution(&instance, &mut store, function, param) {
-        Ok(response) => Ok((response, instance, store)),
+    match module.execution(&instance, function, param) {
+        Ok(response) => Ok((response, instance)),
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
                 bail!(err)
             } else {
                 // Because the last needed more than the remaining points, we should have an error.
-                match metering::get_remaining_points(&mut store, &instance) {
+                match metering::get_remaining_points(&mut module.store, &instance) {
                     MeteringPoints::Remaining(..) => bail!(err),
                     MeteringPoints::Exhausted => {
                         bail!("Not enough gas, limit reached at: {function}")
@@ -66,21 +64,11 @@ pub(crate) fn exec(
 /// Return:
 /// the remaining gas.
 pub fn run_main(
-    bytecode: &[u8],
-    limit: u64,
+    binary_module: impl BinaryModule,
     interface: &dyn Interface,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    let mut module = get_module(interface, bytecode, gas_costs)?;
-    let (instance, store) = create_instance(limit, &mut module)?;
-    if instance.exports.contains(settings::MAIN) {
-        Ok(exec(limit, Some((instance, store)), module, settings::MAIN, b"")?.0)
-    } else {
-        Ok(Response {
-            ret: Vec::new(),
-            remaining_gas: limit,
-        })
-    }
+    Ok(exec(binary_module, interface, settings::MAIN, b"", gas_costs)?.0)
 }
 
 /// Library Input, take a `module` wasm built with the massa environment,
@@ -95,15 +83,13 @@ pub fn run_main(
 /// }
 /// ```
 pub fn run_function(
-    bytecode: &[u8],
-    limit: u64,
+    binary_module: impl BinaryModule,
     function: &str,
     param: &[u8],
     interface: &dyn Interface,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    let module = get_module(interface, bytecode, gas_costs)?;
-    Ok(exec(limit, None, module, function, param)?.0)
+    Ok(exec(binary_module, interface, function, param, gas_costs)?.0)
 }
 
 /// Same as run_main but return a GasCalibrationResult

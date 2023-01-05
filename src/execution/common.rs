@@ -4,7 +4,7 @@ use displaydoc::Display;
 use thiserror::Error;
 use wasmer::FunctionEnvMut;
 
-use super::get_module;
+use super::examine_and_compile_bytecode;
 
 pub(crate) type ABIResult<T, E = ABIError> = core::result::Result<T, E>;
 
@@ -48,15 +48,22 @@ pub(crate) fn call_module(
     };
     let env = ctx.data().clone();
     let bytecode = env.get_interface().init_call(address, raw_coins)?;
-    let module = get_module(&*env.get_interface(), &bytecode, env.get_gas_costs())?;
 
     let remaining_gas = if cfg!(feature = "gas_calibration") {
-        Ok(u64::MAX)
+        u64::MAX
     } else {
-        get_remaining_points(&env, ctx)
+        // IMPORTANT NOTE: here for gas points
+        get_remaining_points(&env, ctx)?
     };
 
-    let resp = crate::execution_impl::exec(remaining_gas?, None, module, function, param)?;
+    let binary_module = examine_and_compile_bytecode(&bytecode, remaining_gas)?;
+    let resp = crate::execution_impl::exec(
+        binary_module,
+        &*env.get_interface(),
+        function,
+        param,
+        env.get_gas_costs(),
+    )?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.0.remaining_gas)?;
     }
@@ -72,15 +79,21 @@ pub(crate) fn local_call(
     param: &[u8],
 ) -> ABIResult<Response> {
     let env = ctx.data().clone();
-    let module = get_module(&*env.get_interface(), bytecode, env.get_gas_costs())?;
 
     let remaining_gas = if cfg!(feature = "gas_calibration") {
-        Ok(u64::MAX)
+        u64::MAX
     } else {
-        get_remaining_points(&env, ctx)
+        get_remaining_points(&env, ctx)?
     };
 
-    let resp = crate::execution_impl::exec(remaining_gas?, None, module, function, param)?;
+    let binary_module = examine_and_compile_bytecode(&bytecode, remaining_gas)?;
+    let resp = crate::execution_impl::exec(
+        binary_module,
+        &*env.get_interface(),
+        function,
+        param,
+        env.get_gas_costs(),
+    )?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.0.remaining_gas)?;
     }

@@ -9,46 +9,19 @@ use crate::types::Response;
 use crate::{GasCosts, Interface};
 use anyhow::{bail, Result};
 use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
-use parking_lot::RwLock;
 use wasmer::{
     imports, Function, FunctionEnv, Imports, Instance, InstantiationError, Module, Store, Value,
 };
 use wasmer_types::TrapCode;
 
-pub(crate) trait MassaModule: Send + Sync {
-    fn new(
-        interface: &dyn Interface,
-        binary_module: impl BinaryModule,
-        gas_costs: GasCosts,
-    ) -> Self;
-    fn create_vm_instance_and_init_env(&mut self) -> Result<Instance>;
-    /// Closure for the execution allowing us to handle a gas error
-    fn execution(
-        &self,
-        instance: &Instance,
-        store: &mut Store,
-        function: &str,
-        param: &[u8],
-    ) -> Result<Response>;
-    fn has_function(&self, instance: &Instance, function: &str) -> bool;
-    fn resolver(&self) -> (Imports, FunctionEnv<ASEnv>);
-    fn init_with_instance(
-        &mut self,
-        instance: &Instance,
-        store: &mut Store,
-        fenv: &mut FunctionEnv<ASEnv>,
-    ) -> Result<()>;
-    fn get_gas_costs(&self) -> GasCosts;
-}
-
-pub(crate) struct ASModule {
+pub(crate) struct ContextModule {
     env: ASEnv,
-    module: Arc<Module>,
-    store: Store,
+    pub module: Arc<Module>,
+    pub store: Store,
 }
 
-impl MassaModule for ASModule {
-    fn new(
+impl ContextModule {
+    pub fn new(
         interface: &dyn Interface,
         binary_module: impl BinaryModule,
         gas_costs: GasCosts,
@@ -61,7 +34,7 @@ impl MassaModule for ASModule {
     }
 
     /// Create a VM instance from the current module
-    fn create_vm_instance_and_init_env(&mut self) -> Result<Instance> {
+    pub fn create_vm_instance_and_init_env(&mut self) -> Result<Instance> {
         let (imports, fenv) = self.resolver();
         match Instance::new(&mut self.store, &self.module, &imports) {
             Ok(i) => {
@@ -82,31 +55,35 @@ impl MassaModule for ASModule {
         }
     }
 
-    fn execution(
+    pub(crate) fn execution(
         &self,
         instance: &Instance,
-        store: &mut Store,
         function: &str,
         param: &[u8],
     ) -> Result<Response> {
         if cfg!(not(feature = "gas_calibration")) {
             // sub initial metering cost
             let metering_initial_cost = self.env.get_gas_costs().launch_cost;
-            let remaining_gas = get_remaining_points(&self.env, store)?;
+            let remaining_gas = get_remaining_points(&self.env, &mut self.store)?;
             if metering_initial_cost > remaining_gas {
                 bail!("Not enough gas to launch the virtual machine")
             }
-            set_remaining_points(&self.env, store, remaining_gas - metering_initial_cost)?;
+            set_remaining_points(
+                &self.env,
+                &mut self.store,
+                remaining_gas - metering_initial_cost,
+            )?;
         }
 
         // Now can exec
         let wasm_func = instance.exports.get_function(function)?;
-        let argc = wasm_func.param_arity(store);
+        let argc = wasm_func.param_arity(&mut self.store);
         let res = if argc == 0 && function == crate::settings::MAIN {
-            wasm_func.call(store, &[])
+            wasm_func.call(&mut self.store, &[])
         } else if argc == 1 {
-            let param_ptr = *BufferPtr::alloc(&param.to_vec(), self.env.get_wasm_env(), store)?;
-            wasm_func.call(store, &[Value::I32(param_ptr.offset() as i32)])
+            let param_ptr =
+                *BufferPtr::alloc(&param.to_vec(), self.env.get_wasm_env(), &mut self.store)?;
+            wasm_func.call(&mut self.store, &[Value::I32(param_ptr.offset() as i32)])
         } else {
             bail!("Unexpected number of parameters in the function called")
         };
@@ -117,7 +94,7 @@ impl MassaModule for ASModule {
                     let remaining_gas = if cfg!(feature = "gas_calibration") {
                         Ok(0_u64)
                     } else {
-                        get_remaining_points(&self.env, store)
+                        get_remaining_points(&self.env, &mut self.store)
                     };
 
                     return Ok(Response {
@@ -129,7 +106,7 @@ impl MassaModule for ASModule {
                     if let Some(offset) = offset.i32() {
                         let buffer_ptr = BufferPtr::new(offset as u32);
                         let memory = instance.exports.get_memory("memory")?;
-                        buffer_ptr.read(memory, store)?
+                        buffer_ptr.read(memory, &mut self.store)?
                     } else {
                         bail!("Execution wasn't in capacity to read the return value")
                     }
@@ -139,7 +116,7 @@ impl MassaModule for ASModule {
                 let remaining_gas = if cfg!(feature = "gas_calibration") {
                     Ok(0_u64)
                 } else {
-                    get_remaining_points(&self.env, store)
+                    get_remaining_points(&self.env, &mut self.store)
                 };
                 Ok(Response {
                     ret,
@@ -214,11 +191,11 @@ impl MassaModule for ASModule {
         Ok(())
     }
 
-    fn has_function(&self, instance: &Instance, function: &str) -> bool {
+    pub(crate) fn has_function(&self, instance: &Instance, function: &str) -> bool {
         instance.exports.get_function(function).is_ok()
     }
 
-    fn get_gas_costs(&self) -> GasCosts {
+    pub(crate) fn get_gas_costs(&self) -> GasCosts {
         self.env.get_gas_costs()
     }
 
