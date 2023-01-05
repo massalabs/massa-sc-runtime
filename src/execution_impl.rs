@@ -61,8 +61,7 @@ pub(crate) fn exec(
 /// ```
 /// Return:
 /// the remaining gas.
-pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Result<u64> {
-    let binary_module = examine_and_compile_bytecode(bytecode, limit)?;
+pub fn run_main(binary_module: impl BinaryModule, interface: &dyn Interface) -> Result<u64> {
     Ok(exec(interface, binary_module, settings::MAIN, b"")?
         .0
         .remaining_gas)
@@ -86,13 +85,11 @@ pub fn run_main(bytecode: &[u8], limit: u64, interface: &dyn Interface) -> Resul
 /// }
 /// ```
 pub fn run_function(
-    bytecode: &[u8],
-    limit: u64,
+    binary_module: impl BinaryModule,
     function: &str,
     param: &[u8],
     interface: &dyn Interface,
 ) -> Result<u64> {
-    let binary_module = examine_and_compile_bytecode(bytecode, limit)?;
     Ok(exec(interface, binary_module, function, param)?
         .0
         .remaining_gas)

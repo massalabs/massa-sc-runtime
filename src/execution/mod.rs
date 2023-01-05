@@ -16,7 +16,7 @@ use crate::tunable_memory::LimitingTunables;
 pub(crate) use as_execution::*;
 pub(crate) use common::*;
 
-pub(crate) trait BinaryModule {
+pub trait BinaryModule {
     fn new_from_bytecode(bytecode: &[u8], limit: u64) -> Result<Self>
     where
         Self: Sized;
