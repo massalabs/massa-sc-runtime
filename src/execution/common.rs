@@ -131,9 +131,10 @@ pub(crate) fn function_exists(
     let engine = init_engine(env.get_gas_costs(), remaining_gas)?;
 
     let binary_module = Module::new(&engine, bytecode)?;
-    let mut context_module = ContextModule::new(&*interface, binary_module, env.get_gas_costs());
     let mut store = init_store(&engine)?;
+    let mut context_module = ContextModule::new(&*interface, binary_module, env.get_gas_costs());
     let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
+
     Ok(instance.exports.get_function(function).is_ok())
 }
 
