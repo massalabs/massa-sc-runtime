@@ -1,6 +1,4 @@
-use std::sync::{Arc, Mutex};
-
-use super::{as_abi::*, init_store};
+use super::as_abi::*;
 use crate::env::{
     assembly_script_abort, assembly_script_date_now, assembly_script_seed, get_remaining_points,
     set_remaining_points, ASEnv, MassaEnv,
@@ -188,10 +186,6 @@ impl ContextModule {
         }
 
         Ok(())
-    }
-
-    pub(crate) fn get_gas_costs(&self) -> GasCosts {
-        self.env.get_gas_costs()
     }
 }
 

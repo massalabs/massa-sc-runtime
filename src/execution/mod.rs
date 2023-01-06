@@ -2,23 +2,18 @@ mod as_abi;
 mod as_execution;
 mod common;
 
-use anyhow::{bail, Result};
-use parking_lot::RwLock;
-use std::sync::{Arc, Mutex};
-use wasmer::{
-    wasmparser::Operator, BaseTunables, EngineBuilder, FunctionEnv, Imports, Pages, Target,
-};
-use wasmer::{CompilerConfig, Engine, Features, Instance, InstantiationError, Module, Store};
+use anyhow::Result;
+use std::sync::Arc;
+use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
+use wasmer::{CompilerConfig, Engine, Features, Store};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
-use wasmer_types::TrapCode;
 
 use crate::middlewares::gas_calibration::GasCalibration;
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
-use crate::{GasCosts, Interface, Response};
+use crate::GasCosts;
 
-use crate::env::ASEnv;
 pub(crate) use as_execution::*;
 pub(crate) use common::*;
 

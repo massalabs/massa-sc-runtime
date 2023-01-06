@@ -1,8 +1,9 @@
-use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
-use crate::Response;
 use displaydoc::Display;
 use thiserror::Error;
 use wasmer::{Engine, FunctionEnvMut, Module};
+
+use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
+use crate::Response;
 
 pub(crate) type ABIResult<T, E = ABIError> = core::result::Result<T, E>;
 

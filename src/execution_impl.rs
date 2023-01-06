@@ -1,10 +1,10 @@
-use crate::execution::{init_engine, init_store, ContextModule};
+use crate::execution::{init_store, ContextModule};
 use crate::settings;
 use crate::types::{Interface, Response};
-
 use crate::GasCosts;
+
 use anyhow::{bail, Result};
-use wasmer::{Engine, Instance, Module, Store};
+use wasmer::{Engine, Instance, Module};
 use wasmer_middlewares::metering::{self, MeteringPoints};
 
 #[cfg(feature = "gas_calibration")]
