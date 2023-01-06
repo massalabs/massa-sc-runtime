@@ -193,6 +193,9 @@ fn test_basic_abi_call_param_size() -> Result<()> {
 
     // param size
     // Check SC src in massa-unit-tests-src for expected lengths
+
+    // For now, this has been disabled in the code, so we disabled it here too
+    /*
     assert_eq!(
         gas_calibration_result
             .counters
@@ -205,6 +208,7 @@ fn test_basic_abi_call_param_size() -> Result<()> {
             .get("Abi:ps:massa.assembly_script_set_data:1"),
         Some(&20)
     );
+
     // Check param len send via run_main_gc + 2x (utf-16)
     // TODO / FIXME: should be 14 but is now 18 - because param is now passed as &[u8] instead of &str
     assert_eq!(
@@ -213,6 +217,8 @@ fn test_basic_abi_call_param_size() -> Result<()> {
             .get("Abi:ps:massa.assembly_script_print:0"),
         Some(&18)
     );
+    */
+
     for i in 0..4 {
         assert_eq!(
             gas_calibration_result
