@@ -31,11 +31,11 @@ pub(crate) fn exec(
     gas_costs: GasCosts,
 ) -> Result<(Response, Instance)> {
     // IMPORTANT TODO: update doc for all the runtime modifications
-    let mut module = ContextModule::new(interface, binary_module, gas_costs);
+    let mut context_module = ContextModule::new(interface, binary_module, gas_costs);
     let mut store = init_store(engine)?;
-    let instance = module.create_vm_instance_and_init_env(&mut store)?;
+    let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
 
-    match module.execution(&mut store, &instance, function, param) {
+    match context_module.execution(&mut store, &instance, function, param) {
         Ok(response) => Ok((response, instance)),
         Err(err) => {
             if cfg!(feature = "gas_calibration") {

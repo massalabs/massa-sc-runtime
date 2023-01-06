@@ -1,6 +1,6 @@
 use displaydoc::Display;
 use thiserror::Error;
-use wasmer::{FunctionEnvMut, Instance, Module};
+use wasmer::{FunctionEnvMut, Module};
 
 use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
 use crate::{init_engine, Response};
@@ -31,7 +31,7 @@ macro_rules! abi_bail {
 
 pub(crate) use abi_bail;
 
-use super::{init_store, resolver};
+use super::{init_store, ContextModule};
 
 /// `Call` ABI called by the webassembly VM
 ///
@@ -118,7 +118,8 @@ pub(crate) fn function_exists(
     function: &str,
 ) -> ABIResult<bool> {
     let env = ctx.data().clone();
-    let bytecode = env.get_interface().raw_get_bytecode_for(address)?;
+    let interface = env.get_interface();
+    let bytecode = interface.raw_get_bytecode_for(address)?;
 
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         u64::MAX
@@ -130,9 +131,9 @@ pub(crate) fn function_exists(
     let engine = init_engine(env.get_gas_costs(), remaining_gas)?;
 
     let binary_module = Module::new(&engine, bytecode)?;
+    let mut context_module = ContextModule::new(&*interface, binary_module, env.get_gas_costs());
     let mut store = init_store(&engine)?;
-    let (imports, _) = resolver(env.clone(), &mut store);
-    let instance = Instance::new(&mut store, &binary_module, &imports)?;
+    let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
     Ok(instance.exports.get_function(function).is_ok())
 }
 
