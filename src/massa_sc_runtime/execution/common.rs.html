@@ -142,6 +142,7 @@
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
 <a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
 </pre><pre class="rust"><code><span class="kw">use </span>displaydoc::Display;
 <span class="kw">use </span>thiserror::Error;
 <span class="kw">use </span>wasmer::{FunctionEnvMut, Module};
@@ -275,9 +276,10 @@
     </span><span class="kw">let </span>engine = init_engine(env.get_gas_costs(), remaining_gas)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>binary_module = Module::new(<span class="kw-2">&amp;</span>engine, bytecode)<span class="question-mark">?</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>context_module = ContextModule::new(<span class="kw-2">&amp;*</span>interface, binary_module, env.get_gas_costs());
     <span class="kw">let </span><span class="kw-2">mut </span>store = init_store(<span class="kw-2">&amp;</span>engine)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>context_module = ContextModule::new(<span class="kw-2">&amp;*</span>interface, binary_module, env.get_gas_costs());
     <span class="kw">let </span>instance = context_module.create_vm_instance_and_init_env(<span class="kw-2">&amp;mut </span>store)<span class="question-mark">?</span>;
+
     <span class="prelude-val">Ok</span>(instance.exports.get_function(function).is_ok())
 }
 
