@@ -52,7 +52,7 @@ pub(crate) fn call_module(
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         u64::MAX
     } else {
-        // IMPORTANT NOTE: here for gas points
+        // IMPORTANT NOTE: gas points example
         get_remaining_points(&env, ctx)?
     };
 

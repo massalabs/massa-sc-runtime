@@ -1,10 +1,10 @@
-use crate::execution::{BinaryModule, ContextModule};
+use crate::execution::{init_engine, init_store, ContextModule};
 use crate::settings;
 use crate::types::{Interface, Response};
 
 use crate::GasCosts;
 use anyhow::{bail, Result};
-use wasmer::{Instance, Store};
+use wasmer::{Engine, Instance, Module, Store};
 use wasmer_middlewares::metering::{self, MeteringPoints};
 
 #[cfg(feature = "gas_calibration")]
@@ -23,23 +23,25 @@ use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibra
 /// Return:
 /// The return of the function executed as string and the remaining gas for the rest of the execution.
 pub(crate) fn exec(
-    mut binary_module: impl BinaryModule,
     interface: &dyn Interface,
+    engine: Engine,
+    binary_module: Module,
     function: &str,
     param: &[u8],
     gas_costs: GasCosts,
 ) -> Result<(Response, Instance)> {
-    let mut module = ContextModule::new(interface, binary_module, gas_costs);
-    let instance = module.create_vm_instance_and_init_env()?;
+    let mut module = ContextModule::new(interface, gas_costs, binary_module);
+    let store = init_store(engine)?;
+    let instance = module.create_vm_instance_and_init_env(&mut store)?;
 
-    match module.execution(&instance, function, param) {
+    match module.execution(&mut store, &instance, function, param) {
         Ok(response) => Ok((response, instance)),
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
                 bail!(err)
             } else {
                 // Because the last needed more than the remaining points, we should have an error.
-                match metering::get_remaining_points(&mut module.store, &instance) {
+                match metering::get_remaining_points(&mut store, &instance) {
                     MeteringPoints::Remaining(..) => bail!(err),
                     MeteringPoints::Exhausted => {
                         bail!("Not enough gas, limit reached at: {function}")
@@ -64,11 +66,21 @@ pub(crate) fn exec(
 /// Return:
 /// the remaining gas.
 pub fn run_main(
-    binary_module: impl BinaryModule,
     interface: &dyn Interface,
+    engine: Engine,
+    binary_module: Module,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    Ok(exec(binary_module, interface, settings::MAIN, b"", gas_costs)?.0)
+    // IMPORTANT NOTE: let module = Module::new(engine, bytecode);
+    Ok(exec(
+        interface,
+        engine,
+        binary_module,
+        settings::MAIN,
+        b"",
+        gas_costs,
+    )?
+    .0)
 }
 
 /// Library Input, take a `module` wasm built with the massa environment,
@@ -83,13 +95,14 @@ pub fn run_main(
 /// }
 /// ```
 pub fn run_function(
-    binary_module: impl BinaryModule,
+    interface: &dyn Interface,
+    engine: Engine,
+    binary_module: Module,
     function: &str,
     param: &[u8],
-    interface: &dyn Interface,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    Ok(exec(binary_module, interface, function, param, gas_costs)?.0)
+    Ok(exec(interface, engine, binary_module, function, param, gas_costs)?.0)
 }
 
 /// Same as run_main but return a GasCalibrationResult

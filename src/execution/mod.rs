@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 use wasmer::{
     wasmparser::Operator, BaseTunables, EngineBuilder, FunctionEnv, Imports, Pages, Target,
 };
-use wasmer::{CompilerConfig, Features, Instance, InstantiationError, Module, Store};
+use wasmer::{CompilerConfig, Engine, Features, Instance, InstantiationError, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
 use wasmer_types::TrapCode;
@@ -22,99 +22,58 @@ use crate::env::ASEnv;
 pub(crate) use as_execution::*;
 pub(crate) use common::*;
 
-pub trait BinaryModule {
-    fn new_from_bytecode(bytecode: &[u8], limit: u64) -> Result<Self>
-    where
-        Self: Sized;
-    fn get_module(&self) -> Arc<Module>;
-    fn get_store(&self) -> Store;
+pub fn init_engine(gas_costs: GasCosts, limit: u64) -> Result<Engine> {
+    // We use the Singlepass compiler because it is fast and adapted to blockchains
+    // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
+    let mut compiler_config = Singlepass::new();
+
+    // Turning-off sources of potential non-determinism,
+    // see https://github.com/WebAssembly/design/blob/037c6fe94151eb13e30d174f5f7ce851be0a573e/Nondeterminism.md
+
+    // Turning-off in the compiler:
+
+    // Canonicalize NaN.
+    compiler_config.canonicalize_nans(true);
+
+    // Default: Turning-off all wasmer feature flags
+    // Exception(s):
+    // * bulk_memory:
+    //   * https://docs.rs/wasmer/latest/wasmer/struct.Features.html: now fully standardized - wasm 2.0
+    //   * See also: https://github.com/paritytech/substrate/issues/12216
+    const FEATURES: Features = Features {
+        threads: false, // disable threads
+        reference_types: false,
+        simd: false,           // turn off experimental SIMD feature
+        bulk_memory: true,     // enabled in order to use ArrayBuffer in AS
+        multi_value: false,    // turn off multi value, not support for SinglePass (default: true)
+        tail_call: false,      // experimental
+        module_linking: false, // experimental
+        multi_memory: false,   // experimental
+        memory64: false,       // experimental
+        exceptions: false,
+        relaxed_simd: false, // experimental
+        extended_const: false,
+    };
+
+    if cfg!(feature = "gas_calibration") {
+        // Add gas calibration middleware
+        let gas_calibration = Arc::new(GasCalibration::new());
+        compiler_config.push_middleware(gas_calibration);
+    } else {
+        // Add metering middleware
+        // IMPORTANT TODO: use gas costs operator here
+        let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 { 42 }));
+        compiler_config.push_middleware(metering);
+    }
+
+    Ok(EngineBuilder::new(compiler_config)
+        .set_features(Some(FEATURES))
+        .engine())
 }
 
-pub struct ASBinaryModule {
-    module: Arc<Module>,
-    store: Store,
-}
-
-impl BinaryModule for ASBinaryModule {
-    /// Create an instance of VM from a module with a given interface, an operation
-    /// number limit and a webassembly module
-    fn new_from_bytecode(bytecode: &[u8], limit: u64) -> Result<ASBinaryModule> {
-        // We use the Singlepass compiler because it is fast and adapted to blockchains
-        // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
-        let mut compiler_config = Singlepass::new();
-
-        // Turning-off sources of potential non-determinism,
-        // see https://github.com/WebAssembly/design/blob/037c6fe94151eb13e30d174f5f7ce851be0a573e/Nondeterminism.md
-
-        // Turning-off in the compiler:
-
-        // Canonicalize NaN.
-        compiler_config.canonicalize_nans(true);
-
-        // Default: Turning-off all wasmer feature flags
-        // Exception(s):
-        // * bulk_memory:
-        //   * https://docs.rs/wasmer/latest/wasmer/struct.Features.html: now fully standardized - wasm 2.0
-        //   * See also: https://github.com/paritytech/substrate/issues/12216
-        const FEATURES: Features = Features {
-            threads: false, // disable threads
-            reference_types: false,
-            simd: false,           // turn off experimental SIMD feature
-            bulk_memory: true,     // enabled in order to use ArrayBuffer in AS
-            multi_value: false, // turn off multi value, not support for SinglePass (default: true)
-            tail_call: false,   // experimental
-            module_linking: false, // experimental
-            multi_memory: false, // experimental
-            memory64: false,    // experimental
-            exceptions: false,
-            relaxed_simd: false, // experimental
-            extended_const: false,
-        };
-
-        if cfg!(feature = "gas_calibration") {
-            // Add gas calibration middleware
-            let gas_calibration = Arc::new(GasCalibration::new());
-            compiler_config.push_middleware(gas_calibration);
-        } else {
-            // Add metering middleware
-            // IMPORTANT TODO: use gas costs operator here
-            let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 { 42 }));
-            compiler_config.push_middleware(metering);
-        }
-
-        let base = BaseTunables::for_target(&Target::default());
-        let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
-        let engine = EngineBuilder::new(compiler_config)
-            .set_features(Some(FEATURES))
-            .engine();
-        let store = Store::new_with_tunables(&engine, tunables);
-        let module = Module::new(&store, bytecode)?;
-
-        Ok(ASBinaryModule {
-            module: Arc::new(module),
-            store,
-        })
-    }
-
-    fn get_module(&self) -> Arc<Module> {
-        self.module.clone()
-    }
-
-    fn get_store(&self) -> Store {
-        self.store
-    }
-}
-
-/// Dispatch module corresponding to the first byte
-/// 1: target AssemblyScript
-/// 2: todo: another target
-/// _: target AssemblyScript and use the full bytecode
-pub fn examine_and_compile_bytecode(bytecode: &[u8], limit: u64) -> Result<impl BinaryModule> {
-    if bytecode.is_empty() {
-        bail!("error: bytecode is empty")
-    }
-    Ok(match bytecode[0] {
-        1 => ASBinaryModule::new_from_bytecode(bytecode, limit)?,
-        _ => ASBinaryModule::new_from_bytecode(bytecode, limit)?,
-    })
+pub fn init_store(engine: Engine) -> Result<Store> {
+    let base = BaseTunables::for_target(&Target::default());
+    let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
+    let store = Store::new_with_tunables(&engine, tunables);
+    Ok(store)
 }
