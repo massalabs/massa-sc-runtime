@@ -976,26 +976,22 @@
 <a href="#976" id="976">976</a>
 <a href="#977" id="977">977</a>
 <a href="#978" id="978">978</a>
-<a href="#979" id="979">979</a>
-<a href="#980" id="980">980</a>
-<a href="#981" id="981">981</a>
-<a href="#982" id="982">982</a>
-<a href="#983" id="983">983</a>
-<a href="#984" id="984">984</a>
 </pre><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
 //! The ABIs are the imported function / object declared in the webassembly
 //! module. You can look at the other side of the mirror in `massa.ts` and the
 //! rust side in `execution_impl.rs`.
-</span><span class="kw">use </span><span class="kw">crate</span>::env::{get_memory, get_remaining_points, sub_remaining_gas_abi, ASEnv, MassaEnv};
-<span class="kw">use </span><span class="kw">crate</span>::settings;
-<span class="kw">use </span>as_ffi_bindings::{BufferPtr, Read <span class="kw">as </span>ASRead, StringPtr, Write <span class="kw">as </span>ASWrite};
+
+</span><span class="kw">use </span>as_ffi_bindings::{BufferPtr, Read <span class="kw">as </span>ASRead, StringPtr, Write <span class="kw">as </span>ASWrite};
 <span class="kw">use </span>function_name::named;
 <span class="kw">use </span>wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
-<span class="kw">use </span><span class="kw">super</span>::common::{abi_bail, call_module, create_sc, ABIResult};
-<span class="kw">use super</span>::{create_instance, get_module, local_call, MassaModule};
+<span class="kw">use </span><span class="kw">crate</span>::env::{get_memory, get_remaining_points, sub_remaining_gas_abi, ASEnv, MassaEnv};
+<span class="kw">use </span><span class="kw">crate</span>::settings;
+
+<span class="kw">use </span><span class="kw">super</span>::common::{abi_bail, call_module, create_sc, function_exists, ABIResult};
+<span class="kw">use </span><span class="kw">super</span>::local_call;
 
 <span class="doccomment">/// Get the coins that have been made available for a specific purpose for the current call.
 </span><span class="attr">#[named]
@@ -1839,17 +1835,9 @@
     <span class="kw">let </span>env = ctx.data().clone();
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-
     <span class="kw">let </span>address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="kw">let </span>function = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, function)<span class="question-mark">?</span>;
-    <span class="comment">// NOTE: how do we handle metering for those cases?
-    </span><span class="kw">let </span>bytecode = env.get_interface().raw_get_bytecode_for(address)<span class="question-mark">?</span>;
-
-    <span class="kw">let </span><span class="kw-2">mut </span>module = get_module(<span class="kw-2">&amp;*</span>env.get_interface(), <span class="kw-2">&amp;</span>bytecode, env.get_gas_costs())<span class="question-mark">?</span>;
-    <span class="comment">// NOTE: is it maybe possible to retrieve a module function without creating an instance?
-    // NOTE: if not determine initial cost
-    </span><span class="kw">let </span>(instance, _store) = create_instance(u64::MAX, <span class="kw-2">&amp;mut </span>module)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(module.has_function(<span class="kw-2">&amp;</span>instance, function) <span class="kw">as </span>i32)
+    <span class="prelude-val">Ok</span>(function_exists(<span class="kw-2">&amp;mut </span>ctx, address, function)<span class="question-mark">? </span><span class="kw">as </span>i32)
 }
 
 <span class="doccomment">/// Tooling, return a StringPtr allocated from a String

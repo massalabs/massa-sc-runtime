@@ -227,7 +227,27 @@
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
 <a href="#229" id="229">229</a>
-</pre><pre class="rust"><code><span class="kw">use super</span>::{as_abi::<span class="kw-2">*</span>, MassaModule};
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::as_abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::env::{
     assembly_script_abort, assembly_script_console_log, assembly_script_date_now,
     assembly_script_seed, get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
@@ -236,29 +256,57 @@
 <span class="kw">use crate</span>::{GasCosts, Interface};
 <span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>as_ffi_bindings::{BufferPtr, Read <span class="kw">as </span>ASRead, Write <span class="kw">as </span>ASWrite};
-<span class="kw">use </span>wasmer::{imports, Function, FunctionEnv, Imports, Instance, Store, Value};
+<span class="kw">use </span>wasmer::{
+    imports, Function, FunctionEnv, Imports, Instance, InstantiationError, Module, Store, Value,
+};
+<span class="kw">use </span>wasmer_types::TrapCode;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ASModule {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ContextModule {
     env: ASEnv,
-    bytecode: Vec&lt;u8&gt;,
+    <span class="kw">pub </span>module: Module,
 }
 
-<span class="kw">impl </span>MassaModule <span class="kw">for </span>ASModule {
-    <span class="kw">fn </span>init(interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface, bytecode: <span class="kw-2">&amp;</span>[u8], gas_costs: GasCosts) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>ContextModule {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+        interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
+        binary_module: Module,
+        gas_costs: GasCosts,
+    ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             env: ASEnv::new(interface, gas_costs),
-            bytecode: bytecode.to_vec(),
+            module: binary_module,
         }
     }
 
-    <span class="kw">fn </span>get_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;u8&gt; {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.bytecode
+    <span class="doccomment">/// Create a VM instance from the current module
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_vm_instance_and_init_env(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        store: <span class="kw-2">&amp;mut </span>Store,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Instance&gt; {
+        <span class="kw">let </span>(imports, <span class="kw-2">mut </span>fenv) = <span class="self">self</span>.resolver(store);
+        <span class="kw">match </span>Instance::new(store, <span class="kw-2">&amp;</span><span class="self">self</span>.module, <span class="kw-2">&amp;</span>imports) {
+            <span class="prelude-val">Ok</span>(instance) =&gt; {
+                <span class="self">self</span>.init_with_instance(store, <span class="kw-2">&amp;</span>instance, <span class="kw-2">&amp;mut </span>fenv)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(instance)
+            }
+            <span class="prelude-val">Err</span>(err) =&gt; {
+                <span class="comment">// We filter the error created by the metering middleware when there is not enough gas at initialization.
+                </span><span class="kw">if let </span>InstantiationError::Start(<span class="kw-2">ref </span>e) = err {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = e.clone().to_trap() {
+                        <span class="kw">if </span>trap == TrapCode::UnreachableCodeReached &amp;&amp; e.trace().is_empty() {
+                            <span class="macro">bail!</span>(<span class="string">&quot;RuntimeError: Not enough gas, limit reached at initialization&quot;</span>);
+                        }
+                    }
+                }
+                <span class="prelude-val">Err</span>(err.into())
+            }
+        }
     }
 
-    <span class="kw">fn </span>execution(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>execution(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span>Instance,
         store: <span class="kw-2">&amp;mut </span>Store,
+        instance: <span class="kw-2">&amp;</span>Instance,
         function: <span class="kw-2">&amp;</span>str,
         param: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Response&gt; {
@@ -325,8 +373,8 @@
 
     <span class="kw">fn </span>init_with_instance(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span>Instance,
         store: <span class="kw-2">&amp;mut </span>Store,
+        instance: <span class="kw-2">&amp;</span>Instance,
         fenv: <span class="kw-2">&amp;mut </span>FunctionEnv&lt;ASEnv&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>memory = instance.exports.get_memory(<span class="string">&quot;memory&quot;</span>)<span class="question-mark">?</span>;
@@ -387,20 +435,12 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>has_function(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Instance, function: <span class="kw-2">&amp;</span>str) -&gt; bool {
-        instance.exports.get_function(function).is_ok()
-    }
-
-    <span class="kw">fn </span>get_gas_costs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GasCosts {
-        <span class="self">self</span>.env.get_gas_costs()
-    }
-
-    <span class="kw">fn </span>resolver(<span class="kw-2">&amp;</span><span class="self">self</span>, store: <span class="kw-2">&amp;mut </span>Store) -&gt; (Imports, FunctionEnv&lt;ASEnv&gt;) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resolver(<span class="kw-2">&amp;</span><span class="self">self</span>, store: <span class="kw-2">&amp;mut </span>Store) -&gt; (Imports, FunctionEnv&lt;ASEnv&gt;) {
         <span class="kw">let </span>fenv = FunctionEnv::new(store, <span class="self">self</span>.env.clone());
 
         <span class="kw">let </span>imports = <span class="macro">imports! </span>{
             <span class="string">&quot;env&quot; </span>=&gt; {
-                <span class="comment">// Needed by wasm generated by AssemblyScript.
+                <span class="comment">// Needed by WASM generated by AssemblyScript
                 </span><span class="string">&quot;abort&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_abort),
                 <span class="string">&quot;seed&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_seed),
                 <span class="string">&quot;Date.now&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_date_now),
