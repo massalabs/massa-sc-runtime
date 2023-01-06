@@ -23,11 +23,12 @@ pub(crate) struct ContextModule {
 impl ContextModule {
     pub(crate) fn new(
         interface: &dyn Interface,
-        gas_costs: GasCosts,
+        engine: Engine,
         binary_module: Module,
+        gas_costs: GasCosts,
     ) -> Self {
         Self {
-            env: ASEnv::new(interface, gas_costs),
+            env: ASEnv::new(interface, engine, gas_costs),
             module: binary_module,
         }
     }
@@ -37,7 +38,7 @@ impl ContextModule {
         &mut self,
         store: &mut Store,
     ) -> Result<Instance> {
-        let (imports, fenv) = resolver(self.env.clone(), store);
+        let (imports, mut fenv) = resolver(self.env.clone(), store);
         match Instance::new(store, &self.module, &imports) {
             Ok(instance) => {
                 self.init_with_instance(store, &instance, &mut fenv)?;

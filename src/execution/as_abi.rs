@@ -11,7 +11,7 @@ use function_name::named;
 use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Instance, Memory, Module};
 
 use super::common::{abi_bail, call_module, create_sc, ABIResult};
-use super::{local_call, resolver, ContextModule};
+use super::{init_store, local_call, resolver, ContextModule};
 
 /// Get the coins that have been made available for a specific purpose for the current call.
 #[named]
@@ -124,7 +124,7 @@ pub(crate) fn assembly_script_call(
     //     param_size_update(&env, &mut ctx, &fname, param.len(), true);
     // }
 
-    let response = call_module(&mut ctx, address, function, param, call_coins)?;
+    let response = call_module(&mut ctx, &env.engine, address, function, param, call_coins)?;
     match BufferPtr::alloc(&response.ret, env.get_wasm_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
@@ -800,7 +800,7 @@ pub(crate) fn assembly_script_local_execution(
     let function = &read_string(memory, &ctx, function)?;
     let param = &read_buffer(memory, &ctx, param)?;
 
-    let response = local_call(&mut ctx, bytecode, function, param)?;
+    let response = local_call(&mut ctx, &env.engine, bytecode, function, param)?;
     match BufferPtr::alloc(&response.ret, env.get_wasm_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
@@ -827,7 +827,7 @@ pub(crate) fn assembly_script_local_call(
     let function = &read_string(memory, &ctx, function)?;
     let param = &read_buffer(memory, &ctx, param)?;
 
-    let response = local_call(&mut ctx, &bytecode, function, param)?;
+    let response = local_call(&mut ctx, &env.engine, &bytecode, function, param)?;
     match BufferPtr::alloc(&response.ret, env.get_wasm_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
@@ -855,15 +855,16 @@ pub fn assembly_function_exists(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-
     let address = &read_string(memory, &ctx, address)?;
     let function = &read_string(memory, &ctx, function)?;
+
     // NOTE: choose how to handle metering for this line
     let bytecode = env.get_interface().raw_get_bytecode_for(address)?;
 
-    let binary_module = Module::new(engine, bytecode)?;
-    let (imports, _) = resolver(env.clone(), store);
-    let instance = Instance::new(store, &binary_module, &imports)?;
+    let binary_module = Module::new(&env.engine, bytecode)?;
+    let mut store = init_store(&env.engine)?;
+    let (imports, _) = resolver(env.clone(), &mut store);
+    let instance = Instance::new(&mut store, &binary_module, &imports)?;
     Ok(instance.exports.get_function(function).is_ok() as i32)
 }
 

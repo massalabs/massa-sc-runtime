@@ -2,7 +2,7 @@ use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
 use crate::Response;
 use displaydoc::Display;
 use thiserror::Error;
-use wasmer::{FunctionEnvMut, Module};
+use wasmer::{Engine, FunctionEnvMut, Module};
 
 pub(crate) type ABIResult<T, E = ABIError> = core::result::Result<T, E>;
 
@@ -10,8 +10,12 @@ pub(crate) type ABIResult<T, E = ABIError> = core::result::Result<T, E>;
 pub enum ABIError {
     /// Runtime error: {0}
     Error(#[from] anyhow::Error),
-    /// Runtime wasmer error: {0}
-    WasmerError(#[from] wasmer::RuntimeError),
+    /// Wasmer runtime error: {0}
+    RuntimeError(#[from] wasmer::RuntimeError),
+    /// Wasmer compile error: {0}
+    CompileError(#[from] wasmer::CompileError),
+    /// Wasmer instantiation error: {0}
+    InstantiationError(#[from] wasmer::InstantiationError),
     /// Runtime serde_json error: {0}
     SerdeError(#[from] serde_json::Error),
 }
@@ -35,6 +39,7 @@ pub(crate) use abi_bail;
 /// And two pointers of string. (look at the readme in the wasm folder)
 pub(crate) fn call_module(
     ctx: &mut FunctionEnvMut<ASEnv>,
+    engine: &Engine,
     address: &str,
     function: &str,
     param: &[u8],
@@ -50,18 +55,17 @@ pub(crate) fn call_module(
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         u64::MAX
     } else {
-        // IMPORTANT NOTE: gas points example
         get_remaining_points(&env, ctx)?
     };
 
     let binary_module = Module::new(engine, bytecode)?;
     let resp = crate::execution_impl::exec(
         &*env.get_interface(),
-        env.get_gas_costs(),
         engine,
         binary_module,
         function,
         param,
+        env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.0.remaining_gas)?;
@@ -73,6 +77,7 @@ pub(crate) fn call_module(
 /// Alternative to `call_module` to execute bytecode in a local context
 pub(crate) fn local_call(
     ctx: &mut FunctionEnvMut<ASEnv>,
+    engine: &Engine,
     bytecode: &[u8],
     function: &str,
     param: &[u8],
@@ -88,11 +93,11 @@ pub(crate) fn local_call(
     let binary_module = Module::new(engine, bytecode)?;
     let resp = crate::execution_impl::exec(
         &*env.get_interface(),
-        env.get_gas_costs(),
         engine,
         binary_module,
         function,
         param,
+        env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.0.remaining_gas)?;

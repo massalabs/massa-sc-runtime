@@ -61,8 +61,9 @@ pub fn init_engine(gas_costs: GasCosts, limit: u64) -> Result<Engine> {
         compiler_config.push_middleware(gas_calibration);
     } else {
         // Add metering middleware
-        // IMPORTANT TODO: use gas costs operator here
-        let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 { 42 }));
+        let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
+            gas_costs.operator_cost
+        }));
         compiler_config.push_middleware(metering);
     }
 
@@ -71,9 +72,9 @@ pub fn init_engine(gas_costs: GasCosts, limit: u64) -> Result<Engine> {
         .engine())
 }
 
-pub fn init_store(engine: Engine) -> Result<Store> {
+pub fn init_store(engine: &Engine) -> Result<Store> {
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
-    let store = Store::new_with_tunables(&engine, tunables);
+    let store = Store::new_with_tunables(engine, tunables);
     Ok(store)
 }

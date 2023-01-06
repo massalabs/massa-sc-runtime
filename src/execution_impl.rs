@@ -24,14 +24,15 @@ use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibra
 /// The return of the function executed as string and the remaining gas for the rest of the execution.
 pub(crate) fn exec(
     interface: &dyn Interface,
-    gas_costs: GasCosts,
-    engine: Engine,
+    engine: &Engine,
     binary_module: Module,
     function: &str,
     param: &[u8],
+    gas_costs: GasCosts,
 ) -> Result<(Response, Instance)> {
-    let mut module = ContextModule::new(interface, gas_costs, binary_module);
-    let store = init_store(engine)?;
+    // IMPORTANT TODO: update doc for all the runtime modifications
+    let mut module = ContextModule::new(interface, engine.clone(), binary_module, gas_costs);
+    let mut store = init_store(engine)?;
     let instance = module.create_vm_instance_and_init_env(&mut store)?;
 
     match module.execution(&mut store, &instance, function, param) {
@@ -67,18 +68,18 @@ pub(crate) fn exec(
 /// the remaining gas.
 pub fn run_main(
     interface: &dyn Interface,
-    engine: Engine,
+    engine: &Engine,
     binary_module: Module,
     gas_costs: GasCosts,
 ) -> Result<Response> {
     // IMPORTANT NOTE: let module = Module::new(engine, bytecode);
     Ok(exec(
         interface,
-        gas_costs,
         engine,
         binary_module,
         settings::MAIN,
         b"",
+        gas_costs,
     )?
     .0)
 }
@@ -96,13 +97,13 @@ pub fn run_main(
 /// ```
 pub fn run_function(
     interface: &dyn Interface,
-    engine: Engine,
+    engine: &Engine,
     binary_module: Module,
     function: &str,
     param: &[u8],
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    Ok(exec(interface, gas_costs, engine, binary_module, function, param)?.0)
+    Ok(exec(interface, engine, binary_module, function, param, gas_costs)?.0)
 }
 
 /// Same as run_main but return a GasCalibrationResult
@@ -114,6 +115,7 @@ pub fn run_main_gc(
     param: &[u8],
     gas_costs: GasCosts,
 ) -> Result<GasCalibrationResult> {
+    // IMPORTANT TODO: consult how we'd like update this
     let mut module = get_module(interface, bytecode, gas_costs)?;
     let (instance, store) = create_instance(limit, &mut module)?;
     if instance.exports.contains(settings::MAIN) {
