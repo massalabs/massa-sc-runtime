@@ -9,14 +9,13 @@ use crate::{
 use as_ffi_bindings::{Read, StringPtr};
 use function_name::named;
 use std::collections::HashMap;
-use wasmer::{Engine, FunctionEnvMut, Global};
+use wasmer::{FunctionEnvMut, Global};
 
 use super::MassaEnv;
 
 #[derive(Clone)]
 pub struct ASEnv {
     wasm_env: as_ffi_bindings::Env,
-    pub engine: Engine,
     gas_costs: GasCosts,
     interface: Box<dyn Interface>,
     pub remaining_points: Option<Global>,
@@ -25,10 +24,9 @@ pub struct ASEnv {
 }
 
 impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
-    fn new(interface: &dyn Interface, engine: Engine, gas_costs: GasCosts) -> Self {
+    fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
         Self {
             wasm_env: Default::default(),
-            engine,
             gas_costs,
             interface: interface.clone_box(),
             remaining_points: None,

@@ -31,7 +31,7 @@ pub(crate) fn exec(
     gas_costs: GasCosts,
 ) -> Result<(Response, Instance)> {
     // IMPORTANT TODO: update doc for all the runtime modifications
-    let mut module = ContextModule::new(interface, engine.clone(), binary_module, gas_costs);
+    let mut module = ContextModule::new(interface, binary_module, gas_costs);
     let mut store = init_store(engine)?;
     let instance = module.create_vm_instance_and_init_env(&mut store)?;
 

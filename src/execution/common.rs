@@ -1,9 +1,9 @@
 use displaydoc::Display;
 use thiserror::Error;
-use wasmer::{Engine, FunctionEnvMut, Module};
+use wasmer::{FunctionEnvMut, Instance, Module};
 
 use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
-use crate::Response;
+use crate::{init_engine, Response};
 
 pub(crate) type ABIResult<T, E = ABIError> = core::result::Result<T, E>;
 
@@ -31,6 +31,8 @@ macro_rules! abi_bail {
 
 pub(crate) use abi_bail;
 
+use super::{init_store, resolver};
+
 /// `Call` ABI called by the webassembly VM
 ///
 /// Call an exported function in a WASM module at a given address
@@ -40,7 +42,6 @@ pub(crate) use abi_bail;
 /// And two pointers of string. (look at the readme in the wasm folder)
 pub(crate) fn call_module(
     ctx: &mut FunctionEnvMut<ASEnv>,
-    engine: &Engine,
     address: &str,
     function: &str,
     param: &[u8],
@@ -59,10 +60,13 @@ pub(crate) fn call_module(
         get_remaining_points(&env, ctx)?
     };
 
-    let binary_module = Module::new(engine, bytecode)?;
+    // NOTE: match bytecode target ident and init a different engine accordingly here
+    let engine = init_engine(env.get_gas_costs(), remaining_gas)?;
+
+    let binary_module = Module::new(&engine, bytecode)?;
     let resp = crate::execution_impl::exec(
         &*env.get_interface(),
-        engine,
+        &engine,
         binary_module,
         function,
         param,
@@ -78,7 +82,6 @@ pub(crate) fn call_module(
 /// Alternative to `call_module` to execute bytecode in a local context
 pub(crate) fn local_call(
     ctx: &mut FunctionEnvMut<ASEnv>,
-    engine: &Engine,
     bytecode: &[u8],
     function: &str,
     param: &[u8],
@@ -91,10 +94,13 @@ pub(crate) fn local_call(
         get_remaining_points(&env, ctx)?
     };
 
-    let binary_module = Module::new(engine, bytecode)?;
+    // NOTE: match bytecode target ident and init a different engine accordingly here
+    let engine = init_engine(env.get_gas_costs(), remaining_gas)?;
+
+    let binary_module = Module::new(&engine, bytecode)?;
     let resp = crate::execution_impl::exec(
         &*env.get_interface(),
-        engine,
+        &engine,
         binary_module,
         function,
         param,
@@ -104,6 +110,30 @@ pub(crate) fn local_call(
         set_remaining_points(&env, ctx, resp.0.remaining_gas)?;
     }
     Ok(resp.0)
+}
+
+pub(crate) fn function_exists(
+    ctx: &mut FunctionEnvMut<ASEnv>,
+    address: &str,
+    function: &str,
+) -> ABIResult<bool> {
+    let env = ctx.data().clone();
+    let bytecode = env.get_interface().raw_get_bytecode_for(address)?;
+
+    let remaining_gas = if cfg!(feature = "gas_calibration") {
+        u64::MAX
+    } else {
+        get_remaining_points(&env, ctx)?
+    };
+
+    // NOTE: match bytecode target ident and init a different engine accordingly here
+    let engine = init_engine(env.get_gas_costs(), remaining_gas)?;
+
+    let binary_module = Module::new(&engine, bytecode)?;
+    let mut store = init_store(&engine)?;
+    let (imports, _) = resolver(env.clone(), &mut store);
+    let instance = Instance::new(&mut store, &binary_module, &imports)?;
+    Ok(instance.exports.get_function(function).is_ok())
 }
 
 /// Create a smart contract with the given `bytecode`

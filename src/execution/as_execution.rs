@@ -8,8 +8,7 @@ use crate::{GasCosts, Interface};
 use anyhow::{bail, Result};
 use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
 use wasmer::{
-    imports, Engine, Function, FunctionEnv, Imports, Instance, InstantiationError, Module, Store,
-    Value,
+    imports, Function, FunctionEnv, Imports, Instance, InstantiationError, Module, Store, Value,
 };
 use wasmer_types::TrapCode;
 
@@ -21,12 +20,11 @@ pub(crate) struct ContextModule {
 impl ContextModule {
     pub(crate) fn new(
         interface: &dyn Interface,
-        engine: Engine,
         binary_module: Module,
         gas_costs: GasCosts,
     ) -> Self {
         Self {
-            env: ASEnv::new(interface, engine, gas_costs),
+            env: ASEnv::new(interface, gas_costs),
             module: binary_module,
         }
     }

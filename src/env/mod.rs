@@ -5,7 +5,7 @@ use crate::{
     GasCosts, Interface,
 };
 pub(crate) use as_env::*;
-use wasmer::{AsStoreMut, Engine, Global};
+use wasmer::{AsStoreMut, Global};
 
 macro_rules! get_memory {
     ($env:ident) => {
@@ -18,7 +18,7 @@ macro_rules! get_memory {
 pub(crate) use get_memory;
 
 pub(crate) trait MassaEnv<T> {
-    fn new(interface: &dyn Interface, engine: Engine, gas_costs: GasCosts) -> Self;
+    fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self;
     fn get_exhausted_points(&self) -> Option<&Global>;
     fn get_remaining_points(&self) -> Option<&Global>;
     fn get_gc_param(&self, name: &str) -> Option<&Global>;
