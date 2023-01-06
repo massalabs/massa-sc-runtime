@@ -2,9 +2,7 @@ use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
 use crate::Response;
 use displaydoc::Display;
 use thiserror::Error;
-use wasmer::FunctionEnvMut;
-
-use super::examine_and_compile_bytecode;
+use wasmer::{FunctionEnvMut, Module};
 
 pub(crate) type ABIResult<T, E = ABIError> = core::result::Result<T, E>;
 
@@ -56,13 +54,14 @@ pub(crate) fn call_module(
         get_remaining_points(&env, ctx)?
     };
 
-    let binary_module = examine_and_compile_bytecode(&bytecode, remaining_gas)?;
+    let binary_module = Module::new(engine, bytecode)?;
     let resp = crate::execution_impl::exec(
-        binary_module,
         &*env.get_interface(),
+        env.get_gas_costs(),
+        engine,
+        binary_module,
         function,
         param,
-        env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.0.remaining_gas)?;
@@ -86,13 +85,14 @@ pub(crate) fn local_call(
         get_remaining_points(&env, ctx)?
     };
 
-    let binary_module = examine_and_compile_bytecode(&bytecode, remaining_gas)?;
+    let binary_module = Module::new(engine, bytecode)?;
     let resp = crate::execution_impl::exec(
-        binary_module,
         &*env.get_interface(),
+        env.get_gas_costs(),
+        engine,
+        binary_module,
         function,
         param,
-        env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.0.remaining_gas)?;

@@ -24,11 +24,11 @@ use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibra
 /// The return of the function executed as string and the remaining gas for the rest of the execution.
 pub(crate) fn exec(
     interface: &dyn Interface,
+    gas_costs: GasCosts,
     engine: Engine,
     binary_module: Module,
     function: &str,
     param: &[u8],
-    gas_costs: GasCosts,
 ) -> Result<(Response, Instance)> {
     let mut module = ContextModule::new(interface, gas_costs, binary_module);
     let store = init_store(engine)?;
@@ -74,11 +74,11 @@ pub fn run_main(
     // IMPORTANT NOTE: let module = Module::new(engine, bytecode);
     Ok(exec(
         interface,
+        gas_costs,
         engine,
         binary_module,
         settings::MAIN,
         b"",
-        gas_costs,
     )?
     .0)
 }
@@ -102,7 +102,7 @@ pub fn run_function(
     param: &[u8],
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    Ok(exec(interface, engine, binary_module, function, param, gas_costs)?.0)
+    Ok(exec(interface, gas_costs, engine, binary_module, function, param)?.0)
 }
 
 /// Same as run_main but return a GasCalibrationResult

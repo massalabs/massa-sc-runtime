@@ -8,10 +8,10 @@ use crate::env::{get_memory, get_remaining_points, sub_remaining_gas_abi, ASEnv,
 use crate::settings;
 use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use function_name::named;
-use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
+use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Instance, Memory, Module};
 
 use super::common::{abi_bail, call_module, create_sc, ABIResult};
-use super::{examine_and_compile_bytecode, local_call, ContextModule};
+use super::{local_call, resolver, ContextModule};
 
 /// Get the coins that have been made available for a specific purpose for the current call.
 #[named]
@@ -858,18 +858,13 @@ pub fn assembly_function_exists(
 
     let address = &read_string(memory, &ctx, address)?;
     let function = &read_string(memory, &ctx, function)?;
-    // NOTE: how do we handle metering for those cases?
+    // NOTE: choose how to handle metering for this line
     let bytecode = env.get_interface().raw_get_bytecode_for(address)?;
 
-    // IMPORTANT TODO: use remaining gas
-    // IMPORTANT TODO: try to improve requirements
-    // IMPORTANT TODO: dont forget about Store ref
-    let binary_module = examine_and_compile_bytecode(&bytecode, 4242)?;
-    // NOTE: is it maybe possible to retrieve a module function without creating an instance?
-    // NOTE: if not determine initial cost
-    let mut module = ContextModule::new(&*env.get_interface(), binary_module, env.get_gas_costs());
-    let instance = module.create_vm_instance_and_init_env()?;
-    Ok(module.has_function(&instance, function) as i32)
+    let binary_module = Module::new(engine, bytecode)?;
+    let (imports, _) = resolver(env.clone(), store);
+    let instance = Instance::new(store, &binary_module, &imports)?;
+    Ok(instance.exports.get_function(function).is_ok() as i32)
 }
 
 /// Tooling, return a StringPtr allocated from a String
