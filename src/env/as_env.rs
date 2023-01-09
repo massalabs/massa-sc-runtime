@@ -152,3 +152,17 @@ pub fn assembly_script_console_log(
     env.get_interface().generate_event(message)?;
     Ok(())
 }
+
+pub fn assembly_script_trace(
+    _ctx: FunctionEnvMut<ASEnv>,
+    _a: i32,
+    _b: i32,
+    _c: f64,
+    _d: f64,
+    _e: f64,
+    _f: f64,
+    _g: f64,
+) -> ABIResult<()> {
+    println!("Trace");
+    Ok(())
+}

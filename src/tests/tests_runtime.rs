@@ -258,6 +258,27 @@ fn test_builtins() {
     }
 }
 
+/// Test big
+#[test]
+#[serial]
+fn test_big() {
+    let mut gas_costs = GasCosts::default();
+    gas_costs.operator_cost = 0;
+
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/build/big.wasm"));
+    match run_main(module, 10_000_000_000_000_000, &*interface, gas_costs) {
+        Err(e) => {
+            println!("Error: {}", e);
+            // assert!(e.to_string().starts_with(
+            //     "RuntimeError: Runtime error: error: abord with date and rnd at use_builtins.ts"
+            // ));
+        }
+        _ => println!("Ok to run big.wasm"),
+    }
+}
+
 #[test]
 #[serial]
 fn test_wat() {
