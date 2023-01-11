@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/execution/common.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>common.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-73bd0883af174920.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-bc1b32400f872ddb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/execution/common.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>common.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fbcde169c4acde5f.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-bc1b32400f872ddb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -92,63 +92,13 @@
 <a href="#92" id="92">92</a>
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-<a href="#103" id="103">103</a>
-<a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-</pre><pre class="rust"><code><span class="kw">use </span>displaydoc::Display;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
+<span class="kw">use </span><span class="kw">crate</span>::Response;
+<span class="kw">use </span>displaydoc::Display;
 <span class="kw">use </span>thiserror::Error;
-<span class="kw">use </span>wasmer::{FunctionEnvMut, Module};
+<span class="kw">use </span>wasmer::FunctionEnvMut;
 
-<span class="kw">use </span><span class="kw">crate</span>::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
-<span class="kw">use crate</span>::{init_engine, Response};
+<span class="kw">use </span><span class="kw">super</span>::get_module;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ABIResult&lt;T, E = ABIError&gt; = core::result::Result&lt;T, E&gt;;
 
@@ -156,12 +106,8 @@
 </span><span class="kw">pub enum </span>ABIError {
     <span class="doccomment">/// Runtime error: {0}
     </span>Error(<span class="attr">#[from] </span>anyhow::Error),
-    <span class="doccomment">/// Wasmer runtime error: {0}
-    </span>RuntimeError(<span class="attr">#[from] </span>wasmer::RuntimeError),
-    <span class="doccomment">/// Wasmer compile error: {0}
-    </span>CompileError(<span class="attr">#[from] </span>wasmer::CompileError),
-    <span class="doccomment">/// Wasmer instantiation error: {0}
-    </span>InstantiationError(<span class="attr">#[from] </span>wasmer::InstantiationError),
+    <span class="doccomment">/// Runtime wasmer error: {0}
+    </span>WasmerError(<span class="attr">#[from] </span>wasmer::RuntimeError),
     <span class="doccomment">/// Runtime serde_json error: {0}
     </span>SerdeError(<span class="attr">#[from] </span>serde_json::Error),
 }
@@ -175,8 +121,6 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>abi_bail;
-
-<span class="kw">use super</span>::{init_store, ContextModule};
 
 <span class="doccomment">/// `Call` ABI called by the webassembly VM
 ///
@@ -198,25 +142,15 @@
     };
     <span class="kw">let </span>env = ctx.data().clone();
     <span class="kw">let </span>bytecode = env.get_interface().init_call(address, raw_coins)<span class="question-mark">?</span>;
+    <span class="kw">let </span>module = get_module(<span class="kw-2">&amp;*</span>env.get_interface(), <span class="kw-2">&amp;</span>bytecode, env.get_gas_costs())<span class="question-mark">?</span>;
 
     <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
-        u64::MAX
+        <span class="prelude-val">Ok</span>(u64::MAX)
     } <span class="kw">else </span>{
-        get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
-    </span>};
+        get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)
+    };
 
-    <span class="comment">// NOTE: match bytecode target ident and init a different engine accordingly here
-    </span><span class="kw">let </span>engine = init_engine(env.get_gas_costs(), remaining_gas)<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>binary_module = Module::new(<span class="kw-2">&amp;</span>engine, bytecode)<span class="question-mark">?</span>;
-    <span class="kw">let </span>resp = <span class="kw">crate</span>::execution_impl::exec(
-        <span class="kw-2">&amp;*</span>env.get_interface(),
-        <span class="kw-2">&amp;</span>engine,
-        binary_module,
-        function,
-        param,
-        env.get_gas_costs(),
-    )<span class="question-mark">?</span>;
+    <span class="kw">let </span>resp = <span class="kw">crate</span>::execution_impl::exec(remaining_gas<span class="question-mark">?</span>, <span class="prelude-val">None</span>, module, function, param)<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
         set_remaining_points(<span class="kw-2">&amp;</span>env, ctx, resp.<span class="number">0</span>.remaining_gas)<span class="question-mark">?</span>;
     }
@@ -232,55 +166,19 @@
     param: <span class="kw-2">&amp;</span>[u8],
 ) -&gt; ABIResult&lt;Response&gt; {
     <span class="kw">let </span>env = ctx.data().clone();
+    <span class="kw">let </span>module = get_module(<span class="kw-2">&amp;*</span>env.get_interface(), bytecode, env.get_gas_costs())<span class="question-mark">?</span>;
 
     <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
-        u64::MAX
+        <span class="prelude-val">Ok</span>(u64::MAX)
     } <span class="kw">else </span>{
-        get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
-    </span>};
+        get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)
+    };
 
-    <span class="comment">// NOTE: match bytecode target ident and init a different engine accordingly here
-    </span><span class="kw">let </span>engine = init_engine(env.get_gas_costs(), remaining_gas)<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>binary_module = Module::new(<span class="kw-2">&amp;</span>engine, bytecode)<span class="question-mark">?</span>;
-    <span class="kw">let </span>resp = <span class="kw">crate</span>::execution_impl::exec(
-        <span class="kw-2">&amp;*</span>env.get_interface(),
-        <span class="kw-2">&amp;</span>engine,
-        binary_module,
-        function,
-        param,
-        env.get_gas_costs(),
-    )<span class="question-mark">?</span>;
+    <span class="kw">let </span>resp = <span class="kw">crate</span>::execution_impl::exec(remaining_gas<span class="question-mark">?</span>, <span class="prelude-val">None</span>, module, function, param)<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
         set_remaining_points(<span class="kw-2">&amp;</span>env, ctx, resp.<span class="number">0</span>.remaining_gas)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(resp.<span class="number">0</span>)
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>function_exists(
-    ctx: <span class="kw-2">&amp;mut </span>FunctionEnvMut&lt;ASEnv&gt;,
-    address: <span class="kw-2">&amp;</span>str,
-    function: <span class="kw-2">&amp;</span>str,
-) -&gt; ABIResult&lt;bool&gt; {
-    <span class="kw">let </span>env = ctx.data().clone();
-    <span class="kw">let </span>interface = env.get_interface();
-    <span class="kw">let </span>bytecode = interface.raw_get_bytecode_for(address)<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
-        u64::MAX
-    } <span class="kw">else </span>{
-        get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
-    </span>};
-
-    <span class="comment">// NOTE: match bytecode target ident and init a different engine accordingly here
-    </span><span class="kw">let </span>engine = init_engine(env.get_gas_costs(), remaining_gas)<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>binary_module = Module::new(<span class="kw-2">&amp;</span>engine, bytecode)<span class="question-mark">?</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>store = init_store(<span class="kw-2">&amp;</span>engine)<span class="question-mark">?</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>context_module = ContextModule::new(<span class="kw-2">&amp;*</span>interface, binary_module, env.get_gas_costs());
-    <span class="kw">let </span>instance = context_module.create_vm_instance_and_init_env(<span class="kw-2">&amp;mut </span>store)<span class="question-mark">?</span>;
-
-    <span class="prelude-val">Ok</span>(instance.exports.get_function(function).is_ok())
 }
 
 <span class="doccomment">/// Create a smart contract with the given `bytecode`
@@ -289,4 +187,4 @@
     <span class="prelude-val">Ok</span>(env.get_interface().create_module(bytecode)<span class="question-mark">?</span>)
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (388538fc9 2023-01-05)" data-search-js="search-181581080540673f.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-58836c674e2f7bd2.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (0442fbabe 2023-01-10)" data-search-js="search-181581080540673f.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-58836c674e2f7bd2.css" ></div></body></html>
