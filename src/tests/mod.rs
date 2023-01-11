@@ -221,6 +221,8 @@ impl Interface for TestInterface {
     }
 }
 
+pub mod tests_allocation;
+
 #[cfg(feature = "gas_calibration")]
 pub mod tests_gas_calibration;
 #[cfg(not(feature = "gas_calibration"))]

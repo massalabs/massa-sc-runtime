@@ -25,5 +25,11 @@ regex = "1"
 more-asserts = "0.3"
 function_name = "0.3"
 
+[dev-dependencies]
+tracking-allocator = "0.4.0"
+tracing = "0.1.37"
+tracing-subscriber = "0.3.16"
+tokio = { version = "1.24.1" ,features=["full"] }
+# tokio = { version = "1", features = ["full"] }
 [features]
 gas_calibration = []
