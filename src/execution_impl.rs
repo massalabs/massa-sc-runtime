@@ -77,7 +77,7 @@ pub fn run_main(
     limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    // NOTE: do not use cache in `run_main` as it is used for sc execution only
+    // NOTE: do not use cache in `run_main` as it executes bytecode that is unlikely to be used twice
     // NOTE: match bytecode target ident and init a different engine accordingly here
     let engine = init_engine(limit, gas_costs.clone())?;
     let binary_module = Module::new(&engine, bytecode)?;
