@@ -6,7 +6,7 @@ mod settings;
 mod tunable_memory;
 mod types;
 
-pub use execution::init_engine;
+pub use execution::ModuleCache;
 pub use execution_impl::{run_function, run_main};
 pub use types::*;
 

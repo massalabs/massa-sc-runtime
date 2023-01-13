@@ -1,5 +1,6 @@
 mod as_abi;
 mod as_execution;
+mod cache;
 mod common;
 
 use anyhow::Result;
@@ -15,9 +16,10 @@ use crate::tunable_memory::LimitingTunables;
 use crate::GasCosts;
 
 pub(crate) use as_execution::*;
+pub use cache::ModuleCache;
 pub(crate) use common::*;
 
-pub fn init_engine(gas_costs: GasCosts, limit: u64) -> Result<Engine> {
+pub(crate) fn init_engine(gas_costs: GasCosts, limit: u64) -> Result<Engine> {
     // We use the Singlepass compiler because it is fast and adapted to blockchains
     // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
     let mut compiler_config = Singlepass::new();
@@ -67,7 +69,7 @@ pub fn init_engine(gas_costs: GasCosts, limit: u64) -> Result<Engine> {
         .engine())
 }
 
-pub fn init_store(engine: &Engine) -> Result<Store> {
+pub(crate) fn init_store(engine: &Engine) -> Result<Store> {
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
     let store = Store::new_with_tunables(engine, tunables);

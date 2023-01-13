@@ -3,7 +3,9 @@ use thiserror::Error;
 use wasmer::{FunctionEnvMut, Module};
 
 use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
-use crate::{init_engine, Response};
+use crate::Response;
+
+use super::{init_engine, init_store, ContextModule};
 
 pub(crate) type ABIResult<T, E = ABIError> = core::result::Result<T, E>;
 
@@ -30,8 +32,6 @@ macro_rules! abi_bail {
 }
 
 pub(crate) use abi_bail;
-
-use super::{init_store, ContextModule};
 
 /// `Call` ABI called by the webassembly VM
 ///
