@@ -8,7 +8,7 @@ pub struct ModuleCache {
 
 impl ModuleCache {
     /// Creates a new `ModuleCache` with the given length
-    pub(crate) fn new(len: u32) -> Self {
+    pub fn new(len: u32) -> Self {
         Self {
             lru_cache: LruMap::new(ByLength::new(len)),
         }
@@ -25,13 +25,13 @@ impl ModuleCache {
     pub(crate) fn get_module(
         &mut self,
         engine: &Engine,
-        bytecode: Vec<u8>,
+        bytecode: &[u8],
     ) -> Result<Module, CompileError> {
-        let module = if let Some(cached_module) = self.lru_cache.get(&bytecode) {
+        let module = if let Some(cached_module) = self.lru_cache.get(bytecode) {
             cached_module.clone()
         } else {
-            let new_module = Module::new(engine, &bytecode)?;
-            self.lru_cache.insert(bytecode, new_module.clone());
+            let new_module = Module::new(engine, bytecode)?;
+            self.lru_cache.insert(bytecode.to_vec(), new_module.clone());
             new_module
         };
         Ok(module)

@@ -1,7 +1,7 @@
 use crate::execution::{init_store, ContextModule};
-use crate::settings;
 use crate::types::{Interface, Response};
 use crate::GasCosts;
+use crate::{settings, ModuleCache};
 
 use anyhow::{bail, Result};
 use wasmer::{Engine, Instance, Module};
@@ -69,10 +69,11 @@ pub(crate) fn exec(
 pub fn run_main(
     interface: &dyn Interface,
     engine: &Engine,
-    binary_module: Module,
+    bytecode: &[u8],
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    // IMPORTANT NOTE: let module = Module::new(engine, bytecode);
+    // NOTE: do not use cache in `run_main` as it is used for sc execution only
+    let binary_module = Module::new(engine, bytecode)?;
     Ok(exec(
         interface,
         engine,
@@ -98,11 +99,13 @@ pub fn run_main(
 pub fn run_function(
     interface: &dyn Interface,
     engine: &Engine,
-    binary_module: Module,
+    bytecode: &[u8],
     function: &str,
     param: &[u8],
+    cache: &mut ModuleCache,
     gas_costs: GasCosts,
 ) -> Result<Response> {
+    let binary_module = cache.get_module(engine, bytecode)?;
     Ok(exec(interface, engine, binary_module, function, param, gas_costs)?.0)
 }
 
