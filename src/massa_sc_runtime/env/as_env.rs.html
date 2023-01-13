@@ -178,12 +178,12 @@
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>ASEnv {
     wasm_env: as_ffi_bindings::Env,
-    gas_costs: GasCosts,
     interface: Box&lt;<span class="kw">dyn </span>Interface&gt;,
     <span class="kw">pub </span>remaining_points: <span class="prelude-ty">Option</span>&lt;Global&gt;,
     <span class="kw">pub </span>exhausted_points: <span class="prelude-ty">Option</span>&lt;Global&gt;,
     param_size_map: HashMap&lt;String, <span class="prelude-ty">Option</span>&lt;Global&gt;&gt;,
     <span class="kw">pub </span>cache: Arc&lt;RwLock&lt;ModuleCache&gt;&gt;,
+    gas_costs: GasCosts,
 }
 
 <span class="kw">impl </span>MassaEnv&lt;as_ffi_bindings::Env&gt; <span class="kw">for </span>ASEnv {
