@@ -17,12 +17,12 @@ use super::MassaEnv;
 #[derive(Clone)]
 pub struct ASEnv {
     wasm_env: as_ffi_bindings::Env,
-    gas_costs: GasCosts,
     interface: Box<dyn Interface>,
     pub remaining_points: Option<Global>,
     pub exhausted_points: Option<Global>,
     param_size_map: HashMap<String, Option<Global>>,
     pub cache: Arc<RwLock<ModuleCache>>,
+    gas_costs: GasCosts,
 }
 
 impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
