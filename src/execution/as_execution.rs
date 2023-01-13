@@ -1,12 +1,15 @@
+use std::sync::Arc;
+
 use super::as_abi::*;
 use crate::env::{
     assembly_script_abort, assembly_script_date_now, assembly_script_seed, get_remaining_points,
     set_remaining_points, ASEnv, MassaEnv,
 };
 use crate::types::Response;
-use crate::{GasCosts, Interface};
+use crate::{GasCosts, Interface, ModuleCache};
 use anyhow::{bail, Result};
 use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
+use parking_lot::RwLock;
 use wasmer::{
     imports, Function, FunctionEnv, Imports, Instance, InstantiationError, Module, Store, Value,
 };
@@ -21,10 +24,11 @@ impl ContextModule {
     pub(crate) fn new(
         interface: &dyn Interface,
         binary_module: Module,
+        cache: Arc<RwLock<ModuleCache>>,
         gas_costs: GasCosts,
     ) -> Self {
         Self {
-            env: ASEnv::new(interface, gas_costs),
+            env: ASEnv::new(interface, cache, gas_costs),
             module: binary_module,
         }
     }

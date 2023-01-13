@@ -19,7 +19,7 @@ pub(crate) use as_execution::*;
 pub use cache::ModuleCache;
 pub(crate) use common::*;
 
-pub(crate) fn init_engine(gas_costs: GasCosts, limit: u64) -> Result<Engine> {
+pub(crate) fn init_engine(limit: u64, gas_costs: GasCosts) -> Result<Engine> {
     // We use the Singlepass compiler because it is fast and adapted to blockchains
     // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
     let mut compiler_config = Singlepass::new();

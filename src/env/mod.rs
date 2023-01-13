@@ -1,10 +1,13 @@
 mod as_env;
 
+use std::sync::Arc;
+
 use crate::{
     execution::{abi_bail, ABIResult},
-    GasCosts, Interface,
+    GasCosts, Interface, ModuleCache,
 };
 pub(crate) use as_env::*;
+use parking_lot::RwLock;
 use wasmer::{AsStoreMut, Global};
 
 macro_rules! get_memory {
@@ -18,7 +21,8 @@ macro_rules! get_memory {
 pub(crate) use get_memory;
 
 pub(crate) trait MassaEnv<T> {
-    fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self;
+    fn new(interface: &dyn Interface, cache: Arc<RwLock<ModuleCache>>, gas_costs: GasCosts)
+        -> Self;
     fn get_exhausted_points(&self) -> Option<&Global>;
     fn get_remaining_points(&self) -> Option<&Global>;
     fn get_gc_param(&self, name: &str) -> Option<&Global>;

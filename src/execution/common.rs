@@ -1,6 +1,6 @@
 use displaydoc::Display;
 use thiserror::Error;
-use wasmer::{FunctionEnvMut, Module};
+use wasmer::FunctionEnvMut;
 
 use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
 use crate::Response;
@@ -61,15 +61,16 @@ pub(crate) fn call_module(
     };
 
     // NOTE: match bytecode target ident and init a different engine accordingly here
-    let engine = init_engine(env.get_gas_costs(), remaining_gas)?;
+    let engine = init_engine(remaining_gas, env.get_gas_costs())?;
 
-    let binary_module = Module::new(&engine, bytecode)?;
+    let binary_module = env.cache.write().get_module(&engine, &bytecode)?;
     let resp = crate::execution_impl::exec(
         &*env.get_interface(),
         &engine,
         binary_module,
         function,
         param,
+        env.cache.clone(),
         env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
@@ -95,15 +96,16 @@ pub(crate) fn local_call(
     };
 
     // NOTE: match bytecode target ident and init a different engine accordingly here
-    let engine = init_engine(env.get_gas_costs(), remaining_gas)?;
+    let engine = init_engine(remaining_gas, env.get_gas_costs())?;
 
-    let binary_module = Module::new(&engine, bytecode)?;
+    let binary_module = env.cache.write().get_module(&engine, &bytecode)?;
     let resp = crate::execution_impl::exec(
         &*env.get_interface(),
         &engine,
         binary_module,
         function,
         param,
+        env.cache.clone(),
         env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
@@ -128,11 +130,16 @@ pub(crate) fn function_exists(
     };
 
     // NOTE: match bytecode target ident and init a different engine accordingly here
-    let engine = init_engine(env.get_gas_costs(), remaining_gas)?;
+    let engine = init_engine(remaining_gas, env.get_gas_costs())?;
 
-    let binary_module = Module::new(&engine, bytecode)?;
+    let binary_module = env.cache.write().get_module(&engine, &bytecode)?;
     let mut store = init_store(&engine)?;
-    let mut context_module = ContextModule::new(&*interface, binary_module, env.get_gas_costs());
+    let mut context_module = ContextModule::new(
+        &*interface,
+        binary_module,
+        env.cache.clone(),
+        env.get_gas_costs(),
+    );
     let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
 
     Ok(instance.exports.get_function(function).is_ok())

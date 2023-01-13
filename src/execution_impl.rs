@@ -1,9 +1,12 @@
-use crate::execution::{init_store, ContextModule};
+use std::sync::Arc;
+
+use crate::execution::{init_engine, init_store, ContextModule};
 use crate::types::{Interface, Response};
 use crate::GasCosts;
 use crate::{settings, ModuleCache};
 
 use anyhow::{bail, Result};
+use parking_lot::RwLock;
 use wasmer::{Engine, Instance, Module};
 use wasmer_middlewares::metering::{self, MeteringPoints};
 
@@ -13,12 +16,13 @@ use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibra
 /// Internal execution function, used on smart contract called from node or
 /// from another smart contract
 /// Parameters:
-/// * `limit`: Limit of gas that can be used.
-/// * `instance`: Optional wasmer instance to be passed instead of creating it directly in the function.
-/// * `module`: Bytecode that contains the function to be executed.
-/// * `function`: Name of the function to call.
-/// * `param`: Parameter to pass to the function.
-/// * `interface`: Interface to call function in Massa from execution context.
+/// * `interface`: Interface to call function in Massa from execution context
+/// * `engine`: Engine used for store creation and module compilation
+/// * `binary_module`: Pre compiled module that will be instantiated and executed
+/// * `function`: Name of the function to call
+/// * `param`: Parameter passed to the function
+/// * `cache`: Cache of pre compiled modules
+/// * `gas_costs`: Cost in gas of every VM operation
 ///
 /// Return:
 /// The return of the function executed as string and the remaining gas for the rest of the execution.
@@ -28,11 +32,11 @@ pub(crate) fn exec(
     binary_module: Module,
     function: &str,
     param: &[u8],
+    cache: Arc<RwLock<ModuleCache>>,
     gas_costs: GasCosts,
 ) -> Result<(Response, Instance)> {
-    // IMPORTANT TODO: update doc for all the runtime modifications
     let mut store = init_store(engine)?;
-    let mut context_module = ContextModule::new(interface, binary_module, gas_costs);
+    let mut context_module = ContextModule::new(interface, binary_module, cache, gas_costs);
     let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
 
     match context_module.execution(&mut store, &instance, function, param) {
@@ -68,18 +72,22 @@ pub(crate) fn exec(
 /// the remaining gas.
 pub fn run_main(
     interface: &dyn Interface,
-    engine: &Engine,
     bytecode: &[u8],
+    cache: Arc<RwLock<ModuleCache>>,
+    limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
     // NOTE: do not use cache in `run_main` as it is used for sc execution only
-    let binary_module = Module::new(engine, bytecode)?;
+    // NOTE: match bytecode target ident and init a different engine accordingly here
+    let engine = init_engine(limit, gas_costs.clone())?;
+    let binary_module = Module::new(&engine, bytecode)?;
     Ok(exec(
         interface,
-        engine,
+        &engine,
         binary_module,
         settings::MAIN,
         b"",
+        cache,
         gas_costs,
     )?
     .0)
@@ -98,15 +106,26 @@ pub fn run_main(
 /// ```
 pub fn run_function(
     interface: &dyn Interface,
-    engine: &Engine,
     bytecode: &[u8],
     function: &str,
     param: &[u8],
-    cache: &mut ModuleCache,
+    cache: Arc<RwLock<ModuleCache>>,
+    limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    let binary_module = cache.get_module(engine, bytecode)?;
-    Ok(exec(interface, engine, binary_module, function, param, gas_costs)?.0)
+    // NOTE: match bytecode target ident and init a different engine accordingly here
+    let engine = init_engine(limit, gas_costs.clone())?;
+    let binary_module = cache.write().get_module(&engine, bytecode)?;
+    Ok(exec(
+        interface,
+        &engine,
+        binary_module,
+        function,
+        param,
+        cache,
+        gas_costs,
+    )?
+    .0)
 }
 
 /// Same as run_main but return a GasCalibrationResult

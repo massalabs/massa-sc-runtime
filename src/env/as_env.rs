@@ -4,11 +4,12 @@ use crate::{
     env::sub_remaining_gas_abi,
     execution::{abi_bail, ABIResult},
     types::Interface,
-    GasCosts,
+    GasCosts, ModuleCache,
 };
 use as_ffi_bindings::{Read, StringPtr};
 use function_name::named;
-use std::collections::HashMap;
+use parking_lot::RwLock;
+use std::{collections::HashMap, sync::Arc};
 use wasmer::{FunctionEnvMut, Global};
 
 use super::MassaEnv;
@@ -21,10 +22,15 @@ pub struct ASEnv {
     pub remaining_points: Option<Global>,
     pub exhausted_points: Option<Global>,
     param_size_map: HashMap<String, Option<Global>>,
+    pub cache: Arc<RwLock<ModuleCache>>,
 }
 
 impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
-    fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
+    fn new(
+        interface: &dyn Interface,
+        cache: Arc<RwLock<ModuleCache>>,
+        gas_costs: GasCosts,
+    ) -> Self {
         Self {
             wasm_env: Default::default(),
             gas_costs,
@@ -32,6 +38,7 @@ impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
             remaining_points: None,
             exhausted_points: None,
             param_size_map: Default::default(),
+            cache,
         }
     }
     fn get_exhausted_points(&self) -> Option<&Global> {
