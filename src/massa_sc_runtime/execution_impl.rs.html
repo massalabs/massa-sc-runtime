@@ -232,7 +232,7 @@
     limit: u64,
     gas_costs: GasCosts,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Response&gt; {
-    <span class="comment">// NOTE: do not use cache in `run_main` as it is used for sc execution only
+    <span class="comment">// NOTE: do not use cache in `run_main` as it executes bytecode that is unlikely to be used twice
     // NOTE: match bytecode target ident and init a different engine accordingly here
     </span><span class="kw">let </span>engine = init_engine(limit, gas_costs.clone())<span class="question-mark">?</span>;
     <span class="kw">let </span>binary_module = Module::new(<span class="kw-2">&amp;</span>engine, bytecode)<span class="question-mark">?</span>;
