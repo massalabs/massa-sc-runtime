@@ -15,11 +15,17 @@ use wasmer::{
 };
 use wasmer_types::TrapCode;
 
+#[transition::versioned]
+#[transition(version("0.1.0"))]
+#[transition(version("0.2.0"))]
 pub(crate) struct ContextModule {
     env: ASEnv,
     pub module: Module,
+    #[transition(version(">=0.2.0"))]
+    gas_cost: u64
 }
 
+#[transition(version("0.1.0"))]
 impl ContextModule {
     pub(crate) fn new(
         interface: &dyn Interface,
@@ -32,7 +38,26 @@ impl ContextModule {
             module: binary_module,
         }
     }
+}
 
+#[transition(version("0.2.0"))]
+impl ContextModule {
+    pub(crate) fn new(
+        interface: &dyn Interface,
+        binary_module: Module,
+        cache: Arc<RwLock<ModuleCache>>,
+        gas_costs: GasCosts,
+    ) -> Self {
+        Self {
+            env: ASEnv::new(interface, cache, gas_costs),
+            module: binary_module,
+            gas_cost: 1
+        }
+    }
+}
+
+#[transition(version(">=0.1.0"))]
+impl ContextModule {
     /// Create a VM instance from the current module
     pub(crate) fn create_vm_instance_and_init_env(
         &mut self,
@@ -58,7 +83,7 @@ impl ContextModule {
         }
     }
 
-    pub(crate) fn execution(
+    fn execution(
         &self,
         store: &mut Store,
         instance: &Instance,
@@ -190,7 +215,7 @@ impl ContextModule {
         Ok(())
     }
 
-    pub(crate) fn resolver(&self, store: &mut Store) -> (Imports, FunctionEnv<ASEnv>) {
+    fn resolver(&self, store: &mut Store) -> (Imports, FunctionEnv<ASEnv>) {
         let fenv = FunctionEnv::new(store, self.env.clone());
 
         let imports = imports! {
@@ -249,4 +274,18 @@ impl ContextModule {
 
         (imports, fenv)
     }
+}
+
+#[transition(version(">=0.2.0"))]
+impl ContextModule {
+    fn get_gas_costs(&self) {
+        self.gas_cost
+    }
+}
+
+#[transition(version("0.1.0"))]
+struct UpperData {
+    data: String,
+    #[transition(use_version("0.1.0"))]
+    module: ContextModule
 }
