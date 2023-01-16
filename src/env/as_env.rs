@@ -21,14 +21,12 @@ pub struct ASEnv {
     pub remaining_points: Option<Global>,
     pub exhausted_points: Option<Global>,
     param_size_map: HashMap<String, Option<Global>>,
-    pub cache: Arc<RwLock<ModuleCache>>,
     gas_costs: GasCosts,
 }
 
 impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
     fn new(
         interface: &dyn Interface,
-        cache: Arc<RwLock<ModuleCache>>,
         gas_costs: GasCosts,
     ) -> Self {
         Self {
@@ -38,7 +36,6 @@ impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
             remaining_points: None,
             exhausted_points: None,
             param_size_map: Default::default(),
-            cache,
         }
     }
     fn get_exhausted_points(&self) -> Option<&Global> {

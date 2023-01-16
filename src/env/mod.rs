@@ -21,7 +21,7 @@ macro_rules! get_memory {
 pub(crate) use get_memory;
 
 pub(crate) trait MassaEnv<T> {
-    fn new(interface: &dyn Interface, cache: Arc<RwLock<ModuleCache>>, gas_costs: GasCosts)
+    fn new(interface: &dyn Interface, gas_costs: GasCosts)
         -> Self;
     fn get_exhausted_points(&self) -> Option<&Global>;
     fn get_remaining_points(&self) -> Option<&Global>;

@@ -70,7 +70,6 @@ pub(crate) fn call_module(
         binary_module,
         function,
         param,
-        env.cache.clone(),
         env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
@@ -105,7 +104,6 @@ pub(crate) fn local_call(
         binary_module,
         function,
         param,
-        env.cache.clone(),
         env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
@@ -137,7 +135,6 @@ pub(crate) fn function_exists(
     let mut context_module = ContextModule::new(
         &*interface,
         binary_module,
-        env.cache.clone(),
         env.get_gas_costs(),
     );
     let instance = context_module.create_vm_instance_and_init_env(&mut store)?;

@@ -32,11 +32,10 @@ pub(crate) fn exec(
     binary_module: Module,
     function: &str,
     param: &[u8],
-    cache: Arc<RwLock<ModuleCache>>,
     gas_costs: GasCosts,
 ) -> Result<(Response, Instance)> {
     let mut store = init_store(engine)?;
-    let mut context_module = ContextModule::new(interface, binary_module, cache, gas_costs);
+    let mut context_module = ContextModule::new(interface, binary_module, gas_costs);
     let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
 
     match context_module.execution(&mut store, &instance, function, param) {
@@ -72,22 +71,19 @@ pub(crate) fn exec(
 /// the remaining gas.
 pub fn run_main(
     interface: &dyn Interface,
-    bytecode: &[u8],
-    cache: Arc<RwLock<ModuleCache>>,
+    binary_module: Module,
     limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
     // NOTE: do not use cache in `run_main` as it executes bytecode that is unlikely to be used twice
     // NOTE: match bytecode target ident and init a different engine accordingly here
     let engine = init_engine(limit, gas_costs.clone())?;
-    let binary_module = Module::new(&engine, bytecode)?;
     Ok(exec(
         interface,
         &engine,
         binary_module,
         settings::MAIN,
         b"",
-        cache,
         gas_costs,
     )?
     .0)
@@ -106,23 +102,20 @@ pub fn run_main(
 /// ```
 pub fn run_function(
     interface: &dyn Interface,
-    bytecode: &[u8],
+    binary_module: Module,
     function: &str,
     param: &[u8],
-    cache: Arc<RwLock<ModuleCache>>,
     limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
     // NOTE: match bytecode target ident and init a different engine accordingly here
     let engine = init_engine(limit, gas_costs.clone())?;
-    let binary_module = cache.write().get_module(&engine, bytecode)?;
     Ok(exec(
         interface,
         &engine,
         binary_module,
         function,
         param,
-        cache,
         gas_costs,
     )?
     .0)

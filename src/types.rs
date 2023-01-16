@@ -364,6 +364,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ) -> Result<()> {
         unimplemented!("send_message")
     }
+
+    // TODO
+    // fn get_module(&self, bytecode: &[u8]) -> Result<Module> {
+
+    // }
 }
 
 impl dyn Interface {

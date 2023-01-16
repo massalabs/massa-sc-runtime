@@ -24,11 +24,10 @@ impl ContextModule {
     pub(crate) fn new(
         interface: &dyn Interface,
         binary_module: Module,
-        cache: Arc<RwLock<ModuleCache>>,
         gas_costs: GasCosts,
     ) -> Self {
         Self {
-            env: ASEnv::new(interface, cache, gas_costs),
+            env: ASEnv::new(interface, gas_costs),
             module: binary_module,
         }
     }
