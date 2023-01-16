@@ -19,11 +19,11 @@ pub(crate) use as_execution::*;
 pub use cache::ModuleCache;
 pub(crate) use common::*;
 
-pub struct RuntimeModule(ASModule);
+pub struct RuntimeModule(pub(crate) ASModule);
 
 impl RuntimeModule {
     /// TODO: Dispatch module creation corresponding to the first bytecode byte
-    /// 
+    ///
     /// * (1) target AssemblyScript
     /// * (2) TODO: target X
     /// * (_) target AssemblyScript and use the full bytecode
@@ -32,9 +32,9 @@ impl RuntimeModule {
     }
 }
 
-struct ASModule {
-    binary_module: Module,
-    engine: Engine,
+pub(crate) struct ASModule {
+    pub binary_module: Module,
+    pub engine: Engine,
 }
 
 impl ASModule {

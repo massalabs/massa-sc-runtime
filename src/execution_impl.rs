@@ -1,13 +1,10 @@
-use std::sync::Arc;
-
-use crate::execution::{init_engine, init_store, ContextModule};
+use crate::execution::{init_store, ContextModule, RuntimeModule};
+use crate::settings;
 use crate::types::{Interface, Response};
 use crate::GasCosts;
-use crate::{settings, ModuleCache};
 
 use anyhow::{bail, Result};
-use parking_lot::RwLock;
-use wasmer::{Engine, Instance, Module};
+use wasmer::Instance;
 use wasmer_middlewares::metering::{self, MeteringPoints};
 
 #[cfg(feature = "gas_calibration")]
@@ -17,8 +14,7 @@ use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibra
 /// from another smart contract
 /// Parameters:
 /// * `interface`: Interface to call function in Massa from execution context
-/// * `engine`: Engine used for store creation and module compilation
-/// * `binary_module`: Pre compiled module that will be instantiated and executed
+/// * `module`: Pre compiled module that will be instantiated and executed
 /// * `function`: Name of the function to call
 /// * `param`: Parameter passed to the function
 /// * `cache`: Cache of pre compiled modules
@@ -28,14 +24,13 @@ use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibra
 /// The return of the function executed as string and the remaining gas for the rest of the execution.
 pub(crate) fn exec(
     interface: &dyn Interface,
-    engine: &Engine,
-    binary_module: Module,
+    module: RuntimeModule,
     function: &str,
     param: &[u8],
     gas_costs: GasCosts,
 ) -> Result<(Response, Instance)> {
-    let mut store = init_store(engine)?;
-    let mut context_module = ContextModule::new(interface, binary_module, gas_costs);
+    let mut store = init_store(&module.0.engine)?;
+    let mut context_module = ContextModule::new(interface, module.0.binary_module, gas_costs);
     let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
 
     match context_module.execution(&mut store, &instance, function, param) {
@@ -71,22 +66,10 @@ pub(crate) fn exec(
 /// the remaining gas.
 pub fn run_main(
     interface: &dyn Interface,
-    binary_module: Module,
-    limit: u64,
+    module: RuntimeModule,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    // NOTE: do not use cache in `run_main` as it executes bytecode that is unlikely to be used twice
-    // NOTE: match bytecode target ident and init a different engine accordingly here
-    let engine = init_engine(limit, gas_costs.clone())?;
-    Ok(exec(
-        interface,
-        &engine,
-        binary_module,
-        settings::MAIN,
-        b"",
-        gas_costs,
-    )?
-    .0)
+    Ok(exec(interface, module, settings::MAIN, b"", gas_costs)?.0)
 }
 
 /// Library Input, take a `module` wasm built with the massa environment,
@@ -102,23 +85,12 @@ pub fn run_main(
 /// ```
 pub fn run_function(
     interface: &dyn Interface,
-    binary_module: Module,
+    module: RuntimeModule,
     function: &str,
     param: &[u8],
-    limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    // NOTE: match bytecode target ident and init a different engine accordingly here
-    let engine = init_engine(limit, gas_costs.clone())?;
-    Ok(exec(
-        interface,
-        &engine,
-        binary_module,
-        function,
-        param,
-        gas_costs,
-    )?
-    .0)
+    Ok(exec(interface, module, function, param, gas_costs)?.0)
 }
 
 /// Same as run_main but return a GasCalibrationResult

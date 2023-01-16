@@ -4,12 +4,11 @@ use crate::{
     env::sub_remaining_gas_abi,
     execution::{abi_bail, ABIResult},
     types::Interface,
-    GasCosts, ModuleCache,
+    GasCosts,
 };
 use as_ffi_bindings::{Read, StringPtr};
 use function_name::named;
-use parking_lot::RwLock;
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap};
 use wasmer::{FunctionEnvMut, Global};
 
 use super::MassaEnv;
