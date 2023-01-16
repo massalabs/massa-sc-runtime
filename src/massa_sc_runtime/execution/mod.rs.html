@@ -103,9 +103,19 @@
 <a href="#103" id="103">103</a>
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>as_abi;
 <span class="kw">mod </span>as_execution;
-<span class="kw">mod </span>cache;
 <span class="kw">mod </span>common;
 
 <span class="kw">use </span>anyhow::Result;
@@ -121,10 +131,10 @@
 <span class="kw">use </span><span class="kw">crate</span>::GasCosts;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>as_execution::<span class="kw-2">*</span>;
-<span class="kw">pub use </span>cache::ModuleCache;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>common::<span class="kw-2">*</span>;
 
-<span class="kw">pub struct </span>RuntimeModule(<span class="kw">pub</span>(<span class="kw">crate</span>) ASModule);
+<span class="attr">#[derive(Clone)]
+</span><span class="kw">pub struct </span>RuntimeModule(<span class="kw">pub</span>(<span class="kw">crate</span>) ASModule);
 
 <span class="kw">impl </span>RuntimeModule {
     <span class="doccomment">/// TODO: Dispatch module creation corresponding to the first bytecode byte
@@ -135,20 +145,32 @@
     </span><span class="kw">pub fn </span>new(bytecode: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>(ASModule::new(bytecode, limit, gas_costs)<span class="question-mark">?</span>))
     }
+
+    <span class="doccomment">/// Resets metadata of the current module
+    </span><span class="kw">pub fn </span>reinitialize_metadata(<span class="kw-2">&amp;mut </span><span class="self">self</span>, limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.reinitialize_engine(limit, gas_costs)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
+    }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ASModule {
+<span class="attr">#[derive(Clone)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ASModule {
     <span class="kw">pub </span>binary_module: Module,
     <span class="kw">pub </span>engine: Engine,
 }
 
 <span class="kw">impl </span>ASModule {
-    <span class="kw">pub fn </span>new(bytecode: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>new(bytecode: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>engine = init_engine(limit, gas_costs)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             binary_module: Module::new(<span class="kw-2">&amp;</span>engine, bytecode)<span class="question-mark">?</span>,
             engine,
         })
+    }
+
+    <span class="kw">pub fn </span>reinitialize_engine(<span class="kw-2">&amp;mut </span><span class="self">self</span>, limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.engine = init_engine(limit, gas_costs)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
     }
 }
 
