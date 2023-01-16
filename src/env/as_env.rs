@@ -8,7 +8,7 @@ use crate::{
 };
 use as_ffi_bindings::{Read, StringPtr};
 use function_name::named;
-use std::{collections::HashMap};
+use std::collections::HashMap;
 use wasmer::{FunctionEnvMut, Global};
 
 use super::MassaEnv;
@@ -24,10 +24,7 @@ pub struct ASEnv {
 }
 
 impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
-    fn new(
-        interface: &dyn Interface,
-        gas_costs: GasCosts,
-    ) -> Self {
+    fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
         Self {
             wasm_env: Default::default(),
             gas_costs,

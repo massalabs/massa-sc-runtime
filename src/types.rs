@@ -334,7 +334,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     /// For the given bytecode:
-    /// 
+    ///
     /// * Get the corresponding runtime module if it already exists
     /// * Compile it using the limit and gas_costs settings
     fn get_module(

@@ -1,4 +1,3 @@
-
 use super::as_abi::*;
 use crate::env::{
     assembly_script_abort, assembly_script_date_now, assembly_script_seed, get_remaining_points,

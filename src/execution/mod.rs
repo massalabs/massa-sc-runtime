@@ -17,6 +17,7 @@ use crate::GasCosts;
 pub(crate) use as_execution::*;
 pub(crate) use common::*;
 
+#[derive(Clone)]
 pub struct RuntimeModule(pub(crate) ASModule);
 
 impl RuntimeModule {
@@ -36,6 +37,7 @@ impl RuntimeModule {
     }
 }
 
+#[derive(Clone)]
 pub(crate) struct ASModule {
     pub binary_module: Module,
     pub engine: Engine,

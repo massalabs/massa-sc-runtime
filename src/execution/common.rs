@@ -63,13 +63,7 @@ pub(crate) fn call_module(
     };
 
     let module = interface.get_module(&bytecode, remaining_gas, gas_costs.clone())?;
-    let resp = crate::execution_impl::exec(
-        &*interface,
-        module,
-        function,
-        param,
-        gas_costs,
-    )?;
+    let resp = crate::execution_impl::exec(&*interface, module, function, param, gas_costs)?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.0.remaining_gas)?;
     }
@@ -95,13 +89,7 @@ pub(crate) fn local_call(
     };
 
     let module = interface.get_module(&bytecode, remaining_gas, gas_costs.clone())?;
-    let resp = crate::execution_impl::exec(
-        &*interface,
-        module,
-        function,
-        param,
-        gas_costs,
-    )?;
+    let resp = crate::execution_impl::exec(&*interface, module, function, param, gas_costs)?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.0.remaining_gas)?;
     }
