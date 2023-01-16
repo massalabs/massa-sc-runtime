@@ -145,8 +145,6 @@
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
 </pre><pre class="rust"><code><span class="kw">use </span>displaydoc::Display;
 <span class="kw">use </span>thiserror::Error;
 <span class="kw">use </span>wasmer::FunctionEnvMut;
@@ -269,6 +267,7 @@
     <span class="kw">let </span>env = ctx.data().clone();
     <span class="kw">let </span>interface = env.get_interface();
     <span class="kw">let </span>bytecode = interface.raw_get_bytecode_for(address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>gas_costs = env.get_gas_costs();
 
     <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
         u64::MAX
@@ -276,15 +275,12 @@
         get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
     </span>};
 
-    <span class="comment">// NOTE: match bytecode target ident and init a different engine accordingly here
-    </span><span class="kw">let </span>engine = init_engine(remaining_gas, env.get_gas_costs())<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>binary_module = env.cache.write().get_module(<span class="kw-2">&amp;</span>engine, <span class="kw-2">&amp;</span>bytecode)<span class="question-mark">?</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>store = init_store(<span class="kw-2">&amp;</span>engine)<span class="question-mark">?</span>;
+    <span class="kw">let </span>module = interface.get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas, gas_costs)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>store = init_store(<span class="kw-2">&amp;</span>module.<span class="number">0</span>.engine)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>context_module = ContextModule::new(
         <span class="kw-2">&amp;*</span>interface,
-        binary_module,
-        env.get_gas_costs(),
+        module.<span class="number">0</span>.binary_module,
+        gas_costs,
     );
     <span class="kw">let </span>instance = context_module.create_vm_instance_and_init_env(<span class="kw-2">&amp;mut </span>store)<span class="question-mark">?</span>;
 
