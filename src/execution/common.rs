@@ -120,6 +120,7 @@ pub(crate) fn function_exists(
     let env = ctx.data().clone();
     let interface = env.get_interface();
     let bytecode = interface.raw_get_bytecode_for(address)?;
+    let gas_costs = env.get_gas_costs();
 
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         u64::MAX
@@ -127,15 +128,12 @@ pub(crate) fn function_exists(
         get_remaining_points(&env, ctx)?
     };
 
-    // NOTE: match bytecode target ident and init a different engine accordingly here
-    let engine = init_engine(remaining_gas, env.get_gas_costs())?;
-
-    let binary_module = env.cache.write().get_module(&engine, &bytecode)?;
-    let mut store = init_store(&engine)?;
+    let module = interface.get_module(&bytecode, remaining_gas, gas_costs)?;
+    let mut store = init_store(&module.0.engine)?;
     let mut context_module = ContextModule::new(
         &*interface,
-        binary_module,
-        env.get_gas_costs(),
+        module.0.binary_module,
+        gas_costs,
     );
     let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
 

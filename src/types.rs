@@ -5,6 +5,8 @@ use std::{
     path::PathBuf,
 };
 
+use crate::execution::RuntimeModule;
+
 /// That's what is returned when a module is executed correctly since the end
 #[derive(Debug)]
 pub struct Response {
@@ -122,11 +124,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Finish a call
     fn finish_call(&self) -> Result<()> {
         unimplemented!("finish_call")
-    }
-
-    /// Requires the module in the given address
-    fn get_module(&self, address: &str) -> Result<Vec<u8>> {
-        unimplemented!("get_module")
     }
 
     /// Get the SCE ledger balance for the current address.
@@ -336,6 +333,19 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("generate_event")
     }
 
+    /// For the given bytecode:
+    /// 
+    /// * Get the corresponding runtime module if it already exists
+    /// * Compile it using the limit and gas_costs settings
+    fn get_module(
+        &self,
+        bytecode: &[u8],
+        limit: u64,
+        gas_costs: GasCosts,
+    ) -> Result<RuntimeModule> {
+        unimplemented!("get_module")
+    }
+
     /// Sends an async message
     ///
     /// # Arguments
@@ -364,11 +374,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ) -> Result<()> {
         unimplemented!("send_message")
     }
-
-    // TODO
-    // fn get_module(&self, bytecode: &[u8]) -> Result<Module> {
-
-    // }
 }
 
 impl dyn Interface {

@@ -6,7 +6,7 @@ mod common;
 use anyhow::Result;
 use std::sync::Arc;
 use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
-use wasmer::{CompilerConfig, Engine, Features, Store};
+use wasmer::{CompilerConfig, Engine, Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
 
@@ -18,6 +18,34 @@ use crate::GasCosts;
 pub(crate) use as_execution::*;
 pub use cache::ModuleCache;
 pub(crate) use common::*;
+
+pub struct RuntimeModule(ASModule);
+
+impl RuntimeModule {
+    /// TODO: Dispatch module creation corresponding to the first bytecode byte
+    /// 
+    /// * (1) target AssemblyScript
+    /// * (2) TODO: target X
+    /// * (_) target AssemblyScript and use the full bytecode
+    pub fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
+        Ok(Self(ASModule::new(bytecode, limit, gas_costs)?))
+    }
+}
+
+struct ASModule {
+    binary_module: Module,
+    engine: Engine,
+}
+
+impl ASModule {
+    pub fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
+        let engine = init_engine(limit, gas_costs)?;
+        Ok(Self {
+            binary_module: Module::new(&engine, bytecode)?,
+            engine,
+        })
+    }
+}
 
 pub(crate) fn init_engine(limit: u64, gas_costs: GasCosts) -> Result<Engine> {
     // We use the Singlepass compiler because it is fast and adapted to blockchains
