@@ -1,6 +1,5 @@
 mod as_abi;
 mod as_execution;
-mod cache;
 mod common;
 
 use anyhow::Result;
@@ -16,7 +15,6 @@ use crate::tunable_memory::LimitingTunables;
 use crate::GasCosts;
 
 pub(crate) use as_execution::*;
-pub use cache::ModuleCache;
 pub(crate) use common::*;
 
 pub struct RuntimeModule(pub(crate) ASModule);
@@ -30,6 +28,12 @@ impl RuntimeModule {
     pub fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
         Ok(Self(ASModule::new(bytecode, limit, gas_costs)?))
     }
+
+    /// Resets metadata of the current module
+    pub fn reinitialize_metadata(&mut self, limit: u64, gas_costs: GasCosts) -> Result<()> {
+        self.0.reinitialize_engine(limit, gas_costs)?;
+        Ok(())
+    }
 }
 
 pub(crate) struct ASModule {
@@ -38,12 +42,17 @@ pub(crate) struct ASModule {
 }
 
 impl ASModule {
-    pub fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
+    fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
         let engine = init_engine(limit, gas_costs)?;
         Ok(Self {
             binary_module: Module::new(&engine, bytecode)?,
             engine,
         })
+    }
+
+    pub fn reinitialize_engine(&mut self, limit: u64, gas_costs: GasCosts) -> Result<()> {
+        self.engine = init_engine(limit, gas_costs)?;
+        Ok(())
     }
 }
 
