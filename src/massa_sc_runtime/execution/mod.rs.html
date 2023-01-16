@@ -124,11 +124,11 @@
 <span class="kw">pub use </span>cache::ModuleCache;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>common::<span class="kw-2">*</span>;
 
-<span class="kw">pub struct </span>RuntimeModule(ASModule);
+<span class="kw">pub struct </span>RuntimeModule(<span class="kw">pub</span>(<span class="kw">crate</span>) ASModule);
 
 <span class="kw">impl </span>RuntimeModule {
     <span class="doccomment">/// TODO: Dispatch module creation corresponding to the first bytecode byte
-    /// 
+    ///
     /// * (1) target AssemblyScript
     /// * (2) TODO: target X
     /// * (_) target AssemblyScript and use the full bytecode
@@ -137,9 +137,9 @@
     }
 }
 
-<span class="kw">struct </span>ASModule {
-    binary_module: Module,
-    engine: Engine,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ASModule {
+    <span class="kw">pub </span>binary_module: Module,
+    <span class="kw">pub </span>engine: Engine,
 }
 
 <span class="kw">impl </span>ASModule {

@@ -116,20 +116,15 @@
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>as_env;
-
-<span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use crate</span>::{
     execution::{abi_bail, ABIResult},
-    GasCosts, Interface, ModuleCache,
+    GasCosts, Interface,
 };
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>as_env::<span class="kw-2">*</span>;
-<span class="kw">use </span>parking_lot::RwLock;
 <span class="kw">use </span>wasmer::{AsStoreMut, Global};
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>as_env::<span class="kw-2">*</span>;
 
 <span class="macro">macro_rules! </span>get_memory {
     (<span class="macro-nonterminal">$env</span>:ident) =&gt; {
@@ -142,8 +137,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>get_memory;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>MassaEnv&lt;T&gt; {
-    <span class="kw">fn </span>new(interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface, gas_costs: GasCosts)
-        -&gt; <span class="self">Self</span>;
+    <span class="kw">fn </span>new(interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface, gas_costs: GasCosts) -&gt; <span class="self">Self</span>;
     <span class="kw">fn </span>get_exhausted_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Global&gt;;
     <span class="kw">fn </span>get_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Global&gt;;
     <span class="kw">fn </span>get_gc_param(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Global&gt;;
