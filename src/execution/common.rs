@@ -5,7 +5,7 @@ use wasmer::FunctionEnvMut;
 use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
 use crate::Response;
 
-use super::{init_store, ContextModule};
+use super::{init_store, ASContextModule};
 
 pub(crate) type ABIResult<T, E = ABIError> = core::result::Result<T, E>;
 
@@ -114,7 +114,7 @@ pub(crate) fn function_exists(
 
     let module = interface.get_module(&bytecode, remaining_gas, gas_costs.clone())?;
     let mut store = init_store(&module.0.engine)?;
-    let mut context_module = ContextModule::new(&*interface, module.0.binary_module, gas_costs);
+    let mut context_module = ASContextModule::new(&*interface, module.0.binary_module, gas_costs);
     let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
 
     Ok(instance.exports.get_function(function).is_ok())

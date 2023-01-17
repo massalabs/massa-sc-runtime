@@ -12,12 +12,12 @@ use wasmer::{
 };
 use wasmer_types::TrapCode;
 
-pub(crate) struct ContextModule {
+pub(crate) struct ASContextModule {
     env: ASEnv,
     pub module: Module,
 }
 
-impl ContextModule {
+impl ASContextModule {
     pub(crate) fn new(
         interface: &dyn Interface,
         binary_module: Module,

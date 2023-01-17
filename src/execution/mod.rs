@@ -18,7 +18,9 @@ pub(crate) use as_execution::*;
 pub(crate) use common::*;
 
 #[derive(Clone)]
-pub struct RuntimeModule(pub(crate) ASModule);
+pub enum RuntimeModule {
+    ASModule(ASModule),
+}
 
 impl RuntimeModule {
     /// TODO: Dispatch module creation corresponding to the first bytecode byte
@@ -27,20 +29,17 @@ impl RuntimeModule {
     /// * (2) TODO: target X
     /// * (_) target AssemblyScript and use the full bytecode
     pub fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
-        Ok(Self(ASModule::new(bytecode, limit, gas_costs)?))
-    }
-
-    /// Resets metadata of the current module
-    pub fn reinitialize_metadata(&mut self, limit: u64, gas_costs: GasCosts) -> Result<()> {
-        self.0.reinitialize_engine(limit, gas_costs)?;
-        Ok(())
+        let module = match bytecode[0] {
+            1 => Self::ASModule(ASModule::new(bytecode, limit, gas_costs)?),
+            _ => Self::ASModule(ASModule::new(bytecode, limit, gas_costs)?),
+        };
+        Ok(module)
     }
 }
 
 #[derive(Clone)]
 pub(crate) struct ASModule {
     pub binary_module: Module,
-    pub engine: Engine,
 }
 
 impl ASModule {
@@ -48,13 +47,7 @@ impl ASModule {
         let engine = init_engine(limit, gas_costs)?;
         Ok(Self {
             binary_module: Module::new(&engine, bytecode)?,
-            engine,
         })
-    }
-
-    pub fn reinitialize_engine(&mut self, limit: u64, gas_costs: GasCosts) -> Result<()> {
-        self.engine = init_engine(limit, gas_costs)?;
-        Ok(())
     }
 }
 
