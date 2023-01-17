@@ -132,7 +132,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
 <span class="kw">use </span><span class="kw">crate</span>::Response;
 
-<span class="kw">use super</span>::{init_store, ContextModule};
+<span class="kw">use super</span>::{init_store, ASContextModule};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ABIResult&lt;T, E = ABIError&gt; = core::result::Result&lt;T, E&gt;;
 
@@ -241,7 +241,7 @@
 
     <span class="kw">let </span>module = interface.get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas, gas_costs.clone())<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>store = init_store(<span class="kw-2">&amp;</span>module.<span class="number">0</span>.engine)<span class="question-mark">?</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>context_module = ContextModule::new(<span class="kw-2">&amp;*</span>interface, module.<span class="number">0</span>.binary_module, gas_costs);
+    <span class="kw">let </span><span class="kw-2">mut </span>context_module = ASContextModule::new(<span class="kw-2">&amp;*</span>interface, module.<span class="number">0</span>.binary_module, gas_costs);
     <span class="kw">let </span>instance = context_module.create_vm_instance_and_init_env(<span class="kw-2">&amp;mut </span>store)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(instance.exports.get_function(function).is_ok())
@@ -253,4 +253,4 @@
     <span class="prelude-val">Ok</span>(env.get_interface().create_module(bytecode)<span class="question-mark">?</span>)
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (9e75dddf6 2023-01-15)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (4781233a7 2023-01-16)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>
