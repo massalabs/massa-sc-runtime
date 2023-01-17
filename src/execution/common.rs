@@ -127,14 +127,11 @@ pub(crate) fn function_exists(
     };
 
     match interface.get_module(&bytecode, remaining_gas, gas_costs.clone())? {
-        RuntimeModule::ASModule(module) => {
-            let engine = init_engine(remaining_gas, gas_costs.clone())?;
-            let mut store = init_store(&engine)?;
-            let mut context_module =
-                ASContextModule::new(&*interface, module.binary_module, gas_costs);
-            let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
-            Ok(instance.exports.get_function(function).is_ok())
-        }
+        RuntimeModule::ASModule(module) => Ok(module
+            .binary_module
+            .exports()
+            .functions()
+            .any(|export| export.name() == function)),
     }
 }
 
