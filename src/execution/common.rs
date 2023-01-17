@@ -5,8 +5,6 @@ use wasmer::FunctionEnvMut;
 use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
 use crate::{Response, RuntimeModule};
 
-use super::{init_engine, init_store, ASContextModule};
-
 pub(crate) type ABIResult<T, E = ABIError> = core::result::Result<T, E>;
 
 #[derive(Display, Error, Debug)]
