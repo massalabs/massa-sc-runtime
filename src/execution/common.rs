@@ -3,9 +3,9 @@ use thiserror::Error;
 use wasmer::FunctionEnvMut;
 
 use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
-use crate::Response;
+use crate::{Response, RuntimeModule};
 
-use super::{init_store, ASContextModule};
+use super::{init_engine, init_store, ASContextModule};
 
 pub(crate) type ABIResult<T, E = ABIError> = core::result::Result<T, E>;
 
@@ -63,12 +63,19 @@ pub(crate) fn call_module(
     };
 
     let module = interface.get_module(&bytecode, remaining_gas, gas_costs.clone())?;
-    let resp = crate::execution_impl::exec(&*interface, module, function, param, gas_costs)?;
+    let resp = crate::execution_impl::exec(
+        &*interface,
+        module,
+        function,
+        param,
+        remaining_gas,
+        gas_costs,
+    )?;
     if cfg!(not(feature = "gas_calibration")) {
-        set_remaining_points(&env, ctx, resp.0.remaining_gas)?;
+        set_remaining_points(&env, ctx, resp.remaining_gas)?;
     }
     env.get_interface().finish_call()?;
-    Ok(resp.0)
+    Ok(resp)
 }
 
 /// Alternative to `call_module` to execute bytecode in a local context
@@ -89,11 +96,18 @@ pub(crate) fn local_call(
     };
 
     let module = interface.get_module(&bytecode, remaining_gas, gas_costs.clone())?;
-    let resp = crate::execution_impl::exec(&*interface, module, function, param, gas_costs)?;
+    let resp = crate::execution_impl::exec(
+        &*interface,
+        module,
+        function,
+        param,
+        remaining_gas,
+        gas_costs,
+    )?;
     if cfg!(not(feature = "gas_calibration")) {
-        set_remaining_points(&env, ctx, resp.0.remaining_gas)?;
+        set_remaining_points(&env, ctx, resp.remaining_gas)?;
     }
-    Ok(resp.0)
+    Ok(resp)
 }
 
 pub(crate) fn function_exists(
@@ -112,12 +126,16 @@ pub(crate) fn function_exists(
         get_remaining_points(&env, ctx)?
     };
 
-    let module = interface.get_module(&bytecode, remaining_gas, gas_costs.clone())?;
-    let mut store = init_store(&module.0.engine)?;
-    let mut context_module = ASContextModule::new(&*interface, module.0.binary_module, gas_costs);
-    let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
-
-    Ok(instance.exports.get_function(function).is_ok())
+    match interface.get_module(&bytecode, remaining_gas, gas_costs.clone())? {
+        RuntimeModule::ASModule(module) => {
+            let engine = init_engine(remaining_gas, gas_costs.clone())?;
+            let mut store = init_store(&engine)?;
+            let mut context_module =
+                ASContextModule::new(&*interface, module.binary_module, gas_costs);
+            let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
+            Ok(instance.exports.get_function(function).is_ok())
+        }
+    }
 }
 
 /// Create a smart contract with the given `bytecode`

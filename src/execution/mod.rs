@@ -38,7 +38,7 @@ impl RuntimeModule {
 }
 
 #[derive(Clone)]
-pub(crate) struct ASModule {
+pub struct ASModule {
     pub binary_module: Module,
 }
 
