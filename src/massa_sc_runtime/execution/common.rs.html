@@ -135,9 +135,6 @@
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
 </pre><pre class="rust"><code><span class="kw">use </span>displaydoc::Display;
 <span class="kw">use </span>thiserror::Error;
 <span class="kw">use </span>wasmer::FunctionEnvMut;
@@ -192,7 +189,6 @@
     <span class="kw">let </span>env = ctx.data().clone();
     <span class="kw">let </span>bytecode = env.get_interface().init_call(address, raw_coins)<span class="question-mark">?</span>;
     <span class="kw">let </span>interface = env.get_interface();
-    <span class="kw">let </span>gas_costs = env.get_gas_costs();
 
     <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
         u64::MAX
@@ -200,14 +196,14 @@
         get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
     </span>};
 
-    <span class="kw">let </span>module = interface.get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas, gas_costs.clone())<span class="question-mark">?</span>;
+    <span class="kw">let </span>module = interface.get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)<span class="question-mark">?</span>;
     <span class="kw">let </span>resp = <span class="kw">crate</span>::execution_impl::exec(
         <span class="kw-2">&amp;*</span>interface,
         module,
         function,
         param,
         remaining_gas,
-        gas_costs,
+        env.get_gas_costs(),
     )<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
         set_remaining_points(<span class="kw-2">&amp;</span>env, ctx, resp.remaining_gas)<span class="question-mark">?</span>;
@@ -225,7 +221,6 @@
 ) -&gt; ABIResult&lt;Response&gt; {
     <span class="kw">let </span>env = ctx.data().clone();
     <span class="kw">let </span>interface = env.get_interface();
-    <span class="kw">let </span>gas_costs = env.get_gas_costs();
 
     <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
         u64::MAX
@@ -233,14 +228,14 @@
         get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
     </span>};
 
-    <span class="kw">let </span>module = interface.get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas, gas_costs.clone())<span class="question-mark">?</span>;
+    <span class="kw">let </span>module = interface.get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)<span class="question-mark">?</span>;
     <span class="kw">let </span>resp = <span class="kw">crate</span>::execution_impl::exec(
         <span class="kw-2">&amp;*</span>interface,
         module,
         function,
         param,
         remaining_gas,
-        gas_costs,
+        env.get_gas_costs(),
     )<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
         set_remaining_points(<span class="kw-2">&amp;</span>env, ctx, resp.remaining_gas)<span class="question-mark">?</span>;
@@ -256,7 +251,6 @@
     <span class="kw">let </span>env = ctx.data().clone();
     <span class="kw">let </span>interface = env.get_interface();
     <span class="kw">let </span>bytecode = interface.raw_get_bytecode_for(address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>gas_costs = env.get_gas_costs();
 
     <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
         u64::MAX
@@ -264,7 +258,7 @@
         get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
     </span>};
 
-    <span class="kw">match </span>interface.get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas, gas_costs.clone())<span class="question-mark">? </span>{
+    <span class="kw">match </span>interface.get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)<span class="question-mark">? </span>{
         RuntimeModule::ASModule(module) =&gt; <span class="prelude-val">Ok</span>(module
             .binary_module
             .exports()
@@ -279,4 +273,4 @@
     <span class="prelude-val">Ok</span>(env.get_interface().create_module(bytecode)<span class="question-mark">?</span>)
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (4781233a7 2023-01-16)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (3984bc583 2023-01-17)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>
