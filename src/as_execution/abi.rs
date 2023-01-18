@@ -12,7 +12,8 @@ use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 use crate::env::{get_memory, get_remaining_points, sub_remaining_gas_abi, ASEnv, MassaEnv};
 use crate::settings;
 
-use super::common::{abi_bail, call_module, create_sc, function_exists, ABIResult};
+use super::abi_error::{abi_bail, ABIResult};
+use super::common::{call_module, create_sc, function_exists};
 use super::local_call;
 
 /// Get the coins that have been made available for a specific purpose for the current call.
@@ -931,7 +932,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::execution::as_abi::ser_bytearray_vec;
+    use crate::as_execution::abi::ser_bytearray_vec;
 
     #[test]
     fn test_ser() {

@@ -5,7 +5,7 @@ use std::{
     path::PathBuf,
 };
 
-use crate::execution::RuntimeModule;
+use crate::as_execution::RuntimeModule;
 
 /// That's what is returned when a module is executed correctly since the end
 #[derive(Debug)]

@@ -1,8 +1,8 @@
 //! Extends the env of wasmer-as
 
 use crate::{
+    as_execution::{abi_bail, ABIResult},
     env::sub_remaining_gas_abi,
-    execution::{abi_bail, ABIResult},
     types::Interface,
     GasCosts,
 };

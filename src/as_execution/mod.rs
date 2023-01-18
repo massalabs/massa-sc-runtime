@@ -1,6 +1,7 @@
-mod as_abi;
-mod as_execution;
+mod abi;
+mod abi_error;
 mod common;
+mod execution;
 
 use anyhow::Result;
 use std::sync::Arc;
@@ -14,8 +15,9 @@ use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::GasCosts;
 
-pub(crate) use as_execution::*;
+pub(crate) use abi_error::*;
 pub(crate) use common::*;
+pub(crate) use execution::*;
 
 #[derive(Clone)]
 pub enum RuntimeModule {

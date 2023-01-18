@@ -266,7 +266,7 @@ fn test_wat() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/build/dummy.wat"));
 
-    use crate::execution::{create_instance, get_module};
+    use crate::as_execution::{create_instance, get_module};
     use crate::execution_impl::exec;
 
     let gas_limit = 100_000;

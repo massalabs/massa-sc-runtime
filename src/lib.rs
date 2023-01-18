@@ -1,12 +1,13 @@
+mod as_execution;
 mod env;
-mod execution;
+mod error;
 mod execution_impl;
 mod middlewares;
 mod settings;
 mod tunable_memory;
 mod types;
 
-pub use execution::RuntimeModule;
+pub use as_execution::RuntimeModule;
 pub use execution_impl::{run_function, run_main};
 pub use types::*;
 
