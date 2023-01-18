@@ -4,7 +4,7 @@ use crate::types::{Interface, Response};
 use crate::GasCosts;
 
 use anyhow::{bail, Result};
-use wasmer::Instance;
+use wasmer::{Engine, Instance};
 use wasmer_middlewares::metering::{self, MeteringPoints};
 
 #[cfg(feature = "gas_calibration")]
@@ -17,11 +17,12 @@ pub(crate) fn exec(
     function: &str,
     param: &[u8],
     limit: u64,
+    engine: Option<Engine>,
     gas_costs: GasCosts,
 ) -> Result<Response> {
     let response = match module {
         RuntimeModule::ASModule(module) => {
-            exec_as_module(interface, module, function, param, limit, gas_costs)?.0
+            exec_as_module(interface, module, function, param, limit, engine, gas_costs)?.0
         }
     };
     Ok(response)
@@ -45,9 +46,14 @@ pub(crate) fn exec_as_module(
     function: &str,
     param: &[u8],
     limit: u64,
+    engine: Option<Engine>,
     gas_costs: GasCosts,
 ) -> Result<(Response, Instance)> {
-    let engine = init_engine(limit, gas_costs.clone())?;
+    let engine = if let Some(_engine) = engine {
+        _engine
+    } else {
+        init_engine(limit, gas_costs.clone())?
+    };
     let mut store = init_store(&engine)?;
     let mut context_module = ASContextModule::new(interface, as_module.binary_module, gas_costs);
     let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
@@ -87,6 +93,7 @@ pub fn run_main(
     interface: &dyn Interface,
     module: RuntimeModule,
     limit: u64,
+    engine: Option<Engine>,
     gas_costs: GasCosts,
 ) -> Result<Response> {
     Ok(exec(
@@ -95,6 +102,7 @@ pub fn run_main(
         settings::MAIN,
         b"",
         limit,
+        engine,
         gas_costs,
     )?)
 }
@@ -118,7 +126,9 @@ pub fn run_function(
     limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    Ok(exec(interface, module, function, param, limit, gas_costs)?)
+    Ok(exec(
+        interface, module, function, param, limit, None, gas_costs,
+    )?)
 }
 
 /// Same as run_main but return a GasCalibrationResult
