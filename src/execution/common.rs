@@ -52,7 +52,6 @@ pub(crate) fn call_module(
     let env = ctx.data().clone();
     let bytecode = env.get_interface().init_call(address, raw_coins)?;
     let interface = env.get_interface();
-    let gas_costs = env.get_gas_costs();
 
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         u64::MAX
@@ -60,14 +59,14 @@ pub(crate) fn call_module(
         get_remaining_points(&env, ctx)?
     };
 
-    let module = interface.get_module(&bytecode, remaining_gas, gas_costs.clone())?;
+    let module = interface.get_module(&bytecode, remaining_gas)?;
     let resp = crate::execution_impl::exec(
         &*interface,
         module,
         function,
         param,
         remaining_gas,
-        gas_costs,
+        env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.remaining_gas)?;
@@ -85,7 +84,6 @@ pub(crate) fn local_call(
 ) -> ABIResult<Response> {
     let env = ctx.data().clone();
     let interface = env.get_interface();
-    let gas_costs = env.get_gas_costs();
 
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         u64::MAX
@@ -93,14 +91,14 @@ pub(crate) fn local_call(
         get_remaining_points(&env, ctx)?
     };
 
-    let module = interface.get_module(&bytecode, remaining_gas, gas_costs.clone())?;
+    let module = interface.get_module(&bytecode, remaining_gas)?;
     let resp = crate::execution_impl::exec(
         &*interface,
         module,
         function,
         param,
         remaining_gas,
-        gas_costs,
+        env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.remaining_gas)?;
@@ -116,7 +114,6 @@ pub(crate) fn function_exists(
     let env = ctx.data().clone();
     let interface = env.get_interface();
     let bytecode = interface.raw_get_bytecode_for(address)?;
-    let gas_costs = env.get_gas_costs();
 
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         u64::MAX
@@ -124,7 +121,7 @@ pub(crate) fn function_exists(
         get_remaining_points(&env, ctx)?
     };
 
-    match interface.get_module(&bytecode, remaining_gas, gas_costs.clone())? {
+    match interface.get_module(&bytecode, remaining_gas)? {
         RuntimeModule::ASModule(module) => Ok(module
             .binary_module
             .exports()
