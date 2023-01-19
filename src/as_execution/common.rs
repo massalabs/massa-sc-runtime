@@ -40,7 +40,6 @@ pub(crate) fn call_module(
         function,
         param,
         remaining_gas,
-        None,
         env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
@@ -73,7 +72,6 @@ pub(crate) fn local_call(
         function,
         param,
         remaining_gas,
-        None,
         env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
@@ -98,7 +96,7 @@ pub(crate) fn function_exists(
     };
 
     match interface.get_module(&bytecode, remaining_gas)? {
-        RuntimeModule::ASModule(module) => Ok(module
+        RuntimeModule::ASModule((module, _engine)) => Ok(module
             .binary_module
             .exports()
             .functions()

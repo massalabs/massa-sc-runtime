@@ -6,7 +6,7 @@ mod settings;
 mod tunable_memory;
 mod types;
 
-pub use as_execution::{init_engine, ASModule, RuntimeModule};
+pub use as_execution::RuntimeModule;
 pub use execution_impl::{run_function, run_main};
 pub use types::*;
 

@@ -21,7 +21,7 @@ pub(crate) use execution::*;
 
 #[derive(Clone)]
 pub enum RuntimeModule {
-    ASModule(ASModule),
+    ASModule((ASModule, Engine)),
 }
 
 impl RuntimeModule {
@@ -45,15 +45,18 @@ pub struct ASModule {
 }
 
 impl ASModule {
-    fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
+    fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<(Self, Engine)> {
         let engine = init_engine(limit, gas_costs)?;
-        Ok(Self {
-            binary_module: Module::new(&engine, bytecode)?,
-        })
+        Ok((
+            Self {
+                binary_module: Module::new(&engine, bytecode)?,
+            },
+            engine,
+        ))
     }
 }
 
-pub fn init_engine(limit: u64, gas_costs: GasCosts) -> Result<Engine> {
+pub(crate) fn init_engine(limit: u64, gas_costs: GasCosts) -> Result<Engine> {
     // We use the Singlepass compiler because it is fast and adapted to blockchains
     // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
     let mut compiler_config = Singlepass::new();
