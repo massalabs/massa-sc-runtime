@@ -15,7 +15,7 @@ pub struct Response {
     /// number of gas that remain after the execution (metering)
     pub remaining_gas: u64,
     /// number of gas required for the instance creation
-    pub init_gas_cost: u64,
+    pub init_cost: u64,
 }
 
 pub trait InterfaceClone {

@@ -53,7 +53,7 @@ impl ASContextModule {
                 if let InstantiationError::Start(ref e) = err {
                     if let Some(trap) = e.clone().to_trap() {
                         if trap == TrapCode::UnreachableCodeReached && e.trace().is_empty() {
-                            bail!("limit reached at initialization");
+                            bail!("Not enough gas, limit reached at initialization");
                         }
                     }
                 }
@@ -103,7 +103,7 @@ impl ASContextModule {
                     return Ok(Response {
                         ret: Vec::new(), // main return empty vec
                         remaining_gas: remaining_gas?,
-                        init_gas_cost: 0,
+                        init_cost: 0,
                     });
                 }
                 let ret = if let Some(offset) = value.get(0) {
@@ -125,7 +125,7 @@ impl ASContextModule {
                 Ok(Response {
                     ret,
                     remaining_gas: remaining_gas?,
-                    init_gas_cost: 0,
+                    init_cost: 0,
                 })
             }
             Err(error) => bail!(error),

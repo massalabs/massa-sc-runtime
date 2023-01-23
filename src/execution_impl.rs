@@ -78,7 +78,7 @@ pub(crate) fn exec_as_module(
 
     match context_module.execution(&mut store, &instance, function, param) {
         Ok(mut response) => {
-            response.init_gas_cost = init_cost;
+            response.init_cost = init_cost;
             Ok(response)
         }
         Err(err) => {
