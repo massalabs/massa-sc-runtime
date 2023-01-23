@@ -10,10 +10,11 @@ use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
 use wasmer::{
     imports, Function, FunctionEnv, Imports, Instance, InstantiationError, Module, Store, Value,
 };
+use wasmer_middlewares::metering::{self, MeteringPoints};
 use wasmer_types::TrapCode;
 
 pub(crate) struct ASContextModule {
-    env: ASEnv,
+    pub env: ASEnv,
     pub module: Module,
 }
 
@@ -33,19 +34,26 @@ impl ASContextModule {
     pub(crate) fn create_vm_instance_and_init_env(
         &mut self,
         store: &mut Store,
-    ) -> Result<Instance> {
+    ) -> Result<(Instance, u64)> {
         let (imports, mut fenv) = self.resolver(store);
         match Instance::new(store, &self.module, &imports) {
             Ok(instance) => {
                 self.init_with_instance(store, &instance, &mut fenv)?;
-                Ok(instance)
+                let post_init_points = if let MeteringPoints::Remaining(points) =
+                    metering::get_remaining_points(store, &instance)
+                {
+                    points
+                } else {
+                    0
+                };
+                Ok((instance, post_init_points))
             }
             Err(err) => {
                 // We filter the error created by the metering middleware when there is not enough gas at initialization.
                 if let InstantiationError::Start(ref e) = err {
                     if let Some(trap) = e.clone().to_trap() {
                         if trap == TrapCode::UnreachableCodeReached && e.trace().is_empty() {
-                            bail!("RuntimeError: Not enough gas, limit reached at initialization");
+                            bail!("limit reached at initialization");
                         }
                     }
                 }

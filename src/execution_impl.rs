@@ -4,6 +4,7 @@ use crate::types::{Interface, Response};
 use crate::GasCosts;
 
 use anyhow::{bail, Result};
+use tracing::warn;
 use wasmer::Instance;
 use wasmer_middlewares::metering::{self, MeteringPoints};
 
@@ -17,11 +18,21 @@ pub(crate) fn exec(
     function: &str,
     param: &[u8],
     limit: u64,
+    prev_init_cost: Option<u64>,
     gas_costs: GasCosts,
 ) -> Result<Response> {
     let response = match module {
         RuntimeModule::ASModule((module, _engine)) => {
-            exec_as_module(interface, module, function, param, limit, gas_costs)?.0
+            exec_as_module(
+                interface,
+                module,
+                function,
+                param,
+                limit,
+                prev_init_cost,
+                gas_costs,
+            )?
+            .0
         }
     };
     Ok(response)
@@ -45,12 +56,29 @@ pub(crate) fn exec_as_module(
     function: &str,
     param: &[u8],
     limit: u64,
+    prev_init_cost: Option<u64>,
     gas_costs: GasCosts,
 ) -> Result<(Response, Instance)> {
+    if let Some(_prev_init_cost) = prev_init_cost && limit < _prev_init_cost {
+        bail!("critical: limit is lower than prev_init_cost");
+    }
+
+    warn!("(RUNTIME) limit = {}", limit);
     let engine = init_engine(limit, gas_costs.clone())?;
     let mut store = init_store(&engine)?;
     let mut context_module = ASContextModule::new(interface, as_module.binary_module, gas_costs);
-    let instance = context_module.create_vm_instance_and_init_env(&mut store)?;
+    let (instance, init_rem_points) = context_module.create_vm_instance_and_init_env(&mut store)?;
+    let init_cost = limit.saturating_sub(init_rem_points);
+    warn!(
+        "(RUNTIME) init_cost = {} | prev_init_cost = {:?}",
+        init_cost, prev_init_cost
+    );
+
+    if let Some(_prev_init_cost) = prev_init_cost && init_cost != _prev_init_cost {
+        bail!("critical: prev_init_cost and init_cost should have the same value");
+    }
+
+    metering::set_remaining_points(&mut store, &instance, limit.saturating_sub(init_cost));
 
     match context_module.execution(&mut store, &instance, function, param) {
         Ok(response) => Ok((response, instance)),
@@ -89,12 +117,14 @@ pub fn run_main(
     limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
+    warn!("(RUNTIME) run_main");
     Ok(exec(
         interface,
         module,
         settings::MAIN,
         b"",
         limit,
+        None,
         gas_costs,
     )?)
 }
@@ -116,9 +146,18 @@ pub fn run_function(
     function: &str,
     param: &[u8],
     limit: u64,
+    prev_init_cost: Option<u64>,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    Ok(exec(interface, module, function, param, limit, gas_costs)?)
+    Ok(exec(
+        interface,
+        module,
+        function,
+        param,
+        limit,
+        prev_init_cost,
+        gas_costs,
+    )?)
 }
 
 /// Same as run_main but return a GasCalibrationResult

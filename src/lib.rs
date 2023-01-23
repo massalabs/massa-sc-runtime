@@ -1,3 +1,5 @@
+#![feature(let_chains)]
+
 mod as_execution;
 mod env;
 mod execution_impl;
