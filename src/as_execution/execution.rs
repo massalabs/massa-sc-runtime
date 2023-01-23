@@ -103,6 +103,7 @@ impl ASContextModule {
                     return Ok(Response {
                         ret: Vec::new(), // main return empty vec
                         remaining_gas: remaining_gas?,
+                        init_gas_cost: 0,
                     });
                 }
                 let ret = if let Some(offset) = value.get(0) {
@@ -124,6 +125,7 @@ impl ASContextModule {
                 Ok(Response {
                     ret,
                     remaining_gas: remaining_gas?,
+                    init_gas_cost: 0,
                 })
             }
             Err(error) => bail!(error),

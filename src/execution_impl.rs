@@ -5,7 +5,6 @@ use crate::GasCosts;
 
 use anyhow::{bail, Result};
 use tracing::warn;
-use wasmer::Instance;
 use wasmer_middlewares::metering::{self, MeteringPoints};
 
 #[cfg(feature = "gas_calibration")]
@@ -22,18 +21,15 @@ pub(crate) fn exec(
     gas_costs: GasCosts,
 ) -> Result<Response> {
     let response = match module {
-        RuntimeModule::ASModule((module, _engine)) => {
-            exec_as_module(
-                interface,
-                module,
-                function,
-                param,
-                limit,
-                prev_init_cost,
-                gas_costs,
-            )?
-            .0
-        }
+        RuntimeModule::ASModule((module, _engine)) => exec_as_module(
+            interface,
+            module,
+            function,
+            param,
+            limit,
+            prev_init_cost,
+            gas_costs,
+        )?,
     };
     Ok(response)
 }
@@ -58,7 +54,7 @@ pub(crate) fn exec_as_module(
     limit: u64,
     prev_init_cost: Option<u64>,
     gas_costs: GasCosts,
-) -> Result<(Response, Instance)> {
+) -> Result<Response> {
     if let Some(_prev_init_cost) = prev_init_cost && limit < _prev_init_cost {
         bail!("critical: limit is lower than prev_init_cost");
     }
@@ -81,7 +77,10 @@ pub(crate) fn exec_as_module(
     metering::set_remaining_points(&mut store, &instance, limit.saturating_sub(init_cost));
 
     match context_module.execution(&mut store, &instance, function, param) {
-        Ok(response) => Ok((response, instance)),
+        Ok(mut response) => {
+            response.init_gas_cost = init_cost;
+            Ok(response)
+        }
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
                 bail!(err)
