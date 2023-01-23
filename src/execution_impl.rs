@@ -16,7 +16,6 @@ pub(crate) fn exec(
     function: &str,
     param: &[u8],
     limit: u64,
-    prev_init_cost: Option<u64>,
     gas_costs: GasCosts,
 ) -> Result<Response> {
     let response = match module {
@@ -26,7 +25,6 @@ pub(crate) fn exec(
             function,
             param,
             limit,
-            prev_init_cost,
             gas_costs,
         )?,
     };
@@ -51,7 +49,6 @@ pub(crate) fn exec_as_module(
     function: &str,
     param: &[u8],
     limit: u64,
-    prev_init_cost: Option<u64>,
     gas_costs: GasCosts,
 ) -> Result<Response> {
     let engine = init_engine(limit, gas_costs.clone())?;
@@ -59,10 +56,6 @@ pub(crate) fn exec_as_module(
     let mut context_module = ASContextModule::new(interface, as_module.binary_module, gas_costs);
     let (instance, init_rem_points) = context_module.create_vm_instance_and_init_env(&mut store)?;
     let init_cost = as_module.init_limit.saturating_sub(init_rem_points);
-
-    if let Some(_prev_init_cost) = prev_init_cost && init_cost != _prev_init_cost {
-        bail!("critical: prev_init_cost and init_cost should have the same value");
-    }
 
     metering::set_remaining_points(&mut store, &instance, limit.saturating_sub(init_cost));
 
@@ -112,7 +105,6 @@ pub fn run_main(
         settings::MAIN,
         b"",
         limit,
-        None,
         gas_costs,
     )?)
 }
@@ -134,7 +126,6 @@ pub fn run_function(
     function: &str,
     param: &[u8],
     limit: u64,
-    prev_init_cost: Option<u64>,
     gas_costs: GasCosts,
 ) -> Result<Response> {
     Ok(exec(
@@ -143,7 +134,6 @@ pub fn run_function(
         function,
         param,
         limit,
-        prev_init_cost,
         gas_costs,
     )?)
 }
