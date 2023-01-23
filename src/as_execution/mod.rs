@@ -41,7 +41,8 @@ impl RuntimeModule {
 
 #[derive(Clone)]
 pub struct ASModule {
-    pub binary_module: Module,
+    pub(crate) binary_module: Module,
+    pub(crate) init_limit: u64,
 }
 
 impl ASModule {
@@ -50,6 +51,7 @@ impl ASModule {
         Ok((
             Self {
                 binary_module: Module::new(&engine, bytecode)?,
+                init_limit: limit,
             },
             engine,
         ))

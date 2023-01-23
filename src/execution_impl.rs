@@ -4,7 +4,6 @@ use crate::types::{Interface, Response};
 use crate::GasCosts;
 
 use anyhow::{bail, Result};
-use tracing::warn;
 use wasmer_middlewares::metering::{self, MeteringPoints};
 
 #[cfg(feature = "gas_calibration")]
@@ -55,20 +54,11 @@ pub(crate) fn exec_as_module(
     prev_init_cost: Option<u64>,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    if let Some(_prev_init_cost) = prev_init_cost && limit < _prev_init_cost {
-        bail!("critical: limit is lower than prev_init_cost");
-    }
-
-    warn!("(RUNTIME) limit = {}", limit);
     let engine = init_engine(limit, gas_costs.clone())?;
     let mut store = init_store(&engine)?;
     let mut context_module = ASContextModule::new(interface, as_module.binary_module, gas_costs);
     let (instance, init_rem_points) = context_module.create_vm_instance_and_init_env(&mut store)?;
-    let init_cost = limit.saturating_sub(init_rem_points);
-    warn!(
-        "(RUNTIME) init_cost = {} | prev_init_cost = {:?}",
-        init_cost, prev_init_cost
-    );
+    let init_cost = as_module.init_limit.saturating_sub(init_rem_points);
 
     if let Some(_prev_init_cost) = prev_init_cost && init_cost != _prev_init_cost {
         bail!("critical: prev_init_cost and init_cost should have the same value");
@@ -116,7 +106,6 @@ pub fn run_main(
     limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    warn!("(RUNTIME) run_main");
     Ok(exec(
         interface,
         module,
