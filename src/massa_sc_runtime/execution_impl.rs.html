@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/execution_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>execution_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-52c5db6f6f352e54.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-d2686a620d99aad7.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/execution_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>execution_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-a6e10e60fb712b0f.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-3367e395607fafc1.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -130,78 +130,44 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::execution::{init_engine, init_store, ASContextModule, ASModule, RuntimeModule};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::execution::{create_instance, get_module, MassaModule};
 <span class="kw">use </span><span class="kw">crate</span>::settings;
 <span class="kw">use </span><span class="kw">crate</span>::types::{Interface, Response};
-<span class="kw">use </span><span class="kw">crate</span>::GasCosts;
 
+<span class="kw">use </span><span class="kw">crate</span>::GasCosts;
 <span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
-<span class="kw">use </span>wasmer::Instance;
+<span class="kw">use </span>wasmer::{Instance, Store};
 <span class="kw">use </span>wasmer_middlewares::metering::{<span class="self">self</span>, MeteringPoints};
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;gas_calibration&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 
-<span class="doccomment">/// Select and launch the adequate execution function
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>exec(
-    interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
-    module: RuntimeModule,
-    function: <span class="kw-2">&amp;</span>str,
-    param: <span class="kw-2">&amp;</span>[u8],
-    limit: u64,
-    gas_costs: GasCosts,
-) -&gt; <span class="prelude-ty">Result</span>&lt;Response&gt; {
-    <span class="kw">let </span>response = <span class="kw">match </span>module {
-        RuntimeModule::ASModule(module) =&gt; {
-            exec_as_module(interface, module, function, param, limit, gas_costs)<span class="question-mark">?</span>.<span class="number">0
-        </span>}
-    };
-    <span class="prelude-val">Ok</span>(response)
-}
-
 <span class="doccomment">/// Internal execution function, used on smart contract called from node or
 /// from another smart contract
 /// Parameters:
-/// * `interface`: Interface to call function in Massa from execution context
-/// * `as_module`: Pre compiled AS module that will be instantiated and executed
-/// * `function`: Name of the function to call
-/// * `param`: Parameter passed to the function
-/// * `cache`: Cache of pre compiled modules
-/// * `gas_costs`: Cost in gas of every VM operation
+/// * `limit`: Limit of gas that can be used.
+/// * `instance`: Optional wasmer instance to be passed instead of creating it directly in the function.
+/// * `module`: Bytecode that contains the function to be executed.
+/// * `function`: Name of the function to call.
+/// * `param`: Parameter to pass to the function.
+/// * `interface`: Interface to call function in Massa from execution context.
 ///
 /// Return:
 /// The return of the function executed as string and the remaining gas for the rest of the execution.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>exec_as_module(
-    interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
-    as_module: ASModule,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>exec(
+    limit: u64,
+    instance_and_store: <span class="prelude-ty">Option</span>&lt;(Instance, Store)&gt;,
+    <span class="kw-2">mut </span>module: <span class="kw">impl </span>MassaModule,
     function: <span class="kw-2">&amp;</span>str,
     param: <span class="kw-2">&amp;</span>[u8],
-    limit: u64,
-    gas_costs: GasCosts,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(Response, Instance)&gt; {
-    <span class="kw">let </span>engine = init_engine(limit, gas_costs.clone())<span class="question-mark">?</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>store = init_store(<span class="kw-2">&amp;</span>engine)<span class="question-mark">?</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>context_module = ASContextModule::new(interface, as_module.binary_module, gas_costs);
-    <span class="kw">let </span>instance = context_module.create_vm_instance_and_init_env(<span class="kw-2">&amp;mut </span>store)<span class="question-mark">?</span>;
+) -&gt; <span class="prelude-ty">Result</span>&lt;(Response, Instance, Store)&gt; {
+    <span class="kw">let </span>(instance, <span class="kw-2">mut </span>store) = <span class="kw">match </span>instance_and_store {
+        <span class="prelude-val">Some</span>((instance, store)) =&gt; (instance, store),
+        <span class="prelude-val">None </span>=&gt; create_instance(limit, <span class="kw-2">&amp;mut </span>module)<span class="question-mark">?</span>,
+    };
 
-    <span class="kw">match </span>context_module.execution(<span class="kw-2">&amp;mut </span>store, <span class="kw-2">&amp;</span>instance, function, param) {
-        <span class="prelude-val">Ok</span>(response) =&gt; <span class="prelude-val">Ok</span>((response, instance)),
+    <span class="kw">match </span>module.execution(<span class="kw-2">&amp;</span>instance, <span class="kw-2">&amp;mut </span>store, function, param) {
+        <span class="prelude-val">Ok</span>(response) =&gt; <span class="prelude-val">Ok</span>((response, instance, store)),
         <span class="prelude-val">Err</span>(err) =&gt; {
             <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
                 <span class="macro">bail!</span>(err)
@@ -232,19 +198,21 @@
 /// Return:
 /// the remaining gas.
 </span><span class="kw">pub fn </span>run_main(
-    interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
-    module: RuntimeModule,
+    bytecode: <span class="kw-2">&amp;</span>[u8],
     limit: u64,
+    interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
     gas_costs: GasCosts,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Response&gt; {
-    <span class="prelude-val">Ok</span>(exec(
-        interface,
-        module,
-        settings::MAIN,
-        <span class="string">b&quot;&quot;</span>,
-        limit,
-        gas_costs,
-    )<span class="question-mark">?</span>)
+    <span class="kw">let </span><span class="kw-2">mut </span>module = get_module(interface, bytecode, gas_costs)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(instance, store) = create_instance(limit, <span class="kw-2">&amp;mut </span>module)<span class="question-mark">?</span>;
+    <span class="kw">if </span>instance.exports.contains(settings::MAIN) {
+        <span class="prelude-val">Ok</span>(exec(limit, <span class="prelude-val">Some</span>((instance, store)), module, settings::MAIN, <span class="string">b&quot;&quot;</span>)<span class="question-mark">?</span>.<span class="number">0</span>)
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Ok</span>(Response {
+            ret: Vec::new(),
+            remaining_gas: limit,
+        })
+    }
 }
 
 <span class="doccomment">/// Library Input, take a `module` wasm built with the massa environment,
@@ -259,14 +227,15 @@
 /// }
 /// ```
 </span><span class="kw">pub fn </span>run_function(
-    interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
-    module: RuntimeModule,
+    bytecode: <span class="kw-2">&amp;</span>[u8],
+    limit: u64,
     function: <span class="kw-2">&amp;</span>str,
     param: <span class="kw-2">&amp;</span>[u8],
-    limit: u64,
+    interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
     gas_costs: GasCosts,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Response&gt; {
-    <span class="prelude-val">Ok</span>(exec(interface, module, function, param, limit, gas_costs)<span class="question-mark">?</span>)
+    <span class="kw">let </span>module = get_module(interface, bytecode, gas_costs)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(exec(limit, <span class="prelude-val">None</span>, module, function, param)<span class="question-mark">?</span>.<span class="number">0</span>)
 }
 
 <span class="doccomment">/// Same as run_main but return a GasCalibrationResult
@@ -278,8 +247,7 @@
     param: <span class="kw-2">&amp;</span>[u8],
     gas_costs: GasCosts,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;GasCalibrationResult&gt; {
-    <span class="comment">// IMPORTANT TODO: consult how we&#39;d like update this
-    </span><span class="kw">let </span><span class="kw-2">mut </span>module = get_module(interface, bytecode, gas_costs)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>module = get_module(interface, bytecode, gas_costs)<span class="question-mark">?</span>;
     <span class="kw">let </span>(instance, store) = create_instance(limit, <span class="kw-2">&amp;mut </span>module)<span class="question-mark">?</span>;
     <span class="kw">if </span>instance.exports.contains(settings::MAIN) {
         <span class="kw">let </span>(_resp, instance, <span class="kw-2">mut </span>store) = exec(
@@ -295,4 +263,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (3984bc583 2023-01-17)" data-search-js="search-181581080540673f.js" data-settings-js="settings-a2afdefbb7c817f1.js" data-settings-css="settings-84508a86fe805444.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (5e37043d6 2023-01-22)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
