@@ -1,13 +1,11 @@
 use crate::as_execution::{init_engine, init_store, ASContextModule, ASModule, RuntimeModule};
+use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 use crate::settings;
 use crate::types::{Interface, Response};
 use crate::GasCosts;
 
 use anyhow::{bail, Result};
 use wasmer_middlewares::metering::{self, MeteringPoints};
-
-#[cfg(feature = "gas_calibration")]
-use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 
 /// Select and launch the adequate execution function
 pub(crate) fn exec(
@@ -17,7 +15,7 @@ pub(crate) fn exec(
     param: &[u8],
     limit: u64,
     gas_costs: GasCosts,
-) -> Result<Response> {
+) -> Result<(Response, Option<GasCalibrationResult>)> {
     let response = match module {
         RuntimeModule::ASModule((module, _engine)) => {
             exec_as_module(interface, module, function, param, limit, gas_costs)?
@@ -45,7 +43,7 @@ pub(crate) fn exec_as_module(
     param: &[u8],
     limit: u64,
     gas_costs: GasCosts,
-) -> Result<Response> {
+) -> Result<(Response, Option<GasCalibrationResult>)> {
     let engine = init_engine(limit, gas_costs.clone())?;
     let mut store = init_store(&engine)?;
     let mut context_module = ASContextModule::new(interface, as_module.binary_module, gas_costs);
@@ -56,8 +54,13 @@ pub(crate) fn exec_as_module(
 
     match context_module.execution(&mut store, &instance, function, param) {
         Ok(mut response) => {
+            let gc_result = if cfg!(feature = "gas_calibration") {
+                Some(get_gas_calibration_result(&instance, &mut store))
+            } else {
+                None
+            };
             response.init_cost = init_cost;
-            Ok(response)
+            Ok((response, gc_result))
         }
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
@@ -94,14 +97,7 @@ pub fn run_main(
     limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    Ok(exec(
-        interface,
-        module,
-        settings::MAIN,
-        b"",
-        limit,
-        gas_costs,
-    )?)
+    Ok(exec(interface, module, settings::MAIN, b"", limit, gas_costs)?.0)
 }
 
 /// Library Input, take a `module` wasm built with the massa environment,
@@ -123,31 +119,21 @@ pub fn run_function(
     limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    Ok(exec(interface, module, function, param, limit, gas_costs)?)
+    Ok(exec(interface, module, function, param, limit, gas_costs)?.0)
 }
 
 /// Same as run_main but return a GasCalibrationResult
 #[cfg(feature = "gas_calibration")]
 pub fn run_main_gc(
-    bytecode: &[u8],
-    limit: u64,
     interface: &dyn Interface,
+    module: RuntimeModule,
     param: &[u8],
+    limit: u64,
     gas_costs: GasCosts,
 ) -> Result<GasCalibrationResult> {
-    // IMPORTANT TODO: consult how we'd like update this
-    let mut module = get_module(interface, bytecode, gas_costs)?;
-    let (instance, store) = create_instance(limit, &mut module)?;
-    if instance.exports.contains(settings::MAIN) {
-        let (_resp, instance, mut store) = exec(
-            u64::MAX,
-            Some((instance.clone(), store)),
-            module,
-            settings::MAIN,
-            param,
-        )?;
-        Ok(get_gas_calibration_result(&instance, &mut store))
-    } else {
-        bail!("No main");
-    }
+    Ok(
+        exec(interface, module, settings::MAIN, param, limit, gas_costs)?
+            .1
+            .unwrap(),
+    )
 }

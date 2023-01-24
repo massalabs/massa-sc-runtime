@@ -34,7 +34,7 @@ pub(crate) fn call_module(
     };
 
     let module = interface.get_module(&bytecode, remaining_gas)?;
-    let resp = crate::execution_impl::exec(
+    let resp = crate::execution_impl::run_function(
         &*interface,
         module,
         function,
@@ -66,7 +66,7 @@ pub(crate) fn local_call(
     };
 
     let module = interface.get_module(&bytecode, remaining_gas)?;
-    let resp = crate::execution_impl::exec(
+    let resp = crate::execution_impl::run_function(
         &*interface,
         module,
         function,
