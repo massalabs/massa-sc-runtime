@@ -842,7 +842,7 @@ pub(crate) fn assembly_script_local_call(
 
 /// Check whether or not the caller has write access in the current context
 #[named]
-pub fn assembly_caller_has_write_access(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
+pub fn assembly_script_caller_has_write_access(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     Ok(env.get_interface().caller_has_write_access()? as i32)
@@ -850,7 +850,7 @@ pub fn assembly_caller_has_write_access(mut ctx: FunctionEnvMut<ASEnv>) -> ABIRe
 
 /// Check whether or not the given function exists at the given address
 #[named]
-pub fn assembly_function_exists(
+pub fn assembly_script_function_exists(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
     function: i32,

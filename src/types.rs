@@ -103,11 +103,12 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_local_execution"), 11);
         abi_costs.insert(String::from("assembly_script_get_bytecode"), 11);
         abi_costs.insert(String::from("assembly_script_get_bytecode_for"), 11);
-        abi_costs.insert(String::from("assembly_caller_has_write_access"), 11);
-        abi_costs.insert(String::from("assembly_function_exists"), 11);
+        abi_costs.insert(String::from("assembly_script_caller_has_write_access"), 11);
+        abi_costs.insert(String::from("assembly_script_function_exists"), 11);
         abi_costs.insert(String::from("assembly_script_seed"), 11);
         abi_costs.insert(String::from("assembly_script_abort"), 11);
         abi_costs.insert(String::from("assembly_script_date_now"), 11);
+        abi_costs.insert(String::from("assembly_script_console_log"), 36); // same cost as for generate_event
         Self {
             operator_cost: 1,
             launch_cost: 10000,
