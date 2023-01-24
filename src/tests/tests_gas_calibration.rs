@@ -2,9 +2,8 @@ use crate::middlewares::operator::{OPERATOR_CARDINALITY, OPERATOR_VARIANTS};
 use crate::middlewares::operator::{
     _OPERATOR_BULK_MEMORY, _OPERATOR_NON_TRAPPING_FLOAT_TO_INT, _OPERATOR_THREAD, _OPERATOR_VECTOR,
 };
-use crate::settings;
 use crate::tests::{Ledger, TestInterface};
-use crate::{run_main_gc, GasCosts};
+use crate::{run_main_gc, GasCosts, RuntimeModule};
 use std::collections::HashSet;
 
 use anyhow::Result;
@@ -24,8 +23,9 @@ fn test_basic_abi_call_counter() -> Result<()> {
     ));
 
     let gas_costs = GasCosts::default();
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"", gas_costs)?;
-
+    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone())?;
+    let gas_calibration_result =
+        run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
     // println!("gas_calibration_result: {:?}", gas_calibration_result);
 
     // Note:
@@ -84,8 +84,9 @@ fn test_basic_abi_call_loop() -> Result<()> {
     ));
 
     let gas_costs = GasCosts::default();
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"", gas_costs)?;
-
+    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone())?;
+    let gas_calibration_result =
+        run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
     assert_eq!(
         gas_calibration_result.counters.len(),
         2 + 5 + OPERATOR_CARDINALITY
@@ -114,8 +115,9 @@ fn test_basic_op() -> Result<()> {
     ));
 
     let gas_costs = GasCosts::default();
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"", gas_costs)?;
-
+    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone())?;
+    let gas_calibration_result =
+        run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
     // 1 for env.abort + 4 env.abort parameters
     assert_eq!(
         gas_calibration_result.counters.len(),
@@ -170,7 +172,14 @@ fn test_basic_abi_call_param_size() -> Result<()> {
     ));
 
     let gas_costs = GasCosts::default();
-    let gas_calibration_result = run_main_gc(bytecode, 100000, &interface, b"9876543", gas_costs)?;
+    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone())?;
+    let gas_calibration_result = run_main_gc(
+        &interface,
+        runtime_module,
+        b"9876543",
+        100_000,
+        gas_costs.clone(),
+    )?;
     // println!("gas_calibration_result: {:?}", gas_calibration_result);
 
     // Note:
