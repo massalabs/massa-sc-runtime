@@ -388,12 +388,21 @@
 <a href="#388" id="388">388</a>
 <a href="#389" id="389">389</a>
 <a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
 </pre><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>serde::{de::DeserializeOwned, Serialize};
 <span class="kw">use </span>std::{
     collections::{BTreeSet, HashMap},
     path::PathBuf,
 };
+
+<span class="kw">use </span><span class="kw">crate</span>::as_execution::RuntimeModule;
 
 <span class="doccomment">/// That&#39;s what is returned when a module is executed correctly since the end
 </span><span class="attr">#[derive(Debug)]
@@ -402,6 +411,8 @@
     </span><span class="kw">pub </span>ret: Vec&lt;u8&gt;,
     <span class="doccomment">/// number of gas that remain after the execution (metering)
     </span><span class="kw">pub </span>remaining_gas: u64,
+    <span class="doccomment">/// number of gas required for the instance creation
+    </span><span class="kw">pub </span>init_cost: u64,
 }
 
 <span class="kw">pub trait </span>InterfaceClone {
@@ -513,11 +524,6 @@
     <span class="doccomment">/// Finish a call
     </span><span class="kw">fn </span>finish_call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;finish_call&quot;</span>)
-    }
-
-    <span class="doccomment">/// Requires the module in the given address
-    </span><span class="kw">fn </span>get_module(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
-        <span class="macro">unimplemented!</span>(<span class="string">&quot;get_module&quot;</span>)
     }
 
     <span class="doccomment">/// Get the SCE ledger balance for the current address.
@@ -725,6 +731,14 @@
     <span class="doccomment">/// Generate a smart contract event
     </span><span class="kw">fn </span>generate_event(<span class="kw-2">&amp;</span><span class="self">self</span>, _event: String) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;generate_event&quot;</span>)
+    }
+
+    <span class="doccomment">/// For the given bytecode:
+    ///
+    /// * Get the corresponding runtime module if it already exists
+    /// * Compile it if not
+    </span><span class="kw">fn </span>get_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;RuntimeModule&gt; {
+        <span class="macro">unimplemented!</span>(<span class="string">&quot;get_module&quot;</span>)
     }
 
     <span class="doccomment">/// Sends an async message

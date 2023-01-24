@@ -421,9 +421,9 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::operator::{operator_field_str, OPERATOR_VARIANTS};
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;gas_calibration&quot;</span>)]
+<span class="comment">// #[cfg(feature = &quot;gas_calibration&quot;)]
 </span><span class="kw">use </span>regex::{Regex, RegexSet};
-<span class="attr">#[cfg(feature = <span class="string">&quot;gas_calibration&quot;</span>)]
+<span class="comment">// #[cfg(feature = &quot;gas_calibration&quot;)]
 </span><span class="kw">use </span>wasmer::{Extern, Instance};
 
 <span class="attr">#[derive(Debug, Clone)]
@@ -663,7 +663,7 @@
     <span class="kw">pub </span>timers: HashMap&lt;String, f64&gt;,
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;gas_calibration&quot;</span>)]
+<span class="comment">// #[cfg(feature = &quot;gas_calibration&quot;)]
 </span><span class="kw">pub fn </span>get_gas_calibration_result(
     instance: <span class="kw-2">&amp;</span>Instance,
     store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
