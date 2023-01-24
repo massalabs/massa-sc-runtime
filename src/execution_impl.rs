@@ -19,14 +19,9 @@ pub(crate) fn exec(
     gas_costs: GasCosts,
 ) -> Result<Response> {
     let response = match module {
-        RuntimeModule::ASModule((module, _engine)) => exec_as_module(
-            interface,
-            module,
-            function,
-            param,
-            limit,
-            gas_costs,
-        )?,
+        RuntimeModule::ASModule((module, _engine)) => {
+            exec_as_module(interface, module, function, param, limit, gas_costs)?
+        }
     };
     Ok(response)
 }
@@ -128,14 +123,7 @@ pub fn run_function(
     limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    Ok(exec(
-        interface,
-        module,
-        function,
-        param,
-        limit,
-        gas_costs,
-    )?)
+    Ok(exec(interface, module, function, param, limit, gas_costs)?)
 }
 
 /// Same as run_main but return a GasCalibrationResult

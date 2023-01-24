@@ -46,7 +46,7 @@ pub struct ASModule {
 }
 
 impl ASModule {
-    fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<(Self, Engine)> {
+    pub(crate) fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<(Self, Engine)> {
         let engine = init_engine(limit, gas_costs)?;
         Ok((
             Self {
