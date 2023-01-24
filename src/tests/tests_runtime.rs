@@ -1,6 +1,6 @@
 /// THIS FILE SHOULD TEST THE ABI, NOT THE MOCKED INTERFACE
 use crate::{
-    run_function, run_main, settings,
+    run_function, run_main,
     types::{GasCosts, Interface},
     RuntimeModule,
 };
@@ -106,7 +106,7 @@ fn test_local_hello_name_caller() {
         .raw_set_bytecode_for("get_string", module.as_ref())
         .unwrap();
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
-    run_main(&*interface, runtime_module, 100, gas_costs.clone())
+    run_main(&*interface, runtime_module, 100_000, gas_costs.clone())
         .expect("Failed to run_main get_string.wasm");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -294,25 +294,19 @@ fn test_builtins() {
     }
 }
 
-// #[test]
-// #[serial]
-// fn test_wat() {
-//     let gas_costs = GasCosts::default();
-//     let interface: Box<dyn Interface> =
-//         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-//     let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/build/dummy.wat"));
+#[test]
+#[serial]
+fn test_wat() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/build/dummy.wat"));
 
-//     use crate::as_execution::{create_instance, get_module};
-//     use crate::execution_impl::exec;
+    let gas_limit = 100_000;
+    let runtime_module = RuntimeModule::new(bytecode, gas_limit, gas_costs.clone()).unwrap();
+    let response = run_main(&*interface, runtime_module, gas_limit, gas_costs.clone()).unwrap();
 
-//     let gas_limit = 100_000;
-//     let mut module = get_module(&*interface, bytecode, gas_costs).unwrap();
-//     let instance = create_instance(gas_limit, &mut module).unwrap();
-//     let (response, _i, _store) =
-//         exec(gas_limit, Some(instance), module, settings::MAIN, b"").unwrap();
-//     // println!("response: {:?}", response.ret);
-
-//     // Note: for now, exec main always return an empty vec
-//     let excepted: Vec<u8> = Vec::new();
-//     assert_eq!(response.ret, excepted);
-// }
+    // Note: for now, exec main always return an empty vec
+    let excepted: Vec<u8> = Vec::new();
+    assert_eq!(response.ret, excepted);
+}
