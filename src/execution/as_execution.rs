@@ -219,8 +219,8 @@ impl MassaModule for ASModule {
                 "assembly_script_get_bytecode_for" => Function::new_typed_with_env(store, &fenv, assembly_script_get_bytecode_for),
                 "assembly_script_local_call" => Function::new_typed_with_env(store, &fenv, assembly_script_local_call),
                 "assembly_script_local_execution" => Function::new_typed_with_env(store, &fenv, assembly_script_local_execution),
-                "assembly_caller_has_write_access" => Function::new_typed_with_env(store, &fenv, assembly_caller_has_write_access),
-                "assembly_function_exists" => Function::new_typed_with_env(store, &fenv, assembly_function_exists),
+                "assembly_script_caller_has_write_access" => Function::new_typed_with_env(store, &fenv, assembly_script_caller_has_write_access),
+                "assembly_script_function_exists" => Function::new_typed_with_env(store, &fenv, assembly_script_function_exists),
             },
         };
 
