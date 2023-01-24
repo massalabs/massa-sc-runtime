@@ -183,7 +183,7 @@
     limit: u64,
     gas_costs: GasCosts,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(Response, <span class="prelude-ty">Option</span>&lt;GasCalibrationResult&gt;)&gt; {
-    <span class="kw">let </span>engine = init_engine(limit, gas_costs.clone())<span class="question-mark">?</span>;
+    <span class="kw">let </span>engine = init_engine(limit, gas_costs.clone());
     <span class="kw">let </span><span class="kw-2">mut </span>store = init_store(<span class="kw-2">&amp;</span>engine)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>context_module = ASContextModule::new(interface, as_module.binary_module, gas_costs);
     <span class="kw">let </span>(instance, init_rem_points) = context_module.create_vm_instance_and_init_env(<span class="kw-2">&amp;mut </span>store)<span class="question-mark">?</span>;
