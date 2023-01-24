@@ -39,6 +39,7 @@ impl RuntimeModule {
     }
 }
 
+/// An executable runtime module compiled from an AssemblyScript SC
 #[derive(Clone)]
 pub struct ASModule {
     pub(crate) binary_module: Module,
@@ -47,7 +48,7 @@ pub struct ASModule {
 
 impl ASModule {
     pub(crate) fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<(Self, Engine)> {
-        let engine = init_engine(limit, gas_costs)?;
+        let engine = init_engine(limit, gas_costs);
         Ok((
             Self {
                 binary_module: Module::new(&engine, bytecode)?,
@@ -58,7 +59,7 @@ impl ASModule {
     }
 }
 
-pub(crate) fn init_engine(limit: u64, gas_costs: GasCosts) -> Result<Engine> {
+pub(crate) fn init_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     // We use the Singlepass compiler because it is fast and adapted to blockchains
     // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
     let mut compiler_config = Singlepass::new();
@@ -103,9 +104,9 @@ pub(crate) fn init_engine(limit: u64, gas_costs: GasCosts) -> Result<Engine> {
         compiler_config.push_middleware(metering);
     }
 
-    Ok(EngineBuilder::new(compiler_config)
+    EngineBuilder::new(compiler_config)
         .set_features(Some(FEATURES))
-        .engine())
+        .engine()
 }
 
 pub(crate) fn init_store(engine: &Engine) -> Result<Store> {

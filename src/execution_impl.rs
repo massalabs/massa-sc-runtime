@@ -44,7 +44,7 @@ pub(crate) fn exec_as_module(
     limit: u64,
     gas_costs: GasCosts,
 ) -> Result<(Response, Option<GasCalibrationResult>)> {
-    let engine = init_engine(limit, gas_costs.clone())?;
+    let engine = init_engine(limit, gas_costs.clone());
     let mut store = init_store(&engine)?;
     let mut context_module = ASContextModule::new(interface, as_module.binary_module, gas_costs);
     let (instance, init_rem_points) = context_module.create_vm_instance_and_init_env(&mut store)?;

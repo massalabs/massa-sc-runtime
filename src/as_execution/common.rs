@@ -80,6 +80,7 @@ pub(crate) fn local_call(
     Ok(resp)
 }
 
+/// Check the exports of a compiled module to see if it contains the given function
 pub(crate) fn function_exists(
     ctx: &mut FunctionEnvMut<ASEnv>,
     address: &str,
