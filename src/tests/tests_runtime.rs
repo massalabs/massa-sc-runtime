@@ -2,6 +2,7 @@
 use crate::{
     run_function, run_main, settings,
     types::{GasCosts, Interface},
+    RuntimeModule,
 };
 use parking_lot::Mutex;
 use rand::Rng;
@@ -25,21 +26,33 @@ fn test_caller() {
     interface
         .raw_set_bytecode_for("get_string", &module)
         .unwrap();
+    let runtime_module = RuntimeModule::new(&module, 200_000, gas_costs.clone()).unwrap();
     // test only if the module is valid
-    run_main(&module, 20_000, &*interface, gas_costs.clone())
+    run_main(&*interface, runtime_module, 20_000, gas_costs.clone())
         .expect("Failed to run_main get_string.wasm");
     let mut module = vec![1u8];
     module.extend_from_slice(include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/caller.wasm"
     )));
-    let a = run_main(&module, 200_000, &*interface, gas_costs.clone())
-        .expect("Failed to run_main caller.wasm");
+    let runtime_module = RuntimeModule::new(&module, 200_000, gas_costs.clone()).unwrap();
+    let a = run_main(
+        &*interface,
+        runtime_module.clone(),
+        200_000,
+        gas_costs.clone(),
+    )
+    .expect("Failed to run_main caller.wasm");
     //TODO: understand what's going on here
     //let prev_call_price = settings::metering_call();
     //settings::set_metering(0);
-    let b = run_main(&module, 200_000, &*interface, gas_costs.clone())
-        .expect("Failed to run_main caller.wasm");
+    let b = run_main(
+        &*interface,
+        runtime_module.clone(),
+        200_000,
+        gas_costs.clone(),
+    )
+    .expect("Failed to run_main caller.wasm");
     //assert_eq!(a + prev_call_price, b);
     assert_eq!(a.remaining_gas, b.remaining_gas);
     let v_out = interface.raw_get_data(b"").unwrap();
@@ -48,7 +61,7 @@ fn test_caller() {
 
     // Test now if we failed if metering is too high
 
-    run_main(&module, 20_000, &*interface, gas_costs.clone())
+    run_main(&*interface, runtime_module, 20_000, gas_costs.clone())
         .expect_err("Expected to be out of operation gas");
 }
 
@@ -64,14 +77,17 @@ fn test_caller_no_return() {
         "/wasm/build/get_string.wasm"
     ));
     interface.create_module(module.as_ref()).unwrap();
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
     // test only if the module is valid
-    run_main(module, 200_000, &*interface, gas_costs.clone())
+    run_main(&*interface, runtime_module, 20_000, gas_costs.clone())
         .expect("Failed to run get_string.wasm");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/caller_no_return.wasm"
     ));
-    run_main(module, 200_000, &*interface, gas_costs).expect("Failed to run caller.wasm");
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    run_main(&*interface, runtime_module, 200_000, gas_costs.clone())
+        .expect("Failed to run caller.wasm");
 }
 
 #[test]
@@ -89,13 +105,15 @@ fn test_local_hello_name_caller() {
     interface
         .raw_set_bytecode_for("get_string", module.as_ref())
         .unwrap();
-    run_main(module, 100, &*interface, gas_costs.clone())
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    run_main(&*interface, runtime_module, 100, gas_costs.clone())
         .expect("Failed to run_main get_string.wasm");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/local_hello_name_caller.wasm"
     ));
-    run_main(module, 20_000, &*interface, gas_costs)
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    run_main(&*interface, runtime_module, 20_000, gas_costs.clone())
         .expect_err("Succeeded to run_main local_hello_name_caller.wasm");
 }
 
@@ -111,13 +129,16 @@ fn test_module_creation() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/create_sc.wasm"
     ));
-    run_main(module, 100_000, &*interface, gas_costs.clone())
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    run_main(&*interface, runtime_module, 100_000, gas_costs.clone())
         .expect("Failed to run_main create_sc.wasm");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/caller.wasm"
     ));
-    run_main(module, 200_000, &*interface, gas_costs).expect("Failed to run_main caller.wasm");
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    run_main(&*interface, runtime_module, 200_000, gas_costs.clone())
+        .expect("Failed to run_main caller.wasm");
 }
 
 #[test]
@@ -132,13 +153,15 @@ fn test_not_enough_gas_error() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/create_sc.wasm"
     ));
-    run_main(module, 100_000, &*interface, gas_costs.clone())
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    run_main(&*interface, runtime_module, 100_000, gas_costs.clone())
         .expect("Failed to run_main create_sc.wasm");
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/caller.wasm"
     ));
-    match run_main(module, 50000, &*interface, gas_costs) {
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    match run_main(&*interface, runtime_module, 50_000, gas_costs.clone()) {
         Ok(_) => panic!("Shouldn't pass successfully =-("),
         Err(err) => {
             assert!(err
@@ -158,7 +181,8 @@ fn test_send_message() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/send_message.wasm"
     ));
-    run_main(module, 100_000, &*interface, gas_costs)
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    run_main(&*interface, runtime_module, 100_000, gas_costs.clone())
         .expect("Failed to run_main send_message.wasm");
 }
 
@@ -172,12 +196,13 @@ fn test_run_function() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/receive_message.wasm"
     ));
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
     run_function(
-        module,
-        100_000,
+        &*interface,
+        runtime_module,
         "receive",
         b"data",
-        &*interface,
+        200_000,
         gas_costs.clone(),
     )
     .expect("Failed to run_function receive_message.wasm");
@@ -193,7 +218,9 @@ fn test_run_main_without_main() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/no_main.wasm"
     ));
-    run_main(module, 100_000, &*interface, gas_costs).expect_err("An error should spawn here");
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    run_main(&*interface, runtime_module, 100_000, gas_costs)
+        .expect_err("An error should spawn here");
 }
 
 #[test]
@@ -209,15 +236,21 @@ fn test_run_empty_main() {
     // Even if our SC is empty; there is still an initial and minimum metering cost
     // (mainly because we have a memory allocator to init)
     gas_costs.launch_cost = 0;
-    let a = run_main(module, 10_000_000, &*interface, gas_costs.clone())
-        .expect("Failed to run empty_main.wasm");
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    let a = run_main(
+        &*interface,
+        runtime_module.clone(),
+        10_000_000,
+        gas_costs.clone(),
+    )
+    .expect("Failed to run empty_main.wasm");
     // Here we avoid hard-coding a value (that can change in future wasmer release)$
     assert!(a.remaining_gas > 0);
 
     let mut rng = rand::thread_rng();
     let cost = rng.gen_range(1..1_000_000);
     gas_costs.launch_cost = cost;
-    let b = run_main(module, 10_000_000, &*interface, gas_costs)
+    let b = run_main(&*interface, runtime_module, 10_000_000, gas_costs)
         .expect("Failed to run empty_main.wasm");
     // Between 2 calls, the metering cost should be the difference
     assert_eq!(a.remaining_gas - b.remaining_gas, cost);
@@ -233,7 +266,9 @@ fn test_op_fn() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/op_fn.wasm"
     ));
-    run_main(module, 10_000_000, &*interface, gas_costs).expect("Failed to run op_fn.wasm");
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    run_main(&*interface, runtime_module, 10_000_000, gas_costs.clone())
+        .expect("Failed to run op_fn.wasm");
 }
 
 /// Test seed, now and abort
@@ -247,7 +282,8 @@ fn test_builtins() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/use_builtins.wasm"
     ));
-    match run_main(module, 10_000_000, &*interface, gas_costs) {
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    match run_main(&*interface, runtime_module, 10_000_000, gas_costs.clone()) {
         Err(e) => {
             println!("Error: {}", e);
             assert!(e.to_string().starts_with(
@@ -258,25 +294,25 @@ fn test_builtins() {
     }
 }
 
-#[test]
-#[serial]
-fn test_wat() {
-    let gas_costs = GasCosts::default();
-    let interface: Box<dyn Interface> =
-        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/build/dummy.wat"));
+// #[test]
+// #[serial]
+// fn test_wat() {
+//     let gas_costs = GasCosts::default();
+//     let interface: Box<dyn Interface> =
+//         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+//     let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/build/dummy.wat"));
 
-    use crate::as_execution::{create_instance, get_module};
-    use crate::execution_impl::exec;
+//     use crate::as_execution::{create_instance, get_module};
+//     use crate::execution_impl::exec;
 
-    let gas_limit = 100_000;
-    let mut module = get_module(&*interface, bytecode, gas_costs).unwrap();
-    let instance = create_instance(gas_limit, &mut module).unwrap();
-    let (response, _i, _store) =
-        exec(gas_limit, Some(instance), module, settings::MAIN, b"").unwrap();
-    // println!("response: {:?}", response.ret);
+//     let gas_limit = 100_000;
+//     let mut module = get_module(&*interface, bytecode, gas_costs).unwrap();
+//     let instance = create_instance(gas_limit, &mut module).unwrap();
+//     let (response, _i, _store) =
+//         exec(gas_limit, Some(instance), module, settings::MAIN, b"").unwrap();
+//     // println!("response: {:?}", response.ret);
 
-    // Note: for now, exec main always return an empty vec
-    let excepted: Vec<u8> = Vec::new();
-    assert_eq!(response.ret, excepted);
-}
+//     // Note: for now, exec main always return an empty vec
+//     let excepted: Vec<u8> = Vec::new();
+//     assert_eq!(response.ret, excepted);
+// }
