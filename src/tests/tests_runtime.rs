@@ -316,11 +316,9 @@ fn test_wat() {
 #[serial]
 fn test_features_disabled() {
     let gas_costs = GasCosts::default();
-    let interface: Box<dyn Interface> =
-        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
 
     let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/build/simd.wasm"));
-    match run_main(module, 10_000_000, &*interface, gas_costs.clone()) {
+    match RuntimeModule::new(module, 200_000, gas_costs.clone()) {
         Err(e) => {
             // println!("Error: {}", e);
             assert!(e
@@ -334,7 +332,7 @@ fn test_features_disabled() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/build/threads.wasm"
     ));
-    match run_main(module, 10_000_000, &*interface, gas_costs) {
+    match RuntimeModule::new(module, 200_000, gas_costs.clone()) {
         Err(e) => {
             // println!("Error: {}", e);
             assert!(e
