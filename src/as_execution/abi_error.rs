@@ -9,10 +9,6 @@ pub enum ABIError {
     Error(#[from] anyhow::Error),
     /// Wasmer runtime error: {0}
     RuntimeError(#[from] wasmer::RuntimeError),
-    /// Wasmer compile error: {0}
-    CompileError(#[from] wasmer::CompileError),
-    /// Wasmer instantiation error: {0}
-    InstantiationError(#[from] wasmer::InstantiationError),
     /// Runtime serde_json error: {0}
     SerdeError(#[from] serde_json::Error),
 }
