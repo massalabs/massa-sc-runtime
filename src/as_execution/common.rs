@@ -65,7 +65,7 @@ pub(crate) fn local_call(
         get_remaining_points(&env, ctx)?
     };
 
-    let module = interface.get_module(&bytecode, remaining_gas)?;
+    let module = interface.get_module(bytecode, remaining_gas)?;
     let resp = crate::execution_impl::run_function(
         &*interface,
         module,
