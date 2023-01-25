@@ -50,7 +50,7 @@ impl ASContextModule {
                 Ok((instance, post_init_points))
             }
             Err(err) => {
-                // We filter the error created by the metering middleware when there is not enough gas at initialization.
+                // Filter the error created by the metering middleware when there is not enough gas at initialization
                 if let InstantiationError::Start(ref e) = err {
                     if let Some(trap) = e.clone().to_trap() {
                         if trap == TrapCode::UnreachableCodeReached && e.trace().is_empty() {
@@ -71,7 +71,7 @@ impl ASContextModule {
         param: &[u8],
     ) -> Result<Response> {
         if cfg!(not(feature = "gas_calibration")) {
-            // sub initial metering cost
+            // Sub initial metering cost
             let metering_initial_cost = self.env.get_gas_costs().launch_cost;
             let remaining_gas = get_remaining_points(&self.env, store)?;
             if metering_initial_cost > remaining_gas {
@@ -141,7 +141,7 @@ impl ASContextModule {
     ) -> Result<()> {
         let memory = instance.exports.get_memory("memory")?;
 
-        // Note: only add functions (__new, ...) if these exists in wasm/wat files
+        // NOTE: only add functions (__new, ...) if these exists in wasm/wat files
         //       so we can still exec some very basic wat files
         let fn_new = instance
             .exports
@@ -177,7 +177,7 @@ impl ASContextModule {
             fn_collect,
         );
 
-        // metering counters
+        // Metering counters
         if cfg!(not(feature = "gas_calibration")) {
             let g_1 = instance
                 .exports

@@ -35,7 +35,8 @@ pub(crate) fn exec(
 /// * `gas_costs`: Cost in gas of every VM operation
 ///
 /// Return:
-/// The return of the function executed as string and the remaining gas for the rest of the execution.
+/// * Output of the executed function, remaininng gas after execution and the initialization cost
+/// * Gas calibration result if it has been enabled
 pub(crate) fn exec_as_module(
     interface: &dyn Interface,
     as_module: ASModule,
