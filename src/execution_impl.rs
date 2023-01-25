@@ -50,7 +50,9 @@ pub(crate) fn exec_as_module(
     let (instance, init_rem_points) = context_module.create_vm_instance_and_init_env(&mut store)?;
     let init_cost = as_module.init_limit.saturating_sub(init_rem_points);
 
-    metering::set_remaining_points(&mut store, &instance, limit.saturating_sub(init_cost));
+    if cfg!(not(feature = "gas_calibration")) {
+        metering::set_remaining_points(&mut store, &instance, limit.saturating_sub(init_cost));
+    }
 
     match context_module.execution(&mut store, &instance, function, param) {
         Ok(mut response) => {
