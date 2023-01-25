@@ -139,6 +139,7 @@
 <a href="#139" id="139">139</a>
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::as_execution::{init_engine, init_store, ASContextModule, ASModule, RuntimeModule};
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 <span class="kw">use </span><span class="kw">crate</span>::settings;
@@ -176,7 +177,8 @@
 /// * `gas_costs`: Cost in gas of every VM operation
 ///
 /// Return:
-/// The return of the function executed as string and the remaining gas for the rest of the execution.
+/// * Output of the executed function, remaininng gas after execution and the initialization cost
+/// * Gas calibration result if it has been enabled
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>exec_as_module(
     interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
     as_module: ASModule,

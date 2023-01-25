@@ -310,7 +310,7 @@
                 <span class="prelude-val">Ok</span>((instance, post_init_points))
             }
             <span class="prelude-val">Err</span>(err) =&gt; {
-                <span class="comment">// We filter the error created by the metering middleware when there is not enough gas at initialization.
+                <span class="comment">// Filter the error created by the metering middleware when there is not enough gas at initialization
                 </span><span class="kw">if let </span>InstantiationError::Start(<span class="kw-2">ref </span>e) = err {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = e.clone().to_trap() {
                         <span class="kw">if </span>trap == TrapCode::UnreachableCodeReached &amp;&amp; e.trace().is_empty() {
@@ -331,7 +331,7 @@
         param: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Response&gt; {
         <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
-            <span class="comment">// sub initial metering cost
+            <span class="comment">// Sub initial metering cost
             </span><span class="kw">let </span>metering_initial_cost = <span class="self">self</span>.env.get_gas_costs().launch_cost;
             <span class="kw">let </span>remaining_gas = get_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env, store)<span class="question-mark">?</span>;
             <span class="kw">if </span>metering_initial_cost &gt; remaining_gas {
@@ -401,7 +401,7 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>memory = instance.exports.get_memory(<span class="string">&quot;memory&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// Note: only add functions (__new, ...) if these exists in wasm/wat files
+        <span class="comment">// NOTE: only add functions (__new, ...) if these exists in wasm/wat files
         //       so we can still exec some very basic wat files
         </span><span class="kw">let </span>fn_new = instance
             .exports
@@ -437,7 +437,7 @@
             fn_collect,
         );
 
-        <span class="comment">// metering counters
+        <span class="comment">// Metering counters
         </span><span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
             <span class="kw">let </span>g_1 = instance
                 .exports
