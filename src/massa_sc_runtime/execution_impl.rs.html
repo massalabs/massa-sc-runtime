@@ -137,6 +137,8 @@
 <a href="#137" id="137">137</a>
 <a href="#138" id="138">138</a>
 <a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::as_execution::{init_engine, init_store, ASContextModule, ASModule, RuntimeModule};
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 <span class="kw">use </span><span class="kw">crate</span>::settings;
@@ -189,7 +191,9 @@
     <span class="kw">let </span>(instance, init_rem_points) = context_module.create_vm_instance_and_init_env(<span class="kw-2">&amp;mut </span>store)<span class="question-mark">?</span>;
     <span class="kw">let </span>init_cost = as_module.init_limit.saturating_sub(init_rem_points);
 
-    metering::set_remaining_points(<span class="kw-2">&amp;mut </span>store, <span class="kw-2">&amp;</span>instance, limit.saturating_sub(init_cost));
+    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+        metering::set_remaining_points(<span class="kw-2">&amp;mut </span>store, <span class="kw-2">&amp;</span>instance, limit.saturating_sub(init_cost));
+    }
 
     <span class="kw">match </span>context_module.execution(<span class="kw-2">&amp;mut </span>store, <span class="kw-2">&amp;</span>instance, function, param) {
         <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>response) =&gt; {

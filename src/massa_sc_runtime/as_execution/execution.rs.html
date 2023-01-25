@@ -257,6 +257,7 @@
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::env::{
     assembly_script_abort, assembly_script_console_log, assembly_script_date_now,
@@ -298,7 +299,8 @@
         <span class="kw">match </span>Instance::new(store, <span class="kw-2">&amp;</span><span class="self">self</span>.module, <span class="kw-2">&amp;</span>imports) {
             <span class="prelude-val">Ok</span>(instance) =&gt; {
                 <span class="self">self</span>.init_with_instance(store, <span class="kw-2">&amp;</span>instance, <span class="kw-2">&amp;mut </span>fenv)<span class="question-mark">?</span>;
-                <span class="kw">let </span>post_init_points = <span class="kw">if let </span>MeteringPoints::Remaining(points) =
+                <span class="kw">let </span>post_init_points = <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>))
+                    &amp;&amp; <span class="kw">let </span>MeteringPoints::Remaining(points) =
                     metering::get_remaining_points(store, <span class="kw-2">&amp;</span>instance)
                 {
                     points
