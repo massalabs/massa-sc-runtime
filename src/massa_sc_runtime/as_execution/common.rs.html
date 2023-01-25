@@ -177,7 +177,7 @@
         get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
     </span>};
 
-    <span class="kw">let </span>module = interface.get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)<span class="question-mark">?</span>;
+    <span class="kw">let </span>module = interface.get_module(bytecode, remaining_gas)<span class="question-mark">?</span>;
     <span class="kw">let </span>resp = <span class="kw">crate</span>::execution_impl::run_function(
         <span class="kw-2">&amp;*</span>interface,
         module,

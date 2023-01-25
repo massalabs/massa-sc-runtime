@@ -681,7 +681,7 @@
         <span class="string">r&quot;wgc_elapsed_([\w\._]+)&quot;</span>,
     ];
     <span class="comment">// Must not fail
-    </span><span class="kw">let </span>set = RegexSet::new(<span class="kw-2">&amp;</span>patterns).unwrap();
+    </span><span class="kw">let </span>set = RegexSet::new(patterns).unwrap();
     <span class="comment">// Compile each pattern independently.
     </span><span class="kw">let </span>regexes: Vec&lt;<span class="kw">_</span>&gt; = set
         .patterns()
