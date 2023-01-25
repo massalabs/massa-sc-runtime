@@ -15,9 +15,9 @@ use std::time::Instant;
 
 use crate::middlewares::operator::{operator_field_str, OPERATOR_VARIANTS};
 
-#[cfg(feature = "gas_calibration")]
+// #[cfg(feature = "gas_calibration")]
 use regex::{Regex, RegexSet};
-#[cfg(feature = "gas_calibration")]
+// #[cfg(feature = "gas_calibration")]
 use wasmer::{Extern, Instance};
 
 #[derive(Debug, Clone)]
@@ -257,7 +257,7 @@ pub struct GasCalibrationResult {
     pub timers: HashMap<String, f64>,
 }
 
-#[cfg(feature = "gas_calibration")]
+// #[cfg(feature = "gas_calibration")]
 pub fn get_gas_calibration_result(
     instance: &Instance,
     store: &mut impl AsStoreMut,
@@ -275,7 +275,7 @@ pub fn get_gas_calibration_result(
         r"wgc_elapsed_([\w\._]+)",
     ];
     // Must not fail
-    let set = RegexSet::new(&patterns).unwrap();
+    let set = RegexSet::new(patterns).unwrap();
     // Compile each pattern independently.
     let regexes: Vec<_> = set
         .patterns()

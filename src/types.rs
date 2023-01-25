@@ -5,6 +5,8 @@ use std::{
     path::PathBuf,
 };
 
+use crate::as_execution::RuntimeModule;
+
 /// That's what is returned when a module is executed correctly since the end
 #[derive(Debug)]
 pub struct Response {
@@ -12,6 +14,8 @@ pub struct Response {
     pub ret: Vec<u8>,
     /// number of gas that remain after the execution (metering)
     pub remaining_gas: u64,
+    /// number of gas required for the instance creation
+    pub init_cost: u64,
 }
 
 pub trait InterfaceClone {
@@ -123,11 +127,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Finish a call
     fn finish_call(&self) -> Result<()> {
         unimplemented!("finish_call")
-    }
-
-    /// Requires the module in the given address
-    fn get_module(&self, address: &str) -> Result<Vec<u8>> {
-        unimplemented!("get_module")
     }
 
     /// Get the SCE ledger balance for the current address.
@@ -335,6 +334,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Generate a smart contract event
     fn generate_event(&self, _event: String) -> Result<()> {
         unimplemented!("generate_event")
+    }
+
+    /// For the given bytecode:
+    ///
+    /// * Get the corresponding runtime module if it already exists
+    /// * Compile it if not
+    fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule> {
+        unimplemented!("get_module")
     }
 
     /// Sends an async message

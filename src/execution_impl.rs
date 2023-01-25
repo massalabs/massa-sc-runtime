@@ -1,41 +1,70 @@
-use crate::execution::{create_instance, get_module, MassaModule};
+use crate::as_execution::{init_engine, init_store, ASContextModule, ASModule, RuntimeModule};
+use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 use crate::settings;
 use crate::types::{Interface, Response};
-
 use crate::GasCosts;
+
 use anyhow::{bail, Result};
-use wasmer::{Instance, Store};
 use wasmer_middlewares::metering::{self, MeteringPoints};
 
-#[cfg(feature = "gas_calibration")]
-use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
+/// Select and launch the adequate execution function
+pub(crate) fn exec(
+    interface: &dyn Interface,
+    module: RuntimeModule,
+    function: &str,
+    param: &[u8],
+    limit: u64,
+    gas_costs: GasCosts,
+) -> Result<(Response, Option<GasCalibrationResult>)> {
+    let response = match module {
+        RuntimeModule::ASModule((module, _engine)) => {
+            exec_as_module(interface, module, function, param, limit, gas_costs)?
+        }
+    };
+    Ok(response)
+}
 
 /// Internal execution function, used on smart contract called from node or
 /// from another smart contract
 /// Parameters:
-/// * `limit`: Limit of gas that can be used.
-/// * `instance`: Optional wasmer instance to be passed instead of creating it directly in the function.
-/// * `module`: Bytecode that contains the function to be executed.
-/// * `function`: Name of the function to call.
-/// * `param`: Parameter to pass to the function.
-/// * `interface`: Interface to call function in Massa from execution context.
+/// * `interface`: Interface to call function in Massa from execution context
+/// * `as_module`: Pre compiled AS module that will be instantiated and executed
+/// * `function`: Name of the function to call
+/// * `param`: Parameter passed to the function
+/// * `cache`: Cache of pre compiled modules
+/// * `gas_costs`: Cost in gas of every VM operation
 ///
 /// Return:
-/// The return of the function executed as string and the remaining gas for the rest of the execution.
-pub(crate) fn exec(
-    limit: u64,
-    instance_and_store: Option<(Instance, Store)>,
-    mut module: impl MassaModule,
+/// * Output of the executed function, remaininng gas after execution and the initialization cost
+/// * Gas calibration result if it has been enabled
+pub(crate) fn exec_as_module(
+    interface: &dyn Interface,
+    as_module: ASModule,
     function: &str,
     param: &[u8],
-) -> Result<(Response, Instance, Store)> {
-    let (instance, mut store) = match instance_and_store {
-        Some((instance, store)) => (instance, store),
-        None => create_instance(limit, &mut module)?,
-    };
+    limit: u64,
+    gas_costs: GasCosts,
+) -> Result<(Response, Option<GasCalibrationResult>)> {
+    let engine = init_engine(limit, gas_costs.clone());
+    let mut store = init_store(&engine)?;
+    let mut context_module = ASContextModule::new(interface, as_module.binary_module, gas_costs);
+    let (instance, init_rem_points) = context_module.create_vm_instance_and_init_env(&mut store)?;
+    let init_cost = as_module.init_limit.saturating_sub(init_rem_points);
 
-    match module.execution(&instance, &mut store, function, param) {
-        Ok(response) => Ok((response, instance, store)),
+    if cfg!(not(feature = "gas_calibration")) {
+        metering::set_remaining_points(&mut store, &instance, limit.saturating_sub(init_cost));
+    }
+
+    match context_module.execution(&mut store, &instance, function, param) {
+        Ok(mut response) => {
+            let gc_result = if cfg!(feature = "gas_calibration") {
+                Some(get_gas_calibration_result(&instance, &mut store))
+            } else {
+                None
+            };
+            response.init_cost = init_cost;
+            Ok((response, gc_result))
+        }
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
                 bail!(err)
@@ -66,21 +95,12 @@ pub(crate) fn exec(
 /// Return:
 /// the remaining gas.
 pub fn run_main(
-    bytecode: &[u8],
-    limit: u64,
     interface: &dyn Interface,
+    module: RuntimeModule,
+    limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    let mut module = get_module(interface, bytecode, gas_costs)?;
-    let (instance, store) = create_instance(limit, &mut module)?;
-    if instance.exports.contains(settings::MAIN) {
-        Ok(exec(limit, Some((instance, store)), module, settings::MAIN, b"")?.0)
-    } else {
-        Ok(Response {
-            ret: Vec::new(),
-            remaining_gas: limit,
-        })
-    }
+    Ok(exec(interface, module, settings::MAIN, b"", limit, gas_costs)?.0)
 }
 
 /// Library Input, take a `module` wasm built with the massa environment,
@@ -95,38 +115,28 @@ pub fn run_main(
 /// }
 /// ```
 pub fn run_function(
-    bytecode: &[u8],
-    limit: u64,
+    interface: &dyn Interface,
+    module: RuntimeModule,
     function: &str,
     param: &[u8],
-    interface: &dyn Interface,
+    limit: u64,
     gas_costs: GasCosts,
 ) -> Result<Response> {
-    let module = get_module(interface, bytecode, gas_costs)?;
-    Ok(exec(limit, None, module, function, param)?.0)
+    Ok(exec(interface, module, function, param, limit, gas_costs)?.0)
 }
 
 /// Same as run_main but return a GasCalibrationResult
 #[cfg(feature = "gas_calibration")]
 pub fn run_main_gc(
-    bytecode: &[u8],
-    limit: u64,
     interface: &dyn Interface,
+    module: RuntimeModule,
     param: &[u8],
+    limit: u64,
     gas_costs: GasCosts,
 ) -> Result<GasCalibrationResult> {
-    let mut module = get_module(interface, bytecode, gas_costs)?;
-    let (instance, store) = create_instance(limit, &mut module)?;
-    if instance.exports.contains(settings::MAIN) {
-        let (_resp, instance, mut store) = exec(
-            u64::MAX,
-            Some((instance.clone(), store)),
-            module,
-            settings::MAIN,
-            param,
-        )?;
-        Ok(get_gas_calibration_result(&instance, &mut store))
-    } else {
-        bail!("No main");
-    }
+    Ok(
+        exec(interface, module, settings::MAIN, param, limit, gas_costs)?
+            .1
+            .unwrap(),
+    )
 }

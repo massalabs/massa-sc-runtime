@@ -1,8 +1,8 @@
 //! Extends the env of wasmer-as
 
 use crate::{
+    as_execution::{abi_bail, ABIResult},
     env::sub_remaining_gas_abi,
-    execution::{abi_bail, ABIResult},
     types::Interface,
     GasCosts,
 };
@@ -16,11 +16,11 @@ use super::MassaEnv;
 #[derive(Clone)]
 pub struct ASEnv {
     wasm_env: as_ffi_bindings::Env,
-    gas_costs: GasCosts,
     interface: Box<dyn Interface>,
     pub remaining_points: Option<Global>,
     pub exhausted_points: Option<Global>,
     param_size_map: HashMap<String, Option<Global>>,
+    gas_costs: GasCosts,
 }
 
 impl MassaEnv<as_ffi_bindings::Env> for ASEnv {

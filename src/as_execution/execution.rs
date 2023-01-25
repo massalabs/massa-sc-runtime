@@ -1,4 +1,4 @@
-use super::{as_abi::*, MassaModule};
+use super::abi::*;
 use crate::env::{
     assembly_script_abort, assembly_script_console_log, assembly_script_date_now,
     assembly_script_seed, get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
@@ -7,34 +7,71 @@ use crate::types::Response;
 use crate::{GasCosts, Interface};
 use anyhow::{bail, Result};
 use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
-use wasmer::{imports, Function, FunctionEnv, Imports, Instance, Store, Value};
+use wasmer::{
+    imports, Function, FunctionEnv, Imports, Instance, InstantiationError, Module, Store, Value,
+};
+use wasmer_middlewares::metering::{self, MeteringPoints};
+use wasmer_types::TrapCode;
 
-pub(crate) struct ASModule {
-    env: ASEnv,
-    bytecode: Vec<u8>,
+pub(crate) struct ASContextModule {
+    pub env: ASEnv,
+    pub module: Module,
 }
 
-impl MassaModule for ASModule {
-    fn init(interface: &dyn Interface, bytecode: &[u8], gas_costs: GasCosts) -> Self {
+impl ASContextModule {
+    pub(crate) fn new(
+        interface: &dyn Interface,
+        binary_module: Module,
+        gas_costs: GasCosts,
+    ) -> Self {
         Self {
             env: ASEnv::new(interface, gas_costs),
-            bytecode: bytecode.to_vec(),
+            module: binary_module,
         }
     }
 
-    fn get_bytecode(&self) -> &Vec<u8> {
-        &self.bytecode
+    /// Create a VM instance from the current module
+    pub(crate) fn create_vm_instance_and_init_env(
+        &mut self,
+        store: &mut Store,
+    ) -> Result<(Instance, u64)> {
+        let (imports, mut fenv) = self.resolver(store);
+        match Instance::new(store, &self.module, &imports) {
+            Ok(instance) => {
+                self.init_with_instance(store, &instance, &mut fenv)?;
+                let post_init_points = if cfg!(not(feature = "gas_calibration"))
+                    && let MeteringPoints::Remaining(points) =
+                    metering::get_remaining_points(store, &instance)
+                {
+                    points
+                } else {
+                    0
+                };
+                Ok((instance, post_init_points))
+            }
+            Err(err) => {
+                // Filter the error created by the metering middleware when there is not enough gas at initialization
+                if let InstantiationError::Start(ref e) = err {
+                    if let Some(trap) = e.clone().to_trap() {
+                        if trap == TrapCode::UnreachableCodeReached && e.trace().is_empty() {
+                            bail!("Not enough gas, limit reached at initialization");
+                        }
+                    }
+                }
+                Err(err.into())
+            }
+        }
     }
 
-    fn execution(
+    pub(crate) fn execution(
         &self,
-        instance: &Instance,
         store: &mut Store,
+        instance: &Instance,
         function: &str,
         param: &[u8],
     ) -> Result<Response> {
         if cfg!(not(feature = "gas_calibration")) {
-            // sub initial metering cost
+            // Sub initial metering cost
             let metering_initial_cost = self.env.get_gas_costs().launch_cost;
             let remaining_gas = get_remaining_points(&self.env, store)?;
             if metering_initial_cost > remaining_gas {
@@ -67,6 +104,7 @@ impl MassaModule for ASModule {
                     return Ok(Response {
                         ret: Vec::new(), // main return empty vec
                         remaining_gas: remaining_gas?,
+                        init_cost: 0,
                     });
                 }
                 let ret = if let Some(offset) = value.get(0) {
@@ -88,6 +126,7 @@ impl MassaModule for ASModule {
                 Ok(Response {
                     ret,
                     remaining_gas: remaining_gas?,
+                    init_cost: 0,
                 })
             }
             Err(error) => bail!(error),
@@ -96,13 +135,13 @@ impl MassaModule for ASModule {
 
     fn init_with_instance(
         &mut self,
-        instance: &Instance,
         store: &mut Store,
+        instance: &Instance,
         fenv: &mut FunctionEnv<ASEnv>,
     ) -> Result<()> {
         let memory = instance.exports.get_memory("memory")?;
 
-        // Note: only add functions (__new, ...) if these exists in wasm/wat files
+        // NOTE: only add functions (__new, ...) if these exists in wasm/wat files
         //       so we can still exec some very basic wat files
         let fn_new = instance
             .exports
@@ -138,7 +177,7 @@ impl MassaModule for ASModule {
             fn_collect,
         );
 
-        // metering counters
+        // Metering counters
         if cfg!(not(feature = "gas_calibration")) {
             let g_1 = instance
                 .exports
@@ -158,20 +197,12 @@ impl MassaModule for ASModule {
         Ok(())
     }
 
-    fn has_function(&self, instance: &Instance, function: &str) -> bool {
-        instance.exports.get_function(function).is_ok()
-    }
-
-    fn get_gas_costs(&self) -> GasCosts {
-        self.env.get_gas_costs()
-    }
-
-    fn resolver(&self, store: &mut Store) -> (Imports, FunctionEnv<ASEnv>) {
+    pub(crate) fn resolver(&self, store: &mut Store) -> (Imports, FunctionEnv<ASEnv>) {
         let fenv = FunctionEnv::new(store, self.env.clone());
 
         let imports = imports! {
             "env" => {
-                // Needed by wasm generated by AssemblyScript.
+                // Needed by WASM generated by AssemblyScript
                 "abort" =>  Function::new_typed_with_env(store, &fenv, assembly_script_abort),
                 "seed" => Function::new_typed_with_env(store, &fenv, assembly_script_seed),
                 "Date.now" =>  Function::new_typed_with_env(store, &fenv, assembly_script_date_now),

@@ -4,14 +4,17 @@
 //! The ABIs are the imported function / object declared in the webassembly
 //! module. You can look at the other side of the mirror in `massa.ts` and the
 //! rust side in `execution_impl.rs`.
-use crate::env::{get_memory, get_remaining_points, sub_remaining_gas_abi, ASEnv, MassaEnv};
-use crate::settings;
+
 use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use function_name::named;
 use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
-use super::common::{abi_bail, call_module, create_sc, ABIResult};
-use super::{create_instance, get_module, local_call, MassaModule};
+use crate::env::{get_memory, get_remaining_points, sub_remaining_gas_abi, ASEnv, MassaEnv};
+use crate::settings;
+
+use super::abi_error::{abi_bail, ABIResult};
+use super::common::{call_module, create_sc, function_exists};
+use super::local_call;
 
 /// Get the coins that have been made available for a specific purpose for the current call.
 #[named]
@@ -855,17 +858,9 @@ pub fn assembly_script_function_exists(
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-
     let address = &read_string(memory, &ctx, address)?;
     let function = &read_string(memory, &ctx, function)?;
-    // NOTE: how do we handle metering for those cases?
-    let bytecode = env.get_interface().raw_get_bytecode_for(address)?;
-
-    let mut module = get_module(&*env.get_interface(), &bytecode, env.get_gas_costs())?;
-    // NOTE: is it maybe possible to retrieve a module function without creating an instance?
-    // NOTE: if not determine initial cost
-    let (instance, _store) = create_instance(u64::MAX, &mut module)?;
-    Ok(module.has_function(&instance, function) as i32)
+    Ok(function_exists(&mut ctx, address, function)? as i32)
 }
 
 /// Tooling, return a StringPtr allocated from a String
@@ -937,7 +932,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::execution::as_abi::ser_bytearray_vec;
+    use crate::as_execution::abi::ser_bytearray_vec;
 
     #[test]
     fn test_ser() {

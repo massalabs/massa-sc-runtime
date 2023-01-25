@@ -1,4 +1,6 @@
+use crate::as_execution::ASModule;
 use crate::types::{Interface, InterfaceClone};
+use crate::{GasCosts, RuntimeModule};
 
 use anyhow::{bail, Result};
 use parking_lot::Mutex;
@@ -67,8 +69,10 @@ impl Interface for TestInterface {
         Ok(0)
     }
 
-    fn get_module(&self, _address: &str) -> Result<Vec<u8>> {
-        Ok(vec![])
+    fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule> {
+        let as_module = ASModule::new(bytecode, limit, GasCosts::default())?;
+        let module = RuntimeModule::ASModule(as_module);
+        Ok(module)
     }
 
     fn get_owned_addresses(&self) -> Result<Vec<String>> {
