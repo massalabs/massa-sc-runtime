@@ -275,7 +275,7 @@ pub fn get_gas_calibration_result(
         r"wgc_elapsed_([\w\._]+)",
     ];
     // Must not fail
-    let set = RegexSet::new(&patterns).unwrap();
+    let set = RegexSet::new(patterns).unwrap();
     // Compile each pattern independently.
     let regexes: Vec<_> = set
         .patterns()
