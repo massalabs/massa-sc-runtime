@@ -33,7 +33,7 @@ fn test_run_main_without_main() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/no_main.wasm"
+        "/wasm/no_main.wasm"
     ));
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
     run_main(&*interface, runtime_module, 100_000, gas_costs)
@@ -52,7 +52,7 @@ fn test_run_empty_main() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/empty_main.wasm"
+        "/wasm/empty_main.wasm"
     ));
     gas_costs.launch_cost = 0;
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
@@ -88,7 +88,7 @@ fn test_op_fn() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/op_fn.wasm"
+        "/wasm/op_fn.wasm"
     ));
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
     run_main(&*interface, runtime_module, 10_000_000, gas_costs.clone())
@@ -106,7 +106,7 @@ fn test_builtins() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/use_builtins.wasm"
+        "/wasm/use_builtins.wasm"
     ));
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
     match run_main(&*interface, runtime_module, 10_000_000, gas_costs.clone()) {
@@ -129,7 +129,7 @@ fn test_wat() {
     let gas_costs = GasCosts::default();
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/build/dummy.wat"));
+    let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/dummy.wat"));
 
     let gas_limit = 100_000;
     let runtime_module = RuntimeModule::new(bytecode, gas_limit, gas_costs.clone()).unwrap();
@@ -146,7 +146,7 @@ fn test_wat() {
 fn test_features_disabled() {
     let gas_costs = GasCosts::default();
 
-    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/build/simd.wasm"));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/simd.wasm"));
     match RuntimeModule::new(module, 200_000, gas_costs.clone()) {
         Err(e) => {
             // println!("Error: {}", e);
@@ -159,7 +159,7 @@ fn test_features_disabled() {
 
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/threads.wasm"
+        "/wasm/threads.wasm"
     ));
     match RuntimeModule::new(module, 200_000, gas_costs.clone()) {
         Err(e) => {
