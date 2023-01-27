@@ -7,13 +7,13 @@ edition = "2021"
 anyhow = "1.0"
 serde = "1.0"
 serde_json = "1.0"
-wasmer = { version = "3.0" }
+wasmer = { version = "3.2.0-alpha.1" }
+wasmer-compiler-singlepass = { version = "3.2.0-alpha.1" }
+wasmer-types = { version = "3.2.0-alpha.1" }
+wasmer-middlewares = { version = "3.2.0-alpha.1" }
 tracing = "0.1"
 # as-ffi-bindings = "0.2.7"
-as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", tag = "v0.3.0"}
-wasmer-compiler-singlepass = { version = "3.0" }
-wasmer-types = { version = "3.0" }
-wasmer-middlewares = { version = "3.0" }
+as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", tag = "v0.3.1" }
 base64 = "0.13"
 serial_test = "0.8"
 loupe = "0.1"
