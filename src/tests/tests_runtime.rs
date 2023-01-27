@@ -148,18 +148,18 @@ fn test_builtins() {
     }
 }
 
-/// Test `assert`
+/// Test `assert` & `process.exit
 ///
 /// These are AS functions that we choose to handle in the VM
 #[test]
 #[serial]
-fn test_builtin_assert() {
+fn test_builtin_assert_and_exit() {
     let gas_costs = GasCosts::default();
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/use_assert.wasm"
+        "/wasm/build/use_builtin_assert.wasm"
     ));
 
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
@@ -174,7 +174,7 @@ fn test_builtin_assert() {
         Err(e) => {
             assert!(e.to_string().contains("Result is not true!"))
         }
-        _ => panic!("test_builtin_assert should return an error!"),
+        _ => panic!("test should return an error!"),
     }
 
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
@@ -184,9 +184,44 @@ fn test_builtin_assert() {
         "assert_no_msg",
         b"",
         100_000,
+        gas_costs.clone(),
+    ) {
+        panic!("test should return an error!");
+    }
+
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/use_builtin_exit.wasm"
+    ));
+
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    match run_function(
+        &*interface,
+        runtime_module,
+        "exit_no_code",
+        b"",
+        100_000,
+        gas_costs.clone(),
+    ) {
+        Err(e) => {
+            assert!(e.to_string().contains("exit with code: 0"))
+        }
+        _ => panic!("test should return an error!"),
+    }
+
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    match run_function(
+        &*interface,
+        runtime_module,
+        "exit_with_code",
+        b"",
+        100_000,
         gas_costs,
     ) {
-        panic!("test_builtin_assert should return an error!");
+        Err(e) => {
+            assert!(e.to_string().contains("exit with code: 2"))
+        }
+        _ => panic!("test should return an error!"),
     }
 }
 

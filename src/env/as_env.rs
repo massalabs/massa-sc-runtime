@@ -131,6 +131,7 @@ pub fn assembly_script_date_now(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64
     Ok(ret)
 }
 
+/// Assembly script builtin `console.log()`.
 #[named]
 pub fn assembly_script_console_log(
     mut ctx: FunctionEnvMut<ASEnv>,
@@ -153,6 +154,7 @@ pub fn assembly_script_console_log(
     Ok(())
 }
 
+/// Assembly script builtin `trace()`.
 #[named]
 pub fn assembly_script_trace(
     mut ctx: FunctionEnvMut<ASEnv>,
@@ -196,4 +198,9 @@ pub fn assembly_script_trace(
 
     env.get_interface().generate_event(message_for_event)?;
     Ok(())
+}
+
+/// Assembly script builtin `process.exit()`.
+pub fn assembly_script_process_exit(_ctx: FunctionEnvMut<ASEnv>, exit_code: i32) -> ABIResult<()> {
+    abi_bail!(format!("exit with code: {}", exit_code));
 }
