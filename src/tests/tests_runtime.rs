@@ -148,6 +148,72 @@ fn test_builtins() {
     }
 }
 
+/// Test `assert`
+///
+/// These are AS functions that we choose to handle in the VM
+#[test]
+#[serial]
+fn test_builtin_assert() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/use_assert.wasm"
+    ));
+
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    match run_function(
+        &*interface,
+        runtime_module,
+        "assert_with_msg",
+        b"",
+        100_000,
+        gas_costs.clone(),
+    ) {
+        Err(e) => {
+            assert!(e.to_string().contains("Result is not true!"))
+        }
+        _ => panic!("test_builtin_assert should return an error!"),
+    }
+
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    if let Ok(_) = run_function(
+        &*interface,
+        runtime_module,
+        "assert_no_msg",
+        b"",
+        100_000,
+        gas_costs,
+    ) {
+        panic!("test_builtin_assert should return an error!");
+    }
+}
+
+#[test]
+#[serial]
+/// Test WASM files compiled with unsupported builtin functions
+///
+fn test_unsupported_builtins() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/build/unsupported_builtin_hrtime.wasm"
+    ));
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+
+    match run_main(&*interface, runtime_module, 10_000_000, gas_costs.clone()) {
+        Err(e) => {
+            assert!(e
+                .to_string()
+                .contains("Error while importing \"env\".\"performance.now\""))
+        }
+        _ => panic!("test should return an error!"),
+    }
+}
+
 #[test]
 #[serial]
 /// Ensure that the execution of WAT files (text equivalent of WASM) is supported

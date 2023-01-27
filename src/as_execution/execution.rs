@@ -84,7 +84,7 @@ impl ASContextModule {
         // Now can exec
         let wasm_func = instance.exports.get_function(function)?;
         let argc = wasm_func.param_arity(store);
-        let res = if argc == 0 && function == crate::settings::MAIN {
+        let res = if argc == 0 {
             wasm_func.call(store, &[])
         } else if argc == 1 {
             let param_ptr = *BufferPtr::alloc(&param.to_vec(), self.env.get_wasm_env(), store)?;
