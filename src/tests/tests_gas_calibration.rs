@@ -19,7 +19,7 @@ fn test_basic_abi_call_counter() -> Result<()> {
     let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/gc_abi_call_basic.wasm"
+        "/wasm/gc_abi_call_basic.wasm"
     ));
 
     let gas_costs = GasCosts::default();
@@ -80,7 +80,7 @@ fn test_basic_abi_call_loop() -> Result<()> {
     let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/gc_abi_call_for.wasm"
+        "/wasm/gc_abi_call_for.wasm"
     ));
 
     let gas_costs = GasCosts::default();
@@ -111,7 +111,7 @@ fn test_basic_op() -> Result<()> {
     let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/gc_op_basic.wasm"
+        "/wasm/gc_op_basic.wasm"
     ));
 
     let gas_costs = GasCosts::default();
@@ -168,7 +168,7 @@ fn test_basic_abi_call_param_size() -> Result<()> {
     let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/gc_abi_call_param_size.wasm"
+        "/wasm/gc_abi_call_param_size.wasm"
     ));
 
     let gas_costs = GasCosts::default();
