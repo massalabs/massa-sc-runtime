@@ -395,6 +395,14 @@
 <a href="#395" id="395">395</a>
 <a href="#396" id="396">396</a>
 <a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
 </pre><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>serde::{de::DeserializeOwned, Serialize};
 <span class="kw">use </span>std::{
@@ -441,7 +449,15 @@
 <span class="kw">impl </span>GasCosts {
     <span class="kw">pub fn </span>new(abi_cost_file: PathBuf, wasm_abi_file: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>abi_cost_file = std::fs::read_to_string(abi_cost_file)<span class="question-mark">?</span>;
-        <span class="kw">let </span>abi_costs: HashMap&lt;String, u64&gt; = serde_json::from_str(<span class="kw-2">&amp;</span>abi_cost_file)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>abi_costs: HashMap&lt;String, u64&gt; = serde_json::from_str(<span class="kw-2">&amp;</span>abi_cost_file)<span class="question-mark">?</span>;
+        abi_costs.iter_mut().for_each(|(<span class="kw">_</span>, v)| {
+            <span class="kw">let </span>unit_digit = <span class="kw-2">*</span>v % <span class="number">10</span>;
+            <span class="kw">if </span>unit_digit &gt; <span class="number">5 </span>{
+                <span class="kw-2">*</span>v += <span class="number">10 </span>- unit_digit;
+            } <span class="kw">else </span>{
+                <span class="kw-2">*</span>v -= unit_digit;
+            }
+        });
         <span class="kw">let </span>wasm_abi_file = std::fs::read_to_string(wasm_abi_file)<span class="question-mark">?</span>;
         <span class="kw">let </span>wasm_costs: HashMap&lt;String, u64&gt; = serde_json::from_str(<span class="kw-2">&amp;</span>wasm_abi_file)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
