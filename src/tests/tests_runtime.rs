@@ -159,7 +159,7 @@ fn test_builtin_assert_and_exit() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/use_builtin_assert.wasm"
+        "/wasm/use_builtin_assert.wasm"
     ));
 
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
@@ -191,7 +191,7 @@ fn test_builtin_assert_and_exit() {
 
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/use_builtin_exit.wasm"
+        "/wasm/use_builtin_exit.wasm"
     ));
 
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
@@ -235,7 +235,7 @@ fn test_unsupported_builtins() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/unsupported_builtin_hrtime.wasm"
+        "/wasm/unsupported_builtin_hrtime.wasm"
     ));
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
 
