@@ -44,7 +44,14 @@ pub struct GasCosts {
 impl GasCosts {
     pub fn new(abi_cost_file: PathBuf, wasm_abi_file: PathBuf) -> Result<Self> {
         let abi_cost_file = std::fs::read_to_string(abi_cost_file)?;
-        let abi_costs: HashMap<String, u64> = serde_json::from_str(&abi_cost_file)?;
+        let mut abi_costs: HashMap<String, u64> = serde_json::from_str(&abi_cost_file)?;
+        abi_costs.iter_mut().for_each(|(_, v)| {
+            if *v % 10 > 5 {
+                *v += 10 - (*v % 10);
+            } else {
+                *v -= *v % 10;
+            }
+        });
         let wasm_abi_file = std::fs::read_to_string(wasm_abi_file)?;
         let wasm_costs: HashMap<String, u64> = serde_json::from_str(&wasm_abi_file)?;
         Ok(Self {
