@@ -53,7 +53,8 @@ impl Interface for TestInterface {
         Ok(public_key.to_string())
     }
 
-    fn generate_event(&self, _event: String) -> Result<()> {
+    fn generate_event(&self, event: String) -> Result<()> {
+        println!("Event: {}", event);
         Ok(())
     }
 

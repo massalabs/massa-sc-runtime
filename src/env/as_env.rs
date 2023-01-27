@@ -152,3 +152,48 @@ pub fn assembly_script_console_log(
     env.get_interface().generate_event(message)?;
     Ok(())
 }
+
+#[named]
+pub fn assembly_script_trace(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+    n: i32,
+    a0: f64,
+    a1: f64,
+    a2: f64,
+    a3: f64,
+    a4: f64,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+
+    let memory = ctx
+        .data()
+        .get_wasm_env()
+        .memory
+        .as_ref()
+        .expect("Failed to get memory on env")
+        .clone();
+
+    let message = message.read(&memory, &ctx)?;
+
+    let message_for_event = match n {
+        1 => format!("msg: {}, a0: {}", message, a0),
+        2 => format!("msg: {}, a0: {}, a1: {}", message, a0, a1),
+        3 => format!("msg: {}, a0: {}, a1: {}, a2: {}", message, a0, a1, a2),
+        4 => format!(
+            "msg: {}, a0: {}, a1: {}, a2: {}, a3: {}",
+            message, a0, a1, a2, a3
+        ),
+        5 => format!(
+            "msg: {}, a0: {}, a1: {}, a2: {}, a3: {}, a4: {}",
+            message, a0, a1, a2, a3, a4
+        ),
+        _ => message, // Should we warn here or return an error?
+    };
+
+    env.get_interface().generate_event(message_for_event)?;
+    Ok(())
+}
