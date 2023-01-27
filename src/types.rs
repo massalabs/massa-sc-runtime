@@ -46,10 +46,11 @@ impl GasCosts {
         let abi_cost_file = std::fs::read_to_string(abi_cost_file)?;
         let mut abi_costs: HashMap<String, u64> = serde_json::from_str(&abi_cost_file)?;
         abi_costs.iter_mut().for_each(|(_, v)| {
-            if *v % 10 > 5 {
-                *v += 10 - (*v % 10);
+            let unit_digit = *v % 10;
+            if unit_digit > 5 {
+                *v += 10 - unit_digit;
             } else {
-                *v -= *v % 10;
+                *v -= unit_digit;
             }
         });
         let wasm_abi_file = std::fs::read_to_string(wasm_abi_file)?;
