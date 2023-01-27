@@ -258,14 +258,10 @@
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
 <a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::env::{
     assembly_script_abort, assembly_script_console_log, assembly_script_date_now,
-    assembly_script_process_exit, assembly_script_seed, assembly_script_trace,
-    get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
+    assembly_script_seed, get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
 };
 <span class="kw">use </span><span class="kw">crate</span>::types::Response;
 <span class="kw">use crate</span>::{GasCosts, Interface};
@@ -347,7 +343,7 @@
         <span class="comment">// Now can exec
         </span><span class="kw">let </span>wasm_func = instance.exports.get_function(function)<span class="question-mark">?</span>;
         <span class="kw">let </span>argc = wasm_func.param_arity(store);
-        <span class="kw">let </span>res = <span class="kw">if </span>argc == <span class="number">0 </span>{
+        <span class="kw">let </span>res = <span class="kw">if </span>argc == <span class="number">0 </span>&amp;&amp; function == <span class="kw">crate</span>::settings::MAIN {
             wasm_func.call(store, <span class="kw-2">&amp;</span>[])
         } <span class="kw">else if </span>argc == <span class="number">1 </span>{
             <span class="kw">let </span>param_ptr = <span class="kw-2">*</span>BufferPtr::alloc(<span class="kw-2">&amp;</span>param.to_vec(), <span class="self">self</span>.env.get_wasm_env(), store)<span class="question-mark">?</span>;
@@ -471,8 +467,6 @@
                 <span class="string">&quot;seed&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_seed),
                 <span class="string">&quot;Date.now&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_date_now),
                 <span class="string">&quot;console.log&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_log),
-                <span class="string">&quot;trace&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_trace),
-                <span class="string">&quot;process.exit&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_process_exit),
             },
             <span class="string">&quot;massa&quot; </span>=&gt; {
                 <span class="string">&quot;assembly_script_print&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_print),
