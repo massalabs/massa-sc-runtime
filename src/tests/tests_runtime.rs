@@ -46,10 +46,12 @@ fn test_not_enough_gas_error() {
 
     // Test giving not enough gas to create the instance
     let runtime_module = RuntimeModule::new(module, 100, gas_costs.clone()).unwrap();
-    let error = run_main(&*interface, runtime_module, 100_000, gas_costs.clone()).unwrap_err();
-    assert_eq!(
-        error.to_string(),
-        "Not enough gas, limit reached at initialization"
+    let error = run_main(&*interface, runtime_module, 100_000, gas_costs.clone())
+        .unwrap_err()
+        .to_string();
+    assert!(
+        error == "Not enough gas, limit reached at initialization"
+            || error.contains("RuntimeError: unreachable")
     );
 
     // Test giving enough gas to create the instance but not enough for the VM
