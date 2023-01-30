@@ -141,10 +141,10 @@ fn test_builtins() {
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
     match run_main(&*interface, runtime_module, 10_000_000, gas_costs.clone()) {
         Err(e) => {
-            println!("Error: {}", e);
-            assert!(e.to_string().starts_with(
-                "RuntimeError: Runtime error: error: abord with date and rnd at use_builtins.ts"
-            ));
+            assert_eq!(
+                e.to_string(),
+                chrono::offset::Utc::now().timestamp_millis().to_string()
+            );
         }
         _ => panic!("Failed to run use_builtins.wasm"),
     }
