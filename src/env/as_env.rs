@@ -154,6 +154,7 @@ pub fn assembly_script_console_log(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 /// Assembly script builtin `trace()`.
 #[named]
 pub fn assembly_script_trace(
