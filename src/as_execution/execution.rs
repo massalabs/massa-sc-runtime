@@ -1,7 +1,8 @@
 use super::abi::*;
 use crate::env::{
     assembly_script_abort, assembly_script_console_log, assembly_script_date_now,
-    assembly_script_seed, get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
+    assembly_script_process_exit, assembly_script_seed, assembly_script_trace,
+    get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
 };
 use crate::types::Response;
 use crate::{GasCosts, Interface};
@@ -83,7 +84,7 @@ impl ASContextModule {
         // Now can exec
         let wasm_func = instance.exports.get_function(function)?;
         let argc = wasm_func.param_arity(store);
-        let res = if argc == 0 && function == crate::settings::MAIN {
+        let res = if argc == 0 {
             wasm_func.call(store, &[])
         } else if argc == 1 {
             let param_ptr = *BufferPtr::alloc(&param.to_vec(), self.env.get_wasm_env(), store)?;
@@ -207,6 +208,8 @@ impl ASContextModule {
                 "seed" => Function::new_typed_with_env(store, &fenv, assembly_script_seed),
                 "Date.now" =>  Function::new_typed_with_env(store, &fenv, assembly_script_date_now),
                 "console.log" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_log),
+                "trace" =>  Function::new_typed_with_env(store, &fenv, assembly_script_trace),
+                "process.exit" =>  Function::new_typed_with_env(store, &fenv, assembly_script_process_exit),
             },
             "massa" => {
                 "assembly_script_print" => Function::new_typed_with_env(store, &fenv, assembly_script_print),
