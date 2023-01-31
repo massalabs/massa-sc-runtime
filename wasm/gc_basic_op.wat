@@ -1,3 +1,6 @@
+;; this is a custom made WAT
+;; there is no WASM equivalent in massa/massa-unit-tests-src
+
 (module
   (type $t0 (func (param i32 i32 i32 i32)))
   (type $t1 (func (param i32) (result i32)))
