@@ -151,7 +151,7 @@ fn test_builtins() {
             let start = msg.find(ident).unwrap_or(0).saturating_add(ident.len());
             let end = msg.find(" at use_builtins.ts").unwrap_or(0);
             let sc_timestamp: i64 = msg[start..end].parse().unwrap();
-            assert!(before < sc_timestamp && sc_timestamp < after);
+            assert!(before <= sc_timestamp && sc_timestamp <= after);
         }
         _ => panic!("Failed to run use_builtins.wasm"),
     }
