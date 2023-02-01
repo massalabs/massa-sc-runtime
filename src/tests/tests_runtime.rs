@@ -1,3 +1,5 @@
+use crate::as_execution::{init_store, ASContextModule, ASModule};
+use crate::env::MassaEnv;
 use crate::tests::{Ledger, TestInterface};
 use crate::{
     run_function, run_main,
@@ -8,6 +10,7 @@ use parking_lot::Mutex;
 use rand::Rng;
 use serial_test::serial;
 use std::sync::Arc;
+use wasmer::WasmPtr;
 
 #[test]
 #[serial]
@@ -139,22 +142,29 @@ fn test_builtins() {
         "/wasm/use_builtins.wasm"
     ));
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
+    let before = chrono::offset::Utc::now().timestamp_millis();
     match run_main(&*interface, runtime_module, 10_000_000, gas_costs.clone()) {
         Err(e) => {
-            println!("Error: {}", e);
-            assert!(e.to_string().starts_with(
-                "RuntimeError: Runtime error: error: abord with date and rnd at use_builtins.ts"
-            ));
+            let msg = e.to_string();
+            // make sure the error was caused by a manual abort
+            assert!(msg.contains("Manual abort"));
+            // check the given timestamp validity
+            let after = chrono::offset::Utc::now().timestamp_millis();
+            let ident = "UTC timestamp (ms) = ";
+            let start = msg.find(ident).unwrap_or(0).saturating_add(ident.len());
+            let end = msg.find(" at use_builtins.ts").unwrap_or(0);
+            let sc_timestamp: i64 = msg[start..end].parse().unwrap();
+            assert!(before <= sc_timestamp && sc_timestamp <= after);
         }
         _ => panic!("Failed to run use_builtins.wasm"),
     }
 }
 
+#[test]
+#[serial]
 /// Test `assert` & `process.exit
 ///
 /// These are AS functions that we choose to handle in the VM
-#[test]
-#[serial]
 fn test_builtin_assert_and_exit() {
     let gas_costs = GasCosts::default();
     let interface: Box<dyn Interface> =
@@ -230,7 +240,6 @@ fn test_builtin_assert_and_exit() {
 #[test]
 #[serial]
 /// Test WASM files compiled with unsupported builtin functions
-///
 fn test_unsupported_builtins() {
     let gas_costs = GasCosts::default();
     let interface: Box<dyn Interface> =
@@ -271,9 +280,9 @@ fn test_wat() {
     assert_eq!(response.ret, excepted);
 }
 
-/// Test a WASM execution using features disabled in engine (simd & threads)
 #[test]
 #[serial]
+/// Test a WASM execution using features disabled in engine (simd & threads)
 fn test_features_disabled() {
     let gas_costs = GasCosts::default();
 
@@ -298,4 +307,83 @@ fn test_features_disabled() {
         }
         _ => panic!("Failed to run use_builtins.wasm"),
     }
+}
+
+#[test]
+#[serial]
+/// Non regression test on the AS class id values
+fn test_class_id() {
+    // setup basic AS runtime context
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let bytecode = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/return_basic.wasm"
+    ));
+    let (module, engine) = ASModule::new(bytecode, 100_000, GasCosts::default()).unwrap();
+    let mut store = init_store(&engine).unwrap();
+    let mut context = ASContextModule::new(&*interface, module.binary_module, GasCosts::default());
+    let (instance, _) = context.create_vm_instance_and_init_env(&mut store).unwrap();
+
+    // setup test specific context
+    let (_, fenv) = context.resolver(&mut store);
+    let fenv_mut = fenv.into_mut(&mut store);
+    let memory = context.env.get_wasm_env().memory.as_ref().unwrap();
+    let memory_view = memory.view(&fenv_mut);
+
+    // get string and array offsets
+    let return_string = instance.exports.get_function("return_string").unwrap();
+    let return_array = instance.exports.get_function("return_array").unwrap();
+    let string_ptr = return_string
+        .call(&mut store, &[])
+        .unwrap()
+        .get(0)
+        .unwrap()
+        .i32()
+        .unwrap();
+    let array_ptr = return_array
+        .call(&mut store, &[])
+        .unwrap()
+        .get(0)
+        .unwrap()
+        .i32()
+        .unwrap();
+
+    // use `u32` size to retrieve the class id
+    // see https://www.assemblyscript.org/runtime.html#memory-layout
+    let u32_size = std::mem::size_of::<u32>() as u32;
+
+    // read and assert string class id
+    let string_w_ptr: WasmPtr<u8> = WasmPtr::new(string_ptr as u32)
+        .sub_offset(u32_size * 2)
+        .unwrap();
+    let slice_len_buf = string_w_ptr
+        .slice(&memory_view, u32_size)
+        .unwrap()
+        .read_to_vec()
+        .unwrap();
+    let string_class_id = u32::from_ne_bytes(
+        slice_len_buf
+            .try_into()
+            .map_err(|_| wasmer::RuntimeError::new("Unable to convert vec to [u8; 4]"))
+            .unwrap(),
+    );
+    assert_eq!(string_class_id, 2);
+
+    // read and assert array class id
+    let array_w_ptr: WasmPtr<u8> = WasmPtr::new(array_ptr as u32)
+        .sub_offset(u32_size * 2)
+        .unwrap();
+    let slice_len_buf = array_w_ptr
+        .slice(&memory_view, u32_size)
+        .unwrap()
+        .read_to_vec()
+        .unwrap();
+    let array_class_id = u32::from_ne_bytes(
+        slice_len_buf
+            .try_into()
+            .map_err(|_| wasmer::RuntimeError::new("Unable to convert vec to [u8; 4]"))
+            .unwrap(),
+    );
+    assert_eq!(array_class_id, 4);
 }

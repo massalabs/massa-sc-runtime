@@ -222,7 +222,13 @@ impl Interface for TestInterface {
     }
 
     fn get_time(&self) -> Result<u64> {
-        Ok(0)
+        // Using chrono as a test dummy implementation to make sure the ABI is called correctly
+        // Note that Massa node implementation uses the time of the context slot
+        // in order to ensure determinism, not the UTC time
+        Ok(chrono::offset::Utc::now()
+            .timestamp_millis()
+            .try_into()
+            .unwrap())
     }
 }
 

@@ -109,10 +109,7 @@ fn test_basic_abi_call_loop() -> Result<()> {
 #[serial]
 fn test_basic_op() -> Result<()> {
     let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
-    let bytecode = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/gc_op_basic.wasm"
-    ));
+    let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/gc_basic_op.wat"));
 
     let gas_costs = GasCosts::default();
     let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone())?;
@@ -134,19 +131,13 @@ fn test_basic_op() -> Result<()> {
     // Use wat file to view op (https://webassembly.github.io/wabt/demo/wasm2wat/)
     let op_executed = HashSet::from([
         "Wasm:I32Add",
-        "Wasm:I32And",
         "Wasm:I32GtU",
         "Wasm:End",
         "Wasm:I32Sub",
-        "Wasm:I32Shl",
         "Wasm:I32Store",
-        "Wasm:GlobalSet",
         "Wasm:LocalTee",
         "Wasm:LocalGet",
-        "Wasm:GlobalGet",
         "Wasm:I32Const",
-        // "Wasm:If",
-        "Wasm:MemorySize",
     ]);
 
     for op_exec in &op_executed {
