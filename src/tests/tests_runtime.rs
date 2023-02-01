@@ -334,14 +334,14 @@ fn test_class_id() {
     // get string and array offsets
     let return_string = instance.exports.get_function("return_string").unwrap();
     let return_array = instance.exports.get_function("return_array").unwrap();
-    let string_offset = return_string
+    let string_ptr = return_string
         .call(&mut store, &[])
         .unwrap()
         .get(0)
         .unwrap()
         .i32()
         .unwrap();
-    let array_offset = return_array
+    let array_ptr = return_array
         .call(&mut store, &[])
         .unwrap()
         .get(0)
@@ -354,10 +354,10 @@ fn test_class_id() {
     let u32_size = std::mem::size_of::<u32>() as u32;
 
     // read and assert string class id
-    let string_ptr: WasmPtr<u8> = WasmPtr::new(string_offset as u32)
+    let string_w_ptr: WasmPtr<u8> = WasmPtr::new(string_ptr as u32)
         .sub_offset(u32_size * 2)
         .unwrap();
-    let slice_len_buf = string_ptr
+    let slice_len_buf = string_w_ptr
         .slice(&memory_view, u32_size)
         .unwrap()
         .read_to_vec()
@@ -371,10 +371,10 @@ fn test_class_id() {
     assert_eq!(string_class_id, 2);
 
     // read and assert array class id
-    let array_ptr: WasmPtr<u8> = WasmPtr::new(array_offset as u32)
+    let array_w_ptr: WasmPtr<u8> = WasmPtr::new(array_ptr as u32)
         .sub_offset(u32_size * 2)
         .unwrap();
-    let slice_len_buf = array_ptr
+    let slice_len_buf = array_w_ptr
         .slice(&memory_view, u32_size)
         .unwrap()
         .read_to_vec()
