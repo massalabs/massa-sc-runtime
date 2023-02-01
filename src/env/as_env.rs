@@ -1,8 +1,8 @@
 //! Extends the env of wasmer-as
 
 use crate::{
+    as_execution::{abi_bail, ABIResult},
     env::sub_remaining_gas_abi,
-    execution::{abi_bail, ABIResult},
     types::Interface,
     GasCosts,
 };
@@ -16,11 +16,11 @@ use super::MassaEnv;
 #[derive(Clone)]
 pub struct ASEnv {
     wasm_env: as_ffi_bindings::Env,
-    gas_costs: GasCosts,
     interface: Box<dyn Interface>,
     pub remaining_points: Option<Global>,
     pub exhausted_points: Option<Global>,
     param_size_map: HashMap<String, Option<Global>>,
+    gas_costs: GasCosts,
 }
 
 impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
@@ -129,4 +129,79 @@ pub fn assembly_script_date_now(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64
     };
     let ret = utime as f64;
     Ok(ret)
+}
+
+/// Assembly script builtin `console.log()`.
+#[named]
+pub fn assembly_script_console_log(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+
+    let memory = ctx
+        .data()
+        .get_wasm_env()
+        .memory
+        .as_ref()
+        .expect("Failed to get memory on env")
+        .clone();
+    let message = message.read(&memory, &ctx)?;
+    env.get_interface().generate_event(message)?;
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+/// Assembly script builtin `trace()`.
+#[named]
+pub fn assembly_script_trace(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+    n: i32,
+    a0: f64,
+    a1: f64,
+    a2: f64,
+    a3: f64,
+    a4: f64,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+
+    let memory = ctx
+        .data()
+        .get_wasm_env()
+        .memory
+        .as_ref()
+        .expect("Failed to get memory on env")
+        .clone();
+
+    let message = message.read(&memory, &ctx)?;
+
+    let message_for_event = match n {
+        1 => format!("msg: {}, a0: {}", message, a0),
+        2 => format!("msg: {}, a0: {}, a1: {}", message, a0, a1),
+        3 => format!("msg: {}, a0: {}, a1: {}, a2: {}", message, a0, a1, a2),
+        4 => format!(
+            "msg: {}, a0: {}, a1: {}, a2: {}, a3: {}",
+            message, a0, a1, a2, a3
+        ),
+        5 => format!(
+            "msg: {}, a0: {}, a1: {}, a2: {}, a3: {}, a4: {}",
+            message, a0, a1, a2, a3, a4
+        ),
+        _ => message, // Should we warn here or return an error?
+    };
+
+    env.get_interface().generate_event(message_for_event)?;
+    Ok(())
+}
+
+/// Assembly script builtin `process.exit()`.
+pub fn assembly_script_process_exit(_ctx: FunctionEnvMut<ASEnv>, exit_code: i32) -> ABIResult<()> {
+    abi_bail!(format!("exit with code: {}", exit_code));
 }

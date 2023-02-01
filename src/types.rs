@@ -5,6 +5,8 @@ use std::{
     path::PathBuf,
 };
 
+use crate::as_execution::RuntimeModule;
+
 /// That's what is returned when a module is executed correctly since the end
 #[derive(Debug)]
 pub struct Response {
@@ -12,6 +14,8 @@ pub struct Response {
     pub ret: Vec<u8>,
     /// number of gas that remain after the execution (metering)
     pub remaining_gas: u64,
+    /// number of gas required for the instance creation
+    pub init_cost: u64,
 }
 
 pub trait InterfaceClone {
@@ -40,7 +44,15 @@ pub struct GasCosts {
 impl GasCosts {
     pub fn new(abi_cost_file: PathBuf, wasm_abi_file: PathBuf) -> Result<Self> {
         let abi_cost_file = std::fs::read_to_string(abi_cost_file)?;
-        let abi_costs: HashMap<String, u64> = serde_json::from_str(&abi_cost_file)?;
+        let mut abi_costs: HashMap<String, u64> = serde_json::from_str(&abi_cost_file)?;
+        abi_costs.iter_mut().for_each(|(_, v)| {
+            let unit_digit = *v % 10;
+            if unit_digit > 5 {
+                *v += 10 - unit_digit;
+            } else {
+                *v -= unit_digit;
+            }
+        });
         let wasm_abi_file = std::fs::read_to_string(wasm_abi_file)?;
         let wasm_costs: HashMap<String, u64> = serde_json::from_str(&wasm_abi_file)?;
         Ok(Self {
@@ -99,11 +111,13 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_local_execution"), 11);
         abi_costs.insert(String::from("assembly_script_get_bytecode"), 11);
         abi_costs.insert(String::from("assembly_script_get_bytecode_for"), 11);
-        abi_costs.insert(String::from("assembly_caller_has_write_access"), 11);
-        abi_costs.insert(String::from("assembly_function_exists"), 11);
+        abi_costs.insert(String::from("assembly_script_caller_has_write_access"), 11);
+        abi_costs.insert(String::from("assembly_script_function_exists"), 11);
         abi_costs.insert(String::from("assembly_script_seed"), 11);
         abi_costs.insert(String::from("assembly_script_abort"), 11);
         abi_costs.insert(String::from("assembly_script_date_now"), 11);
+        abi_costs.insert(String::from("assembly_script_console_log"), 36); // same cost as for generate_event
+        abi_costs.insert(String::from("assembly_script_trace"), 36);
         Self {
             operator_cost: 1,
             launch_cost: 10000,
@@ -122,11 +136,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Finish a call
     fn finish_call(&self) -> Result<()> {
         unimplemented!("finish_call")
-    }
-
-    /// Requires the module in the given address
-    fn get_module(&self, address: &str) -> Result<Vec<u8>> {
-        unimplemented!("get_module")
     }
 
     /// Get the SCE ledger balance for the current address.
@@ -334,6 +343,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Generate a smart contract event
     fn generate_event(&self, _event: String) -> Result<()> {
         unimplemented!("generate_event")
+    }
+
+    /// For the given bytecode:
+    ///
+    /// * Get the corresponding runtime module if it already exists
+    /// * Compile it if not
+    fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule> {
+        unimplemented!("get_module")
     }
 
     /// Sends an async message

@@ -1,4 +1,6 @@
+use crate::as_execution::ASModule;
 use crate::types::{Interface, InterfaceClone};
+use crate::{GasCosts, RuntimeModule};
 
 use anyhow::{bail, Result};
 use parking_lot::Mutex;
@@ -51,7 +53,8 @@ impl Interface for TestInterface {
         Ok(public_key.to_string())
     }
 
-    fn generate_event(&self, _event: String) -> Result<()> {
+    fn generate_event(&self, event: String) -> Result<()> {
+        println!("Event: {}", event);
         Ok(())
     }
 
@@ -67,8 +70,10 @@ impl Interface for TestInterface {
         Ok(0)
     }
 
-    fn get_module(&self, _address: &str) -> Result<Vec<u8>> {
-        Ok(vec![])
+    fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule> {
+        let as_module = ASModule::new(bytecode, limit, GasCosts::default())?;
+        let module = RuntimeModule::ASModule(as_module);
+        Ok(module)
     }
 
     fn get_owned_addresses(&self) -> Result<Vec<String>> {
@@ -217,7 +222,13 @@ impl Interface for TestInterface {
     }
 
     fn get_time(&self) -> Result<u64> {
-        Ok(0)
+        // Using chrono as a test dummy implementation to make sure the ABI is called correctly
+        // Note that Massa node implementation uses the time of the context slot
+        // in order to ensure determinism, not the UTC time
+        Ok(chrono::offset::Utc::now()
+            .timestamp_millis()
+            .try_into()
+            .unwrap())
     }
 }
 

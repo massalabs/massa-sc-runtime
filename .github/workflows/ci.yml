@@ -97,6 +97,10 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --features gas_calibration
 
   build: # quick hack because bors wrongly detect matrix jobs status
     # if: github.ref == 'refs/heads/staging'
