@@ -311,16 +311,19 @@ fn test_features_disabled() {
 
 #[test]
 #[serial]
-/// Non regression test on the AS class ID values
+/// Non regression test on the AS class id values
 fn test_class_id() {
     // setup basic AS runtime context
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/basic_main.wasm"));
+    let bytecode = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/return_basic.wasm"
+    ));
     let (module, engine) = ASModule::new(bytecode, 100_000, GasCosts::default()).unwrap();
     let mut store = init_store(&engine).unwrap();
     let mut context = ASContextModule::new(&*interface, module.binary_module, GasCosts::default());
-    let _ = context.create_vm_instance_and_init_env(&mut store).unwrap();
+    let (instance, _) = context.create_vm_instance_and_init_env(&mut store).unwrap();
 
     // setup test specific context
     let (_, fenv) = context.resolver(&mut store);
@@ -328,20 +331,59 @@ fn test_class_id() {
     let memory = context.env.get_wasm_env().memory.as_ref().unwrap();
     let memory_view = memory.view(&fenv_mut);
 
-    // read class id
-    let message = 42;
+    // get string and array offsets
+    let return_string = instance.exports.get_function("return_string").unwrap();
+    let return_array = instance.exports.get_function("return_array").unwrap();
+    let string_offset = return_string
+        .call(&mut store, &[])
+        .unwrap()
+        .get(0)
+        .unwrap()
+        .i32()
+        .unwrap();
+    let array_offset = return_array
+        .call(&mut store, &[])
+        .unwrap()
+        .get(0)
+        .unwrap()
+        .i32()
+        .unwrap();
+
+    // use `u32` size to retrieve the class id
+    // see https://www.assemblyscript.org/runtime.html#memory-layout
     let u32_size = std::mem::size_of::<u32>() as u32;
-    let ptr_s: WasmPtr<u8> = WasmPtr::new(message).sub_offset(u32_size * 2).unwrap();
-    let slice_len_buf = ptr_s
+
+    // read and assert string class id
+    let string_ptr: WasmPtr<u8> = WasmPtr::new(string_offset as u32)
+        .sub_offset(u32_size * 2)
+        .unwrap();
+    let slice_len_buf = string_ptr
         .slice(&memory_view, u32_size)
         .unwrap()
         .read_to_vec()
         .unwrap();
-    let class_id = u32::from_ne_bytes(
+    let string_class_id = u32::from_ne_bytes(
         slice_len_buf
             .try_into()
             .map_err(|_| wasmer::RuntimeError::new("Unable to convert vec to [u8; 4]"))
             .unwrap(),
     );
-    dbg!(class_id);
+    assert_eq!(string_class_id, 2);
+
+    // read and assert array class id
+    let array_ptr: WasmPtr<u8> = WasmPtr::new(array_offset as u32)
+        .sub_offset(u32_size * 2)
+        .unwrap();
+    let slice_len_buf = array_ptr
+        .slice(&memory_view, u32_size)
+        .unwrap()
+        .read_to_vec()
+        .unwrap();
+    let array_class_id = u32::from_ne_bytes(
+        slice_len_buf
+            .try_into()
+            .map_err(|_| wasmer::RuntimeError::new("Unable to convert vec to [u8; 4]"))
+            .unwrap(),
+    );
+    assert_eq!(array_class_id, 4);
 }
