@@ -1,3 +1,5 @@
+use crate::as_execution::{init_store, ASContextModule, ASModule};
+use crate::env::MassaEnv;
 use crate::tests::{Ledger, TestInterface};
 use crate::{
     run_function, run_main,
@@ -8,6 +10,7 @@ use parking_lot::Mutex;
 use rand::Rng;
 use serial_test::serial;
 use std::sync::Arc;
+use wasmer::WasmPtr;
 
 #[test]
 #[serial]
@@ -157,11 +160,11 @@ fn test_builtins() {
     }
 }
 
+#[test]
+#[serial]
 /// Test `assert` & `process.exit
 ///
 /// These are AS functions that we choose to handle in the VM
-#[test]
-#[serial]
 fn test_builtin_assert_and_exit() {
     let gas_costs = GasCosts::default();
     let interface: Box<dyn Interface> =
@@ -237,7 +240,6 @@ fn test_builtin_assert_and_exit() {
 #[test]
 #[serial]
 /// Test WASM files compiled with unsupported builtin functions
-///
 fn test_unsupported_builtins() {
     let gas_costs = GasCosts::default();
     let interface: Box<dyn Interface> =
@@ -278,9 +280,9 @@ fn test_wat() {
     assert_eq!(response.ret, excepted);
 }
 
-/// Test a WASM execution using features disabled in engine (simd & threads)
 #[test]
 #[serial]
+/// Test a WASM execution using features disabled in engine (simd & threads)
 fn test_features_disabled() {
     let gas_costs = GasCosts::default();
 
@@ -305,4 +307,41 @@ fn test_features_disabled() {
         }
         _ => panic!("Failed to run use_builtins.wasm"),
     }
+}
+
+#[test]
+#[serial]
+/// Non regression test on the AS class ID values
+fn test_class_id() {
+    // setup basic AS runtime context
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/basic_main.wasm"));
+    let (module, engine) = ASModule::new(bytecode, 100_000, GasCosts::default()).unwrap();
+    let mut store = init_store(&engine).unwrap();
+    let mut context = ASContextModule::new(&*interface, module.binary_module, GasCosts::default());
+    let _ = context.create_vm_instance_and_init_env(&mut store).unwrap();
+
+    // setup test specific context
+    let (_, fenv) = context.resolver(&mut store);
+    let fenv_mut = fenv.into_mut(&mut store);
+    let memory = context.env.get_wasm_env().memory.as_ref().unwrap();
+    let memory_view = memory.view(&fenv_mut);
+
+    // read class id
+    let message = 42;
+    let u32_size = std::mem::size_of::<u32>() as u32;
+    let ptr_s: WasmPtr<u8> = WasmPtr::new(message).sub_offset(u32_size * 2).unwrap();
+    let slice_len_buf = ptr_s
+        .slice(&memory_view, u32_size)
+        .unwrap()
+        .read_to_vec()
+        .unwrap();
+    let class_id = u32::from_ne_bytes(
+        slice_len_buf
+            .try_into()
+            .map_err(|_| wasmer::RuntimeError::new("Unable to convert vec to [u8; 4]"))
+            .unwrap(),
+    );
+    dbg!(class_id);
 }
