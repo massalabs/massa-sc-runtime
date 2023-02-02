@@ -371,7 +371,7 @@
                         init_cost: <span class="number">0</span>,
                     });
                 }
-                <span class="kw">let </span>ret = <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = value.get(<span class="number">0</span>) {
+                <span class="kw">let </span>ret = <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = value.first() {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = offset.i32() {
                         <span class="kw">let </span>buffer_ptr = BufferPtr::new(offset <span class="kw">as </span>u32);
                         <span class="kw">let </span>memory = instance.exports.get_memory(<span class="string">&quot;memory&quot;</span>)<span class="question-mark">?</span>;
