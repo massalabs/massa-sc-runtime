@@ -3,7 +3,7 @@ mod abi_error;
 mod common;
 mod execution;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use std::sync::Arc;
 use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
 use wasmer::{CompilerConfig, Engine, Features, Module, Store};
@@ -31,11 +31,11 @@ impl RuntimeModule {
     /// * (2) TODO: target X
     /// * (_) target AssemblyScript and use the full bytecode
     pub fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
-        let module = match bytecode[0] {
-            1 => Self::ASModule(ASModule::new(bytecode, limit, gas_costs)?),
-            _ => Self::ASModule(ASModule::new(bytecode, limit, gas_costs)?),
-        };
-        Ok(module)
+        match bytecode.get(0) {
+            Some(1) => Ok(Self::ASModule(ASModule::new(bytecode, limit, gas_costs)?)),
+            Some(_) => Ok(Self::ASModule(ASModule::new(bytecode, limit, gas_costs)?)),
+            None => Err(anyhow!("Empty bytecode")),
+        }
     }
 }
 
