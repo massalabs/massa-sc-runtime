@@ -21,7 +21,7 @@ parking_lot = "0.12"
 rand = "0.8"
 displaydoc = "0.2"
 thiserror = "1.0"
-chrono = "0.4"
+chrono = { version = "0.4", default-features = false }
 # for gas_calibration middleware
 regex = "1"
 more-asserts = "0.3"
