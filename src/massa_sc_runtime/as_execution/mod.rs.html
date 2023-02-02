@@ -120,7 +120,7 @@
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>execution;
 
-<span class="kw">use </span>anyhow::Result;
+<span class="kw">use </span>anyhow::{anyhow, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
 <span class="kw">use </span>wasmer::{CompilerConfig, Engine, Features, Module, Store};
@@ -148,11 +148,11 @@
     /// * (2) TODO: target X
     /// * (_) target AssemblyScript and use the full bytecode
     </span><span class="kw">pub fn </span>new(bytecode: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>module = <span class="kw">match </span>bytecode[<span class="number">0</span>] {
-            <span class="number">1 </span>=&gt; <span class="self">Self</span>::ASModule(ASModule::new(bytecode, limit, gas_costs)<span class="question-mark">?</span>),
-            <span class="kw">_ </span>=&gt; <span class="self">Self</span>::ASModule(ASModule::new(bytecode, limit, gas_costs)<span class="question-mark">?</span>),
-        };
-        <span class="prelude-val">Ok</span>(module)
+        <span class="kw">match </span>bytecode.get(<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(<span class="number">1</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ASModule(ASModule::new(bytecode, limit, gas_costs)<span class="question-mark">?</span>)),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ASModule(ASModule::new(bytecode, limit, gas_costs)<span class="question-mark">?</span>)),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;Empty bytecode&quot;</span>)),
+        }
     }
 }
 
