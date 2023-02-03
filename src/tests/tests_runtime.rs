@@ -337,14 +337,14 @@ fn test_class_id() {
     let string_ptr = return_string
         .call(&mut store, &[])
         .unwrap()
-        .get(0)
+        .first()
         .unwrap()
         .i32()
         .unwrap();
     let array_ptr = return_array
         .call(&mut store, &[])
         .unwrap()
-        .get(0)
+        .first()
         .unwrap()
         .i32()
         .unwrap();
