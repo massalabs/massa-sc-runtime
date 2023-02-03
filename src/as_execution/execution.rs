@@ -1,8 +1,9 @@
 use super::abi::*;
 use crate::env::{
-    assembly_script_abort, assembly_script_console_log, assembly_script_date_now,
-    assembly_script_process_exit, assembly_script_seed, assembly_script_trace,
-    get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
+    assembly_script_abort, assembly_script_console_debug, assembly_script_console_error,
+    assembly_script_console_info, assembly_script_console_log, assembly_script_console_warn,
+    assembly_script_date_now, assembly_script_process_exit, assembly_script_seed,
+    assembly_script_trace, get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
 };
 use crate::types::Response;
 use crate::{GasCosts, Interface};
@@ -208,6 +209,10 @@ impl ASContextModule {
                 "seed" => Function::new_typed_with_env(store, &fenv, assembly_script_seed),
                 "Date.now" =>  Function::new_typed_with_env(store, &fenv, assembly_script_date_now),
                 "console.log" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_log),
+                "console.info" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_info),
+                "console.warn" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_warn),
+                "console.error" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_error),
+                "console.debug" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_debug),
                 "trace" =>  Function::new_typed_with_env(store, &fenv, assembly_script_trace),
                 "process.exit" =>  Function::new_typed_with_env(store, &fenv, assembly_script_process_exit),
             },

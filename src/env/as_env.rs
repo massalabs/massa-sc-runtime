@@ -9,6 +9,7 @@ use crate::{
 use as_ffi_bindings::{Read, StringPtr};
 use function_name::named;
 use std::collections::HashMap;
+use std::ops::Add;
 use wasmer::{FunctionEnvMut, Global};
 
 use super::MassaEnv;
@@ -141,7 +142,68 @@ pub fn assembly_script_console_log(
     if cfg!(not(feature = "gas_calibration")) {
         sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     }
+    assembly_script_console(ctx, message, "LOG")
+}
 
+/// Assembly script builtin `console.info()`.
+#[named]
+pub fn assembly_script_console_info(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    assembly_script_console(ctx, message, "INFO")
+}
+
+/// Assembly script builtin `console.warn()`.
+#[named]
+pub fn assembly_script_console_warn(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    assembly_script_console(ctx, message, "WARN")
+}
+
+/// Assembly script builtin `console.debug()`.
+#[named]
+pub fn assembly_script_console_debug(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    assembly_script_console(ctx, message, "DEBUG")
+}
+
+/// Assembly script builtin `console.error()`.
+#[named]
+pub fn assembly_script_console_error(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    assembly_script_console(ctx, message, "ERROR")
+}
+
+/// Assembly script console functions
+fn assembly_script_console(
+    ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+    prefix: &str,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
     let memory = ctx
         .data()
         .get_wasm_env()
@@ -149,7 +211,10 @@ pub fn assembly_script_console_log(
         .as_ref()
         .expect("Failed to get memory on env")
         .clone();
-    let message = message.read(&memory, &ctx)?;
+    let message = prefix
+        .to_string()
+        .add(" | ")
+        .add(&message.read(&memory, &ctx)?);
     env.get_interface().generate_event(message)?;
     Ok(())
 }

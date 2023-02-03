@@ -117,6 +117,10 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_abort"), 11);
         abi_costs.insert(String::from("assembly_script_date_now"), 11);
         abi_costs.insert(String::from("assembly_script_console_log"), 36); // same cost as for generate_event
+        abi_costs.insert(String::from("assembly_script_console_debug"), 36);
+        abi_costs.insert(String::from("assembly_script_console_info"), 36);
+        abi_costs.insert(String::from("assembly_script_console_warn"), 36);
+        abi_costs.insert(String::from("assembly_script_console_error"), 36);
         abi_costs.insert(String::from("assembly_script_trace"), 36);
         Self {
             operator_cost: 1,
