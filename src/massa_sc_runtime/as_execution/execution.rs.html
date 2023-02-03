@@ -261,6 +261,7 @@
 <a href="#261" id="261">261</a>
 <a href="#262" id="262">262</a>
 <a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::env::{
     assembly_script_abort, assembly_script_console_log, assembly_script_date_now,
@@ -518,6 +519,7 @@
                 <span class="string">&quot;assembly_script_local_execution&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_local_execution),
                 <span class="string">&quot;assembly_script_caller_has_write_access&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_caller_has_write_access),
                 <span class="string">&quot;assembly_script_function_exists&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_function_exists),
+                <span class="string">&quot;assembly_script_sha256_hash&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_sha256),
             },
         };
 
