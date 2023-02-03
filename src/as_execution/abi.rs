@@ -1078,6 +1078,23 @@ where
     Ok(buffer)
 }
 
+/// performs a sha256 hash on bytes and returns the hash as bytes
+#[named]
+pub(crate) fn assembly_script_sha256(mut ctx: FunctionEnvMut<ASEnv>, bytes: i32) -> ABIResult<i32> {
+    let env = ctx.data().clone();
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let memory = get_memory!(env);
+    let bytes = read_buffer(memory, &ctx, bytes)?;
+    // Do not remove this. It could be used for gas_calibration in future.
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
+    //     param_size_update(&env, &mut ctx, &fname, bytes.len(), true);
+    // }
+    let hash = env.get_interface().sha256_hash(&bytes)?;
+    let ptr = pointer_from_bytearray(&env, &mut ctx, &hash)?.offset();
+    Ok(ptr as i32)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::as_execution::abi::ser_bytearray_vec;

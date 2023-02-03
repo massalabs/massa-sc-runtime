@@ -4,7 +4,7 @@ use crate::{GasCosts, RuntimeModule};
 
 use anyhow::{bail, Result};
 use parking_lot::Mutex;
-
+use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use std::{collections::BTreeMap, str::FromStr};
 
@@ -229,6 +229,14 @@ impl Interface for TestInterface {
             .timestamp_millis()
             .try_into()
             .unwrap())
+    }
+
+    // Sha256 hash data
+    fn sha256_hash(&self, bytes: &[u8]) -> Result<Vec<u8>> {
+        let mut hasher = Sha256::new();
+        hasher.update(bytes);
+        let hash = hasher.finalize().to_vec();
+        Ok(hash)
     }
 }
 
