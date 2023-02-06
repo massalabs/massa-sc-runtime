@@ -68,7 +68,9 @@ pub(crate) fn init_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     // * threads
     // * SIMD
     // * experimental features
-    // see https://github.com/WebAssembly/design/blob/037c6fe94151eb13e30d174f5f7ce851be0a573e/Nondeterminism.md
+    // References:
+    // * https://github.com/WebAssembly/design/blob/390bab47efdb76b600371bcef1ec0ea374aa8c43/Nondeterminism.md
+    // * https://github.com/WebAssembly/proposals
     compiler_config.canonicalize_nans(true);
     const FEATURES: Features = Features {
         threads: false,        // non-deterministic
