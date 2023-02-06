@@ -257,7 +257,7 @@ impl ASContext {
                 "assembly_script_local_execution" => Function::new_typed_with_env(store, &fenv, assembly_script_local_execution),
                 "assembly_script_caller_has_write_access" => Function::new_typed_with_env(store, &fenv, assembly_script_caller_has_write_access),
                 "assembly_script_function_exists" => Function::new_typed_with_env(store, &fenv, assembly_script_function_exists),
-                "assembly_script_sha256_hash" =>  Function::new_typed_with_env(store, &fenv, assembly_script_sha256),
+                "assembly_script_hash_sha256" =>  Function::new_typed_with_env(store, &fenv, assembly_script_hash_sha256),
             },
         };
 

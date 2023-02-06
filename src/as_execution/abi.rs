@@ -1078,19 +1078,18 @@ where
     Ok(buffer)
 }
 
-/// performs a sha256 hash on bytes and returns the hash as bytes
+/// performs a sha256 hash on byte array and returns the hash as byte array
 #[named]
-pub(crate) fn assembly_script_sha256(mut ctx: FunctionEnvMut<ASEnv>, bytes: i32) -> ABIResult<i32> {
+pub(crate) fn assembly_script_hash_sha256(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    bytes: i32,
+) -> ABIResult<i32> {
     let env = ctx.data().clone();
+    // TODO: Support dynamic gas cost depending on the payload size
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let bytes = read_buffer(memory, &ctx, bytes)?;
-    // Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = "gas_calibration") {
-    //     let fname = format!("massa.{}:0", function_name!());
-    //     param_size_update(&env, &mut ctx, &fname, bytes.len(), true);
-    // }
-    let hash = env.get_interface().sha256_hash(&bytes)?;
+    let hash = env.get_interface().hash_sha256(&bytes)?.to_vec();
     let ptr = pointer_from_bytearray(&env, &mut ctx, &hash)?.offset();
     Ok(ptr as i32)
 }
