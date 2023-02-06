@@ -135,7 +135,7 @@ pub fn run_main_gc(
     gas_costs: GasCosts,
 ) -> Result<GasCalibrationResult> {
     Ok(
-        exec(interface, module, settings::MAIN, param, limit, gas_costs)?
+        exec(interface, rt_module, settings::MAIN, param, limit, gas_costs)?
             .1
             .unwrap(),
     )
