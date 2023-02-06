@@ -1085,7 +1085,6 @@ pub(crate) fn assembly_script_hash_sha256(
     bytes: i32,
 ) -> ABIResult<i32> {
     let env = ctx.data().clone();
-    // TODO: Support dynamic gas cost depending on the payload size
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let bytes = read_buffer(memory, &ctx, bytes)?;
