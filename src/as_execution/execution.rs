@@ -1,9 +1,5 @@
 use super::abi::*;
-use crate::env::{
-    assembly_script_abort, assembly_script_console_log, assembly_script_date_now,
-    assembly_script_process_exit, assembly_script_seed, assembly_script_trace,
-    get_remaining_points, set_remaining_points, ASEnv, Metered,
-};
+use crate::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 use crate::types::Response;
 use crate::{GasCosts, Interface};
 use anyhow::{bail, Result};
@@ -14,12 +10,12 @@ use wasmer::{
 use wasmer_middlewares::metering::{self, MeteringPoints};
 use wasmer_types::TrapCode;
 
-pub(crate) struct ASContextModule {
+pub(crate) struct ASContext {
     pub env: ASEnv,
     pub module: Module,
 }
 
-impl ASContextModule {
+impl ASContext {
     pub(crate) fn new(
         interface: &dyn Interface,
         binary_module: Module,

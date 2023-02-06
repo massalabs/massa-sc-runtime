@@ -1,4 +1,4 @@
-use crate::as_execution::{init_engine, init_store, ASContextModule, ASModule, RuntimeModule};
+use crate::as_execution::{init_engine, init_store, ASContext, ASModule, RuntimeModule};
 use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 use crate::settings;
 use crate::types::{Interface, Response};
@@ -47,7 +47,7 @@ pub(crate) fn exec_as_module(
 ) -> Result<(Response, Option<GasCalibrationResult>)> {
     let engine = init_engine(limit, gas_costs.clone());
     let mut store = init_store(&engine)?;
-    let mut context_module = ASContextModule::new(interface, as_module.binary_module, gas_costs);
+    let mut context_module = ASContext::new(interface, as_module.binary_module, gas_costs);
     let (instance, init_rem_points) = context_module.create_vm_instance_and_init_env(&mut store)?;
     let init_cost = as_module.init_limit.saturating_sub(init_rem_points);
 

@@ -1,4 +1,3 @@
-// main function name in the webassembly module
 pub(crate) const MAIN: &str = "main";
 
 pub(crate) fn max_number_of_pages() -> u32 {

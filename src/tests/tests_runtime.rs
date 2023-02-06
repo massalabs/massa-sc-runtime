@@ -1,4 +1,4 @@
-use crate::as_execution::{init_store, ASContextModule, ASModule};
+use crate::as_execution::{init_store, ASContext, ASModule};
 use crate::tests::{Ledger, TestInterface};
 use crate::{
     run_function, run_main,
@@ -321,7 +321,7 @@ fn test_class_id() {
     ));
     let (module, engine) = ASModule::new(bytecode, 100_000, GasCosts::default()).unwrap();
     let mut store = init_store(&engine).unwrap();
-    let mut context = ASContextModule::new(&*interface, module.binary_module, GasCosts::default());
+    let mut context = ASContext::new(&*interface, module.binary_module, GasCosts::default());
     let (instance, _) = context.create_vm_instance_and_init_env(&mut store).unwrap();
 
     // setup test specific context
