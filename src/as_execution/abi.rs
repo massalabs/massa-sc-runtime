@@ -9,12 +9,21 @@ use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use function_name::named;
 use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
-use crate::env::{get_memory, get_remaining_points, sub_remaining_gas_abi, ASEnv, RuntimeEnv};
+use crate::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
 use crate::settings;
 
 use super::abi_error::{abi_bail, ABIResult};
 use super::common::{call_module, create_sc, function_exists};
 use super::local_call;
+
+macro_rules! get_memory {
+    ($env:ident) => {
+        match $env.get_ffi_env().memory.as_ref() {
+            Some(mem) => mem,
+            _ => abi_bail!("No memory in env"),
+        }
+    };
+}
 
 /// Get the coins that have been made available for a specific purpose for the current call.
 #[named]

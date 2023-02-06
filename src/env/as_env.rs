@@ -11,7 +11,7 @@ use function_name::named;
 use std::collections::HashMap;
 use wasmer::{FunctionEnvMut, Global};
 
-use super::RuntimeEnv;
+use super::Metered;
 
 #[derive(Clone)]
 pub struct ASEnv {
@@ -23,8 +23,8 @@ pub struct ASEnv {
     gas_costs: GasCosts,
 }
 
-impl RuntimeEnv<as_ffi_bindings::Env> for ASEnv {
-    fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
+impl ASEnv {
+    pub fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
         Self {
             wasm_env: Default::default(),
             gas_costs,
@@ -34,6 +34,18 @@ impl RuntimeEnv<as_ffi_bindings::Env> for ASEnv {
             param_size_map: Default::default(),
         }
     }
+    pub fn get_interface(&self) -> Box<dyn Interface> {
+        self.interface.clone()
+    }
+    pub fn get_ffi_env(&self) -> &as_ffi_bindings::Env {
+        &self.wasm_env
+    }
+    pub fn get_ffi_env_as_mut(&mut self) -> &mut as_ffi_bindings::Env {
+        &mut self.wasm_env
+    }
+}
+
+impl Metered for ASEnv {
     fn get_exhausted_points(&self) -> Option<&Global> {
         self.exhausted_points.as_ref()
     }
@@ -45,15 +57,6 @@ impl RuntimeEnv<as_ffi_bindings::Env> for ASEnv {
     }
     fn get_gas_costs(&self) -> GasCosts {
         self.gas_costs.clone()
-    }
-    fn get_interface(&self) -> Box<dyn Interface> {
-        self.interface.clone()
-    }
-    fn get_ffi_env(&self) -> &as_ffi_bindings::Env {
-        &self.wasm_env
-    }
-    fn get_ffi_env_as_mut(&mut self) -> &mut as_ffi_bindings::Env {
-        &mut self.wasm_env
     }
 }
 

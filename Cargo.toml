@@ -12,7 +12,6 @@ wasmer-compiler-singlepass = "3.1.1"
 wasmer-types = "3.1.1"
 wasmer-middlewares = "3.1.1"
 tracing = "0.1"
-# as-ffi-bindings = "0.2.7"
 as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", tag = "v0.3.3" }
 base64 = "0.13"
 serial_test = "0.8"

@@ -2,7 +2,7 @@ use super::abi::*;
 use crate::env::{
     assembly_script_abort, assembly_script_console_log, assembly_script_date_now,
     assembly_script_process_exit, assembly_script_seed, assembly_script_trace,
-    get_remaining_points, set_remaining_points, ASEnv, RuntimeEnv,
+    get_remaining_points, set_remaining_points, ASEnv, Metered,
 };
 use crate::types::Response;
 use crate::{GasCosts, Interface};

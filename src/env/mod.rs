@@ -1,37 +1,24 @@
 mod as_env;
 
 use crate::as_execution::{abi_bail, ABIResult};
-use crate::{GasCosts, Interface};
+use crate::GasCosts;
 use wasmer::{AsStoreMut, Global};
 
 pub(crate) use as_env::*;
 
-macro_rules! get_memory {
-    ($env:ident) => {
-        match $env.get_ffi_env().memory.as_ref() {
-            Some(mem) => mem,
-            _ => abi_bail!("No memory in env"),
-        }
-    };
-}
-pub(crate) use get_memory;
-
-pub(crate) trait RuntimeEnv<T> {
-    fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self;
+/// Trait describing a metered object
+pub(crate) trait Metered {
     fn get_exhausted_points(&self) -> Option<&Global>;
     fn get_remaining_points(&self) -> Option<&Global>;
     fn get_gc_param(&self, name: &str) -> Option<&Global>;
     fn get_gas_costs(&self) -> GasCosts;
-    fn get_interface(&self) -> Box<dyn Interface>;
-    fn get_ffi_env(&self) -> &T;
-    fn get_ffi_env_as_mut(&mut self) -> &mut T;
 }
 
 /// Get remaining metering points
 /// Should be equivalent to
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L293
-pub(crate) fn get_remaining_points<T>(
-    env: &impl RuntimeEnv<T>,
+pub(crate) fn get_remaining_points(
+    env: &impl Metered,
     store: &mut impl AsStoreMut,
 ) -> ABIResult<u64> {
     if cfg!(feature = "gas_calibration") {
@@ -58,8 +45,8 @@ pub(crate) fn get_remaining_points<T>(
 /// Set remaining metering points
 /// Should be equivalent to
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L343
-pub(crate) fn set_remaining_points<T>(
-    env: &impl RuntimeEnv<T>,
+pub(crate) fn set_remaining_points(
+    env: &impl Metered,
     store: &mut impl AsStoreMut,
     points: u64,
 ) -> ABIResult<()> {
@@ -84,8 +71,8 @@ pub(crate) fn set_remaining_points<T>(
     Ok(())
 }
 
-pub(crate) fn sub_remaining_gas<T>(
-    env: &impl RuntimeEnv<T>,
+pub(crate) fn sub_remaining_gas(
+    env: &impl Metered,
     store: &mut impl AsStoreMut,
     gas: u64,
 ) -> ABIResult<()> {
@@ -101,8 +88,8 @@ pub(crate) fn sub_remaining_gas<T>(
     Ok(())
 }
 
-pub(crate) fn sub_remaining_gas_abi<T>(
-    env: &impl RuntimeEnv<T>,
+pub(crate) fn sub_remaining_gas_abi(
+    env: &impl Metered,
     store: &mut impl AsStoreMut,
     abi_name: &str,
 ) -> ABIResult<()> {

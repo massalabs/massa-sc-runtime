@@ -1,5 +1,4 @@
 use crate::as_execution::{init_store, ASContextModule, ASModule};
-use crate::env::RuntimeEnv;
 use crate::tests::{Ledger, TestInterface};
 use crate::{
     run_function, run_main,
