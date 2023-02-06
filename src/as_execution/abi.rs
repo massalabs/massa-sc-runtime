@@ -12,7 +12,7 @@ use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 use crate::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
 use crate::settings;
 
-use super::abi_error::{abi_bail, ABIResult};
+use super::error::{abi_bail, ABIResult};
 use super::common::{call_module, create_sc, function_exists};
 use super::local_call;
 
