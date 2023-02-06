@@ -992,7 +992,6 @@
 <a href="#992" id="992">992</a>
 <a href="#993" id="993">993</a>
 <a href="#994" id="994">994</a>
-<a href="#995" id="995">995</a>
 </pre><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -1932,8 +1931,7 @@
     bytes: i32,
 ) -&gt; ABIResult&lt;i32&gt; {
     <span class="kw">let </span>env = ctx.data().clone();
-    <span class="comment">// TODO: Support dynamic gas cost depending on the payload size
-    </span>sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
+    sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>bytes = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, bytes)<span class="question-mark">?</span>;
     <span class="kw">let </span>hash = env.get_interface().hash_sha256(<span class="kw-2">&amp;</span>bytes)<span class="question-mark">?</span>.to_vec();
