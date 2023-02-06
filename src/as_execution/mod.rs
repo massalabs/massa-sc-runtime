@@ -1,7 +1,7 @@
 mod abi;
-mod error;
 mod common;
 mod context;
+mod error;
 
 use anyhow::{anyhow, Result};
 use std::sync::Arc;
@@ -15,9 +15,9 @@ use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::GasCosts;
 
-pub(crate) use error::*;
 pub(crate) use common::*;
 pub(crate) use context::*;
+pub(crate) use error::*;
 
 #[derive(Clone)]
 pub enum RuntimeModule {
