@@ -7,7 +7,7 @@ use wasmer_types::{
     ExportIndex, GlobalIndex, GlobalInit, GlobalType, ImportIndex, ModuleInfo, Mutability, Type,
 };
 
-use crate::env::{ASEnv, MassaEnv};
+use crate::env::{ASEnv, RuntimeEnv};
 use std::collections::HashMap;
 use std::fmt::{self, Debug};
 use std::sync::Mutex;

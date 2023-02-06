@@ -8,7 +8,7 @@ pub(crate) use as_env::*;
 
 macro_rules! get_memory {
     ($env:ident) => {
-        match $env.get_wasm_env().memory.as_ref() {
+        match $env.get_ffi_env().memory.as_ref() {
             Some(mem) => mem,
             _ => abi_bail!("No memory in env"),
         }
@@ -16,22 +16,22 @@ macro_rules! get_memory {
 }
 pub(crate) use get_memory;
 
-pub(crate) trait MassaEnv<T> {
+pub(crate) trait RuntimeEnv<T> {
     fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self;
     fn get_exhausted_points(&self) -> Option<&Global>;
     fn get_remaining_points(&self) -> Option<&Global>;
     fn get_gc_param(&self, name: &str) -> Option<&Global>;
     fn get_gas_costs(&self) -> GasCosts;
     fn get_interface(&self) -> Box<dyn Interface>;
-    fn get_wasm_env(&self) -> &T;
-    fn get_wasm_env_as_mut(&mut self) -> &mut T;
+    fn get_ffi_env(&self) -> &T;
+    fn get_ffi_env_as_mut(&mut self) -> &mut T;
 }
 
 /// Get remaining metering points
 /// Should be equivalent to
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L293
 pub(crate) fn get_remaining_points<T>(
-    env: &impl MassaEnv<T>,
+    env: &impl RuntimeEnv<T>,
     store: &mut impl AsStoreMut,
 ) -> ABIResult<u64> {
     if cfg!(feature = "gas_calibration") {
@@ -59,7 +59,7 @@ pub(crate) fn get_remaining_points<T>(
 /// Should be equivalent to
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L343
 pub(crate) fn set_remaining_points<T>(
-    env: &impl MassaEnv<T>,
+    env: &impl RuntimeEnv<T>,
     store: &mut impl AsStoreMut,
     points: u64,
 ) -> ABIResult<()> {
@@ -85,7 +85,7 @@ pub(crate) fn set_remaining_points<T>(
 }
 
 pub(crate) fn sub_remaining_gas<T>(
-    env: &impl MassaEnv<T>,
+    env: &impl RuntimeEnv<T>,
     store: &mut impl AsStoreMut,
     gas: u64,
 ) -> ABIResult<()> {
@@ -102,7 +102,7 @@ pub(crate) fn sub_remaining_gas<T>(
 }
 
 pub(crate) fn sub_remaining_gas_abi<T>(
-    env: &impl MassaEnv<T>,
+    env: &impl RuntimeEnv<T>,
     store: &mut impl AsStoreMut,
     abi_name: &str,
 ) -> ABIResult<()> {

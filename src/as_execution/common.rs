@@ -1,6 +1,6 @@
 use wasmer::FunctionEnvMut;
 
-use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
+use crate::env::{get_remaining_points, set_remaining_points, ASEnv, RuntimeEnv};
 use crate::{Response, RuntimeModule};
 
 use super::abi_error::{abi_bail, ABIResult};

@@ -11,7 +11,7 @@ use function_name::named;
 use std::collections::HashMap;
 use wasmer::{FunctionEnvMut, Global};
 
-use super::MassaEnv;
+use super::RuntimeEnv;
 
 #[derive(Clone)]
 pub struct ASEnv {
@@ -23,7 +23,7 @@ pub struct ASEnv {
     gas_costs: GasCosts,
 }
 
-impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
+impl RuntimeEnv<as_ffi_bindings::Env> for ASEnv {
     fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
         Self {
             wasm_env: Default::default(),
@@ -49,10 +49,10 @@ impl MassaEnv<as_ffi_bindings::Env> for ASEnv {
     fn get_interface(&self) -> Box<dyn Interface> {
         self.interface.clone()
     }
-    fn get_wasm_env(&self) -> &as_ffi_bindings::Env {
+    fn get_ffi_env(&self) -> &as_ffi_bindings::Env {
         &self.wasm_env
     }
-    fn get_wasm_env_as_mut(&mut self) -> &mut as_ffi_bindings::Env {
+    fn get_ffi_env_as_mut(&mut self) -> &mut as_ffi_bindings::Env {
         &mut self.wasm_env
     }
 }
@@ -75,7 +75,7 @@ pub fn assembly_script_abort(
 ) -> ABIResult<()> {
     let memory = ctx
         .data()
-        .get_wasm_env()
+        .get_ffi_env()
         .memory
         .as_ref()
         .expect("Failed to get memory on env")
@@ -144,7 +144,7 @@ pub fn assembly_script_console_log(
 
     let memory = ctx
         .data()
-        .get_wasm_env()
+        .get_ffi_env()
         .memory
         .as_ref()
         .expect("Failed to get memory on env")
@@ -174,7 +174,7 @@ pub fn assembly_script_trace(
 
     let memory = ctx
         .data()
-        .get_wasm_env()
+        .get_ffi_env()
         .memory
         .as_ref()
         .expect("Failed to get memory on env")

@@ -9,7 +9,7 @@ use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use function_name::named;
 use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
-use crate::env::{get_memory, get_remaining_points, sub_remaining_gas_abi, ASEnv, MassaEnv};
+use crate::env::{get_memory, get_remaining_points, sub_remaining_gas_abi, ASEnv, RuntimeEnv};
 use crate::settings;
 
 use super::abi_error::{abi_bail, ABIResult};
@@ -128,7 +128,7 @@ pub(crate) fn assembly_script_call(
     // }
 
     let response = call_module(&mut ctx, address, function, param, call_coins)?;
-    match BufferPtr::alloc(&response.ret, env.get_wasm_env(), &mut ctx) {
+    match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
             "Cannot allocate response in call {}::{}",
@@ -247,7 +247,7 @@ pub(crate) fn assembly_script_create_sc(
     //     param_size_update(&env, &mut ctx, &fname, bytecode.len(), true);
     // }
     let address = create_sc(&mut ctx, &bytecode)?;
-    Ok(StringPtr::alloc(&address, env.get_wasm_env(), &mut ctx)?.offset() as i32)
+    Ok(StringPtr::alloc(&address, env.get_ffi_env(), &mut ctx)?.offset() as i32)
 }
 
 /// performs a hash on a string and returns the bs58check encoded hash
@@ -804,7 +804,7 @@ pub(crate) fn assembly_script_local_execution(
     let param = &read_buffer(memory, &ctx, param)?;
 
     let response = local_call(&mut ctx, bytecode, function, param)?;
-    match BufferPtr::alloc(&response.ret, env.get_wasm_env(), &mut ctx) {
+    match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
             "Cannot allocate response in local call of {}",
@@ -831,7 +831,7 @@ pub(crate) fn assembly_script_local_call(
     let param = &read_buffer(memory, &ctx, param)?;
 
     let response = local_call(&mut ctx, &bytecode, function, param)?;
-    match BufferPtr::alloc(&response.ret, env.get_wasm_env(), &mut ctx) {
+    match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
             "Cannot allocate response in local call of {}",
@@ -869,7 +869,7 @@ fn pointer_from_string(
     ctx: &mut impl AsStoreMut,
     value: &str,
 ) -> ABIResult<StringPtr> {
-    Ok(*StringPtr::alloc(&value.into(), env.get_wasm_env(), ctx)?)
+    Ok(*StringPtr::alloc(&value.into(), env.get_ffi_env(), ctx)?)
 }
 
 /// Tooling, return a BufferPtr allocated from bytes
@@ -878,7 +878,7 @@ fn pointer_from_bytearray(
     ctx: &mut impl AsStoreMut,
     value: &Vec<u8>,
 ) -> ABIResult<BufferPtr> {
-    Ok(*BufferPtr::alloc(value, env.get_wasm_env(), ctx)?)
+    Ok(*BufferPtr::alloc(value, env.get_ffi_env(), ctx)?)
 }
 
 /// Tooling that reads a buffer (Vec<u8>) in memory
@@ -895,7 +895,7 @@ fn read_string(memory: &Memory, store: &impl AsStoreRef, ptr: i32) -> ABIResult<
 fn alloc_string_array(ctx: &mut FunctionEnvMut<ASEnv>, vec: &[String]) -> ABIResult<i32> {
     let env = ctx.data().clone();
     let addresses = serde_json::to_string(vec)?;
-    Ok(StringPtr::alloc(&addresses, env.get_wasm_env(), ctx)?.offset() as i32)
+    Ok(StringPtr::alloc(&addresses, env.get_ffi_env(), ctx)?.offset() as i32)
 }
 
 /// Flatten a Vec<Vec<u8>> (or anything that can be turned into an iterator) to a Vec<u8>
