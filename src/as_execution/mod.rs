@@ -6,8 +6,7 @@ mod error;
 use anyhow::{anyhow, Result};
 use std::sync::Arc;
 use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
-use wasmer::{CompilerConfig, Engine, Features, Module, Store};
-use wasmer_compiler_singlepass::Singlepass;
+use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
 use wasmer_middlewares::Metering;
 
 use crate::middlewares::gas_calibration::GasCalibration;
@@ -60,36 +59,30 @@ impl ASModule {
 }
 
 pub(crate) fn init_engine(limit: u64, gas_costs: GasCosts) -> Engine {
-    // We use the Singlepass compiler because it is fast and adapted to blockchains
-    // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
-    let mut compiler_config = Singlepass::new();
+    // Use Cranelift (in opposition to Singlepass)
+    // Because of module caching we can run longer compilations to have better optimizations
+    // Executions are happening way more often than compilations hence that choice
+    let mut compiler_config = Cranelift::new();
 
-    // Turning-off sources of potential non-determinism,
+    // Canonicalize NaN & turn off sources of potential non-determinism:
+    // * threads
+    // * SIMD
+    // * experimental features
     // see https://github.com/WebAssembly/design/blob/037c6fe94151eb13e30d174f5f7ce851be0a573e/Nondeterminism.md
-
-    // Turning-off in the compiler:
-
-    // Canonicalize NaN.
     compiler_config.canonicalize_nans(true);
-
-    // Default: Turning-off all wasmer feature flags
-    // Exception(s):
-    // * bulk_memory:
-    //   * https://docs.rs/wasmer/latest/wasmer/struct.Features.html: now fully standardized - wasm 2.0
-    //   * See also: https://github.com/paritytech/substrate/issues/12216
     const FEATURES: Features = Features {
-        threads: false, // disable threads
-        reference_types: false,
-        simd: false,           // turn off experimental SIMD feature
-        bulk_memory: true,     // enabled in order to use ArrayBuffer in AS
-        multi_value: false,    // turn off multi value, not support for SinglePass (default: true)
+        threads: false,        // non-deterministic
+        reference_types: true, // enables externref WASM type and needs to be enabled with bulk_memory
+        simd: false,           // non-deterministic
+        bulk_memory: true,     // enables the use of buffers in AS
+        multi_value: true,     // enables functions and blocks returning multiple values
         tail_call: false,      // experimental
         module_linking: false, // experimental
         multi_memory: false,   // experimental
         memory64: false,       // experimental
-        exceptions: false,
-        relaxed_simd: false, // experimental
-        extended_const: false,
+        exceptions: false,     // experimental
+        relaxed_simd: false,   // experimental
+        extended_const: false, // experimental
     };
 
     if cfg!(feature = "gas_calibration") {
