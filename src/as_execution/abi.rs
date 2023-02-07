@@ -882,6 +882,8 @@ pub fn assembly_script_abort(
     line: i32,
     col: i32,
 ) -> ABIResult<()> {
+    dbg!("abort called");
+    return Ok(());
     let memory = ctx
         .data()
         .get_ffi_env()
