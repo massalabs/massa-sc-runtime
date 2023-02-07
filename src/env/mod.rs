@@ -6,7 +6,9 @@ use wasmer::{AsStoreMut, Global};
 
 pub(crate) use as_env::*;
 
-/// Trait describing a metered object
+/// Trait describing a metered object.
+///
+/// An object implementing this trait can track the execution consumption.
 pub(crate) trait Metered {
     fn get_exhausted_points(&self) -> Option<&Global>;
     fn get_remaining_points(&self) -> Option<&Global>;
@@ -14,8 +16,8 @@ pub(crate) trait Metered {
     fn get_gas_costs(&self) -> GasCosts;
 }
 
-/// Get remaining metering points
-/// Should be equivalent to
+/// Get remaining metering points.
+/// Should be equivalent to:
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L293
 pub(crate) fn get_remaining_points(
     env: &impl Metered,
@@ -42,8 +44,8 @@ pub(crate) fn get_remaining_points(
     }
 }
 
-/// Set remaining metering points
-/// Should be equivalent to
+/// Set remaining metering points.
+/// Should be equivalent to:
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L343
 pub(crate) fn set_remaining_points(
     env: &impl Metered,

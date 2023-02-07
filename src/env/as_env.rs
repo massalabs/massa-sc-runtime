@@ -6,7 +6,7 @@ use super::Metered;
 
 #[derive(Clone)]
 pub struct ASEnv {
-    wasm_env: as_ffi_bindings::Env,
+    ffi_env: as_ffi_bindings::Env,
     pub interface: Box<dyn Interface>,
     pub remaining_points: Option<Global>,
     pub exhausted_points: Option<Global>,
@@ -17,7 +17,7 @@ pub struct ASEnv {
 impl ASEnv {
     pub fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
         Self {
-            wasm_env: Default::default(),
+            ffi_env: Default::default(),
             gas_costs,
             interface: interface.clone_box(),
             remaining_points: None,
@@ -29,10 +29,10 @@ impl ASEnv {
         self.interface.clone()
     }
     pub fn get_ffi_env(&self) -> &as_ffi_bindings::Env {
-        &self.wasm_env
+        &self.ffi_env
     }
     pub fn get_ffi_env_as_mut(&mut self) -> &mut as_ffi_bindings::Env {
-        &mut self.wasm_env
+        &mut self.ffi_env
     }
 }
 

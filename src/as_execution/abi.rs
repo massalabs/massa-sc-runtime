@@ -872,15 +872,9 @@ pub fn assembly_script_function_exists(
     Ok(function_exists(&mut ctx, address, function)? as i32)
 }
 
-/// Called by the instance when an error popped. It print the filename where the error
-/// had pop up, an error message and more stacktrace information as line and column
+/// Assembly script builtin `abort` function.
 ///
-/// This function is automatically exported by AssemblyScript on build and allow assemblyscript
-/// to log what happened when a smartcontract crashed inside the instance.
-///
-/// Because AssemblyScript require this to be imported:
-/// - To create an instance, this function has to be in the ImportObject in the "env" namespace.
-/// - We can take advantage of the behaviours printing the assemblyscript error
+/// It prints the origin filename, an error messag, the line and column.
 pub fn assembly_script_abort(
     ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
@@ -914,7 +908,7 @@ pub fn assembly_script_abort(
     ));
 }
 
-/// Assembly script builtin export `seed` function
+/// Assembly script builtin `seed` function
 #[named]
 pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
     let env = ctx.data().clone();
@@ -927,11 +921,7 @@ pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
     }
 }
 
-/// Assembly script builtin `Date.now()`.
-///
-/// Note for developpers: It seems that AS as updated the output of that function
-/// for the newest versions. Probably the signature will be soon () -> i64
-/// instead of () -> f64. This change is in AS 0.22 if we upgrade the version in our SCs we need to update this function.
+/// Assembly script builtin `Date.now()`
 #[named]
 pub fn assembly_script_date_now(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
     let env = ctx.data().clone();
