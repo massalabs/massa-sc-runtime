@@ -15,6 +15,12 @@ pub(crate) struct ASContext {
     pub module: Module,
 }
 
+/// Execution context of an AS module.
+///
+/// This object handles every execution step apart from:
+/// * Module compilation
+/// * Engine creation & init
+/// * Store creation & init
 impl ASContext {
     pub(crate) fn new(
         interface: &dyn Interface,
