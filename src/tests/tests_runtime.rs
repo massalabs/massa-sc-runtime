@@ -147,7 +147,7 @@ fn test_builtins() {
         Err(e) => {
             let msg = e.to_string();
             // make sure the error was caused by a manual abort
-            assert!(msg.contains("Manual abort"));
+            assert!(msg.contains("Manual abort"), "{}", format!("Error was: {:?}", e));
             // check the given timestamp validity
             let after = chrono::offset::Utc::now().timestamp_millis();
             let ident = "UTC timestamp (ms) = ";
