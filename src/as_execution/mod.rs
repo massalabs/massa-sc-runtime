@@ -10,6 +10,7 @@ use wasmer::{CompilerConfig, Engine, Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
 
+use crate::middlewares::dumper::Dumper;
 use crate::middlewares::gas_calibration::GasCalibration;
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
@@ -102,6 +103,11 @@ pub(crate) fn init_engine(limit: u64, gas_costs: GasCosts) -> Engine {
             gas_costs.operator_cost
         }));
         compiler_config.push_middleware(metering);
+
+        // Add dumper middleware
+        println!("Adding dumper middleware...");
+        let dumper = Arc::new(Dumper::new());
+        compiler_config.push_middleware(dumper);
     }
 
     EngineBuilder::new(compiler_config)
