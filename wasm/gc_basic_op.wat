@@ -10,35 +10,27 @@
   (memory $memory (export "memory") 1)
 
   (func $__new (export "__new") (param $p0 i32) (param $p1 i32) (result i32)
-    (call $env.abort
-      (i32.const 1)
-      (i32.const 2)
-      (i32.const 3)
-      (i32.const 4)
-    )
     (i32.const 0)
   )
 
   (func $main (export "main") (param $p0 i32) (result i32)
     (local $l0 i32)
-    ;; (if
-    ;;   (i32.gt_u
-    ;;     (i32.add
-    ;;       (local.get $p0)
-    ;;       (i32.const 42)
-    ;;     )
-    ;;     (i32.const 84)
-    ;;   )
-      ;; (then
+    (if
+      (i32.gt_u
+        (i32.add
+          (local.get $p0)
+          (i32.const 42))
+        (i32.const 84)
+      )
+      (then
         (call $env.abort
           (i32.const 1)
           (i32.const 2)
           (i32.const 3)
-          (i32.const 4)
-        )
-        ;; (unreachable)
-      ;; )
-    ;; )
+          (i32.const 4))
+        (unreachable)
+      )
+    )
     (local.tee $l0
       (i32.sub
         (i32.const 42)

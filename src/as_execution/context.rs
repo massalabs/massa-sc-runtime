@@ -50,7 +50,6 @@ impl ASContext {
                 } else {
                     0
                 };
-                dbg!("instance created and initialized");
                 Ok((instance, post_init_points))
             }
             Err(err) => {
@@ -90,9 +89,7 @@ impl ASContext {
         let res = if argc == 0 {
             wasm_func.call(store, &[])
         } else if argc == 1 {
-            dbg!("before __new wasmer call");
             let param_ptr = *BufferPtr::alloc(&param.to_vec(), self.env.get_ffi_env(), store)?;
-            dbg!("before normal wasmer call");
             wasm_func.call(store, &[Value::I32(param_ptr.offset() as i32)])
         } else {
             bail!("Unexpected number of parameters in the function called")
