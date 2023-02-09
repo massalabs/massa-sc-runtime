@@ -264,6 +264,9 @@
 <a href="#264" id="264">264</a>
 <a href="#265" id="265">265</a>
 <a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 <span class="kw">use </span><span class="kw">crate</span>::types::Response;
@@ -476,6 +479,10 @@
                 <span class="string">&quot;seed&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_seed),
                 <span class="string">&quot;Date.now&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_date_now),
                 <span class="string">&quot;console.log&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_log),
+                <span class="string">&quot;console.info&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_info),
+                <span class="string">&quot;console.warn&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_warn),
+                <span class="string">&quot;console.error&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_error),
+                <span class="string">&quot;console.debug&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_debug),
                 <span class="string">&quot;trace&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_trace),
                 <span class="string">&quot;process.exit&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_process_exit),
             },
@@ -523,7 +530,6 @@
                 <span class="string">&quot;assembly_script_local_execution&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_local_execution),
                 <span class="string">&quot;assembly_script_caller_has_write_access&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_caller_has_write_access),
                 <span class="string">&quot;assembly_script_function_exists&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_function_exists),
-                <span class="string">&quot;assembly_script_hash_sha256&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_hash_sha256),
             },
         };
 
