@@ -110,7 +110,7 @@ impl ASContext {
                         init_cost: 0,
                     });
                 }
-                let ret = if let Some(offset) = value.get(0) {
+                let ret = if let Some(offset) = value.first() {
                     if let Some(offset) = offset.i32() {
                         let buffer_ptr = BufferPtr::new(offset as u32);
                         let memory = instance.exports.get_memory("memory")?;

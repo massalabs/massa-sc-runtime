@@ -31,7 +31,7 @@ impl RuntimeModule {
     /// * (2) TODO: target X
     /// * (_) target AssemblyScript and use the full bytecode
     pub fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
-        match bytecode.get(0) {
+        match bytecode.first() {
             Some(1) => Ok(Self::ASModule(ASModule::new(bytecode, limit, gas_costs)?)),
             Some(_) => Ok(Self::ASModule(ASModule::new(bytecode, limit, gas_costs)?)),
             None => Err(anyhow!("Empty bytecode")),
