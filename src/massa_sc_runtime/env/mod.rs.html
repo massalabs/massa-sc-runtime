@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/env/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-c8c85693c8a4f9db.css"><script id="default-settings" ></script><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/env/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-0ef3deca4ed45ad8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-f501212b8b071243.css"><link rel="stylesheet" disabled href="../../../static.files/dark-e92fc12c34ff89d3.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-a0090c8b1ced384f.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-364b95f387bc3166.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -103,51 +103,29 @@
 <a href="#103" id="103">103</a>
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>as_env;
 
 <span class="kw">use </span><span class="kw">crate</span>::as_execution::{abi_bail, ABIResult};
-<span class="kw">use crate</span>::{GasCosts, Interface};
+<span class="kw">use </span><span class="kw">crate</span>::GasCosts;
 <span class="kw">use </span>wasmer::{AsStoreMut, Global};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>as_env::<span class="kw-2">*</span>;
 
-<span class="macro">macro_rules! </span>get_memory {
-    (<span class="macro-nonterminal">$env</span>:ident) =&gt; {
-        <span class="kw">match </span><span class="macro-nonterminal">$env</span>.get_wasm_env().memory.as_ref() {
-            <span class="prelude-val">Some</span>(mem) =&gt; mem,
-            <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;No memory in env&quot;</span>),
-        }
-    };
-}
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>get_memory;
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>MassaEnv&lt;T&gt; {
-    <span class="kw">fn </span>new(interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface, gas_costs: GasCosts) -&gt; <span class="self">Self</span>;
+<span class="doccomment">/// Trait describing a metered object.
+///
+/// An object implementing this trait can track the execution consumption.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Metered {
     <span class="kw">fn </span>get_exhausted_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Global&gt;;
     <span class="kw">fn </span>get_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Global&gt;;
     <span class="kw">fn </span>get_gc_param(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Global&gt;;
     <span class="kw">fn </span>get_gas_costs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GasCosts;
-    <span class="kw">fn </span>get_interface(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Interface&gt;;
-    <span class="kw">fn </span>get_wasm_env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T;
-    <span class="kw">fn </span>get_wasm_env_as_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T;
 }
 
-<span class="doccomment">/// Get remaining metering points
-/// Should be equivalent to
+<span class="doccomment">/// Get remaining metering points.
+/// Should be equivalent to:
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L293
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_remaining_points&lt;T&gt;(
-    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_remaining_points(
+    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>Metered,
     store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
 ) -&gt; ABIResult&lt;u64&gt; {
     <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
@@ -171,11 +149,11 @@
     }
 }
 
-<span class="doccomment">/// Set remaining metering points
-/// Should be equivalent to
+<span class="doccomment">/// Set remaining metering points.
+/// Should be equivalent to:
 /// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L343
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_remaining_points&lt;T&gt;(
-    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_remaining_points(
+    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>Metered,
     store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
     points: u64,
 ) -&gt; ABIResult&lt;()&gt; {
@@ -200,8 +178,8 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sub_remaining_gas&lt;T&gt;(
-    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sub_remaining_gas(
+    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>Metered,
     store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
     gas: u64,
 ) -&gt; ABIResult&lt;()&gt; {
@@ -217,8 +195,8 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sub_remaining_gas_abi&lt;T&gt;(
-    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>MassaEnv&lt;T&gt;,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sub_remaining_gas_abi(
+    env: <span class="kw-2">&amp;</span><span class="kw">impl </span>Metered,
     store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
     abi_name: <span class="kw-2">&amp;</span>str,
 ) -&gt; ABIResult&lt;()&gt; {
@@ -231,4 +209,4 @@
     )
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (75a0be98f 2023-02-05)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (ef934d9b6 2023-02-08)" data-search-js="search-28136cea55c34037.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
