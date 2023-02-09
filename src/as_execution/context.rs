@@ -1,9 +1,5 @@
 use super::abi::*;
-use crate::env::{
-    assembly_script_abort, assembly_script_console_log, assembly_script_date_now,
-    assembly_script_process_exit, assembly_script_seed, assembly_script_trace,
-    get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
-};
+use crate::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 use crate::types::Response;
 use crate::{GasCosts, Interface};
 use anyhow::{bail, Result};
@@ -14,12 +10,18 @@ use wasmer::{
 use wasmer_middlewares::metering::{self, MeteringPoints};
 use wasmer_types::TrapCode;
 
-pub(crate) struct ASContextModule {
+pub(crate) struct ASContext {
     pub env: ASEnv,
     pub module: Module,
 }
 
-impl ASContextModule {
+/// Execution context of an AS module.
+///
+/// This object handles every execution step apart from:
+/// * Module compilation
+/// * Engine creation & init
+/// * Store creation & init
+impl ASContext {
     pub(crate) fn new(
         interface: &dyn Interface,
         binary_module: Module,
@@ -87,7 +89,7 @@ impl ASContextModule {
         let res = if argc == 0 {
             wasm_func.call(store, &[])
         } else if argc == 1 {
-            let param_ptr = *BufferPtr::alloc(&param.to_vec(), self.env.get_wasm_env(), store)?;
+            let param_ptr = *BufferPtr::alloc(&param.to_vec(), self.env.get_ffi_env(), store)?;
             wasm_func.call(store, &[Value::I32(param_ptr.offset() as i32)])
         } else {
             bail!("Unexpected number of parameters in the function called")
@@ -161,7 +163,7 @@ impl ASContextModule {
             .get_typed_function::<(), ()>(&store, "__collect")
             .ok();
 
-        fenv.as_mut(store).get_wasm_env_as_mut().init_with(
+        fenv.as_mut(store).get_ffi_env_as_mut().init_with(
             Some(memory.clone()),
             fn_new.clone(),
             fn_pin.clone(),
@@ -170,7 +172,7 @@ impl ASContextModule {
         );
 
         // Update self.env as well
-        self.env.get_wasm_env_as_mut().init_with(
+        self.env.get_ffi_env_as_mut().init_with(
             Some(memory.clone()),
             fn_new,
             fn_pin,

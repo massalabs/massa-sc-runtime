@@ -1,24 +1,17 @@
-use wasmer::wasmparser::Operator;
-use wasmer::{
-    AsStoreMut, FunctionMiddleware, LocalFunctionIndex, MiddlewareError, MiddlewareReaderState,
-    ModuleMiddleware,
-};
-use wasmer_types::{
-    ExportIndex, GlobalIndex, GlobalInit, GlobalType, ImportIndex, ModuleInfo, Mutability, Type,
-};
-
-use crate::env::{ASEnv, MassaEnv};
+use crate::env::{ASEnv, Metered};
+use crate::middlewares::operator::{operator_field_str, OPERATOR_VARIANTS};
+use regex::{Regex, RegexSet};
 use std::collections::HashMap;
 use std::fmt::{self, Debug};
 use std::sync::Mutex;
 use std::time::Instant;
-
-use crate::middlewares::operator::{operator_field_str, OPERATOR_VARIANTS};
-
-// #[cfg(feature = "gas_calibration")]
-use regex::{Regex, RegexSet};
-// #[cfg(feature = "gas_calibration")]
-use wasmer::{Extern, Instance};
+use wasmer::{
+    wasmparser::Operator, AsStoreMut, Extern, FunctionMiddleware, Instance, LocalFunctionIndex,
+    MiddlewareError, MiddlewareReaderState, ModuleMiddleware,
+};
+use wasmer_types::{
+    ExportIndex, GlobalIndex, GlobalInit, GlobalType, ImportIndex, ModuleInfo, Mutability, Type,
+};
 
 #[derive(Debug, Clone)]
 struct GasCalibrationGlobalIndexes {

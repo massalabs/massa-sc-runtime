@@ -1,5 +1,4 @@
-use crate::as_execution::{init_store, ASContextModule, ASModule};
-use crate::env::MassaEnv;
+use crate::as_execution::{init_store, ASContext, ASModule};
 use crate::tests::{Ledger, TestInterface};
 use crate::{
     run_function, run_main,
@@ -322,13 +321,13 @@ fn test_class_id() {
     ));
     let (module, engine) = ASModule::new(bytecode, 100_000, GasCosts::default()).unwrap();
     let mut store = init_store(&engine).unwrap();
-    let mut context = ASContextModule::new(&*interface, module.binary_module, GasCosts::default());
+    let mut context = ASContext::new(&*interface, module.binary_module, GasCosts::default());
     let (instance, _) = context.create_vm_instance_and_init_env(&mut store).unwrap();
 
     // setup test specific context
     let (_, fenv) = context.resolver(&mut store);
     let fenv_mut = fenv.into_mut(&mut store);
-    let memory = context.env.get_wasm_env().memory.as_ref().unwrap();
+    let memory = context.env.get_ffi_env().memory.as_ref().unwrap();
     let memory_view = memory.view(&fenv_mut);
 
     // get string and array offsets

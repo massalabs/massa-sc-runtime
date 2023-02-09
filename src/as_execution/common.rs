@@ -1,17 +1,11 @@
 use wasmer::FunctionEnvMut;
 
-use crate::env::{get_remaining_points, set_remaining_points, ASEnv, MassaEnv};
+use crate::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 use crate::{Response, RuntimeModule};
 
-use super::abi_error::{abi_bail, ABIResult};
+use super::error::{abi_bail, ABIResult};
 
-/// `Call` ABI called by the webassembly VM
-///
-/// Call an exported function in a WASM module at a given address
-///
-/// It take in argument the environment defined in env.rs
-/// this environment is automatically filled by the wasmer library
-/// And two pointers of string. (look at the readme in the wasm folder)
+/// Calls an exported function in a WASM module at a given address
 pub(crate) fn call_module(
     ctx: &mut FunctionEnvMut<ASEnv>,
     address: &str,
