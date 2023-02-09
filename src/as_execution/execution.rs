@@ -178,6 +178,8 @@ impl ASContextModule {
             fn_collect,
         );
 
+        println!("EXPORTS: {:?}", instance.exports);
+
         // Metering counters
         if cfg!(not(feature = "gas_calibration")) {
             let g_1 = instance

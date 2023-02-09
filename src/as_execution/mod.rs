@@ -105,7 +105,7 @@ pub(crate) fn init_engine(limit: u64, gas_costs: GasCosts) -> Engine {
         compiler_config.push_middleware(metering);
 
         // Add dumper middleware
-        println!("Adding dumper middleware...");
+        println!("DUMPER");
         let dumper = Arc::new(Dumper::new());
         compiler_config.push_middleware(dumper);
     }
