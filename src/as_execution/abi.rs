@@ -7,14 +7,24 @@
 
 use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use function_name::named;
+use std::ops::Add;
 use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
-use crate::env::{get_memory, get_remaining_points, sub_remaining_gas_abi, ASEnv, MassaEnv};
+use crate::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
 use crate::settings;
 
-use super::abi_error::{abi_bail, ABIResult};
 use super::common::{call_module, create_sc, function_exists};
+use super::error::{abi_bail, ABIResult};
 use super::local_call;
+
+macro_rules! get_memory {
+    ($env:ident) => {
+        match $env.get_ffi_env().memory.as_ref() {
+            Some(mem) => mem,
+            _ => abi_bail!("No memory in env"),
+        }
+    };
+}
 
 /// Get the coins that have been made available for a specific purpose for the current call.
 #[named]
@@ -128,7 +138,7 @@ pub(crate) fn assembly_script_call(
     // }
 
     let response = call_module(&mut ctx, address, function, param, call_coins)?;
-    match BufferPtr::alloc(&response.ret, env.get_wasm_env(), &mut ctx) {
+    match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
             "Cannot allocate response in call {}::{}",
@@ -247,7 +257,7 @@ pub(crate) fn assembly_script_create_sc(
     //     param_size_update(&env, &mut ctx, &fname, bytecode.len(), true);
     // }
     let address = create_sc(&mut ctx, &bytecode)?;
-    Ok(StringPtr::alloc(&address, env.get_wasm_env(), &mut ctx)?.offset() as i32)
+    Ok(StringPtr::alloc(&address, env.get_ffi_env(), &mut ctx)?.offset() as i32)
 }
 
 /// performs a hash on a string and returns the bs58check encoded hash
@@ -804,7 +814,7 @@ pub(crate) fn assembly_script_local_execution(
     let param = &read_buffer(memory, &ctx, param)?;
 
     let response = local_call(&mut ctx, bytecode, function, param)?;
-    match BufferPtr::alloc(&response.ret, env.get_wasm_env(), &mut ctx) {
+    match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
             "Cannot allocate response in local call of {}",
@@ -831,7 +841,7 @@ pub(crate) fn assembly_script_local_call(
     let param = &read_buffer(memory, &ctx, param)?;
 
     let response = local_call(&mut ctx, &bytecode, function, param)?;
-    match BufferPtr::alloc(&response.ret, env.get_wasm_env(), &mut ctx) {
+    match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
             "Cannot allocate response in local call of {}",
@@ -863,13 +873,219 @@ pub fn assembly_script_function_exists(
     Ok(function_exists(&mut ctx, address, function)? as i32)
 }
 
+/// Assembly script builtin `abort` function.
+///
+/// It prints the origin filename, an error messag, the line and column.
+pub fn assembly_script_abort(
+    ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+    filename: StringPtr,
+    line: i32,
+    col: i32,
+) -> ABIResult<()> {
+    let memory = ctx
+        .data()
+        .get_ffi_env()
+        .memory
+        .as_ref()
+        .expect("Failed to get memory on env")
+        .clone();
+    let message_ = message
+        .read(&memory, &ctx)
+        .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
+    let filename_ = filename
+        .read(&memory, &ctx)
+        .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
+
+    if message_.is_err() || filename_.is_err() {
+        abi_bail!("aborting failed to load message or filename")
+    }
+    abi_bail!(format!(
+        "error: {} at {}:{} col: {}",
+        message_.unwrap(),
+        filename_.unwrap(),
+        line,
+        col
+    ));
+}
+
+/// Assembly script builtin `seed` function
+#[named]
+pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    match env.interface.unsafe_random_f64() {
+        Ok(ret) => Ok(ret),
+        _ => abi_bail!("failed to get random from interface"),
+    }
+}
+
+/// Assembly script builtin `Date.now()`
+#[named]
+pub fn assembly_script_date_now(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    let utime = match env.interface.get_time() {
+        Ok(time) => time,
+        _ => abi_bail!("failed to get time from interface"),
+    };
+    let ret = utime as f64;
+    Ok(ret)
+}
+
+/// Assembly script builtin `console.log()`.
+#[named]
+pub fn assembly_script_console_log(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+
+    assembly_script_console(ctx, message, "LOG")
+}
+
+/// Assembly script builtin `console.info()`.
+#[named]
+pub fn assembly_script_console_info(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    assembly_script_console(ctx, message, "INFO")
+}
+
+/// Assembly script builtin `console.warn()`.
+#[named]
+pub fn assembly_script_console_warn(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    assembly_script_console(ctx, message, "WARN")
+}
+
+/// Assembly script builtin `console.debug()`.
+#[named]
+pub fn assembly_script_console_debug(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    assembly_script_console(ctx, message, "DEBUG")
+}
+
+/// Assembly script builtin `console.error()`.
+#[named]
+pub fn assembly_script_console_error(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    assembly_script_console(ctx, message, "ERROR")
+}
+
+/// Assembly script console functions
+fn assembly_script_console(
+    ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+    prefix: &str,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+
+    let memory = ctx
+        .data()
+        .get_ffi_env()
+        .memory
+        .as_ref()
+        .expect("Failed to get memory on env")
+        .clone();
+    let message = prefix
+        .to_string()
+        .add(" | ")
+        .add(&message.read(&memory, &ctx)?);
+
+    env.get_interface().generate_event(message)?;
+    Ok(())
+}
+
+/// Assembly script builtin `trace()`.
+#[named]
+#[allow(clippy::too_many_arguments)]
+pub fn assembly_script_trace(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+    n: i32,
+    a0: f64,
+    a1: f64,
+    a2: f64,
+    a3: f64,
+    a4: f64,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+
+    let memory = ctx
+        .data()
+        .get_ffi_env()
+        .memory
+        .as_ref()
+        .expect("Failed to get memory on env")
+        .clone();
+
+    let message = message.read(&memory, &ctx)?;
+
+    let message_for_event = match n {
+        1 => format!("msg: {}, a0: {}", message, a0),
+        2 => format!("msg: {}, a0: {}, a1: {}", message, a0, a1),
+        3 => format!("msg: {}, a0: {}, a1: {}, a2: {}", message, a0, a1, a2),
+        4 => format!(
+            "msg: {}, a0: {}, a1: {}, a2: {}, a3: {}",
+            message, a0, a1, a2, a3
+        ),
+        5 => format!(
+            "msg: {}, a0: {}, a1: {}, a2: {}, a3: {}, a4: {}",
+            message, a0, a1, a2, a3, a4
+        ),
+        _ => message, // Should we warn here or return an error?
+    };
+
+    env.get_interface().generate_event(message_for_event)?;
+    Ok(())
+}
+
+/// Assembly script builtin `process.exit()`.
+pub fn assembly_script_process_exit(_ctx: FunctionEnvMut<ASEnv>, exit_code: i32) -> ABIResult<()> {
+    abi_bail!(format!("exit with code: {}", exit_code));
+}
+
 /// Tooling, return a StringPtr allocated from a String
 fn pointer_from_string(
     env: &ASEnv,
     ctx: &mut impl AsStoreMut,
     value: &str,
 ) -> ABIResult<StringPtr> {
-    Ok(*StringPtr::alloc(&value.into(), env.get_wasm_env(), ctx)?)
+    Ok(*StringPtr::alloc(&value.into(), env.get_ffi_env(), ctx)?)
 }
 
 /// Tooling, return a BufferPtr allocated from bytes
@@ -878,7 +1094,7 @@ fn pointer_from_bytearray(
     ctx: &mut impl AsStoreMut,
     value: &Vec<u8>,
 ) -> ABIResult<BufferPtr> {
-    Ok(*BufferPtr::alloc(value, env.get_wasm_env(), ctx)?)
+    Ok(*BufferPtr::alloc(value, env.get_ffi_env(), ctx)?)
 }
 
 /// Tooling that reads a buffer (Vec<u8>) in memory
@@ -895,7 +1111,7 @@ fn read_string(memory: &Memory, store: &impl AsStoreRef, ptr: i32) -> ABIResult<
 fn alloc_string_array(ctx: &mut FunctionEnvMut<ASEnv>, vec: &[String]) -> ABIResult<i32> {
     let env = ctx.data().clone();
     let addresses = serde_json::to_string(vec)?;
-    Ok(StringPtr::alloc(&addresses, env.get_wasm_env(), ctx)?.offset() as i32)
+    Ok(StringPtr::alloc(&addresses, env.get_ffi_env(), ctx)?.offset() as i32)
 }
 
 /// Flatten a Vec<Vec<u8>> (or anything that can be turned into an iterator) to a Vec<u8>
