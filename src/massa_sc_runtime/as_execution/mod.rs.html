@@ -115,10 +115,6 @@
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>context;
@@ -131,7 +127,7 @@
 <span class="kw">use </span>wasmer_compiler_singlepass::Singlepass;
 <span class="kw">use </span>wasmer_middlewares::Metering;
 
-<span class="kw">use </span><span class="kw">crate</span>::middlewares::{dumper::Dumper, gas_calibration::GasCalibration};
+<span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::GasCalibration;
 <span class="kw">use </span><span class="kw">crate</span>::settings::max_number_of_pages;
 <span class="kw">use </span><span class="kw">crate</span>::tunable_memory::LimitingTunables;
 <span class="kw">use </span><span class="kw">crate</span>::GasCosts;
@@ -217,10 +213,6 @@
         <span class="comment">// Add gas calibration middleware
         </span><span class="kw">let </span>gas_calibration = Arc::new(GasCalibration::new());
         compiler_config.push_middleware(gas_calibration);
-    } <span class="kw">else if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;dumper&quot;</span>) {
-        <span class="comment">// Add dumper middleware
-        </span><span class="kw">let </span>dumper = Arc::new(Dumper::new());
-        compiler_config.push_middleware(dumper);
     } <span class="kw">else </span>{
         <span class="comment">// Add metering middleware
         </span><span class="kw">let </span>metering = Arc::new(Metering::new(limit, <span class="kw">move </span>|<span class="kw">_</span>: <span class="kw-2">&amp;</span>Operator| -&gt; u64 {

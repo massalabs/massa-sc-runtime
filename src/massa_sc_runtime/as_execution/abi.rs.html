@@ -1193,7 +1193,6 @@
 <a href="#1193" id="1193">1193</a>
 <a href="#1194" id="1194">1194</a>
 <a href="#1195" id="1195">1195</a>
-<a href="#1196" id="1196">1196</a>
 </pre><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -1201,9 +1200,9 @@
 //! module. You can look at the other side of the mirror in `massa.ts` and the
 //! rust side in `execution_impl.rs`.
 
-</span><span class="kw">use </span>std::ops::Add;
-<span class="kw">use </span>as_ffi_bindings::{BufferPtr, Read <span class="kw">as </span>ASRead, StringPtr, Write <span class="kw">as </span>ASWrite};
+</span><span class="kw">use </span>as_ffi_bindings::{BufferPtr, Read <span class="kw">as </span>ASRead, StringPtr, Write <span class="kw">as </span>ASWrite};
 <span class="kw">use </span>function_name::named;
+<span class="kw">use </span>std::ops::Add;
 <span class="kw">use </span>wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
 <span class="kw">use </span><span class="kw">crate</span>::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
@@ -2146,7 +2145,6 @@
 
     assembly_script_console(ctx, message, <span class="string">&quot;LOG&quot;</span>)
 }
-
 
 <span class="doccomment">/// Assembly script builtin `console.info()`.
 </span><span class="attr">#[named]
