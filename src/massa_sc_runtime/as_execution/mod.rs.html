@@ -110,6 +110,11 @@
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>context;
@@ -118,7 +123,8 @@
 <span class="kw">use </span>anyhow::{anyhow, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
-<span class="kw">use </span>wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
+<span class="kw">use </span>wasmer::{CompilerConfig, Engine, Features, Module, Store};
+<span class="kw">use </span>wasmer_compiler_singlepass::Singlepass;
 <span class="kw">use </span>wasmer_middlewares::Metering;
 
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::GasCalibration;
@@ -171,33 +177,37 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_engine(limit: u64, gas_costs: GasCosts) -&gt; Engine {
-    <span class="comment">// Use Cranelift (in opposition to Singlepass)
-    // Because of module caching we can run longer compilations to have better optimizations
-    // Executions are happening way more often than compilations hence that choice
-    </span><span class="kw">let </span><span class="kw-2">mut </span>compiler_config = Cranelift::new();
+    <span class="comment">// We use the Singlepass compiler because it is fast and adapted to blockchains
+    // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
+    </span><span class="kw">let </span><span class="kw-2">mut </span>compiler_config = Singlepass::new();
 
-    <span class="comment">// Canonicalize NaN &amp; turn off sources of potential non-determinism:
-    // * threads
-    // * SIMD
-    // * experimental features
-    // References:
-    // * https://github.com/WebAssembly/design/blob/390bab47efdb76b600371bcef1ec0ea374aa8c43/Nondeterminism.md
-    // * https://github.com/WebAssembly/proposals
+    <span class="comment">// Turning-off sources of potential non-determinism,
+    // see https://github.com/WebAssembly/design/blob/037c6fe94151eb13e30d174f5f7ce851be0a573e/Nondeterminism.md
+
+    // Turning-off in the compiler:
+
+    // Canonicalize NaN.
     </span>compiler_config.canonicalize_nans(<span class="bool-val">true</span>);
-    <span class="kw">const </span>FEATURES: Features = Features {
-        threads: <span class="bool-val">false</span>,        <span class="comment">// non-deterministic
-        </span>reference_types: <span class="bool-val">true</span>, <span class="comment">// enables externref WASM type and needs to be enabled with bulk_memory
-        </span>simd: <span class="bool-val">false</span>,           <span class="comment">// non-deterministic
-        </span>bulk_memory: <span class="bool-val">true</span>,     <span class="comment">// enables the use of buffers in AS
-        </span>multi_value: <span class="bool-val">true</span>,     <span class="comment">// enables functions and blocks returning multiple values
+
+    <span class="comment">// Default: Turning-off all wasmer feature flags
+    // Exception(s):
+    // * bulk_memory:
+    //   * https://docs.rs/wasmer/latest/wasmer/struct.Features.html: now fully standardized - wasm 2.0
+    //   * See also: https://github.com/paritytech/substrate/issues/12216
+    </span><span class="kw">const </span>FEATURES: Features = Features {
+        threads: <span class="bool-val">false</span>, <span class="comment">// disable threads
+        </span>reference_types: <span class="bool-val">false</span>,
+        simd: <span class="bool-val">false</span>,           <span class="comment">// turn off experimental SIMD feature
+        </span>bulk_memory: <span class="bool-val">true</span>,     <span class="comment">// enabled in order to use ArrayBuffer in AS
+        </span>multi_value: <span class="bool-val">false</span>,    <span class="comment">// turn off multi value, not support for SinglePass (default: true)
         </span>tail_call: <span class="bool-val">false</span>,      <span class="comment">// experimental
         </span>module_linking: <span class="bool-val">false</span>, <span class="comment">// experimental
         </span>multi_memory: <span class="bool-val">false</span>,   <span class="comment">// experimental
         </span>memory64: <span class="bool-val">false</span>,       <span class="comment">// experimental
-        </span>exceptions: <span class="bool-val">false</span>,     <span class="comment">// experimental
-        </span>relaxed_simd: <span class="bool-val">false</span>,   <span class="comment">// experimental
-        </span>extended_const: <span class="bool-val">false</span>, <span class="comment">// experimental
-    </span>};
+        </span>exceptions: <span class="bool-val">false</span>,
+        relaxed_simd: <span class="bool-val">false</span>, <span class="comment">// experimental
+        </span>extended_const: <span class="bool-val">false</span>,
+    };
 
     <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
         <span class="comment">// Add gas calibration middleware

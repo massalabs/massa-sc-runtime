@@ -1125,6 +1125,21 @@
 <a href="#1125" id="1125">1125</a>
 <a href="#1126" id="1126">1126</a>
 <a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
 </pre><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -2203,6 +2218,21 @@
     }
 
     <span class="prelude-val">Ok</span>(buffer)
+}
+
+<span class="doccomment">/// performs a sha256 hash on byte array and returns the hash as byte array
+</span><span class="attr">#[named]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_hash_sha256(
+    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
+    bytes: i32,
+) -&gt; ABIResult&lt;i32&gt; {
+    <span class="kw">let </span>env = ctx.data().clone();
+    sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
+    <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
+    <span class="kw">let </span>bytes = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, bytes)<span class="question-mark">?</span>;
+    <span class="kw">let </span>hash = env.get_interface().hash_sha256(<span class="kw-2">&amp;</span>bytes)<span class="question-mark">?</span>.to_vec();
+    <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>hash)<span class="question-mark">?</span>.offset();
+    <span class="prelude-val">Ok</span>(ptr <span class="kw">as </span>i32)
 }
 
 <span class="attr">#[cfg(test)]
