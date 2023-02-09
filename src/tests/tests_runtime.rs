@@ -81,18 +81,6 @@ fn test_run_main_without_main() {
 
 #[test]
 #[serial]
-fn test_expr() {
-    let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
-    let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/gc_basic_op.wat"));
-
-    let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone()).unwrap();
-    let resp = run_main(&interface, runtime_module, 100_000, gas_costs.clone()).unwrap();
-    dbg!(resp);
-}
-
-#[test]
-#[serial]
 /// Even if our SC is empty there is still an initial and minimum metering cost,
 /// because we have a memory allocator to init.
 ///
