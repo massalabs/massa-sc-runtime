@@ -250,8 +250,8 @@ fn test_unsupported_builtins() {
 
     // Test for hrtime
     let module = include_bytes!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/wasm/unsupported_builtin_hrtime.wasm"
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/unsupported_builtin_hrtime.wasm"
     ));
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
 
@@ -266,8 +266,8 @@ fn test_unsupported_builtins() {
 
     // test for getRandomValues
     let module = include_bytes!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/wasm/unsupported_builtin_random_values.wasm"
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/unsupported_builtin_random_values.wasm"
     ));
     let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone()).unwrap();
 

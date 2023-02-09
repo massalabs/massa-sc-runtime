@@ -5,9 +5,9 @@
 //! module. You can look at the other side of the mirror in `massa.ts` and the
 //! rust side in `execution_impl.rs`.
 
-use std::ops::Add;
 use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use function_name::named;
+use std::ops::Add;
 use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
 use crate::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
@@ -950,7 +950,6 @@ pub fn assembly_script_console_log(
 
     assembly_script_console(ctx, message, "LOG")
 }
-
 
 /// Assembly script builtin `console.info()`.
 #[named]
