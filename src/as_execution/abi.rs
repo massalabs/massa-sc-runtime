@@ -20,9 +20,18 @@ macro_rules! get_memory {
     ($env:ident) => {
         match $env.get_ffi_env().memory.as_ref() {
             Some(mem) => mem,
-            _ => abi_bail!("No memory in env"),
+            _ => abi_bail!("Environment memory is missing"),
         }
     };
+}
+
+pub(crate) fn get_env(ctx: &FunctionEnvMut<ASEnv>) -> ABIResult<ASEnv> {
+    let env = ctx.data().clone();
+    if *env.available.write() == false {
+        abi_bail!("ABI calls are not available during instantiation");
+    } else {
+        Ok(env)
+    }
 }
 
 /// Get the coins that have been made available for a specific purpose for the current call.
@@ -558,7 +567,7 @@ pub(crate) fn assembly_script_generate_event(
     mut ctx: FunctionEnvMut<ASEnv>,
     event: i32,
 ) -> ABIResult<()> {
-    let env = ctx.data().clone();
+    let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let event = read_string(memory, &ctx, event)?;

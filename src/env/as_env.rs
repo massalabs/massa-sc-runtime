@@ -1,5 +1,6 @@
 use crate::{types::Interface, GasCosts};
-use std::collections::HashMap;
+use parking_lot::RwLock;
+use std::{collections::HashMap, sync::Arc};
 use wasmer::Global;
 
 use super::Metered;
@@ -7,6 +8,7 @@ use super::Metered;
 #[derive(Clone)]
 pub struct ASEnv {
     ffi_env: as_ffi_bindings::Env,
+    pub available: Arc<RwLock<bool>>,
     pub interface: Box<dyn Interface>,
     pub remaining_points: Option<Global>,
     pub exhausted_points: Option<Global>,
@@ -18,6 +20,7 @@ impl ASEnv {
     pub fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
         Self {
             ffi_env: Default::default(),
+            available: Arc::new(RwLock::new(false)),
             gas_costs,
             interface: interface.clone_box(),
             remaining_points: None,

@@ -14,7 +14,7 @@
   (global $wasmer_metering_points_exhausted (export "testos") (mut i32) (i32.const 42))
 
   (func $f1
-    ;; (call $massa.assembly_script_generate_event (i32.const 42))
+    (call $massa.assembly_script_generate_event (i32.const 42))
     (drop (i32.const 1024))
   )
 
@@ -55,6 +55,7 @@
     ;; (i32.store offset=0
     ;;   (local.get $l0)
     ;; )
+    (call $massa.assembly_script_generate_event (i32.const 42))
     (global.get $wasmer_metering_points_exhausted)
     (drop)
     (i32.const 42)
