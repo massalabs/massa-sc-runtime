@@ -41,7 +41,6 @@ fn test_instantiation_safety() {
     let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone()).unwrap();
     let error = run_main(&interface, runtime_module, 100_000, gas_costs.clone()).unwrap_err();
     let expected_error = "ABI calls are not available during instantiation";
-    dbg!(&error);
     assert!(error.to_string().contains(expected_error));
 }
 
