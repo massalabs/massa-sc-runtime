@@ -13,14 +13,36 @@ use wasmer::WasmPtr;
 
 #[test]
 #[serial]
-fn test_expr() {
+/// Test that overriding the metering globals is not possible
+fn test_metering_safety() {
     let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
-    let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/gc_basic_op.wat"));
+    let bytecode = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/metering_override.wat"
+    ));
 
     let gas_costs = GasCosts::default();
     let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone()).unwrap();
     let resp = run_main(&interface, runtime_module, 100_000, gas_costs.clone()).unwrap();
-    dbg!(resp);
+    assert_ne!(resp.remaining_gas, 42);
+}
+
+#[test]
+#[serial]
+/// Test that calling ABIs from the start function is not possible
+fn test_instantiation_safety() {
+    let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
+    let bytecode = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/start_func_abi_call.wat"
+    ));
+
+    let gas_costs = GasCosts::default();
+    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone()).unwrap();
+    let error = run_main(&interface, runtime_module, 100_000, gas_costs.clone()).unwrap_err();
+    let expected_error = "ABI calls are not available during instantiation";
+    dbg!(&error);
+    assert!(error.to_string().contains(expected_error));
 }
 
 #[test]
