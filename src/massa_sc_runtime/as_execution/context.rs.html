@@ -320,7 +320,6 @@
                 } <span class="kw">else </span>{
                     <span class="number">0
                 </span>};
-                <span class="kw-2">*</span><span class="self">self</span>.env.abi_enabled.write() = <span class="bool-val">true</span>;
                 <span class="prelude-val">Ok</span>((instance, post_init_points))
             }
             <span class="prelude-val">Err</span>(err) =&gt; {
@@ -532,6 +531,7 @@
                 <span class="string">&quot;assembly_script_local_execution&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_local_execution),
                 <span class="string">&quot;assembly_script_caller_has_write_access&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_caller_has_write_access),
                 <span class="string">&quot;assembly_script_function_exists&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_function_exists),
+                <span class="string">&quot;assembly_script_hash_sha256&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_hash_sha256),
             },
         };
 
