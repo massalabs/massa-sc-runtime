@@ -50,7 +50,7 @@ impl ASContext {
                 } else {
                     0
                 };
-                *self.env.available.write() = true;
+                *self.env.abi_enabled.write() = true;
                 Ok((instance, post_init_points))
             }
             Err(err) => {

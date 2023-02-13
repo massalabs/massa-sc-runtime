@@ -1,8 +1,13 @@
+//! Execution functions used by the ABIs.
+//!
+//! IMPORTANT: these were designed for, and should not be called outside of ABIs.
+
 use wasmer::FunctionEnvMut;
 
 use crate::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 use crate::{Response, RuntimeModule};
 
+use super::abi::get_env;
 use super::error::{abi_bail, ABIResult};
 
 /// Calls an exported function in a WASM module at a given address
@@ -17,7 +22,7 @@ pub(crate) fn call_module(
         Ok(v) => v,
         Err(_) => abi_bail!("negative amount of coins in Call"),
     };
-    let env = ctx.data().clone();
+    let env = get_env(ctx)?;
     let bytecode = env.get_interface().init_call(address, raw_coins)?;
     let interface = env.get_interface();
 
@@ -50,7 +55,7 @@ pub(crate) fn local_call(
     function: &str,
     param: &[u8],
 ) -> ABIResult<Response> {
-    let env = ctx.data().clone();
+    let env = get_env(ctx)?;
     let interface = env.get_interface();
 
     let remaining_gas = if cfg!(feature = "gas_calibration") {
@@ -80,7 +85,7 @@ pub(crate) fn function_exists(
     address: &str,
     function: &str,
 ) -> ABIResult<bool> {
-    let env = ctx.data().clone();
+    let env = get_env(ctx)?;
     let interface = env.get_interface();
     let bytecode = interface.raw_get_bytecode_for(address)?;
 
