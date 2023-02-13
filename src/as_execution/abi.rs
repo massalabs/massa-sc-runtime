@@ -1146,6 +1146,21 @@ where
     Ok(buffer)
 }
 
+/// performs a sha256 hash on byte array and returns the hash as byte array
+#[named]
+pub(crate) fn assembly_script_hash_sha256(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    bytes: i32,
+) -> ABIResult<i32> {
+    let env = ctx.data().clone();
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let memory = get_memory!(env);
+    let bytes = read_buffer(memory, &ctx, bytes)?;
+    let hash = env.get_interface().hash_sha256(&bytes)?.to_vec();
+    let ptr = pointer_from_bytearray(&env, &mut ctx, &hash)?.offset();
+    Ok(ptr as i32)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::as_execution::abi::ser_bytearray_vec;

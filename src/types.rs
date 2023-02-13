@@ -122,6 +122,7 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_console_warn"), 36);
         abi_costs.insert(String::from("assembly_script_console_error"), 36);
         abi_costs.insert(String::from("assembly_script_trace"), 36);
+        abi_costs.insert(String::from("assembly_script_hash_sha256"), 83);
         Self {
             operator_cost: 1,
             launch_cost: 10000,
@@ -384,6 +385,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
         filter: Option<(&str, Option<&[u8]>)>,
     ) -> Result<()> {
         unimplemented!("send_message")
+    }
+
+    // Sha256 hash bytes
+    fn hash_sha256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
+        unimplemented!("hash_sha256")
     }
 }
 
