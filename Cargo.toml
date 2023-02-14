@@ -29,4 +29,5 @@ function_name = "0.3"
 
 [features]
 gas_calibration = []
+testing = []
 dumper = []
