@@ -5,15 +5,29 @@ use wasmer::Global;
 
 use super::Metered;
 
+/// AssemblyScript execution environment.
+///
+/// Contains the AS ffi env and all the data required to run a module.
 #[derive(Clone)]
 pub struct ASEnv {
+    /// AssemblyScript foreign function interface environment.
+    /// Used to interact with AS types.
     ffi_env: as_ffi_bindings::Env,
+    /// Set to true after a module execution was instantiated.
+    /// ABIs should be disabled in the AssemblyScript `start` function.
+    /// It prevents non-deterministic behaviour in the intances creation.
     pub abi_enabled: Arc<RwLock<bool>>,
+    /// Exposed interface functions used by the ABIs and implemented externally.
+    /// In `massa/massa-execution-worker` for example.
     pub interface: Box<dyn Interface>,
+    /// Remaining metering points in the current execution context.
     pub remaining_points: Option<Global>,
+    /// Cumulated exhausted points in the current execution context.
     pub exhausted_points: Option<Global>,
-    param_size_map: HashMap<String, Option<Global>>,
+    /// Gas costs of different execution operations.
     gas_costs: GasCosts,
+    /// Initially added for gas calibration but unused at the moment.
+    param_size_map: HashMap<String, Option<Global>>,
 }
 
 impl ASEnv {
