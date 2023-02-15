@@ -119,6 +119,7 @@
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>context;
@@ -181,37 +182,38 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_engine(limit: u64, gas_costs: GasCosts) -&gt; Engine {
-    <span class="comment">// We use the Singlepass compiler because it is fast and adapted to blockchains
-    // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
+    <span class="comment">// We use the Singlepass compiler because the module caching system is not
+    // currently able to handle both Cranelift &amp; Singlepass compilation simultaneously.
+    //
+    // References:
+    // * https://github.com/massalabs/massa/discussions/3560#discussioncomment-4960194
+    // * https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
     </span><span class="kw">let </span><span class="kw-2">mut </span>compiler_config = Singlepass::new();
 
-    <span class="comment">// Turning-off sources of potential non-determinism,
-    // see https://github.com/WebAssembly/design/blob/037c6fe94151eb13e30d174f5f7ce851be0a573e/Nondeterminism.md
-
-    // Turning-off in the compiler:
-
-    // Canonicalize NaN.
+    <span class="comment">// Canonicalize NaN, turn off all sources of non-determinism,
+    // disable features that the Singlepass compiler does not handle.
+    //
+    // References:
+    // * https://github.com/webassembly/bulk-memory-operations
+    // * https://github.com/WebAssembly/design/blob/390bab47efdb76b600371bcef1ec0ea374aa8c43/Nondeterminism.md
+    // * https://github.com/WebAssembly/proposals
+    //
+    // TLDR: Turn off every feature except for `bulk_memory`.
     </span>compiler_config.canonicalize_nans(<span class="bool-val">true</span>);
-
-    <span class="comment">// Default: Turning-off all wasmer feature flags
-    // Exception(s):
-    // * bulk_memory:
-    //   * https://docs.rs/wasmer/latest/wasmer/struct.Features.html: now fully standardized - wasm 2.0
-    //   * See also: https://github.com/paritytech/substrate/issues/12216
-    </span><span class="kw">const </span>FEATURES: Features = Features {
-        threads: <span class="bool-val">false</span>, <span class="comment">// disable threads
-        </span>reference_types: <span class="bool-val">false</span>,
-        simd: <span class="bool-val">false</span>,           <span class="comment">// turn off experimental SIMD feature
-        </span>bulk_memory: <span class="bool-val">true</span>,     <span class="comment">// enabled in order to use ArrayBuffer in AS
-        </span>multi_value: <span class="bool-val">false</span>,    <span class="comment">// turn off multi value, not support for SinglePass (default: true)
-        </span>tail_call: <span class="bool-val">false</span>,      <span class="comment">// experimental
-        </span>module_linking: <span class="bool-val">false</span>, <span class="comment">// experimental
-        </span>multi_memory: <span class="bool-val">false</span>,   <span class="comment">// experimental
-        </span>memory64: <span class="bool-val">false</span>,       <span class="comment">// experimental
-        </span>exceptions: <span class="bool-val">false</span>,
-        relaxed_simd: <span class="bool-val">false</span>, <span class="comment">// experimental
-        </span>extended_const: <span class="bool-val">false</span>,
-    };
+    <span class="kw">const </span>FEATURES: Features = Features {
+        threads: <span class="bool-val">false</span>,         <span class="comment">// non-deterministic
+        </span>reference_types: <span class="bool-val">false</span>, <span class="comment">// no support for SinglePass
+        </span>simd: <span class="bool-val">false</span>,            <span class="comment">// non-deterministic
+        </span>bulk_memory: <span class="bool-val">true</span>,      <span class="comment">// enables the use of buffers in AS
+        </span>multi_value: <span class="bool-val">false</span>,     <span class="comment">// no support for SinglePass
+        </span>tail_call: <span class="bool-val">false</span>,       <span class="comment">// experimental
+        </span>module_linking: <span class="bool-val">false</span>,  <span class="comment">// experimental
+        </span>multi_memory: <span class="bool-val">false</span>,    <span class="comment">// experimental
+        </span>memory64: <span class="bool-val">false</span>,        <span class="comment">// experimental
+        </span>exceptions: <span class="bool-val">false</span>,      <span class="comment">// experimental
+        </span>relaxed_simd: <span class="bool-val">false</span>,    <span class="comment">// experimental
+        </span>extended_const: <span class="bool-val">false</span>,  <span class="comment">// experimental
+    </span>};
 
     <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
         <span class="comment">// Add gas calibration middleware
@@ -241,4 +243,4 @@
     <span class="prelude-val">Ok</span>(store)
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (065852def 2023-02-13)" data-search-js="search-abe1d547ad11c273.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (0416b1a6f 2023-02-14)" data-search-js="search-14421e1532aead08.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
