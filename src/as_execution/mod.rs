@@ -6,7 +6,8 @@ mod error;
 use anyhow::{anyhow, Result};
 use std::sync::Arc;
 use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
-use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
+use wasmer::{CompilerConfig, Engine, Features, Module, Store};
+use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
 
 use crate::middlewares::gas_calibration::GasCalibration;
@@ -59,32 +60,37 @@ impl ASModule {
 }
 
 pub(crate) fn init_engine(limit: u64, gas_costs: GasCosts) -> Engine {
-    // Use Cranelift (in opposition to Singlepass)
-    // Because of module caching we can run longer compilations to have better optimizations
-    // Executions are happening way more often than compilations hence that choice
-    let mut compiler_config = Cranelift::new();
-
-    // Canonicalize NaN & turn off sources of potential non-determinism:
-    // * threads
-    // * SIMD
-    // * experimental features
+    // We use the Singlepass compiler because the module caching system is not
+    // currently able to handle both Cranelift & Singlepass compilation simultaneously.
+    //
     // References:
+    // * https://github.com/massalabs/massa/discussions/3560#discussioncomment-4960194
+    // * https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
+    let mut compiler_config = Singlepass::new();
+
+    // Canonicalize NaN, turn off all sources of non-determinism,
+    // disable features that the Singlepass compiler does not handle.
+    //
+    // References:
+    // * https://github.com/webassembly/bulk-memory-operations
     // * https://github.com/WebAssembly/design/blob/390bab47efdb76b600371bcef1ec0ea374aa8c43/Nondeterminism.md
     // * https://github.com/WebAssembly/proposals
+    //
+    // TLDR: Turn off every feature except for `bulk_memory`.
     compiler_config.canonicalize_nans(true);
     const FEATURES: Features = Features {
-        threads: false,        // non-deterministic
-        reference_types: true, // enables externref WASM type and needs to be enabled with bulk_memory
-        simd: false,           // non-deterministic
-        bulk_memory: true,     // enables the use of buffers in AS
-        multi_value: true,     // enables functions and blocks returning multiple values
-        tail_call: false,      // experimental
-        module_linking: false, // experimental
-        multi_memory: false,   // experimental
-        memory64: false,       // experimental
-        exceptions: false,     // experimental
-        relaxed_simd: false,   // experimental
-        extended_const: false, // experimental
+        threads: false,         // non-deterministic
+        reference_types: false, // no support for SinglePass
+        simd: false,            // non-deterministic
+        bulk_memory: true,      // enables the use of buffers in AS
+        multi_value: false,     // no support for SinglePass
+        tail_call: false,       // experimental
+        module_linking: false,  // experimental
+        multi_memory: false,    // experimental
+        memory64: false,        // experimental
+        exceptions: false,      // experimental
+        relaxed_simd: false,    // experimental
+        extended_const: false,  // experimental
     };
 
     if cfg!(feature = "gas_calibration") {
