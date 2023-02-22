@@ -290,7 +290,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     // Hash data
-    fn hash(&self, data: &[u8]) -> Result<String> {
+    fn hash(&self, data: &[u8]) -> Result<[u8; 32]> {
         unimplemented!("hash")
     }
 

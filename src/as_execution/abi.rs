@@ -260,20 +260,21 @@ pub(crate) fn assembly_script_create_sc(
     Ok(StringPtr::alloc(&address, env.get_ffi_env(), &mut ctx)?.offset() as i32)
 }
 
-/// performs a hash on a string and returns the bs58check encoded hash
+/// performs a hash on a bytearray and returns the hash
 #[named]
-pub(crate) fn assembly_script_hash(mut ctx: FunctionEnvMut<ASEnv>, value: i32) -> ABIResult<i32> {
+pub(crate) fn assembly_script_hash(mut ctx: FunctionEnvMut<ASEnv>, bytes: i32) -> ABIResult<i32> {
     let env = ctx.data().clone();
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let value = read_string(memory, &ctx, value)?;
+    let bytes = read_buffer(memory, &ctx, bytes)?;
     // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, value.len(), true);
     // }
-    let hash = env.get_interface().hash(value.as_bytes())?;
-    Ok(pointer_from_string(&env, &mut ctx, &hash)?.offset() as i32)
+    let hash = env.get_interface().hash(&bytes)?.to_vec();
+    let ptr = pointer_from_bytearray(&env, &mut ctx, &hash)?.offset();
+    Ok(ptr as i32)
 }
 
 /// Get keys (aka entries) in the datastore
