@@ -96,7 +96,7 @@ pub(crate) fn function_exists(
     };
 
     match interface.get_module(&bytecode, remaining_gas)? {
-        RuntimeModule::ASModule((module, _engine)) => Ok(module
+        RuntimeModule::ASModule(module) => Ok(module
             .binary_module
             .exports()
             .functions()

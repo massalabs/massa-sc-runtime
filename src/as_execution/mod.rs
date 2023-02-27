@@ -21,8 +21,7 @@ pub(crate) use error::*;
 
 #[derive(Clone)]
 pub enum RuntimeModule {
-    // IMPORTANT NOTE: is store required to be here?
-    ASModule((ASModule, Engine, Store)),
+    ASModule(ASModule),
 }
 
 impl RuntimeModule {
@@ -49,9 +48,8 @@ impl RuntimeModule {
     }
 
     pub fn serialize(&self) -> Result<Vec<u8>> {
-        // NOTE: is engine info needed?
         Ok(match self {
-            RuntimeModule::ASModule((module, _engine, _store)) => module.serialize()?,
+            RuntimeModule::ASModule(module) => module.serialize()?,
         })
     }
 }
@@ -60,6 +58,7 @@ impl RuntimeModule {
 #[derive(Clone)]
 pub struct ASModule {
     pub(crate) binary_module: Module,
+    pub(crate) engine: Engine,
     pub(crate) initial_limit: u64,
     pub cache_compatible: bool,
 }
@@ -70,22 +69,18 @@ impl ASModule {
         limit: u64,
         gas_costs: GasCosts,
         cache_compatible: bool,
-    ) -> Result<(Self, Engine, Store)> {
+    ) -> Result<Self> {
         let engine = if cache_compatible {
             init_cl_engine(limit, gas_costs)
         } else {
             init_sp_engine(limit, gas_costs)
         };
-        let store = init_store(&engine)?;
-        Ok((
-            Self {
-                binary_module: Module::new(&engine, bytecode)?,
-                initial_limit: limit,
-                cache_compatible,
-            },
+        Ok(Self {
+            binary_module: Module::new(&engine, bytecode)?,
+            initial_limit: limit,
+            cache_compatible,
             engine,
-            store,
-        ))
+        })
     }
 
     pub fn serialize(&self) -> Result<Vec<u8>> {
@@ -96,12 +91,13 @@ impl ASModule {
 
     pub fn deserialize(&self, ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
         let engine = init_sp_engine(limit, gas_costs);
-        let mut store = init_store(&engine)?;
+        let store = init_store(&engine)?;
         let module = unsafe { Module::deserialize(&store, ser_module)? };
         Ok(ASModule {
             binary_module: module,
             initial_limit: limit,
             cache_compatible: true,
+            engine,
         })
     }
 }

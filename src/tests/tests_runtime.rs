@@ -352,8 +352,8 @@ fn test_class_id() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/return_basic.wasm"
     ));
-    let (module, engine) = ASModule::new(bytecode, 100_000, GasCosts::default(), false).unwrap();
-    let mut store = init_store(&engine).unwrap();
+    let module = ASModule::new(bytecode, 100_000, GasCosts::default(), false).unwrap();
+    let mut store = init_store(&module.engine).unwrap();
     let mut context = ASContext::new(&*interface, module.binary_module, GasCosts::default());
     let (instance, _) = context.create_vm_instance_and_init_env(&mut store).unwrap();
 
