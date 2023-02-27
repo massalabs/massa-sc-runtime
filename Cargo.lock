@@ -763,6 +763,7 @@ dependencies = [
  "thiserror",
  "tracing",
  "wasmer",
+ "wasmer-compiler-cranelift",
  "wasmer-compiler-singlepass",
  "wasmer-middlewares",
  "wasmer-types",

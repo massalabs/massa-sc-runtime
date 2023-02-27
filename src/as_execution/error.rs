@@ -9,7 +9,7 @@ pub enum ABIError {
     Error(#[from] anyhow::Error),
     /// Wasmer runtime error: {0}
     RuntimeError(#[from] wasmer::RuntimeError),
-    /// Runtime serde_json error: {0}
+    /// Serde error: {0}
     SerdeError(#[from] serde_json::Error),
 }
 

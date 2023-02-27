@@ -71,7 +71,7 @@ impl Interface for TestInterface {
     }
 
     fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule> {
-        let as_module = ASModule::new(bytecode, limit, GasCosts::default())?;
+        let as_module = ASModule::new(bytecode, limit, GasCosts::default(), false)?;
         let module = RuntimeModule::ASModule(as_module);
         Ok(module)
     }
