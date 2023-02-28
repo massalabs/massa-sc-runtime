@@ -4,7 +4,7 @@ use crate::{GasCosts, RuntimeModule};
 
 use anyhow::{bail, Result};
 use parking_lot::Mutex;
-
+use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use std::{collections::BTreeMap, str::FromStr};
 
@@ -88,8 +88,8 @@ impl Interface for TestInterface {
         Ok(false)
     }
 
-    fn hash(&self, data: &[u8]) -> Result<String> {
-        Ok(String::from_utf8(data.to_vec())?)
+    fn hash(&self, data: &[u8]) -> Result<[u8; 32]> {
+        Ok(massa_hash::Hash::compute_from(data).into_bytes())
     }
 
     fn raw_append_data(&self, _key: &[u8], _value: &[u8]) -> Result<()> {
@@ -229,6 +229,14 @@ impl Interface for TestInterface {
             .timestamp_millis()
             .try_into()
             .unwrap())
+    }
+
+    // Sha256 hash data
+    fn hash_sha256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
+        let mut hasher = Sha256::new();
+        hasher.update(bytes);
+        let hash = hasher.finalize().into();
+        Ok(hash)
     }
 }
 

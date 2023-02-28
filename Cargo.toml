@@ -22,6 +22,8 @@ rand = "0.8"
 displaydoc = "0.2"
 thiserror = "1.0"
 chrono = { version = "0.4", features = ["clock"], default-features = false }
+massa_hash = { git = "https://github.com/massalabs/massa.git", package = "massa_hash"}
+sha2 = "0.10.6"
 # for gas_calibration middleware
 regex = "1"
 more-asserts = "0.3"
@@ -29,3 +31,5 @@ function_name = "0.3"
 
 [features]
 gas_calibration = []
+testing = []
+dumper = []

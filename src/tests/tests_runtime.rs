@@ -179,7 +179,11 @@ fn test_builtins() {
         Err(e) => {
             let msg = e.to_string();
             // make sure the error was caused by a manual abort
-            assert!(msg.contains("Manual abort"));
+            assert!(
+                msg.contains("Manual abort"),
+                "{}",
+                format!("Error was: {:?}", e)
+            );
             // check the given timestamp validity
             let after = chrono::offset::Utc::now().timestamp_millis();
             let ident = "UTC timestamp (ms) = ";
@@ -276,6 +280,8 @@ fn test_unsupported_builtins() {
     let gas_costs = GasCosts::default();
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+
+    // Test for hrtime
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/unsupported_builtin_hrtime.wasm"
@@ -287,6 +293,22 @@ fn test_unsupported_builtins() {
             assert!(e
                 .to_string()
                 .contains("Error while importing \"env\".\"performance.now\""))
+        }
+        _ => panic!("test should return an error!"),
+    }
+
+    // test for getRandomValues
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/unsupported_builtin_random_values.wasm"
+    ));
+    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone(), false).unwrap();
+
+    match run_main(&*interface, runtime_module, 10_000_000, gas_costs.clone()) {
+        Err(e) => {
+            assert!(e
+                .to_string()
+                .contains("Error while importing \"env\".\"crypto.getRandomValuesN\""))
         }
         _ => panic!("test should return an error!"),
     }
@@ -369,14 +391,14 @@ fn test_class_id() {
     let string_ptr = return_string
         .call(&mut store, &[])
         .unwrap()
-        .get(0)
+        .first()
         .unwrap()
         .i32()
         .unwrap();
     let array_ptr = return_array
         .call(&mut store, &[])
         .unwrap()
-        .get(0)
+        .first()
         .unwrap()
         .i32()
         .unwrap();

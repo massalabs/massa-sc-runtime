@@ -111,7 +111,7 @@ impl ASContext {
                         init_cost: 0,
                     });
                 }
-                let ret = if let Some(offset) = value.get(0) {
+                let ret = if let Some(offset) = value.first() {
                     if let Some(offset) = offset.i32() {
                         let buffer_ptr = BufferPtr::new(offset as u32);
                         let memory = instance.exports.get_memory("memory")?;
@@ -211,6 +211,10 @@ impl ASContext {
                 "seed" => Function::new_typed_with_env(store, &fenv, assembly_script_seed),
                 "Date.now" =>  Function::new_typed_with_env(store, &fenv, assembly_script_date_now),
                 "console.log" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_log),
+                "console.info" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_info),
+                "console.warn" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_warn),
+                "console.error" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_error),
+                "console.debug" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_debug),
                 "trace" =>  Function::new_typed_with_env(store, &fenv, assembly_script_trace),
                 "process.exit" =>  Function::new_typed_with_env(store, &fenv, assembly_script_process_exit),
             },
@@ -258,6 +262,7 @@ impl ASContext {
                 "assembly_script_local_execution" => Function::new_typed_with_env(store, &fenv, assembly_script_local_execution),
                 "assembly_script_caller_has_write_access" => Function::new_typed_with_env(store, &fenv, assembly_script_caller_has_write_access),
                 "assembly_script_function_exists" => Function::new_typed_with_env(store, &fenv, assembly_script_function_exists),
+                "assembly_script_hash_sha256" =>  Function::new_typed_with_env(store, &fenv, assembly_script_hash_sha256),
             },
         };
 

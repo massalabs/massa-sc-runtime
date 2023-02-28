@@ -10,12 +10,11 @@ use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
 
-use crate::middlewares::gas_calibration::GasCalibration;
+use crate::middlewares::{dumper::Dumper, gas_calibration::GasCalibration};
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::GasCosts;
 
-pub(crate) use common::*;
 pub(crate) use context::*;
 pub(crate) use error::*;
 
@@ -194,6 +193,10 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
         // Add gas calibration middleware
         let gas_calibration = Arc::new(GasCalibration::new());
         compiler_config.push_middleware(gas_calibration);
+    } else if cfg!(feature = "dumper") {
+        // Add dumper middleware
+        let dumper = Arc::new(Dumper::new());
+        compiler_config.push_middleware(dumper);
     } else {
         // Add metering middleware
         let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {

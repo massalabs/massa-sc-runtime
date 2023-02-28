@@ -7,14 +7,14 @@
 
 use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use function_name::named;
+use std::ops::Add;
 use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
 use crate::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
 use crate::settings;
 
-use super::common::{call_module, create_sc, function_exists};
+use super::common::{call_module, create_sc, function_exists, local_call};
 use super::error::{abi_bail, ABIResult};
-use super::local_call;
 
 macro_rules! get_memory {
     ($env:ident) => {
@@ -268,20 +268,21 @@ pub(crate) fn assembly_script_create_sc(
     Ok(StringPtr::alloc(&address, env.get_ffi_env(), &mut ctx)?.offset() as i32)
 }
 
-/// performs a hash on a string and returns the bs58check encoded hash
+/// performs a hash on a bytearray and returns the hash
 #[named]
 pub(crate) fn assembly_script_hash(mut ctx: FunctionEnvMut<ASEnv>, value: i32) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let value = read_string(memory, &ctx, value)?;
+    let bytes = read_buffer(memory, &ctx, value)?;
     // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, value.len(), true);
     // }
-    let hash = env.get_interface().hash(value.as_bytes())?;
-    Ok(pointer_from_string(&env, &mut ctx, &hash)?.offset() as i32)
+    let hash = env.get_interface().hash(&bytes)?.to_vec();
+    let ptr = pointer_from_bytearray(&env, &mut ctx, &hash)?.offset();
+    Ok(ptr as i32)
 }
 
 /// Get keys (aka entries) in the datastore
@@ -956,6 +957,69 @@ pub fn assembly_script_console_log(
         sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     }
 
+    assembly_script_console(ctx, message, "LOG")
+}
+
+/// Assembly script builtin `console.info()`.
+#[named]
+pub fn assembly_script_console_info(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    assembly_script_console(ctx, message, "INFO")
+}
+
+/// Assembly script builtin `console.warn()`.
+#[named]
+pub fn assembly_script_console_warn(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    assembly_script_console(ctx, message, "WARN")
+}
+
+/// Assembly script builtin `console.debug()`.
+#[named]
+pub fn assembly_script_console_debug(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    assembly_script_console(ctx, message, "DEBUG")
+}
+
+/// Assembly script builtin `console.error()`.
+#[named]
+pub fn assembly_script_console_error(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+    if cfg!(not(feature = "gas_calibration")) {
+        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    }
+    assembly_script_console(ctx, message, "ERROR")
+}
+
+/// Assembly script console functions
+fn assembly_script_console(
+    ctx: FunctionEnvMut<ASEnv>,
+    message: StringPtr,
+    prefix: &str,
+) -> ABIResult<()> {
+    let env = ctx.data().clone();
+
     let memory = ctx
         .data()
         .get_ffi_env()
@@ -963,7 +1027,11 @@ pub fn assembly_script_console_log(
         .as_ref()
         .expect("Failed to get memory on env")
         .clone();
-    let message = message.read(&memory, &ctx)?;
+    let message = prefix
+        .to_string()
+        .add(" | ")
+        .add(&message.read(&memory, &ctx)?);
+
     env.get_interface().generate_event(message)?;
     Ok(())
 }
@@ -1085,6 +1153,21 @@ where
     }
 
     Ok(buffer)
+}
+
+/// performs a sha256 hash on byte array and returns the hash as byte array
+#[named]
+pub(crate) fn assembly_script_hash_sha256(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    bytes: i32,
+) -> ABIResult<i32> {
+    let env = ctx.data().clone();
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let memory = get_memory!(env);
+    let bytes = read_buffer(memory, &ctx, bytes)?;
+    let hash = env.get_interface().hash_sha256(&bytes)?.to_vec();
+    let ptr = pointer_from_bytearray(&env, &mut ctx, &hash)?.offset();
+    Ok(ptr as i32)
 }
 
 #[cfg(test)]
