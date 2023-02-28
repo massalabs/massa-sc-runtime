@@ -216,6 +216,19 @@
 <a href="#216" id="216">216</a>
 <a href="#217" id="217">217</a>
 <a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>context;
@@ -244,7 +257,7 @@
 <span class="kw">impl </span>RuntimeModule {
     <span class="doccomment">/// TODO: Dispatch module creation corresponding to the first bytecode byte
     ///
-    /// * (1) TODO: target AssemblyScript (do not use ident)
+    /// * (1) TODO: target AssemblyScript (remove ident)
     /// * (2) TODO: target X
     /// * (_) target AssemblyScript
     </span><span class="kw">pub fn </span>new(
@@ -264,10 +277,22 @@
         }
     }
 
-    <span class="kw">pub fn </span>serialize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
+    <span class="comment">// NOTE: set a module identifier for other types of sub modules
+    // disctinction between runtime module ident and sub module ident must be clear
+    // if the serialization process becomes too complex use NOM
+    </span><span class="kw">pub fn </span>serialize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
+        <span class="kw">let </span>ser = <span class="kw">match </span><span class="self">self </span>{
             RuntimeModule::ASModule(module) =&gt; module.serialize()<span class="question-mark">?</span>,
-        })
+        };
+        <span class="prelude-val">Ok</span>(ser)
+    }
+
+    <span class="comment">// NOTE: only deserialize from ASModule for now
+    // make a distinction based on the runtime module identifier byte
+    // see serialize note
+    </span><span class="kw">pub fn </span>deserialize(ser_module: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>deser = RuntimeModule::ASModule(ASModule::deserialize(ser_module, limit, gas_costs)<span class="question-mark">?</span>);
+        <span class="prelude-val">Ok</span>(deser)
     }
 }
 
@@ -308,8 +333,9 @@
         <span class="prelude-val">Ok</span>(ser_module)
     }
 
-    <span class="kw">pub fn </span>deserialize(<span class="kw-2">&amp;</span><span class="self">self</span>, ser_module: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="comment">// Deserialization is only meant for Cranelift modules
+    <span class="kw">pub fn </span>deserialize(ser_module: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="comment">// NOTE: move this check to serialize
+        // Deserialization is only meant for Cranelift modules
         </span><span class="kw">let </span>engine = <span class="kw">match </span>ser_module.first() {
             <span class="prelude-val">Some</span>(<span class="number">1</span>) =&gt; init_cl_engine(limit, gas_costs),
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid or unsupported identifier byte&quot;</span>),
