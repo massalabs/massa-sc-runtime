@@ -26,7 +26,7 @@ pub enum RuntimeModule {
 impl RuntimeModule {
     /// TODO: Dispatch module creation corresponding to the first bytecode byte
     ///
-    /// * (1) TODO: target AssemblyScript (do not use ident)
+    /// * (1) TODO: target AssemblyScript (remove ident)
     /// * (2) TODO: target X
     /// * (_) target AssemblyScript
     pub fn new(
@@ -46,10 +46,22 @@ impl RuntimeModule {
         }
     }
 
+    // NOTE: set a module identifier for other types of sub modules
+    // disctinction between runtime module ident and sub module ident must be clear
+    // if the serialization process becomes too complex use NOM
     pub fn serialize(&self) -> Result<Vec<u8>> {
-        Ok(match self {
+        let ser = match self {
             RuntimeModule::ASModule(module) => module.serialize()?,
-        })
+        };
+        Ok(ser)
+    }
+
+    // NOTE: only deserialize from ASModule for now
+    // make a distinction based on the runtime module identifier byte
+    // see serialize note
+    pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
+        let deser = RuntimeModule::ASModule(ASModule::deserialize(ser_module, limit, gas_costs)?);
+        Ok(deser)
     }
 }
 
@@ -90,7 +102,8 @@ impl ASModule {
         Ok(ser_module)
     }
 
-    pub fn deserialize(&self, ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
+    pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
+        // NOTE: move this check to serialize
         // Deserialization is only meant for Cranelift modules
         let engine = match ser_module.first() {
             Some(1) => init_cl_engine(limit, gas_costs),
