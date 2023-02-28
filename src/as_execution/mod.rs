@@ -58,9 +58,11 @@ impl RuntimeModule {
 #[derive(Clone)]
 pub struct ASModule {
     pub(crate) binary_module: Module,
-    pub(crate) engine: Engine,
     pub(crate) initial_limit: u64,
     pub cache_compatible: bool,
+    // NOTE: might need to move the engine back out
+    #[allow(dead_code)]
+    pub(crate) engine: Engine,
 }
 
 impl ASModule {
@@ -90,8 +92,15 @@ impl ASModule {
     }
 
     pub fn deserialize(&self, ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
-        let engine = init_sp_engine(limit, gas_costs);
+        // Deserialization is only meant for Cranelift modules
+        let engine = match ser_module.first() {
+            Some(1) => init_cl_engine(limit, gas_costs),
+            Some(_) => panic!("invalid or unsupported identifier byte"),
+            None => panic!("empty serialized module"),
+        };
         let store = init_store(&engine)?;
+        // Unsafe because code injection is possible
+        // That's not an issue in our case since we only deserialize modules we trust
         let module = unsafe { Module::deserialize(&store, ser_module)? };
         Ok(ASModule {
             binary_module: module,
