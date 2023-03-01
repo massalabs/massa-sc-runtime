@@ -1,7 +1,7 @@
 mod abi;
-mod abi_error;
 mod common;
-mod execution;
+mod context;
+mod error;
 
 use anyhow::{anyhow, Result};
 use std::sync::Arc;
@@ -10,14 +10,14 @@ use wasmer::{CompilerConfig, Engine, Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
 
-use crate::middlewares::gas_calibration::GasCalibration;
+use crate::middlewares::{dumper::Dumper, gas_calibration::GasCalibration};
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::GasCosts;
 
-pub(crate) use abi_error::*;
 pub(crate) use common::*;
-pub(crate) use execution::*;
+pub(crate) use context::*;
+pub(crate) use error::*;
 
 #[derive(Clone)]
 pub enum RuntimeModule {
@@ -31,7 +31,7 @@ impl RuntimeModule {
     /// * (2) TODO: target X
     /// * (_) target AssemblyScript and use the full bytecode
     pub fn new(bytecode: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
-        match bytecode.get(0) {
+        match bytecode.first() {
             Some(1) => Ok(Self::ASModule(ASModule::new(bytecode, limit, gas_costs)?)),
             Some(_) => Ok(Self::ASModule(ASModule::new(bytecode, limit, gas_costs)?)),
             None => Err(anyhow!("Empty bytecode")),
@@ -96,6 +96,10 @@ pub(crate) fn init_engine(limit: u64, gas_costs: GasCosts) -> Engine {
         // Add gas calibration middleware
         let gas_calibration = Arc::new(GasCalibration::new());
         compiler_config.push_middleware(gas_calibration);
+    } else if cfg!(feature = "dumper") {
+        // Add dumper middleware
+        let dumper = Arc::new(Dumper::new());
+        compiler_config.push_middleware(dumper);
     } else {
         // Add metering middleware
         let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {

@@ -1,9 +1,5 @@
 use super::abi::*;
-use crate::env::{
-    assembly_script_abort, assembly_script_console_log, assembly_script_date_now,
-    assembly_script_process_exit, assembly_script_seed, assembly_script_trace,
-    get_remaining_points, set_remaining_points, ASEnv, MassaEnv,
-};
+use crate::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 use crate::types::Response;
 use crate::{GasCosts, Interface};
 use anyhow::{bail, Result};
@@ -14,12 +10,18 @@ use wasmer::{
 use wasmer_middlewares::metering::{self, MeteringPoints};
 use wasmer_types::TrapCode;
 
-pub(crate) struct ASContextModule {
+pub(crate) struct ASContext {
     pub env: ASEnv,
     pub module: Module,
 }
 
-impl ASContextModule {
+/// Execution context of an AS module.
+///
+/// This object handles every execution step apart from:
+/// * Module compilation
+/// * Engine creation & init
+/// * Store creation & init
+impl ASContext {
     pub(crate) fn new(
         interface: &dyn Interface,
         binary_module: Module,
@@ -87,7 +89,7 @@ impl ASContextModule {
         let res = if argc == 0 {
             wasm_func.call(store, &[])
         } else if argc == 1 {
-            let param_ptr = *BufferPtr::alloc(&param.to_vec(), self.env.get_wasm_env(), store)?;
+            let param_ptr = *BufferPtr::alloc(&param.to_vec(), self.env.get_ffi_env(), store)?;
             wasm_func.call(store, &[Value::I32(param_ptr.offset() as i32)])
         } else {
             bail!("Unexpected number of parameters in the function called")
@@ -108,7 +110,7 @@ impl ASContextModule {
                         init_cost: 0,
                     });
                 }
-                let ret = if let Some(offset) = value.get(0) {
+                let ret = if let Some(offset) = value.first() {
                     if let Some(offset) = offset.i32() {
                         let buffer_ptr = BufferPtr::new(offset as u32);
                         let memory = instance.exports.get_memory("memory")?;
@@ -161,7 +163,7 @@ impl ASContextModule {
             .get_typed_function::<(), ()>(&store, "__collect")
             .ok();
 
-        fenv.as_mut(store).get_wasm_env_as_mut().init_with(
+        fenv.as_mut(store).get_ffi_env_as_mut().init_with(
             Some(memory.clone()),
             fn_new.clone(),
             fn_pin.clone(),
@@ -170,7 +172,7 @@ impl ASContextModule {
         );
 
         // Update self.env as well
-        self.env.get_wasm_env_as_mut().init_with(
+        self.env.get_ffi_env_as_mut().init_with(
             Some(memory.clone()),
             fn_new,
             fn_pin,
@@ -208,6 +210,10 @@ impl ASContextModule {
                 "seed" => Function::new_typed_with_env(store, &fenv, assembly_script_seed),
                 "Date.now" =>  Function::new_typed_with_env(store, &fenv, assembly_script_date_now),
                 "console.log" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_log),
+                "console.info" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_info),
+                "console.warn" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_warn),
+                "console.error" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_error),
+                "console.debug" =>  Function::new_typed_with_env(store, &fenv, assembly_script_console_debug),
                 "trace" =>  Function::new_typed_with_env(store, &fenv, assembly_script_trace),
                 "process.exit" =>  Function::new_typed_with_env(store, &fenv, assembly_script_process_exit),
             },
@@ -255,6 +261,7 @@ impl ASContextModule {
                 "assembly_script_local_execution" => Function::new_typed_with_env(store, &fenv, assembly_script_local_execution),
                 "assembly_script_caller_has_write_access" => Function::new_typed_with_env(store, &fenv, assembly_script_caller_has_write_access),
                 "assembly_script_function_exists" => Function::new_typed_with_env(store, &fenv, assembly_script_function_exists),
+                "assembly_script_hash_sha256" =>  Function::new_typed_with_env(store, &fenv, assembly_script_hash_sha256),
             },
         };
 

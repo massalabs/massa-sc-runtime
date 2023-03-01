@@ -65,7 +65,7 @@ impl GasCosts {
     }
 }
 
-#[cfg(any(test, feature = "gas_calibration"))]
+#[cfg(any(test, feature = "gas_calibration", feature = "testing"))]
 impl Default for GasCosts {
     fn default() -> Self {
         let mut abi_costs = HashMap::new();
@@ -117,7 +117,12 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_abort"), 11);
         abi_costs.insert(String::from("assembly_script_date_now"), 11);
         abi_costs.insert(String::from("assembly_script_console_log"), 36); // same cost as for generate_event
+        abi_costs.insert(String::from("assembly_script_console_info"), 36);
+        abi_costs.insert(String::from("assembly_script_console_debug"), 36);
+        abi_costs.insert(String::from("assembly_script_console_warn"), 36);
+        abi_costs.insert(String::from("assembly_script_console_error"), 36);
         abi_costs.insert(String::from("assembly_script_trace"), 36);
+        abi_costs.insert(String::from("assembly_script_hash_sha256"), 83);
         Self {
             operator_cost: 1,
             launch_cost: 10000,
@@ -285,7 +290,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     // Hash data
-    fn hash(&self, data: &[u8]) -> Result<String> {
+    fn hash(&self, data: &[u8]) -> Result<[u8; 32]> {
         unimplemented!("hash")
     }
 
@@ -380,6 +385,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
         filter: Option<(&str, Option<&[u8]>)>,
     ) -> Result<()> {
         unimplemented!("send_message")
+    }
+
+    // Sha256 hash bytes
+    fn hash_sha256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
+        unimplemented!("hash_sha256")
     }
 }
 
