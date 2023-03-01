@@ -145,15 +145,7 @@
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::as_execution::{
-    init_cl_engine, init_sp_engine, init_store, ASContext, ASModule, RuntimeModule,
-};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::as_execution::{init_engine, init_store, ASContext, ASModule, RuntimeModule};
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 <span class="kw">use </span><span class="kw">crate</span>::settings;
 <span class="kw">use </span><span class="kw">crate</span>::types::{Interface, Response};
@@ -172,7 +164,7 @@
     gas_costs: GasCosts,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(Response, <span class="prelude-ty">Option</span>&lt;GasCalibrationResult&gt;)&gt; {
     <span class="kw">let </span>response = <span class="kw">match </span>rt_module {
-        RuntimeModule::ASModule(module) =&gt; {
+        RuntimeModule::ASModule((module, _engine)) =&gt; {
             exec_as_module(interface, module, function, param, limit, gas_costs)<span class="question-mark">?
         </span>}
     };
@@ -200,15 +192,11 @@
     limit: u64,
     gas_costs: GasCosts,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(Response, <span class="prelude-ty">Option</span>&lt;GasCalibrationResult&gt;)&gt; {
-    <span class="kw">let </span>engine = <span class="kw">if </span>as_module.cache_compatible {
-        init_cl_engine(limit, gas_costs.clone())
-    } <span class="kw">else </span>{
-        init_sp_engine(limit, gas_costs.clone())
-    };
+    <span class="kw">let </span>engine = init_engine(limit, gas_costs.clone());
     <span class="kw">let </span><span class="kw-2">mut </span>store = init_store(<span class="kw-2">&amp;</span>engine)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>context = ASContext::new(interface, as_module.binary_module, gas_costs);
     <span class="kw">let </span>(instance, init_rem_points) = context.create_vm_instance_and_init_env(<span class="kw-2">&amp;mut </span>store)<span class="question-mark">?</span>;
-    <span class="kw">let </span>init_cost = as_module.initial_limit.saturating_sub(init_rem_points);
+    <span class="kw">let </span>init_cost = as_module.init_limit.saturating_sub(init_rem_points);
 
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
         metering::set_remaining_points(<span class="kw-2">&amp;mut </span>store, <span class="kw-2">&amp;</span>instance, limit.saturating_sub(init_cost));
@@ -305,4 +293,4 @@
     </span>.unwrap())
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (7281249a1 2023-02-27)" data-search-js="search-d5a6cd8418084717.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (31f858d9a 2023-02-28)" data-search-js="search-d5a6cd8418084717.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
