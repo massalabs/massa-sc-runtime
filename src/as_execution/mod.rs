@@ -24,7 +24,7 @@ pub enum RuntimeModule {
 }
 
 impl RuntimeModule {
-    /// TODO: Dispatch module creation corresponding to the first bytecode byte
+    /// Dispatch module creation corresponding to the first bytecode byte
     ///
     /// * (1) TODO: target AssemblyScript (remove ident)
     /// * (2) TODO: target X
@@ -46,9 +46,18 @@ impl RuntimeModule {
         }
     }
 
-    // NOTE: set a module identifier for other types of sub modules
-    // distinction between runtime module ident and sub module ident must be clear
-    // if the serialization process becomes too complex use NOM
+    /// Wether or not the current module can be cached
+    pub fn cache_compatible(&self) -> bool {
+        match self {
+            RuntimeModule::ASModule(module) => module.cache_compatible,
+        }
+    }
+
+    /// Serialize a RuntimeModule
+    ///
+    /// TODO: set a module identifier for other types of sub modules.
+    /// Distinction between runtime module ident and sub module ident must be clear.
+    /// If the serialization process becomes too complex use NOM.
     pub fn serialize(&self) -> Result<Vec<u8>> {
         let ser = match self {
             RuntimeModule::ASModule(module) => module.serialize()?,
@@ -56,9 +65,10 @@ impl RuntimeModule {
         Ok(ser)
     }
 
-    // NOTE: only deserialize from ASModule for now
-    // make a distinction based on the runtime module identifier byte
-    // see serialize note
+    /// Deserialize a RuntimeModule
+    ///
+    /// NOTE: only deserialize from ASModule for now
+    /// TODO: make a distinction based on the runtime module identifier byte (see serialize description)
     pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
         let deser = RuntimeModule::ASModule(ASModule::deserialize(ser_module, limit, gas_costs)?);
         Ok(deser)
@@ -97,19 +107,16 @@ impl ASModule {
     }
 
     pub fn serialize(&self) -> Result<Vec<u8>> {
-        let mut ser_module = self.binary_module.serialize()?.to_vec();
-        ser_module.insert(0, u8::from(self.cache_compatible));
-        Ok(ser_module)
+        if self.cache_compatible {
+            Ok(self.binary_module.serialize()?.to_vec())
+        } else {
+            panic!("cannot serialize a module compiled with Singlepass")
+        }
     }
 
     pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
-        // NOTE: move this check to serialize
         // Deserialization is only meant for Cranelift modules
-        let engine = match ser_module.first() {
-            Some(1) => init_cl_engine(limit, gas_costs),
-            Some(_) => panic!("invalid or unsupported identifier byte"),
-            None => panic!("empty serialized module"),
-        };
+        let engine = init_cl_engine(limit, gas_costs);
         let store = init_store(&engine)?;
         // Unsafe because code injection is possible
         // That's not an issue in our case since we only deserialize modules we trust
