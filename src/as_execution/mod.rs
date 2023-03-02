@@ -47,7 +47,7 @@ impl RuntimeModule {
     }
 
     // NOTE: set a module identifier for other types of sub modules
-    // disctinction between runtime module ident and sub module ident must be clear
+    // distinction between runtime module ident and sub module ident must be clear
     // if the serialization process becomes too complex use NOM
     pub fn serialize(&self) -> Result<Vec<u8>> {
         let ser = match self {
