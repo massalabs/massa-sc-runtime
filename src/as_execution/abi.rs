@@ -315,7 +315,7 @@ pub(crate) fn assembly_script_get_matching_keys_for(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
-    let prefix = read_string(memory, &ctx, prefix)?;
+    let prefix = read_buffer(memory, &ctx, prefix)?;
     let keys = env.get_interface().get_matching_keys_for(&address, &prefix)?;
     let fmt_keys = ser_bytearray_vec(&keys, keys.len(), settings::max_datastore_entry_count())?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &fmt_keys)?.offset();

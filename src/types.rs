@@ -208,7 +208,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     /// Return datastore keys matching the given prefix
-    fn get_matching_keys_for(&self, address: &str, prefix: &str) -> Result<BTreeSet<Vec<u8>>> {
+    fn get_matching_keys_for(&self, address: &str, prefix: &Vec<u8>) -> Result<BTreeSet<Vec<u8>>> {
         unimplemented!("get_matching_keys_for")
     }
 
