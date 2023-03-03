@@ -304,6 +304,24 @@ pub(crate) fn assembly_script_get_keys_for(
     Ok(ptr as i32)
 }
 
+/// Get keys (aka entries) in the datastore that matches the given prefix
+#[named]
+pub(crate) fn assembly_script_get_matching_keys_for(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    address: i32,
+    prefix: i32,
+) -> ABIResult<i32> {
+    let env = ctx.data().clone();
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let memory = get_memory!(env);
+    let address = read_string(memory, &ctx, address)?;
+    let prefix = read_string(memory, &ctx, prefix)?;
+    let keys = env.get_interface().get_matching_keys_for(&address, &prefix)?;
+    let fmt_keys = ser_bytearray_vec(&keys, keys.len(), settings::max_datastore_entry_count())?;
+    let ptr = pointer_from_bytearray(&env, &mut ctx, &fmt_keys)?.offset();
+    Ok(ptr as i32)
+}
+
 /// sets a key-indexed data entry in the datastore, overwriting existing values if any
 #[named]
 pub(crate) fn assembly_script_set_data(
