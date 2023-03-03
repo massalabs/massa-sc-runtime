@@ -414,6 +414,13 @@
 <a href="#414" id="414">414</a>
 <a href="#415" id="415">415</a>
 <a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
 </pre><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>serde::{de::DeserializeOwned, Serialize};
 <span class="kw">use </span>std::{
@@ -503,6 +510,7 @@
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_data_for&quot;</span>), <span class="number">139</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_keys&quot;</span>), <span class="number">26</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_keys_for&quot;</span>), <span class="number">48</span>);
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_matching_keys_for&quot;</span>), <span class="number">64</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_op_data&quot;</span>), <span class="number">71</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_op_keys&quot;</span>), <span class="number">138</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_owned_addresses&quot;</span>), <span class="number">52</span>);
@@ -621,6 +629,12 @@
     </span><span class="kw">fn </span>get_keys_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeSet&lt;Vec&lt;u8&gt;&gt;&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;get_op_keys_for&quot;</span>)
     }
+
+    <span class="doccomment">/// Return datastore keys matching the given prefix
+    </span><span class="kw">fn </span>get_matching_keys_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, prefix: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeSet&lt;Vec&lt;u8&gt;&gt;&gt; {
+        <span class="macro">unimplemented!</span>(<span class="string">&quot;get_matching_keys_for&quot;</span>)
+    }
+
 
     <span class="doccomment">/// Return the datastore value of the corresponding key
     </span><span class="kw">fn </span>raw_get_data(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
@@ -831,4 +845,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (f77bfb733 2023-03-01)" data-search-js="search-2cde8914278f97ed.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (13471d3b2 2023-03-02)" data-search-js="search-2cde8914278f97ed.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

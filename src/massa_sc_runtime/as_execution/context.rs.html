@@ -321,7 +321,6 @@
                 } <span class="kw">else </span>{
                     <span class="number">0
                 </span>};
-                <span class="kw-2">*</span><span class="self">self</span>.env.abi_enabled.write() = <span class="bool-val">true</span>;
                 <span class="prelude-val">Ok</span>((instance, post_init_points))
             }
             <span class="prelude-val">Err</span>(err) =&gt; {
@@ -525,6 +524,7 @@
                 <span class="string">&quot;assembly_script_get_op_keys&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_op_keys),
                 <span class="string">&quot;assembly_script_get_keys&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_keys),
                 <span class="string">&quot;assembly_script_get_keys_for&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_keys_for),
+                <span class="string">&quot;assembly_script_get_matching_keys_for&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_matching_keys_for),
                 <span class="string">&quot;assembly_script_has_op_key&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_has_op_key),
                 <span class="string">&quot;assembly_script_get_op_data&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_op_data),
                 <span class="string">&quot;assembly_script_get_bytecode&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_bytecode),
@@ -541,4 +541,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (f77bfb733 2023-03-01)" data-search-js="search-2cde8914278f97ed.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (13471d3b2 2023-03-02)" data-search-js="search-2cde8914278f97ed.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
