@@ -1544,7 +1544,7 @@
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>prefix = read_string(memory, <span class="kw-2">&amp;</span>ctx, prefix)<span class="question-mark">?</span>;
+    <span class="kw">let </span>prefix = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, prefix)<span class="question-mark">?</span>;
     <span class="kw">let </span>keys = env.get_interface().get_matching_keys_for(<span class="kw-2">&amp;</span>address, <span class="kw-2">&amp;</span>prefix)<span class="question-mark">?</span>;
     <span class="kw">let </span>fmt_keys = ser_bytearray_vec(<span class="kw-2">&amp;</span>keys, keys.len(), settings::max_datastore_entry_count())<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>fmt_keys)<span class="question-mark">?</span>.offset();
