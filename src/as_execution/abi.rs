@@ -630,9 +630,7 @@ pub(crate) fn assembly_script_validate_address(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
-    // TODO     Validate address here
-    let validated = true;
-    Ok(validated as i32)
+    Ok(env.get_interface().validate_address(&address)? as i32)
 }
 
 /// generates an unsafe random number

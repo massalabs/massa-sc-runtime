@@ -306,7 +306,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     // Validate an address
-    fn validate_address(&self, address: String) -> Result<()> {
+    fn validate_address(&self, address: &str) -> Result<bool> {
         unimplemented!("validate_address")
     }
 
