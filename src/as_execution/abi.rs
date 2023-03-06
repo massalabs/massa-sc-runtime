@@ -287,7 +287,7 @@ pub(crate) fn assembly_script_get_keys(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let prefix = read_buffer(memory, &ctx, prefix)?;
-    let prefix_opt = if prefix.len() > 0 {
+    let prefix_opt = if !prefix.is_empty() {
         Some(prefix.as_ref())
     } else {
         None
@@ -310,7 +310,7 @@ pub(crate) fn assembly_script_get_keys_for(
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let prefix = read_buffer(memory, &ctx, prefix)?;
-    let prefix_opt = if prefix.len() > 0 {
+    let prefix_opt = if !prefix.is_empty() {
         Some(prefix.as_ref())
     } else {
         None
