@@ -87,7 +87,6 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_get_data_for"), 139);
         abi_costs.insert(String::from("assembly_script_get_keys"), 26);
         abi_costs.insert(String::from("assembly_script_get_keys_for"), 48);
-        abi_costs.insert(String::from("assembly_script_get_matching_keys_for"), 64);
         abi_costs.insert(String::from("assembly_script_get_op_data"), 71);
         abi_costs.insert(String::from("assembly_script_get_op_keys"), 138);
         abi_costs.insert(String::from("assembly_script_get_owned_addresses"), 52);
@@ -198,20 +197,16 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     /// Return datastore keys
-    fn get_keys(&self) -> Result<BTreeSet<Vec<u8>>> {
+    /// Will only return keys with a given prefix if provided in args
+    fn get_keys(&self, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {
         unimplemented!("get_op_keys")
     }
 
     /// Return datastore keys
-    fn get_keys_for(&self, address: &str) -> Result<BTreeSet<Vec<u8>>> {
+    /// Will only return keys with a given prefix if provided in args
+    fn get_keys_for(&self, address: &str, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {
         unimplemented!("get_op_keys_for")
     }
-
-    /// Return datastore keys matching the given prefix
-    fn get_matching_keys_for(&self, address: &str, prefix: &[u8]) -> Result<BTreeSet<Vec<u8>>> {
-        unimplemented!("get_matching_keys_for")
-    }
-
 
     /// Return the datastore value of the corresponding key
     fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>> {
