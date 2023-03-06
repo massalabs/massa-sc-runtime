@@ -70,6 +70,7 @@ impl Default for GasCosts {
     fn default() -> Self {
         let mut abi_costs = HashMap::new();
         abi_costs.insert(String::from("assembly_script_address_from_public_key"), 147);
+        abi_costs.insert(String::from("assembly_script_validate_address"), 4);
         abi_costs.insert(String::from("assembly_script_append_data"), 162);
         abi_costs.insert(String::from("assembly_script_append_data_for"), 200);
         abi_costs.insert(String::from("assembly_script_call"), 30466);
@@ -302,6 +303,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     // Convert a public key to an address
     fn address_from_public_key(&self, public_key: &str) -> Result<String> {
         unimplemented!("address_from_public_key")
+    }
+
+    // Validate an address
+    fn validate_address(&self, address: String) -> Result<()> {
+        unimplemented!("validate_address")
     }
 
     /// Returns the current time (millisecond unix timestamp)
