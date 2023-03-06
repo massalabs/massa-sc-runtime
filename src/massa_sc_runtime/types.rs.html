@@ -416,6 +416,10 @@
 <a href="#416" id="416">416</a>
 <a href="#417" id="417">417</a>
 <a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
 </pre><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>serde::{de::DeserializeOwned, Serialize};
 <span class="kw">use </span>std::{
@@ -488,6 +492,7 @@
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>abi_costs = HashMap::new();
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_address_from_public_key&quot;</span>), <span class="number">147</span>);
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_validate_address&quot;</span>), <span class="number">4</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_append_data&quot;</span>), <span class="number">162</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_append_data_for&quot;</span>), <span class="number">200</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_call&quot;</span>), <span class="number">30466</span>);
@@ -615,14 +620,12 @@
     }
 
     <span class="doccomment">/// Return datastore keys
-    /// Will only return keys with a given prefix if provided in args
-    </span><span class="kw">fn </span>get_keys(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeSet&lt;Vec&lt;u8&gt;&gt;&gt; {
+    </span><span class="kw">fn </span>get_keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeSet&lt;Vec&lt;u8&gt;&gt;&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;get_op_keys&quot;</span>)
     }
 
     <span class="doccomment">/// Return datastore keys
-    /// Will only return keys with a given prefix if provided in args
-    </span><span class="kw">fn </span>get_keys_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeSet&lt;Vec&lt;u8&gt;&gt;&gt; {
+    </span><span class="kw">fn </span>get_keys_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeSet&lt;Vec&lt;u8&gt;&gt;&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;get_op_keys_for&quot;</span>)
     }
 
@@ -722,6 +725,11 @@
     <span class="comment">// Convert a public key to an address
     </span><span class="kw">fn </span>address_from_public_key(<span class="kw-2">&amp;</span><span class="self">self</span>, public_key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;address_from_public_key&quot;</span>)
+    }
+
+    <span class="comment">// Validate an address
+    </span><span class="kw">fn </span>validate_address(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str) -&gt; bool {
+        <span class="macro">unimplemented!</span>(<span class="string">&quot;validate_address&quot;</span>)
     }
 
     <span class="doccomment">/// Returns the current time (millisecond unix timestamp)
