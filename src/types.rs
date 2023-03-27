@@ -62,12 +62,12 @@ impl GasCosts {
             launch_cost: *abi_costs
                 .get("launch")
                 .ok_or_else(|| anyhow!("launch cost not found in ABI gas cost file."))?,
-            sp_compilation_cost: *abi_costs.get("launch").ok_or_else(|| {
-                anyhow!("sp_compilation_cost cost not found in ABI gas cost file.")
-            })?,
-            cl_compilation_cost: *abi_costs.get("launch").ok_or_else(|| {
-                anyhow!("sp_compilation_cost cost not found in ABI gas cost file.")
-            })?,
+            sp_compilation_cost: *abi_costs
+                .get("sp_compilation_cost")
+                .ok_or_else(|| anyhow!("sp_compilation_cost not found in ABI gas cost file."))?,
+            cl_compilation_cost: *abi_costs
+                .get("cl_compilation_cost")
+                .ok_or_else(|| anyhow!("cl_compilation_cost not found in ABI gas cost file."))?,
             abi_costs,
         })
     }
