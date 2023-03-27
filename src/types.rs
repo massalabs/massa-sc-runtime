@@ -133,7 +133,9 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_hash_sha256"), 83);
         Self {
             operator_cost: 1,
-            launch_cost: 10000,
+            launch_cost: 10_000,
+            sp_compilation_cost: 10_000,
+            cl_compilation_cost: 100_000,
             abi_costs,
         }
     }
