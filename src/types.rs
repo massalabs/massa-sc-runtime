@@ -38,6 +38,8 @@ macro_rules! unimplemented {
 pub struct GasCosts {
     pub(crate) operator_cost: u64,
     pub(crate) launch_cost: u64,
+    pub sp_compilation_cost: u64,
+    pub cl_compilation_cost: u64,
     pub(crate) abi_costs: HashMap<String, u64>,
 }
 
@@ -60,6 +62,12 @@ impl GasCosts {
             launch_cost: *abi_costs
                 .get("launch")
                 .ok_or_else(|| anyhow!("launch cost not found in ABI gas cost file."))?,
+            sp_compilation_cost: *abi_costs.get("launch").ok_or_else(|| {
+                anyhow!("sp_compilation_cost cost not found in ABI gas cost file.")
+            })?,
+            cl_compilation_cost: *abi_costs.get("launch").ok_or_else(|| {
+                anyhow!("sp_compilation_cost cost not found in ABI gas cost file.")
+            })?,
             abi_costs,
         })
     }
