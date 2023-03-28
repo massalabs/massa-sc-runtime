@@ -38,9 +38,8 @@ macro_rules! unimplemented {
 pub struct GasCosts {
     pub(crate) operator_cost: u64,
     pub(crate) launch_cost: u64,
-    pub sp_compilation_cost: u64,
-    pub cl_compilation_cost: u64,
     pub(crate) abi_costs: HashMap<String, u64>,
+    pub sp_compilation_cost: u64,
 }
 
 impl GasCosts {
@@ -65,9 +64,6 @@ impl GasCosts {
             sp_compilation_cost: *abi_costs
                 .get("sp_compilation_cost")
                 .ok_or_else(|| anyhow!("sp_compilation_cost not found in ABI gas cost file."))?,
-            cl_compilation_cost: *abi_costs
-                .get("cl_compilation_cost")
-                .ok_or_else(|| anyhow!("cl_compilation_cost not found in ABI gas cost file."))?,
             abi_costs,
         })
     }
@@ -134,9 +130,8 @@ impl Default for GasCosts {
         Self {
             operator_cost: 1,
             launch_cost: 10_000,
-            sp_compilation_cost: 10_000,
-            cl_compilation_cost: 100_000,
             abi_costs,
+            sp_compilation_cost: 10_000,
         }
     }
 }
