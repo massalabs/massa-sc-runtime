@@ -620,6 +620,19 @@ pub(crate) fn assembly_script_address_from_public_key(
     Ok(pointer_from_string(&env, &mut ctx, &addr)?.offset() as i32)
 }
 
+/// Validates an address is correct
+#[named]
+pub(crate) fn assembly_script_validate_address(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    address: i32,
+) -> ABIResult<i32> {
+    let env = ctx.data().clone();
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let memory = get_memory!(env);
+    let address = read_string(memory, &ctx, address)?;
+    Ok(env.get_interface().validate_address(&address)? as i32)
+}
+
 /// generates an unsafe random number
 #[named]
 pub(crate) fn assembly_script_unsafe_random(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
