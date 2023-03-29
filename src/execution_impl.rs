@@ -1,5 +1,5 @@
 use crate::as_execution::{
-    init_cl_engine, init_sp_engine, init_store, ASContext, ASModule, RuntimeModule,
+    init_cl_engine, init_sp_engine, init_store, ASContext, ASModule, Compiler, RuntimeModule,
 };
 use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 use crate::settings;
@@ -47,10 +47,9 @@ pub(crate) fn exec_as_module(
     limit: u64,
     gas_costs: GasCosts,
 ) -> Result<(Response, Option<GasCalibrationResult>)> {
-    let engine = if as_module.cache_compatible {
-        init_cl_engine(limit, gas_costs.clone())
-    } else {
-        init_sp_engine(limit, gas_costs.clone())
+    let engine = match as_module.compiler {
+        Compiler::CL => init_cl_engine(limit, gas_costs.clone()),
+        Compiler::SP => init_sp_engine(limit, gas_costs.clone()),
     };
     let mut store = init_store(&engine)?;
     let mut context = ASContext::new(interface, as_module.binary_module, gas_costs);

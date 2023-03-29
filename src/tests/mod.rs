@@ -1,4 +1,4 @@
-use crate::as_execution::ASModule;
+use crate::as_execution::{ASModule, Compiler};
 use crate::types::{Interface, InterfaceClone};
 use crate::{GasCosts, RuntimeModule};
 
@@ -71,7 +71,7 @@ impl Interface for TestInterface {
     }
 
     fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule> {
-        let as_module = ASModule::new(bytecode, limit, GasCosts::default(), false)?;
+        let as_module = ASModule::new(bytecode, limit, GasCosts::default(), Compiler::SP)?;
         let module = RuntimeModule::ASModule(as_module);
         Ok(module)
     }

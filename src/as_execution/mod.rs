@@ -33,23 +33,20 @@ impl RuntimeModule {
         bytecode: &[u8],
         limit: u64,
         gas_costs: GasCosts,
-        cache_compatible: bool,
+        compiler: Compiler,
     ) -> Result<Self> {
         match bytecode.first() {
             Some(_) => Ok(Self::ASModule(ASModule::new(
-                bytecode,
-                limit,
-                gas_costs,
-                cache_compatible,
+                bytecode, limit, gas_costs, compiler,
             )?)),
             None => Err(anyhow!("Empty bytecode")),
         }
     }
 
-    /// Wether or not the current module can be cached
-    pub fn cache_compatible(&self) -> bool {
+    /// Used compiler for the current module
+    pub fn compiler(&self) -> Compiler {
         match self {
-            RuntimeModule::ASModule(module) => module.cache_compatible,
+            RuntimeModule::ASModule(module) => module.compiler.clone(),
         }
     }
 
@@ -68,11 +65,18 @@ impl RuntimeModule {
     /// Deserialize a RuntimeModule
     ///
     /// NOTE: only deserialize from ASModule for now
-    /// TODO: make a distinction based on the runtime module identifier byte (see serialize description)
+    /// TODO: make a distinction based on the runtime module identifier byte (see `serialize` description)
     pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
         let deser = RuntimeModule::ASModule(ASModule::deserialize(ser_module, limit, gas_costs)?);
         Ok(deser)
     }
+}
+
+/// Enum listing the available compilers
+#[derive(Clone)]
+pub enum Compiler {
+    CL,
+    SP,
 }
 
 /// An executable runtime module compiled from an AssemblyScript SC
@@ -80,10 +84,9 @@ impl RuntimeModule {
 pub struct ASModule {
     pub(crate) binary_module: Module,
     pub(crate) initial_limit: u64,
-    pub cache_compatible: bool,
-    // NOTE: might need to move the engine back out
-    #[allow(dead_code)]
-    pub(crate) engine: Engine,
+    pub compiler: Compiler,
+    // Compilation engine can not be dropped
+    pub(crate) _engine: Engine,
 }
 
 impl ASModule {
@@ -91,26 +94,24 @@ impl ASModule {
         bytecode: &[u8],
         limit: u64,
         gas_costs: GasCosts,
-        cache_compatible: bool,
+        compiler: Compiler,
     ) -> Result<Self> {
-        let engine = if cache_compatible {
-            init_cl_engine(limit, gas_costs)
-        } else {
-            init_sp_engine(limit, gas_costs)
+        let engine = match compiler {
+            Compiler::CL => init_cl_engine(limit, gas_costs),
+            Compiler::SP => init_sp_engine(limit, gas_costs),
         };
         Ok(Self {
             binary_module: Module::new(&engine, bytecode)?,
             initial_limit: limit,
-            cache_compatible,
-            engine,
+            compiler,
+            _engine: engine,
         })
     }
 
     pub fn serialize(&self) -> Result<Vec<u8>> {
-        if self.cache_compatible {
-            Ok(self.binary_module.serialize()?.to_vec())
-        } else {
-            panic!("cannot serialize a module compiled with Singlepass")
+        match self.compiler {
+            Compiler::CL => Ok(self.binary_module.serialize()?.to_vec()),
+            Compiler::SP => panic!("cannot serialize a module compiled with Singlepass"),
         }
     }
 
@@ -124,11 +125,35 @@ impl ASModule {
         Ok(ASModule {
             binary_module: module,
             initial_limit: limit,
-            cache_compatible: true,
-            engine,
+            compiler: Compiler::CL,
+            _engine: engine,
         })
     }
 }
+
+// Compiler feature.
+// Turn off all sources of non-determinism.
+//
+// References:
+// * https://github.com/webassembly/bulk-memory-operations
+// * https://github.com/WebAssembly/design/blob/390bab47efdb76b600371bcef1ec0ea374aa8c43/Nondeterminism.md
+// * https://github.com/WebAssembly/proposals
+//
+// TLDR: Turn off every feature except for `bulk_memory`.
+const FEATURES: Features = Features {
+    threads: false,         // non-deterministic
+    reference_types: false, // could be enabled but we have no need for it atm
+    simd: false,            // non-deterministic
+    bulk_memory: true,      // enables the use of buffers in AS
+    multi_value: false,     // could be enabled but we have no need for it atm
+    tail_call: false,       // experimental
+    module_linking: false,  // experimental
+    multi_memory: false,    // experimental
+    memory64: false,        // experimental
+    exceptions: false,      // experimental
+    relaxed_simd: false,    // experimental
+    extended_const: false,  // experimental
+};
 
 pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     // Singlepass is used to compile arbitrary bytecode.
@@ -137,29 +162,8 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     // * https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
     let mut compiler_config = Singlepass::new();
 
-    // Canonicalize NaN, turn off all sources of non-determinism.
-    //
-    // References:
-    // * https://github.com/webassembly/bulk-memory-operations
-    // * https://github.com/WebAssembly/design/blob/390bab47efdb76b600371bcef1ec0ea374aa8c43/Nondeterminism.md
-    // * https://github.com/WebAssembly/proposals
-    //
-    // TLDR: Turn off every feature except for `bulk_memory`.
+    // Canonicalize NaN
     compiler_config.canonicalize_nans(true);
-    const FEATURES: Features = Features {
-        threads: false,         // non-deterministic
-        reference_types: false, // not supported by Singlepass
-        simd: false,            // non-deterministic
-        bulk_memory: true,      // enables the use of buffers in AS
-        multi_value: false,     // not supported by Singlepass
-        tail_call: false,       // experimental
-        module_linking: false,  // experimental
-        multi_memory: false,    // experimental
-        memory64: false,        // experimental
-        exceptions: false,      // experimental
-        relaxed_simd: false,    // experimental
-        extended_const: false,  // experimental
-    };
 
     if cfg!(feature = "gas_calibration") {
         // Add gas calibration middleware
@@ -185,29 +189,8 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     // * https://docs.rs/wasmer-compiler-cranelift/latest/wasmer_compiler_cranelift/
     let mut compiler_config = Cranelift::new();
 
-    // Canonicalize NaN, turn off all sources of non-determinism.
-    //
-    // References:
-    // * https://github.com/webassembly/bulk-memory-operations
-    // * https://github.com/WebAssembly/design/blob/390bab47efdb76b600371bcef1ec0ea374aa8c43/Nondeterminism.md
-    // * https://github.com/WebAssembly/proposals
-    //
-    // TLDR: Turn off every feature except for `bulk_memory`.
+    // Canonicalize NaN
     compiler_config.canonicalize_nans(true);
-    const FEATURES: Features = Features {
-        threads: false,         // non-deterministic
-        reference_types: false, // could be enabled but we have no need for it atm
-        simd: false,            // non-deterministic
-        bulk_memory: true,      // enables the use of buffers in AS
-        multi_value: false,     // could be enabled but we have no need for it atm
-        tail_call: false,       // experimental
-        module_linking: false,  // experimental
-        multi_memory: false,    // experimental
-        memory64: false,        // experimental
-        exceptions: false,      // experimental
-        relaxed_simd: false,    // experimental
-        extended_const: false,  // experimental
-    };
 
     if cfg!(feature = "gas_calibration") {
         // Add gas calibration middleware
