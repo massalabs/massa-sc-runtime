@@ -1,3 +1,4 @@
+use crate::as_execution::Compiler;
 use crate::middlewares::operator::{OPERATOR_CARDINALITY, OPERATOR_VARIANTS};
 use crate::middlewares::operator::{
     _OPERATOR_BULK_MEMORY, _OPERATOR_NON_TRAPPING_FLOAT_TO_INT, _OPERATOR_THREAD, _OPERATOR_VECTOR,
@@ -23,7 +24,7 @@ fn test_basic_abi_call_counter() -> Result<()> {
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone())?;
+    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
     let gas_calibration_result =
         run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
     // println!("gas_calibration_result: {:?}", gas_calibration_result);
@@ -84,7 +85,7 @@ fn test_basic_abi_call_loop() -> Result<()> {
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone())?;
+    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
     let gas_calibration_result =
         run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
     assert_eq!(
@@ -112,7 +113,7 @@ fn test_basic_op() -> Result<()> {
     let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/gc_basic_op.wat"));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone())?;
+    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
     let gas_calibration_result =
         run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
     // 1 for env.abort + 4 env.abort parameters
@@ -163,7 +164,7 @@ fn test_basic_abi_call_param_size() -> Result<()> {
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone())?;
+    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
     let gas_calibration_result = run_main_gc(
         &interface,
         runtime_module,

@@ -22,7 +22,8 @@ fn test_metering_safety() {
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP).unwrap();
     let resp = run_main(&interface, runtime_module, 100_000, gas_costs.clone()).unwrap();
     assert_ne!(resp.remaining_gas, 42);
 }
@@ -38,7 +39,8 @@ fn test_instantiation_safety() {
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP).unwrap();
     let error = run_main(&interface, runtime_module, 100_000, gas_costs.clone()).unwrap_err();
     let expected_error = "ABI calls are not available during instantiation";
     assert!(error.to_string().contains(expected_error));
@@ -53,7 +55,8 @@ fn test_run_main() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/basic_main.wasm"));
 
-    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
     run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
 }
 
@@ -66,7 +69,8 @@ fn test_run_function() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/basic_func.wasm"));
 
-    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
     run_function(&*interface, runtime_module, "ping", b"", 100_000, gas_costs).unwrap();
 }
 
@@ -90,7 +94,8 @@ fn test_not_enough_gas_error() {
     );
 
     // Test giving enough gas to create the instance but not enough for the VM
-    let runtime_module = RuntimeModule::new(module, 100_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 100_000, gas_costs.clone(), Compiler::SP).unwrap();
     let error = run_main(&*interface, runtime_module, 100, gas_costs).unwrap_err();
     assert_eq!(
         error.to_string(),
@@ -106,7 +111,8 @@ fn test_run_main_without_main() {
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/no_main.wasm"));
-    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
     run_main(&*interface, runtime_module, 100_000, gas_costs)
         .expect_err("An error should spawn here");
 }
@@ -123,7 +129,8 @@ fn test_run_empty_main() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/empty_main.wasm"));
     gas_costs.launch_cost = 0;
-    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
     let a = run_main(
         &*interface,
         runtime_module.clone(),
@@ -155,7 +162,8 @@ fn test_op_fn() {
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/op_fn.wasm"));
-    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
     run_main(&*interface, runtime_module, 10_000_000, gas_costs.clone())
         .expect("Failed to run op_fn.wasm");
 }
@@ -173,7 +181,8 @@ fn test_builtins() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/use_builtins.wasm"
     ));
-    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
     let before = chrono::offset::Utc::now().timestamp_millis();
     match run_main(&*interface, runtime_module, 10_000_000, gas_costs.clone()) {
         Err(e) => {
@@ -210,7 +219,8 @@ fn test_builtin_assert_and_exit() {
         "/wasm/use_builtin_assert.wasm"
     ));
 
-    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
     match run_function(
         &*interface,
         runtime_module,
@@ -225,7 +235,8 @@ fn test_builtin_assert_and_exit() {
         _ => panic!("test should return an error!"),
     }
 
-    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
     if let Ok(_) = run_function(
         &*interface,
         runtime_module,
@@ -242,7 +253,8 @@ fn test_builtin_assert_and_exit() {
         "/wasm/use_builtin_exit.wasm"
     ));
 
-    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
     match run_function(
         &*interface,
         runtime_module,
@@ -257,7 +269,8 @@ fn test_builtin_assert_and_exit() {
         _ => panic!("test should return an error!"),
     }
 
-    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
     match run_function(
         &*interface,
         runtime_module,
@@ -286,7 +299,8 @@ fn test_unsupported_builtins() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/unsupported_builtin_hrtime.wasm"
     ));
-    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
 
     match run_main(&*interface, runtime_module, 10_000_000, gas_costs.clone()) {
         Err(e) => {
@@ -302,7 +316,8 @@ fn test_unsupported_builtins() {
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/unsupported_builtin_random_values.wasm"
     ));
-    let runtime_module = RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
 
     match run_main(&*interface, runtime_module, 10_000_000, gas_costs.clone()) {
         Err(e) => {
@@ -326,7 +341,8 @@ fn test_wat() {
     let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/dummy.wat"));
 
     let gas_limit = 100_000;
-    let runtime_module = RuntimeModule::new(bytecode, gas_limit, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(bytecode, gas_limit, gas_costs.clone(), Compiler::SP).unwrap();
     let response = run_main(&*interface, runtime_module, gas_limit, gas_costs.clone()).unwrap();
 
     // Note: for now, exec main always return an empty vec
