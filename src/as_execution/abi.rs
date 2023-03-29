@@ -25,6 +25,9 @@ macro_rules! get_memory {
     };
 }
 
+/// Retrieves the AssemblyScript environment.
+///
+/// Fails during instantiation to avoid gas manipulation in the WASM start function.
 pub(crate) fn get_env(ctx: &FunctionEnvMut<ASEnv>) -> ABIResult<ASEnv> {
     let env = ctx.data().clone();
     if !(*env.abi_enabled.read()) {
@@ -966,7 +969,7 @@ pub fn assembly_script_console_info(
     mut ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
 ) -> ABIResult<()> {
-    let env = ctx.data().clone();
+    let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
         sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     }
@@ -979,7 +982,7 @@ pub fn assembly_script_console_warn(
     mut ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
 ) -> ABIResult<()> {
-    let env = ctx.data().clone();
+    let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
         sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     }
@@ -992,7 +995,7 @@ pub fn assembly_script_console_debug(
     mut ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
 ) -> ABIResult<()> {
-    let env = ctx.data().clone();
+    let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
         sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     }
@@ -1005,7 +1008,7 @@ pub fn assembly_script_console_error(
     mut ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
 ) -> ABIResult<()> {
-    let env = ctx.data().clone();
+    let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
         sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     }
@@ -1018,7 +1021,7 @@ fn assembly_script_console(
     message: StringPtr,
     prefix: &str,
 ) -> ABIResult<()> {
-    let env = ctx.data().clone();
+    let env = get_env(&ctx)?;
 
     let memory = ctx
         .data()
@@ -1161,7 +1164,7 @@ pub(crate) fn assembly_script_hash_sha256(
     mut ctx: FunctionEnvMut<ASEnv>,
     bytes: i32,
 ) -> ABIResult<i32> {
-    let env = ctx.data().clone();
+    let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let bytes = read_buffer(memory, &ctx, bytes)?;
