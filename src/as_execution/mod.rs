@@ -120,7 +120,7 @@ impl ASModule {
         let engine = init_cl_engine(limit, gas_costs);
         let store = init_store(&engine)?;
         // Unsafe because code injection is possible
-        // That's not an issue in our case since we only deserialize modules we trust
+        // That's not an issue because we only deserialize modules we have serialized by ourselves before
         let module = unsafe { Module::deserialize(&store, ser_module)? };
         Ok(ASModule {
             binary_module: module,
