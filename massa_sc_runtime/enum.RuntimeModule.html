@@ -4,14 +4,14 @@
     bytecode: &amp;[<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     limit: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
     gas_costs: <a class="struct" href="struct.GasCosts.html" title="struct massa_sc_runtime::GasCosts">GasCosts</a>,
-    compiler: Compiler
+    compiler: <a class="enum" href="enum.Compiler.html" title="enum massa_sc_runtime::Compiler">Compiler</a>
 ) -&gt; <a class="type" href="https://docs.rs/anyhow/1.0.69/anyhow/type.Result.html" title="type anyhow::Result">Result</a>&lt;Self&gt;</h4></section></summary><div class="docblock"><p>Dispatch module creation corresponding to the first bytecode byte</p>
 <ul>
 <li>(1) TODO: target AssemblyScript (remove ident)</li>
 <li>(2) TODO: target X</li>
 <li>(_) target AssemblyScript</li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.compiler" class="method"><a class="srclink rightside" href="../src/massa_sc_runtime/as_execution/mod.rs.html#47-51">source</a><h4 class="code-header">pub fn <a href="#method.compiler" class="fn">compiler</a>(&amp;self) -&gt; Compiler</h4></section></summary><div class="docblock"><p>Used compiler for the current module</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.compiler" class="method"><a class="srclink rightside" href="../src/massa_sc_runtime/as_execution/mod.rs.html#47-51">source</a><h4 class="code-header">pub fn <a href="#method.compiler" class="fn">compiler</a>(&amp;self) -&gt; <a class="enum" href="enum.Compiler.html" title="enum massa_sc_runtime::Compiler">Compiler</a></h4></section></summary><div class="docblock"><p>Used compiler for the current module</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.serialize" class="method"><a class="srclink rightside" href="../src/massa_sc_runtime/as_execution/mod.rs.html#58-63">source</a><h4 class="code-header">pub fn <a href="#method.serialize" class="fn">serialize</a>(&amp;self) -&gt; <a class="type" href="https://docs.rs/anyhow/1.0.69/anyhow/type.Result.html" title="type anyhow::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;</h4></section></summary><div class="docblock"><p>Serialize a RuntimeModule</p>
 <p>TODO: set a module identifier for other types of sub modules.
 Distinction between runtime module ident and sub module ident must be clear.
