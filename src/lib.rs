@@ -8,7 +8,7 @@ mod settings;
 mod tunable_memory;
 mod types;
 
-pub use as_execution::RuntimeModule;
+pub use as_execution::{Compiler, RuntimeModule};
 pub use execution_impl::{run_function, run_main};
 pub use types::*;
 
