@@ -321,7 +321,6 @@
                 } <span class="kw">else </span>{
                     <span class="number">0
                 </span>};
-                <span class="kw-2">*</span><span class="self">self</span>.env.abi_enabled.write() = <span class="bool-val">true</span>;
                 <span class="prelude-val">Ok</span>((instance, post_init_points))
             }
             <span class="prelude-val">Err</span>(err) =&gt; {
@@ -514,6 +513,7 @@
                 <span class="string">&quot;assembly_script_hash&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_hash),
                 <span class="string">&quot;assembly_script_signature_verify&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_signature_verify),
                 <span class="string">&quot;assembly_script_address_from_public_key&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_address_from_public_key),
+                <span class="string">&quot;assembly_script_validate_address&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_validate_address),
                 <span class="string">&quot;assembly_script_unsafe_random&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_unsafe_random),
                 <span class="string">&quot;assembly_script_get_call_coins&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_call_coins),
                 <span class="string">&quot;assembly_script_get_time&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_time),

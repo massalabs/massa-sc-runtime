@@ -104,21 +104,11 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-</pre><pre class="rust"><code><span class="doccomment">//! Execution functions used by the ABIs.
-//!
-//! IMPORTANT: these were designed for, and should not be called outside of ABIs.
-
-</span><span class="kw">use </span>wasmer::FunctionEnvMut;
+</pre><pre class="rust"><code><span class="kw">use </span>wasmer::FunctionEnvMut;
 
 <span class="kw">use </span><span class="kw">crate</span>::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 <span class="kw">use crate</span>::{Response, RuntimeModule};
 
-<span class="kw">use </span><span class="kw">super</span>::abi::get_env;
 <span class="kw">use </span><span class="kw">super</span>::error::{abi_bail, ABIResult};
 
 <span class="doccomment">/// Calls an exported function in a WASM module at a given address
@@ -133,7 +123,7 @@
         <span class="prelude-val">Ok</span>(v) =&gt; v,
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative amount of coins in Call&quot;</span>),
     };
-    <span class="kw">let </span>env = get_env(ctx)<span class="question-mark">?</span>;
+    <span class="kw">let </span>env = ctx.data().clone();
     <span class="kw">let </span>bytecode = env.get_interface().init_call(address, raw_coins)<span class="question-mark">?</span>;
     <span class="kw">let </span>interface = env.get_interface();
 
@@ -166,7 +156,7 @@
     function: <span class="kw-2">&amp;</span>str,
     param: <span class="kw-2">&amp;</span>[u8],
 ) -&gt; ABIResult&lt;Response&gt; {
-    <span class="kw">let </span>env = get_env(ctx)<span class="question-mark">?</span>;
+    <span class="kw">let </span>env = ctx.data().clone();
     <span class="kw">let </span>interface = env.get_interface();
 
     <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
@@ -196,7 +186,7 @@
     address: <span class="kw-2">&amp;</span>str,
     function: <span class="kw-2">&amp;</span>str,
 ) -&gt; ABIResult&lt;bool&gt; {
-    <span class="kw">let </span>env = get_env(ctx)<span class="question-mark">?</span>;
+    <span class="kw">let </span>env = ctx.data().clone();
     <span class="kw">let </span>interface = env.get_interface();
     <span class="kw">let </span>bytecode = interface.raw_get_bytecode_for(address)<span class="question-mark">?</span>;
 
@@ -207,7 +197,7 @@
     </span>};
 
     <span class="kw">match </span>interface.get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)<span class="question-mark">? </span>{
-        RuntimeModule::ASModule(module) =&gt; <span class="prelude-val">Ok</span>(module
+        RuntimeModule::ASModule((module, _engine)) =&gt; <span class="prelude-val">Ok</span>(module
             .binary_module
             .exports()
             .functions()
