@@ -1121,7 +1121,7 @@ fn read_string(memory: &Memory, store: &impl AsStoreRef, ptr: i32) -> ABIResult<
 
 /// Tooling, return a pointer offset of a serialized list in json
 fn alloc_string_array(ctx: &mut FunctionEnvMut<ASEnv>, vec: &[String]) -> ABIResult<i32> {
-    let env = get_env(&ctx)?;
+    let env = get_env(ctx)?;
     let addresses = serde_json::to_string(vec)?;
     Ok(StringPtr::alloc(&addresses, env.get_ffi_env(), ctx)?.offset() as i32)
 }
