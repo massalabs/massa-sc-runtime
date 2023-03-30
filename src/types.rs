@@ -198,12 +198,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     /// Return datastore keys
-    fn get_keys(&self) -> Result<BTreeSet<Vec<u8>>> {
+    /// Will only return keys with a given prefix if provided in args
+    fn get_keys(&self, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {
         unimplemented!("get_op_keys")
     }
 
     /// Return datastore keys
-    fn get_keys_for(&self, address: &str) -> Result<BTreeSet<Vec<u8>>> {
+    /// Will only return keys with a given prefix if provided in args
+    fn get_keys_for(&self, address: &str, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {
         unimplemented!("get_op_keys_for")
     }
 
