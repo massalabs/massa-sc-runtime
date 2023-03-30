@@ -1,12 +1,12 @@
 use crate::as_execution::{
     init_cl_engine, init_sp_engine, init_store, ASContext, ASModule, Compiler, RuntimeModule,
 };
+use crate::error::{exec_bail, VMResult};
 use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 use crate::settings;
 use crate::types::{Interface, Response};
 use crate::GasCosts;
 
-use anyhow::{bail, Result};
 use wasmer_middlewares::metering::{self, MeteringPoints};
 
 /// Select and launch the adequate execution function
@@ -17,7 +17,7 @@ pub(crate) fn exec(
     param: &[u8],
     limit: u64,
     gas_costs: GasCosts,
-) -> Result<(Response, Option<GasCalibrationResult>)> {
+) -> VMResult<(Response, Option<GasCalibrationResult>)> {
     let response = match rt_module {
         RuntimeModule::ASModule(module) => {
             exec_as_module(interface, module, function, param, limit, gas_costs)?
@@ -46,7 +46,7 @@ pub(crate) fn exec_as_module(
     param: &[u8],
     limit: u64,
     gas_costs: GasCosts,
-) -> Result<(Response, Option<GasCalibrationResult>)> {
+) -> VMResult<(Response, Option<GasCalibrationResult>)> {
     let engine = match as_module.compiler {
         Compiler::CL => init_cl_engine(limit, gas_costs.clone()),
         Compiler::SP => init_sp_engine(limit, gas_costs.clone()),
@@ -72,13 +72,16 @@ pub(crate) fn exec_as_module(
         }
         Err(err) => {
             if cfg!(feature = "gas_calibration") {
-                bail!(err)
+                exec_bail!(err, init_cost)
             } else {
                 // Because the last needed more than the remaining points, we should have an error.
                 match metering::get_remaining_points(&mut store, &instance) {
-                    MeteringPoints::Remaining(..) => bail!(err),
+                    MeteringPoints::Remaining(..) => exec_bail!(err, init_cost),
                     MeteringPoints::Exhausted => {
-                        bail!("Not enough gas, limit reached at: {function}")
+                        exec_bail!(
+                            format!("Not enough gas, limit reached at: {function}"),
+                            init_cost
+                        )
                     }
                 }
             }
@@ -104,7 +107,7 @@ pub fn run_main(
     rt_module: RuntimeModule,
     limit: u64,
     gas_costs: GasCosts,
-) -> Result<Response> {
+) -> VMResult<Response> {
     Ok(exec(interface, rt_module, settings::MAIN, b"", limit, gas_costs)?.0)
 }
 
@@ -126,7 +129,7 @@ pub fn run_function(
     param: &[u8],
     limit: u64,
     gas_costs: GasCosts,
-) -> Result<Response> {
+) -> VMResult<Response> {
     Ok(exec(interface, rt_module, function, param, limit, gas_costs)?.0)
 }
 
@@ -138,7 +141,7 @@ pub fn run_main_gc(
     param: &[u8],
     limit: u64,
     gas_costs: GasCosts,
-) -> Result<GasCalibrationResult> {
+) -> VMResult<GasCalibrationResult> {
     Ok(exec(
         interface,
         rt_module,

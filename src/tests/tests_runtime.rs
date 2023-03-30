@@ -89,18 +89,17 @@ fn test_not_enough_gas_error() {
         .unwrap_err()
         .to_string();
     assert!(
-        error == "Not enough gas, limit reached at initialization"
+        error.contains("Not enough gas, limit reached at initialization")
             || error.contains("RuntimeError: unreachable")
     );
 
     // Test giving enough gas to create the instance but not enough for the VM
     let runtime_module =
         RuntimeModule::new(module, 100_000, gas_costs.clone(), Compiler::SP).unwrap();
-    let error = run_main(&*interface, runtime_module, 100, gas_costs).unwrap_err();
-    assert_eq!(
-        error.to_string(),
-        "Not enough gas to launch the virtual machine"
-    );
+    let error = run_main(&*interface, runtime_module, 100, gas_costs)
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("Not enough gas to launch the virtual machine"));
 }
 
 #[test]

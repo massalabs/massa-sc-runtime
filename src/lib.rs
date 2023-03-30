@@ -2,6 +2,7 @@
 
 mod as_execution;
 mod env;
+mod error;
 mod execution_impl;
 mod middlewares;
 mod settings;
@@ -9,6 +10,7 @@ mod tunable_memory;
 mod types;
 
 pub use as_execution::{Compiler, RuntimeModule};
+pub use error::VMError;
 pub use execution_impl::{run_function, run_main};
 pub use types::*;
 
