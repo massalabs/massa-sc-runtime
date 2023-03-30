@@ -243,6 +243,7 @@ impl ASContext {
                 "assembly_script_hash" => Function::new_typed_with_env(store, &fenv, assembly_script_hash),
                 "assembly_script_signature_verify" => Function::new_typed_with_env(store, &fenv, assembly_script_signature_verify),
                 "assembly_script_address_from_public_key" => Function::new_typed_with_env(store, &fenv, assembly_script_address_from_public_key),
+                "assembly_script_validate_address" => Function::new_typed_with_env(store, &fenv, assembly_script_validate_address),
                 "assembly_script_unsafe_random" => Function::new_typed_with_env(store, &fenv, assembly_script_unsafe_random),
                 "assembly_script_get_call_coins" => Function::new_typed_with_env(store, &fenv, assembly_script_get_call_coins),
                 "assembly_script_get_time" => Function::new_typed_with_env(store, &fenv, assembly_script_get_time),
