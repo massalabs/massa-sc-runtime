@@ -19,17 +19,21 @@
 <a href="#19" id="19">19</a>
 <a href="#20" id="20">20</a>
 <a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a>
 </pre><pre class="rust"><code><span class="attr">#![feature(let_chains)]
 
 </span><span class="kw">mod </span>as_execution;
 <span class="kw">mod </span>env;
+<span class="kw">mod </span>error;
 <span class="kw">mod </span>execution_impl;
 <span class="kw">mod </span>middlewares;
 <span class="kw">mod </span>settings;
 <span class="kw">mod </span>tunable_memory;
 <span class="kw">mod </span>types;
 
-<span class="kw">pub use </span>as_execution::RuntimeModule;
+<span class="kw">pub use </span>as_execution::{Compiler, RuntimeModule};
+<span class="kw">pub use </span>error::VMError;
 <span class="kw">pub use </span>execution_impl::{run_function, run_main};
 <span class="kw">pub use </span>types::<span class="kw-2">*</span>;
 

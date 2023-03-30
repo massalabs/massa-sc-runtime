@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["RuntimeModule"],"fn":["run_function","run_main"],"struct":["GasCosts","Response"],"trait":["Interface","InterfaceClone"]};
+window.SIDEBAR_ITEMS = {"enum":["Compiler","RuntimeModule","VMError"],"fn":["run_function","run_main"],"struct":["GasCosts","Response"],"trait":["Interface","InterfaceClone"]};

@@ -119,6 +119,106 @@
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>context;
@@ -127,7 +227,7 @@
 <span class="kw">use </span>anyhow::{anyhow, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
-<span class="kw">use </span>wasmer::{CompilerConfig, Engine, Features, Module, Store};
+<span class="kw">use </span>wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
 <span class="kw">use </span>wasmer_compiler_singlepass::Singlepass;
 <span class="kw">use </span>wasmer_middlewares::Metering;
 
@@ -136,82 +236,182 @@
 <span class="kw">use </span><span class="kw">crate</span>::tunable_memory::LimitingTunables;
 <span class="kw">use </span><span class="kw">crate</span>::GasCosts;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>common::<span class="kw-2">*</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>context::<span class="kw-2">*</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>error::<span class="kw-2">*</span>;
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub enum </span>RuntimeModule {
-    ASModule((ASModule, Engine)),
+    ASModule(ASModule),
 }
 
 <span class="kw">impl </span>RuntimeModule {
-    <span class="doccomment">/// TODO: Dispatch module creation corresponding to the first bytecode byte
+    <span class="doccomment">/// Dispatch module creation corresponding to the first bytecode byte
     ///
-    /// * (1) target AssemblyScript
+    /// * (1) TODO: target AssemblyScript (remove ident)
     /// * (2) TODO: target X
-    /// * (_) target AssemblyScript and use the full bytecode
-    </span><span class="kw">pub fn </span>new(bytecode: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    /// * (_) target AssemblyScript
+    </span><span class="kw">pub fn </span>new(
+        bytecode: <span class="kw-2">&amp;</span>[u8],
+        limit: u64,
+        gas_costs: GasCosts,
+        compiler: Compiler,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>bytecode.first() {
-            <span class="prelude-val">Some</span>(<span class="number">1</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ASModule(ASModule::new(bytecode, limit, gas_costs)<span class="question-mark">?</span>)),
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ASModule(ASModule::new(bytecode, limit, gas_costs)<span class="question-mark">?</span>)),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ASModule(ASModule::new(
+                bytecode, limit, gas_costs, compiler,
+            )<span class="question-mark">?</span>)),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;Empty bytecode&quot;</span>)),
         }
     }
+
+    <span class="doccomment">/// Used compiler for the current module
+    </span><span class="kw">pub fn </span>compiler(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Compiler {
+        <span class="kw">match </span><span class="self">self </span>{
+            RuntimeModule::ASModule(module) =&gt; module.compiler.clone(),
+        }
+    }
+
+    <span class="doccomment">/// Serialize a RuntimeModule
+    ///
+    /// TODO: set a module identifier for other types of sub modules.
+    /// Distinction between runtime module ident and sub module ident must be clear.
+    /// If the serialization process becomes too complex use NOM.
+    </span><span class="kw">pub fn </span>serialize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
+        <span class="kw">let </span>ser = <span class="kw">match </span><span class="self">self </span>{
+            RuntimeModule::ASModule(module) =&gt; module.serialize()<span class="question-mark">?</span>,
+        };
+        <span class="prelude-val">Ok</span>(ser)
+    }
+
+    <span class="doccomment">/// Deserialize a RuntimeModule
+    ///
+    /// NOTE: only deserialize from ASModule for now
+    /// TODO: make a distinction based on the runtime module identifier byte (see `serialize` description)
+    </span><span class="kw">pub fn </span>deserialize(ser_module: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>deser = RuntimeModule::ASModule(ASModule::deserialize(ser_module, limit, gas_costs)<span class="question-mark">?</span>);
+        <span class="prelude-val">Ok</span>(deser)
+    }
+}
+
+<span class="doccomment">/// Enum listing the available compilers
+</span><span class="attr">#[derive(Clone)]
+</span><span class="kw">pub enum </span>Compiler {
+    CL,
+    SP,
 }
 
 <span class="doccomment">/// An executable runtime module compiled from an AssemblyScript SC
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>ASModule {
     <span class="kw">pub</span>(<span class="kw">crate</span>) binary_module: Module,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) init_limit: u64,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) initial_limit: u64,
+    <span class="kw">pub </span>compiler: Compiler,
+    <span class="comment">// Compilation engine can not be dropped
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) _engine: Engine,
 }
 
 <span class="kw">impl </span>ASModule {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(bytecode: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="self">Self</span>, Engine)&gt; {
-        <span class="kw">let </span>engine = init_engine(limit, gas_costs);
-        <span class="prelude-val">Ok</span>((
-            <span class="self">Self </span>{
-                binary_module: Module::new(<span class="kw-2">&amp;</span>engine, bytecode)<span class="question-mark">?</span>,
-                init_limit: limit,
-            },
-            engine,
-        ))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+        bytecode: <span class="kw-2">&amp;</span>[u8],
+        limit: u64,
+        gas_costs: GasCosts,
+        compiler: Compiler,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>engine = <span class="kw">match </span>compiler {
+            Compiler::CL =&gt; init_cl_engine(limit, gas_costs),
+            Compiler::SP =&gt; init_sp_engine(limit, gas_costs),
+        };
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            binary_module: Module::new(<span class="kw-2">&amp;</span>engine, bytecode)<span class="question-mark">?</span>,
+            initial_limit: limit,
+            compiler,
+            _engine: engine,
+        })
+    }
+
+    <span class="kw">pub fn </span>serialize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
+        <span class="kw">match </span><span class="self">self</span>.compiler {
+            Compiler::CL =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.binary_module.serialize()<span class="question-mark">?</span>.to_vec()),
+            Compiler::SP =&gt; <span class="macro">panic!</span>(<span class="string">&quot;cannot serialize a module compiled with Singlepass&quot;</span>),
+        }
+    }
+
+    <span class="kw">pub fn </span>deserialize(ser_module: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="comment">// Deserialization is only meant for Cranelift modules
+        </span><span class="kw">let </span>engine = init_cl_engine(limit, gas_costs);
+        <span class="kw">let </span>store = init_store(<span class="kw-2">&amp;</span>engine)<span class="question-mark">?</span>;
+        <span class="comment">// Unsafe because code injection is possible
+        // That&#39;s not an issue because we only deserialize modules we have serialized by ourselves before
+        </span><span class="kw">let </span>module = <span class="kw">unsafe </span>{ Module::deserialize(<span class="kw-2">&amp;</span>store, ser_module)<span class="question-mark">? </span>};
+        <span class="prelude-val">Ok</span>(ASModule {
+            binary_module: module,
+            initial_limit: limit,
+            compiler: Compiler::CL,
+            _engine: engine,
+        })
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_engine(limit: u64, gas_costs: GasCosts) -&gt; Engine {
-    <span class="comment">// We use the Singlepass compiler because it is fast and adapted to blockchains
-    // See https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
+<span class="comment">// Compiler feature.
+// Turn off all sources of non-determinism.
+//
+// References:
+// * https://github.com/webassembly/bulk-memory-operations
+// * https://github.com/WebAssembly/design/blob/390bab47efdb76b600371bcef1ec0ea374aa8c43/Nondeterminism.md
+// * https://github.com/WebAssembly/proposals
+//
+// TLDR: Turn off every feature except for `bulk_memory`.
+</span><span class="kw">const </span>FEATURES: Features = Features {
+    threads: <span class="bool-val">false</span>,         <span class="comment">// non-deterministic
+    </span>reference_types: <span class="bool-val">false</span>, <span class="comment">// could be enabled but we have no need for it atm
+    </span>simd: <span class="bool-val">false</span>,            <span class="comment">// non-deterministic
+    </span>bulk_memory: <span class="bool-val">true</span>,      <span class="comment">// enables the use of buffers in AS
+    </span>multi_value: <span class="bool-val">false</span>,     <span class="comment">// could be enabled but we have no need for it atm
+    </span>tail_call: <span class="bool-val">false</span>,       <span class="comment">// experimental
+    </span>module_linking: <span class="bool-val">false</span>,  <span class="comment">// experimental
+    </span>multi_memory: <span class="bool-val">false</span>,    <span class="comment">// experimental
+    </span>memory64: <span class="bool-val">false</span>,        <span class="comment">// experimental
+    </span>exceptions: <span class="bool-val">false</span>,      <span class="comment">// experimental
+    </span>relaxed_simd: <span class="bool-val">false</span>,    <span class="comment">// experimental
+    </span>extended_const: <span class="bool-val">false</span>,  <span class="comment">// experimental
+</span>};
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_sp_engine(limit: u64, gas_costs: GasCosts) -&gt; Engine {
+    <span class="comment">// Singlepass is used to compile arbitrary bytecode.
+    //
+    // Reference:
+    // * https://docs.rs/wasmer-compiler-singlepass/latest/wasmer_compiler_singlepass/
     </span><span class="kw">let </span><span class="kw-2">mut </span>compiler_config = Singlepass::new();
 
-    <span class="comment">// Turning-off sources of potential non-determinism,
-    // see https://github.com/WebAssembly/design/blob/037c6fe94151eb13e30d174f5f7ce851be0a573e/Nondeterminism.md
-
-    // Turning-off in the compiler:
-
-    // Canonicalize NaN.
+    <span class="comment">// Canonicalize NaN
     </span>compiler_config.canonicalize_nans(<span class="bool-val">true</span>);
 
-    <span class="comment">// Default: Turning-off all wasmer feature flags
-    // Exception(s):
-    // * bulk_memory:
-    //   * https://docs.rs/wasmer/latest/wasmer/struct.Features.html: now fully standardized - wasm 2.0
-    //   * See also: https://github.com/paritytech/substrate/issues/12216
-    </span><span class="kw">const </span>FEATURES: Features = Features {
-        threads: <span class="bool-val">false</span>, <span class="comment">// disable threads
-        </span>reference_types: <span class="bool-val">false</span>,
-        simd: <span class="bool-val">false</span>,           <span class="comment">// turn off experimental SIMD feature
-        </span>bulk_memory: <span class="bool-val">true</span>,     <span class="comment">// enabled in order to use ArrayBuffer in AS
-        </span>multi_value: <span class="bool-val">false</span>,    <span class="comment">// turn off multi value, not support for SinglePass (default: true)
-        </span>tail_call: <span class="bool-val">false</span>,      <span class="comment">// experimental
-        </span>module_linking: <span class="bool-val">false</span>, <span class="comment">// experimental
-        </span>multi_memory: <span class="bool-val">false</span>,   <span class="comment">// experimental
-        </span>memory64: <span class="bool-val">false</span>,       <span class="comment">// experimental
-        </span>exceptions: <span class="bool-val">false</span>,
-        relaxed_simd: <span class="bool-val">false</span>, <span class="comment">// experimental
-        </span>extended_const: <span class="bool-val">false</span>,
-    };
+    <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
+        <span class="comment">// Add gas calibration middleware
+        </span><span class="kw">let </span>gas_calibration = Arc::new(GasCalibration::new());
+        compiler_config.push_middleware(gas_calibration);
+    } <span class="kw">else </span>{
+        <span class="comment">// Add metering middleware
+        </span><span class="kw">let </span>metering = Arc::new(Metering::new(limit, <span class="kw">move </span>|<span class="kw">_</span>: <span class="kw-2">&amp;</span>Operator| -&gt; u64 {
+            gas_costs.operator_cost
+        }));
+        compiler_config.push_middleware(metering);
+    }
+
+    EngineBuilder::new(compiler_config)
+        .set_features(<span class="prelude-val">Some</span>(FEATURES))
+        .engine()
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_cl_engine(limit: u64, gas_costs: GasCosts) -&gt; Engine {
+    <span class="comment">// Cranelift is used to compile bytecode that will be cached.
+    //
+    // Reference:
+    // * https://docs.rs/wasmer-compiler-cranelift/latest/wasmer_compiler_cranelift/
+    </span><span class="kw">let </span><span class="kw-2">mut </span>compiler_config = Cranelift::new();
+
+    <span class="comment">// Canonicalize NaN
+    </span>compiler_config.canonicalize_nans(<span class="bool-val">true</span>);
 
     <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
         <span class="comment">// Add gas calibration middleware

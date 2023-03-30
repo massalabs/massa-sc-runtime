@@ -145,13 +145,23 @@
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::as_execution::{init_engine, init_store, ASContext, ASModule, RuntimeModule};
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::as_execution::{
+    init_cl_engine, init_sp_engine, init_store, ASContext, ASModule, Compiler, RuntimeModule,
+};
+<span class="kw">use </span><span class="kw">crate</span>::error::{exec_bail, VMResult};
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 <span class="kw">use </span><span class="kw">crate</span>::settings;
 <span class="kw">use </span><span class="kw">crate</span>::types::{Interface, Response};
 <span class="kw">use </span><span class="kw">crate</span>::GasCosts;
 
-<span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>wasmer_middlewares::metering::{<span class="self">self</span>, MeteringPoints};
 
 <span class="doccomment">/// Select and launch the adequate execution function
@@ -162,9 +172,9 @@
     param: <span class="kw-2">&amp;</span>[u8],
     limit: u64,
     gas_costs: GasCosts,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(Response, <span class="prelude-ty">Option</span>&lt;GasCalibrationResult&gt;)&gt; {
+) -&gt; VMResult&lt;(Response, <span class="prelude-ty">Option</span>&lt;GasCalibrationResult&gt;)&gt; {
     <span class="kw">let </span>response = <span class="kw">match </span>rt_module {
-        RuntimeModule::ASModule((module, _engine)) =&gt; {
+        RuntimeModule::ASModule(module) =&gt; {
             exec_as_module(interface, module, function, param, limit, gas_costs)<span class="question-mark">?
         </span>}
     };
@@ -191,12 +201,15 @@
     param: <span class="kw-2">&amp;</span>[u8],
     limit: u64,
     gas_costs: GasCosts,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(Response, <span class="prelude-ty">Option</span>&lt;GasCalibrationResult&gt;)&gt; {
-    <span class="kw">let </span>engine = init_engine(limit, gas_costs.clone());
+) -&gt; VMResult&lt;(Response, <span class="prelude-ty">Option</span>&lt;GasCalibrationResult&gt;)&gt; {
+    <span class="kw">let </span>engine = <span class="kw">match </span>as_module.compiler {
+        Compiler::CL =&gt; init_cl_engine(limit, gas_costs.clone()),
+        Compiler::SP =&gt; init_sp_engine(limit, gas_costs.clone()),
+    };
     <span class="kw">let </span><span class="kw-2">mut </span>store = init_store(<span class="kw-2">&amp;</span>engine)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>context = ASContext::new(interface, as_module.binary_module, gas_costs);
     <span class="kw">let </span>(instance, init_rem_points) = context.create_vm_instance_and_init_env(<span class="kw-2">&amp;mut </span>store)<span class="question-mark">?</span>;
-    <span class="kw">let </span>init_cost = as_module.init_limit.saturating_sub(init_rem_points);
+    <span class="kw">let </span>init_cost = as_module.initial_limit.saturating_sub(init_rem_points);
 
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
         metering::set_remaining_points(<span class="kw-2">&amp;mut </span>store, <span class="kw-2">&amp;</span>instance, limit.saturating_sub(init_cost));
@@ -214,13 +227,16 @@
         }
         <span class="prelude-val">Err</span>(err) =&gt; {
             <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
-                <span class="macro">bail!</span>(err)
+                <span class="macro">exec_bail!</span>(err, init_cost)
             } <span class="kw">else </span>{
                 <span class="comment">// Because the last needed more than the remaining points, we should have an error.
                 </span><span class="kw">match </span>metering::get_remaining_points(<span class="kw-2">&amp;mut </span>store, <span class="kw-2">&amp;</span>instance) {
-                    MeteringPoints::Remaining(..) =&gt; <span class="macro">bail!</span>(err),
+                    MeteringPoints::Remaining(..) =&gt; <span class="macro">exec_bail!</span>(err, init_cost),
                     MeteringPoints::Exhausted =&gt; {
-                        <span class="macro">bail!</span>(<span class="string">&quot;Not enough gas, limit reached at: {function}&quot;</span>)
+                        <span class="macro">exec_bail!</span>(
+                            <span class="macro">format!</span>(<span class="string">&quot;Not enough gas, limit reached at: {function}&quot;</span>),
+                            init_cost
+                        )
                     }
                 }
             }
@@ -246,7 +262,7 @@
     rt_module: RuntimeModule,
     limit: u64,
     gas_costs: GasCosts,
-) -&gt; <span class="prelude-ty">Result</span>&lt;Response&gt; {
+) -&gt; VMResult&lt;Response&gt; {
     <span class="prelude-val">Ok</span>(exec(interface, rt_module, settings::MAIN, <span class="string">b&quot;&quot;</span>, limit, gas_costs)<span class="question-mark">?</span>.<span class="number">0</span>)
 }
 
@@ -268,7 +284,7 @@
     param: <span class="kw-2">&amp;</span>[u8],
     limit: u64,
     gas_costs: GasCosts,
-) -&gt; <span class="prelude-ty">Result</span>&lt;Response&gt; {
+) -&gt; VMResult&lt;Response&gt; {
     <span class="prelude-val">Ok</span>(exec(interface, rt_module, function, param, limit, gas_costs)<span class="question-mark">?</span>.<span class="number">0</span>)
 }
 
@@ -280,7 +296,7 @@
     param: <span class="kw-2">&amp;</span>[u8],
     limit: u64,
     gas_costs: GasCosts,
-) -&gt; <span class="prelude-ty">Result</span>&lt;GasCalibrationResult&gt; {
+) -&gt; VMResult&lt;GasCalibrationResult&gt; {
     <span class="prelude-val">Ok</span>(exec(
         interface,
         rt_module,

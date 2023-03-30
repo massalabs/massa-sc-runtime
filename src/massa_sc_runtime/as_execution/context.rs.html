@@ -269,6 +269,7 @@
 <a href="#269" id="269">269</a>
 <a href="#270" id="270">270</a>
 <a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 <span class="kw">use </span><span class="kw">crate</span>::types::Response;
@@ -321,6 +322,7 @@
                 } <span class="kw">else </span>{
                     <span class="number">0
                 </span>};
+                <span class="kw-2">*</span><span class="self">self</span>.env.abi_enabled.write() = <span class="bool-val">true</span>;
                 <span class="prelude-val">Ok</span>((instance, post_init_points))
             }
             <span class="prelude-val">Err</span>(err) =&gt; {

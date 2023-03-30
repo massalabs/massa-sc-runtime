@@ -50,26 +50,60 @@
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
 <a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{types::Interface, GasCosts};
-<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>parking_lot::RwLock;
+<span class="kw">use </span>std::{collections::HashMap, sync::Arc};
 <span class="kw">use </span>wasmer::Global;
 
 <span class="kw">use </span><span class="kw">super</span>::Metered;
 
-<span class="attr">#[derive(Clone)]
+<span class="doccomment">/// AssemblyScript execution environment.
+///
+/// Contains the AS ffi env and all the data required to run a module.
+</span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>ASEnv {
-    ffi_env: as_ffi_bindings::Env,
-    <span class="kw">pub </span>interface: Box&lt;<span class="kw">dyn </span>Interface&gt;,
-    <span class="kw">pub </span>remaining_points: <span class="prelude-ty">Option</span>&lt;Global&gt;,
-    <span class="kw">pub </span>exhausted_points: <span class="prelude-ty">Option</span>&lt;Global&gt;,
-    param_size_map: HashMap&lt;String, <span class="prelude-ty">Option</span>&lt;Global&gt;&gt;,
-    gas_costs: GasCosts,
+    <span class="doccomment">/// AssemblyScript foreign function interface environment.
+    /// Used to interact with AS types.
+    </span>ffi_env: as_ffi_bindings::Env,
+    <span class="doccomment">/// Set to true after a module execution was instantiated.
+    /// ABIs should be disabled in the AssemblyScript `start` function.
+    /// It prevents non-deterministic behaviour in the intances creation.
+    </span><span class="kw">pub </span>abi_enabled: Arc&lt;RwLock&lt;bool&gt;&gt;,
+    <span class="doccomment">/// Exposed interface functions used by the ABIs and implemented externally.
+    /// In `massa/massa-execution-worker` for example.
+    </span><span class="kw">pub </span>interface: Box&lt;<span class="kw">dyn </span>Interface&gt;,
+    <span class="doccomment">/// Remaining metering points in the current execution context.
+    </span><span class="kw">pub </span>remaining_points: <span class="prelude-ty">Option</span>&lt;Global&gt;,
+    <span class="doccomment">/// Cumulated exhausted points in the current execution context.
+    </span><span class="kw">pub </span>exhausted_points: <span class="prelude-ty">Option</span>&lt;Global&gt;,
+    <span class="doccomment">/// Gas costs of different execution operations.
+    </span>gas_costs: GasCosts,
+    <span class="doccomment">/// Initially added for gas calibration but unused at the moment.
+    </span>param_size_map: HashMap&lt;String, <span class="prelude-ty">Option</span>&lt;Global&gt;&gt;,
 }
 
 <span class="kw">impl </span>ASEnv {
     <span class="kw">pub fn </span>new(interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface, gas_costs: GasCosts) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             ffi_env: Default::default(),
+            abi_enabled: Arc::new(RwLock::new(<span class="bool-val">false</span>)),
             gas_costs,
             interface: interface.clone_box(),
             remaining_points: <span class="prelude-val">None</span>,
