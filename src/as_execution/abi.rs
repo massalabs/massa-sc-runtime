@@ -30,7 +30,7 @@ macro_rules! get_memory {
 /// Fails during instantiation to avoid gas manipulation in the WASM start function.
 pub(crate) fn get_env(ctx: &FunctionEnvMut<ASEnv>) -> ABIResult<ASEnv> {
     let env = ctx.data().clone();
-    if !(*env.abi_enabled.read()) {
+    if !(env.abi_enabled.load(std::sync::atomic::Ordering::Relaxed)) {
         abi_bail!("ABI calls are not available during instantiation");
     } else {
         Ok(env)

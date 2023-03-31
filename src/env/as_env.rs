@@ -1,6 +1,8 @@
 use crate::{types::Interface, GasCosts};
-use parking_lot::RwLock;
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    sync::{atomic::AtomicBool, Arc},
+};
 use wasmer::Global;
 
 use super::Metered;
@@ -16,7 +18,7 @@ pub struct ASEnv {
     /// Set to true after a module execution was instantiated.
     /// ABIs should be disabled in the AssemblyScript `start` function.
     /// It prevents non-deterministic behaviour in the intances creation.
-    pub abi_enabled: Arc<RwLock<bool>>,
+    pub abi_enabled: Arc<AtomicBool>,
     /// Exposed interface functions used by the ABIs and implemented externally.
     /// In `massa/massa-execution-worker` for example.
     pub interface: Box<dyn Interface>,
@@ -34,7 +36,7 @@ impl ASEnv {
     pub fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
         Self {
             ffi_env: Default::default(),
-            abi_enabled: Arc::new(RwLock::new(false)),
+            abi_enabled: Arc::new(AtomicBool::new(false)),
             gas_costs,
             interface: interface.clone_box(),
             remaining_points: None,
