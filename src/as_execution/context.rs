@@ -50,6 +50,9 @@ impl ASContext {
                 } else {
                     0
                 };
+                self.env
+                    .abi_enabled
+                    .store(true, std::sync::atomic::Ordering::Relaxed);
                 Ok((instance, post_init_points))
             }
             Err(err) => {

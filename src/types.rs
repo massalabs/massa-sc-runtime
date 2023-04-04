@@ -39,6 +39,7 @@ pub struct GasCosts {
     pub(crate) operator_cost: u64,
     pub(crate) launch_cost: u64,
     pub(crate) abi_costs: HashMap<String, u64>,
+    pub sp_compilation_cost: u64,
 }
 
 impl GasCosts {
@@ -60,6 +61,9 @@ impl GasCosts {
             launch_cost: *abi_costs
                 .get("launch")
                 .ok_or_else(|| anyhow!("launch cost not found in ABI gas cost file."))?,
+            sp_compilation_cost: *abi_costs
+                .get("sp_compilation_cost")
+                .ok_or_else(|| anyhow!("sp_compilation_cost not found in ABI gas cost file."))?,
             abi_costs,
         })
     }
@@ -126,8 +130,9 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_hash_sha256"), 83);
         Self {
             operator_cost: 1,
-            launch_cost: 10000,
+            launch_cost: 10_000,
             abi_costs,
+            sp_compilation_cost: 10_000,
         }
     }
 }

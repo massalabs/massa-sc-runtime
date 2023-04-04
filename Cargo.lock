@@ -90,7 +90,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "miniz_oxide",
- "object",
+ "object 0.30.3",
  "rustc-demangle",
 ]
 
@@ -320,6 +320,15 @@ name = "cranelift-isle"
 version = "0.86.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed16b14363d929b8c37e3c557d0a7396791b383ecc302141643c054343170aad"
+
+[[package]]
+name = "crc32fast"
+version = "1.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b540bd8bc810d3885c6ea91e2018302f68baba2129ab3e88f32389ee9370880d"
+dependencies = [
+ "cfg-if",
+]
 
 [[package]]
 name = "crossbeam-channel"
@@ -709,6 +718,15 @@ checksum = "ad0a93d233ebf96623465aad4046a8d3aa4da22d4f4beba5388838c8a434bbb4"
 
 [[package]]
 name = "hashbrown"
+version = "0.11.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
+dependencies = [
+ "ahash",
+]
+
+[[package]]
+name = "hashbrown"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
@@ -762,7 +780,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1885e79c1fc4b10f0e172c475f458b7f7b93061064d98c3293e98c5ba0c8b399"
 dependencies = [
  "autocfg",
- "hashbrown",
+ "hashbrown 0.12.3",
 ]
 
 [[package]]
@@ -878,6 +896,7 @@ dependencies = [
  "thiserror",
  "tracing",
  "wasmer",
+ "wasmer-compiler-cranelift",
  "wasmer-compiler-singlepass",
  "wasmer-middlewares",
  "wasmer-types",
@@ -1005,6 +1024,18 @@ checksum = "0fac9e2da13b5eb447a6ce3d392f23a29d8694bff781bf03a16cd9ac8697593b"
 dependencies = [
  "hermit-abi",
  "libc",
+]
+
+[[package]]
+name = "object"
+version = "0.28.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e42c982f2d955fac81dd7e1d0e1426a7d702acd9c98d19ab01083a6a0328c424"
+dependencies = [
+ "crc32fast",
+ "hashbrown 0.11.2",
+ "indexmap",
+ "memchr",
 ]
 
 [[package]]
@@ -1249,7 +1280,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c30f1d45d9aa61cbc8cd1eb87705470892289bb2d01943e7803b873a57404dc3"
 dependencies = [
  "bytecheck",
- "hashbrown",
+ "hashbrown 0.12.3",
  "indexmap",
  "ptr_meta",
  "rend",
@@ -1681,6 +1712,7 @@ dependencies = [
  "rustc-demangle",
  "smallvec",
  "thiserror",
+ "wasmer-object",
  "wasmer-types",
  "wasmer-vm",
  "wasmparser",
@@ -1746,6 +1778,17 @@ dependencies = [
  "wasmer",
  "wasmer-types",
  "wasmer-vm",
+]
+
+[[package]]
+name = "wasmer-object"
+version = "3.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1b04028ab0209ee0883dcf91cb5b39b840f745f7fec3e8517c3c25f89c546c1"
+dependencies = [
+ "object 0.28.4",
+ "thiserror",
+ "wasmer-types",
 ]
 
 [[package]]
