@@ -1,4 +1,4 @@
-;; this is a custom made WAT
+;; this is not a generated WAT
 ;; there is no WASM equivalent in massa/massa-unit-tests-src
 
 (module

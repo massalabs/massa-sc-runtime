@@ -39,6 +39,7 @@ pub struct GasCosts {
     pub(crate) operator_cost: u64,
     pub(crate) launch_cost: u64,
     pub(crate) abi_costs: HashMap<String, u64>,
+    pub sp_compilation_cost: u64,
 }
 
 impl GasCosts {
@@ -60,6 +61,9 @@ impl GasCosts {
             launch_cost: *abi_costs
                 .get("launch")
                 .ok_or_else(|| anyhow!("launch cost not found in ABI gas cost file."))?,
+            sp_compilation_cost: *abi_costs
+                .get("sp_compilation_cost")
+                .ok_or_else(|| anyhow!("sp_compilation_cost not found in ABI gas cost file."))?,
             abi_costs,
         })
     }
@@ -70,6 +74,7 @@ impl Default for GasCosts {
     fn default() -> Self {
         let mut abi_costs = HashMap::new();
         abi_costs.insert(String::from("assembly_script_address_from_public_key"), 147);
+        abi_costs.insert(String::from("assembly_script_validate_address"), 4);
         abi_costs.insert(String::from("assembly_script_append_data"), 162);
         abi_costs.insert(String::from("assembly_script_append_data_for"), 200);
         abi_costs.insert(String::from("assembly_script_call"), 30466);
@@ -125,8 +130,9 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_hash_sha256"), 83);
         Self {
             operator_cost: 1,
-            launch_cost: 10000,
+            launch_cost: 10_000,
             abi_costs,
+            sp_compilation_cost: 10_000,
         }
     }
 }
@@ -197,12 +203,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     /// Return datastore keys
-    fn get_keys(&self) -> Result<BTreeSet<Vec<u8>>> {
+    /// Will only return keys with a given prefix if provided in args
+    fn get_keys(&self, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {
         unimplemented!("get_op_keys")
     }
 
     /// Return datastore keys
-    fn get_keys_for(&self, address: &str) -> Result<BTreeSet<Vec<u8>>> {
+    /// Will only return keys with a given prefix if provided in args
+    fn get_keys_for(&self, address: &str, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {
         unimplemented!("get_op_keys_for")
     }
 
@@ -302,6 +310,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     // Convert a public key to an address
     fn address_from_public_key(&self, public_key: &str) -> Result<String> {
         unimplemented!("address_from_public_key")
+    }
+
+    // Validate an address
+    fn validate_address(&self, address: &str) -> Result<bool> {
+        unimplemented!("validate_address")
     }
 
     /// Returns the current time (millisecond unix timestamp)
