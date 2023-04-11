@@ -11,10 +11,12 @@ use crate::middlewares::{dumper::Dumper, gas_calibration::GasCalibration};
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::{GasCosts, Interface, Response};
-use anyhow::Result;
+use anyhow::{Result, bail};
+use parking_lot::Mutex;
+use wasmer_types::TrapCode;
 use std::sync::Arc;
 use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
-use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
+use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store, imports, Function, FunctionEnv, InstantiationError, Instance};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::metering::MeteringPoints;
 use wasmer_middlewares::{metering, Metering};
@@ -22,9 +24,11 @@ use wasmer_middlewares::{metering, Metering};
 pub(crate) use context::*;
 pub(crate) use error::*;
 
+use self::env::WasmV1Env;
+
 /// An executable runtime module compiled from an AssemblyScript SC
 #[derive(Clone)]
-pub struct ASModule {
+pub struct WasmV1Module {
     pub(crate) binary_module: Module,
     pub(crate) initial_limit: u64,
     pub compiler: Compiler,
@@ -32,7 +36,7 @@ pub struct ASModule {
     pub(crate) _engine: Engine,
 }
 
-impl ASModule {
+impl WasmV1Module {
     pub(crate) fn new(
         bytecode: &[u8],
         limit: u64,
@@ -65,7 +69,7 @@ impl ASModule {
         // Unsafe because code injection is possible
         // That's not an issue because we only deserialize modules we have serialized by ourselves before
         let module = unsafe { Module::deserialize(&store, ser_module)? };
-        Ok(ASModule {
+        Ok(WasmV1Module {
             binary_module: module,
             initial_limit: limit,
             compiler: Compiler::CL,
@@ -184,22 +188,89 @@ pub(crate) fn init_store(engine: &Engine) -> Result<Store> {
 /// Return:
 /// * Output of the executed function, remaininng gas after execution and the initialization cost
 /// * Gas calibration result if it has been enabled
-pub(crate) fn exec_as_module(
+pub(crate) fn exec_wasmv1_module(
     interface: &dyn Interface,
-    as_module: ASModule,
+    module: WasmV1Module,
     function: &str,
     param: &[u8],
     limit: u64,
     gas_costs: GasCosts,
 ) -> VMResult<(Response, Option<GasCalibrationResult>)> {
-    let engine = match as_module.compiler {
+    let engine = match module.compiler {
         Compiler::CL => init_cl_engine(limit, gas_costs.clone()),
         Compiler::SP => init_sp_engine(limit, gas_costs.clone()),
     };
     let mut store = init_store(&engine)?;
-    let mut context = ASContext::new(interface, as_module.binary_module, gas_costs);
+    
+    let env = Arc::new(Mutex::new(None));
+
+    let fenv = FunctionEnv::new(&mut store, env);
+
+    let imports = imports! {
+        "massa" => {
+            "abi_abort" => Function::new_typed_with_env(&mut store, &fenv, abi_abort),
+            "abi_call" => Function::new_typed_with_env(&mut store, &fenv, abi_call),
+            "abi_set_data" => Function::new_typed_with_env(&mut store, &fenv, abi_set_data),
+            "abi_get_data" => Function::new_typed_with_env(&mut store, &fenv, abi_get_data),
+            "abi_transfer_coins" => Function::new_typed_with_env(&mut store, &fenv, abi_transfer_coins),
+        },
+    };
+
+    let instance = match Instance::new(&mut store, &module.binary_module, &imports) {
+        Ok(instance) => instance,
+        Err(err) => {
+            // Filter the error created by the metering middleware when there is not enough gas at initialization
+            if let InstantiationError::Start(ref e) = err {
+                if let Some(trap) = e.clone().to_trap() {
+                    if trap == TrapCode::UnreachableCodeReached && e.trace().is_empty() {
+                        bail!("Not enough gas, limit reached at initialization");
+                    }
+                }
+            }
+            return Err(err.into());
+        }
+    };
+
+    let post_init_points = if cfg!(not(feature = "gas_calibration"))
+        && let MeteringPoints::Remaining(points) =
+        metering::get_remaining_points(&mut store, &instance)
+    {
+        points
+    } else {
+        0
+    };
+
+    env.lock().replace(
+        WasmV1Env::new(interface, gas_costs, )
+    );
+
+    // self.env.memory = Some(instance.exports.get_memory("memory")?);
+
+    // let fn_alloc = instance
+    //    .exports
+    //    .get_typed_function::<i32, i32>(&store, "__alloc")?;
+
+    // Metering counters
+    if cfg!(not(feature = "gas_calibration")) {
+        let g_1 = instance
+            .exports
+            .get_global("wasmer_metering_remaining_points")?
+            .clone();
+        fenv.as_mut(store).remaining_points = Some(g_1.clone());
+        let g_2 = instance
+            .exports
+            .get_global("wasmer_metering_points_exhausted")?
+            .clone();
+        fenv.as_mut(store).exhausted_points = Some(g_2.clone());
+
+        self.env.remaining_points = Some(g_1);
+        self.env.exhausted_points = Some(g_2);
+    }
+
+
+
     let (instance, init_rem_points) = context.create_vm_instance_and_init_env(&mut store)?;
-    let init_cost = as_module.initial_limit.saturating_sub(init_rem_points);
+    
 
     if cfg!(not(feature = "gas_calibration")) {
         metering::set_remaining_points(&mut store, &instance, limit.saturating_sub(init_cost));

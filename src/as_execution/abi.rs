@@ -10,7 +10,7 @@ use function_name::named;
 use std::ops::Add;
 use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
-use crate::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
+use super::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
 use crate::settings;
 
 use super::common::{call_module, create_sc, function_exists, local_call};

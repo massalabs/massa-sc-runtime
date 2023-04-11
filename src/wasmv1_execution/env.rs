@@ -1,10 +1,64 @@
-mod as_env;
-
-use crate::as_execution::{abi_bail, ABIResult};
+use super::{abi_bail, ABIResult};
+use crate::types::Interface;
 use crate::GasCosts;
+use std::{
+    collections::HashMap,
+    sync::{atomic::AtomicBool, Arc},
+};
 use wasmer::{AsStoreMut, Global};
 
-pub(crate) use as_env::*;
+/// AssemblyScript execution environment.
+///
+/// Contains the AS ffi env and all the data required to run a module.
+#[derive(Clone)]
+pub struct WasmV1Env {
+    /// Set to true after a module execution was instantiated.
+    /// ABIs should be disabled in the AssemblyScript `start` function.
+    /// It prevents non-deterministic behaviour in the intances creation.
+    pub abi_enabled: Arc<AtomicBool>,
+    /// Exposed interface functions used by the ABIs and implemented externally.
+    /// In `massa/massa-execution-worker` for example.
+    pub interface: Box<dyn Interface>,
+    /// Remaining metering points in the current execution context.
+    pub remaining_points: Option<Global>,
+    /// Cumulated exhausted points in the current execution context.
+    pub exhausted_points: Option<Global>,
+    /// Gas costs of different execution operations.
+    gas_costs: GasCosts,
+    /// Initially added for gas calibration but unused at the moment.
+    param_size_map: HashMap<String, Option<Global>>,
+}
+
+impl WasmV1Env {
+    pub fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
+        Self {
+            abi_enabled: Arc::new(AtomicBool::new(false)),
+            gas_costs,
+            interface: interface.clone_box(),
+            remaining_points: None,
+            exhausted_points: None,
+            param_size_map: Default::default(),
+        }
+    }
+    pub fn get_interface(&self) -> Box<dyn Interface> {
+        self.interface.clone()
+    }
+}
+
+impl Metered for WasmV1Env {
+    fn get_exhausted_points(&self) -> Option<&Global> {
+        self.exhausted_points.as_ref()
+    }
+    fn get_remaining_points(&self) -> Option<&Global> {
+        self.remaining_points.as_ref()
+    }
+    fn get_gc_param(&self, name: &str) -> Option<&Global> {
+        self.param_size_map.get(name)?.as_ref()
+    }
+    fn get_gas_costs(&self) -> GasCosts {
+        self.gas_costs.clone()
+    }
+}
 
 /// Trait describing a metered object.
 ///
