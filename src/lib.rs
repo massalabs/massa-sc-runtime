@@ -9,6 +9,7 @@ mod tunable_memory;
 mod types;
 mod wasmv1_execution;
 
+pub use execution::RuntimeModule;
 pub use error::VMError;
 pub use execution::{run_function, run_main};
 pub use types::*;
