@@ -19,8 +19,8 @@ pub enum RuntimeModule {
     ASModule(ASModule),
     WasmV1Module(WasmV1Module),
 }
-
 impl RuntimeModule {
+
     /// Dispatch module creation corresponding to the first bytecode byte
     ///
     /// * (1) TODO: target AssemblyScript (remove ident)

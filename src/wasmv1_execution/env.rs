@@ -37,7 +37,7 @@ impl ExecutionEnv {
         import_object: &Imports,
     ) -> Result<Self, WasmV1Error> {
         // Create the instance
-        let instance = match Instance::new(store, &module.binary_module, &import_object) {
+        let instance = match Instance::new(store, &module.binary_module, import_object) {
             Ok(instance) => instance,
             Err(err) => {
                 // Filter the error created by the metering middleware when there is not enough gas at initialization
@@ -92,8 +92,8 @@ impl ExecutionEnv {
     }
 
     /// Get interface.
-    pub fn get_interface(&self) -> &Box<dyn Interface> {
-        &self.interface
+    pub fn get_interface(&self) -> &dyn Interface {
+        &*self.interface
     }
 
     /// Get a typed guest function from the instance.

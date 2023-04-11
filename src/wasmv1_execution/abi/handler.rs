@@ -24,7 +24,7 @@ where
     let exec_env = env_lock.as_ref().ok_or_else(|| {
         WasmV1Error::InstanciationError("ABIs cannot be called at initialization time.".into())
     })?;
-    let interface = &**exec_env.get_interface();
+    let interface = exec_env.get_interface();
 
     // create handler
     let mut handler = ABIHandler {

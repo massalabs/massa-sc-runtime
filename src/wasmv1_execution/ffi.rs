@@ -18,8 +18,7 @@ impl Ffi {
                     "Could not get __alloc function from guest instance: {}",
                     err
                 ))
-            })?
-            .clone();
+            })?;
         let guest_memory = instance
             .exports
             .get_memory("memory")
