@@ -206,7 +206,7 @@ pub(crate) fn exec_wasmv1_module(
         None => {
             return Err(VMError::ExecutionError {
                 error: "Available gas does not cover instance creation".to_string(),
-                init_cost: init_gas_cost,
+                init_gas_cost,
             })
         }
     };
@@ -220,7 +220,7 @@ pub(crate) fn exec_wasmv1_module(
                 "Could not find guest function {} for call: {}",
                 function, err
             ),
-            init_cost: init_gas_cost,
+            init_gas_cost,
         })?;
 
     // Write function argument to guest memory
@@ -231,7 +231,7 @@ pub(crate) fn exec_wasmv1_module(
                 "Could not write argument for guest call {}: {}",
                 function, err
             ),
-            init_cost: init_gas_cost,
+            init_gas_cost,
         })?;
 
     // Now that we have an instance, we can make the execution environment available to the ABIs.
@@ -244,7 +244,7 @@ pub(crate) fn exec_wasmv1_module(
             .call(&mut store, param_offset)
             .map_err(|err| VMError::ExecutionError {
                 error: format!("Error while calling guest function {}: {}", function, err),
-                init_cost: init_gas_cost,
+                init_gas_cost,
             })?;
 
     // Take back the execution environment
@@ -261,7 +261,7 @@ pub(crate) fn exec_wasmv1_module(
                 "Could not read return value from guest call {}: {}",
                 function, err
             ),
-            init_cost: init_gas_cost,
+            init_gas_cost,
         })?;
 
     // Get remaining gas

@@ -7,8 +7,8 @@ pub type VMResult<T> = Result<T, VMError>;
 pub enum VMError {
     /// VM instance error: {0}
     InstanceError(String),
-    /// VM execution error: {error} | Init cost is {init_cost}
-    ExecutionError { error: String, init_cost: u64 },
+    /// VM execution error: {error} | Init cost is {init_gas_cost}
+    ExecutionError { error: String, init_gas_cost: u64 },
 }
 
 impl From<anyhow::Error> for VMError {
@@ -18,10 +18,10 @@ impl From<anyhow::Error> for VMError {
 }
 
 macro_rules! exec_bail {
-    ($err:expr, $init_cost:expr) => {
+    ($err:expr, $init_gas_cost:expr) => {
         return Err(crate::VMError::ExecutionError {
             error: $err.to_string(),
-            init_cost: $init_cost,
+            init_gas_cost: $init_gas_cost,
         })
     };
 }
