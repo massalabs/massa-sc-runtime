@@ -1,80 +1,92 @@
 mod abi;
 mod common;
-mod context;
 mod env;
 mod error;
+mod ffi;
 
-use crate::error::{exec_bail, VMResult};
+use self::env::{ABIEnv, ExecutionEnv};
+use crate::error::VMResult;
 use crate::execution::Compiler;
-use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
-use crate::middlewares::{dumper::Dumper, gas_calibration::GasCalibration};
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
-use crate::{GasCosts, Interface, Response};
-use anyhow::{Result, bail};
-use parking_lot::Mutex;
-use wasmer_types::TrapCode;
-use std::sync::Arc;
-use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
-use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store, imports, Function, FunctionEnv, InstantiationError, Instance};
-use wasmer_compiler_singlepass::Singlepass;
-use wasmer_middlewares::metering::MeteringPoints;
-use wasmer_middlewares::{metering, Metering};
-
-pub(crate) use context::*;
+use crate::{GasCosts, Interface, Response, VMError};
+use abi::*;
 pub(crate) use error::*;
-
-use self::env::WasmV1Env;
+use parking_lot::Mutex;
+use std::sync::Arc;
+use wasmer::{
+    imports, CompilerConfig, Cranelift, Engine, Features, Function, FunctionEnv, Module, Store,
+};
+use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
+use wasmer_compiler_singlepass::Singlepass;
+use wasmer_middlewares::Metering;
 
 /// An executable runtime module compiled from an AssemblyScript SC
 #[derive(Clone)]
 pub struct WasmV1Module {
     pub(crate) binary_module: Module,
-    pub(crate) initial_limit: u64,
+    pub(crate) gas_limit_at_compilation: u64,
     pub compiler: Compiler,
     // Compilation engine can not be dropped
     pub(crate) _engine: Engine,
 }
 
 impl WasmV1Module {
-    pub(crate) fn new(
+    pub(crate) fn compile(
         bytecode: &[u8],
         limit: u64,
         gas_costs: GasCosts,
         compiler: Compiler,
-    ) -> Result<Self> {
+    ) -> Result<Self, WasmV1Error> {
         let engine = match compiler {
             Compiler::CL => init_cl_engine(limit, gas_costs),
             Compiler::SP => init_sp_engine(limit, gas_costs),
         };
+        let binary_module = match Module::new(&engine, bytecode) {
+            Ok(module) => module,
+            Err(e) => {
+                return Err(WasmV1Error::InstanciationError(format!(
+                    "Could not compile bytecode: {}",
+                    e
+                )))
+            }
+        };
         Ok(Self {
-            binary_module: Module::new(&engine, bytecode)?,
-            initial_limit: limit,
+            binary_module,
+            gas_limit_at_compilation: limit,
             compiler,
             _engine: engine,
         })
     }
 
-    pub fn serialize(&self) -> Result<Vec<u8>> {
+    /// Serialize a module
+    pub fn serialize(&self) -> Vec<u8> {
         match self.compiler {
-            Compiler::CL => Ok(self.binary_module.serialize()?.to_vec()),
+            Compiler::CL => self
+                .binary_module
+                .serialize()
+                .expect("Could not serialize module")
+                .to_vec(),
             Compiler::SP => panic!("cannot serialize a module compiled with Singlepass"),
         }
     }
 
-    pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
+    /// Deserialize a module
+    pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Self {
         // Deserialization is only meant for Cranelift modules
         let engine = init_cl_engine(limit, gas_costs);
-        let store = init_store(&engine)?;
+        let store = init_store(&engine);
         // Unsafe because code injection is possible
-        // That's not an issue because we only deserialize modules we have serialized by ourselves before
-        let module = unsafe { Module::deserialize(&store, ser_module)? };
-        Ok(WasmV1Module {
-            binary_module: module,
-            initial_limit: limit,
+        // That's not an issue because we only deserialize modules we have serialized by ourselves before.
+        // This also means that we expect the module to be valid and the deserialization to succeed.
+        let binary_module = unsafe { Module::deserialize(&store, ser_module) }
+            .expect("Could not deserialize module");
+        WasmV1Module {
+            binary_module,
+            gas_limit_at_compilation: limit,
             compiler: Compiler::CL,
             _engine: engine,
-        })
+        }
     }
 
     /// Check the exports of a compiled module to see if it contains the given function
@@ -120,17 +132,11 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     // Canonicalize NaN
     compiler_config.canonicalize_nans(true);
 
-    if cfg!(feature = "gas_calibration") {
-        // Add gas calibration middleware
-        let gas_calibration = Arc::new(GasCalibration::new());
-        compiler_config.push_middleware(gas_calibration);
-    } else {
-        // Add metering middleware
-        let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
-            gas_costs.operator_cost
-        }));
-        compiler_config.push_middleware(metering);
-    }
+    // Add metering middleware
+    let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
+        gas_costs.operator_cost
+    }));
+    compiler_config.push_middleware(metering);
 
     EngineBuilder::new(compiler_config)
         .set_features(Some(FEATURES))
@@ -147,160 +153,135 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     // Canonicalize NaN
     compiler_config.canonicalize_nans(true);
 
-    if cfg!(feature = "gas_calibration") {
-        // Add gas calibration middleware
-        let gas_calibration = Arc::new(GasCalibration::new());
-        compiler_config.push_middleware(gas_calibration);
-    } else if cfg!(feature = "dumper") {
-        // Add dumper middleware
-        let dumper = Arc::new(Dumper::new());
-        compiler_config.push_middleware(dumper);
-    } else {
-        // Add metering middleware
-        let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
-            gas_costs.operator_cost
-        }));
-        compiler_config.push_middleware(metering);
-    }
+    // Add metering middleware
+    let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
+        gas_costs.operator_cost
+    }));
+    compiler_config.push_middleware(metering);
 
     EngineBuilder::new(compiler_config)
         .set_features(Some(FEATURES))
         .engine()
 }
 
-pub(crate) fn init_store(engine: &Engine) -> Result<Store> {
-    let base = BaseTunables::for_target(&Target::default());
-    let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
-    let store = Store::new_with_tunables(engine, tunables);
-    Ok(store)
+pub(crate) fn init_store(engine: &Engine) -> Store {
+    let base_tunables = BaseTunables::for_target(&Target::default());
+    let tunables = LimitingTunables::new(base_tunables, Pages(max_number_of_pages()));
+    Store::new_with_tunables(engine, tunables)
 }
 
-/// Internal execution function, used on smart contract called from node or
-/// from another smart contract
-/// Parameters:
-/// * `interface`: Interface to call function in Massa from execution context
-/// * `as_module`: Pre compiled AS module that will be instantiated and executed
-/// * `function`: Name of the function to call
-/// * `param`: Parameter passed to the function
-/// * `cache`: Cache of pre compiled modules
-/// * `gas_costs`: Cost in gas of every VM operation
-///
-/// Return:
-/// * Output of the executed function, remaininng gas after execution and the initialization cost
-/// * Gas calibration result if it has been enabled
 pub(crate) fn exec_wasmv1_module(
     interface: &dyn Interface,
     module: WasmV1Module,
     function: &str,
     param: &[u8],
-    limit: u64,
+    gas_limit: u64,
     gas_costs: GasCosts,
-) -> VMResult<(Response, Option<GasCalibrationResult>)> {
+) -> VMResult<Response> {
+    // Init store
     let engine = match module.compiler {
-        Compiler::CL => init_cl_engine(limit, gas_costs.clone()),
-        Compiler::SP => init_sp_engine(limit, gas_costs.clone()),
+        Compiler::CL => init_cl_engine(gas_limit, gas_costs.clone()),
+        Compiler::SP => init_sp_engine(gas_limit, gas_costs.clone()),
     };
-    let mut store = init_store(&engine)?;
-    
-    let env = Arc::new(Mutex::new(None));
+    let mut store = init_store(&engine);
 
-    let fenv = FunctionEnv::new(&mut store, env);
-
-    let imports = imports! {
+    // Create the ABI imports and pass them an empty environment for now
+    let shared_abi_env: ABIEnv = Arc::new(Mutex::new(None)).into();
+    let fn_env = FunctionEnv::new(&mut store, shared_abi_env.clone());
+    let import_object = imports! {
         "massa" => {
-            "abi_abort" => Function::new_typed_with_env(&mut store, &fenv, abi_abort),
-            "abi_call" => Function::new_typed_with_env(&mut store, &fenv, abi_call),
-            "abi_set_data" => Function::new_typed_with_env(&mut store, &fenv, abi_set_data),
-            "abi_get_data" => Function::new_typed_with_env(&mut store, &fenv, abi_get_data),
-            "abi_transfer_coins" => Function::new_typed_with_env(&mut store, &fenv, abi_transfer_coins),
+            "abi_abort" =>  Function::new_typed_with_env(&mut store, &fn_env, abi_abort),
+            "abi_call" => Function::new_typed_with_env(&mut store, &fn_env, abi_call),
+            "abi_set_data" => Function::new_typed_with_env(&mut store, &fn_env, abi_set_data),
+            "abi_get_data" => Function::new_typed_with_env(&mut store, &fn_env, abi_get_data),
+            "abi_transfer_coins" => Function::new_typed_with_env(&mut store, &fn_env, abi_transfer_coins),
         },
     };
 
-    let instance = match Instance::new(&mut store, &module.binary_module, &imports) {
-        Ok(instance) => instance,
-        Err(err) => {
-            // Filter the error created by the metering middleware when there is not enough gas at initialization
-            if let InstantiationError::Start(ref e) = err {
-                if let Some(trap) = e.clone().to_trap() {
-                    if trap == TrapCode::UnreachableCodeReached && e.trace().is_empty() {
-                        bail!("Not enough gas, limit reached at initialization");
-                    }
-                }
-            }
-            return Err(err.into());
+    // Create an instance of the execution environment.
+    let execution_env =
+        ExecutionEnv::create_instance(&mut store, &module, interface, gas_costs, &import_object)
+            .map_err(|err| {
+                VMError::InstanceError(format!(
+                    "Failed to create instance of execution environment: {}",
+                    err
+                ))
+            })?;
+
+    // Get gas cost of instance creation
+    let init_gas_cost = execution_env.get_init_gas_cost();
+
+    // Set gas limit of function execution by subtracting the gas cost of instance creation
+    let available_gas = match gas_limit.checked_sub(init_gas_cost) {
+        Some(remaining_gas) => remaining_gas,
+        None => {
+            return Err(VMError::ExecutionError {
+                error: "Available gas does not cover instance creation".to_string(),
+                init_cost: init_gas_cost,
+            })
         }
     };
+    execution_env.set_remaining_gas(&mut store, available_gas);
 
-    let post_init_points = if cfg!(not(feature = "gas_calibration"))
-        && let MeteringPoints::Remaining(points) =
-        metering::get_remaining_points(&mut store, &instance)
-    {
-        points
-    } else {
-        0
-    };
+    // Get function to execute. Must follow the following prototype: param_addr: i32 -> return_addr: i32
+    let wasm_func = execution_env
+        .get_func(&mut store, function)
+        .map_err(|err| VMError::ExecutionError {
+            error: format!(
+                "Could not find guest function {} for call: {}",
+                function, err
+            ),
+            init_cost: init_gas_cost,
+        })?;
 
-    env.lock().replace(
-        WasmV1Env::new(interface, gas_costs, )
-    );
+    // Write function argument to guest memory
+    let param_offset = execution_env
+        .write_buffer(&mut store, param)
+        .map_err(|err| VMError::ExecutionError {
+            error: format!(
+                "Could not write argument for guest call {}: {}",
+                function, err
+            ),
+            init_cost: init_gas_cost,
+        })?;
 
-    // self.env.memory = Some(instance.exports.get_memory("memory")?);
+    // Now that we have an instance, we can make the execution environment available to the ABIs.
+    // We avoided setting it before instance creation to prevent the implicit `_start` call from accessing the env and causing non-determinism in init gas usage.
+    shared_abi_env.lock().replace(execution_env);
 
-    // let fn_alloc = instance
-    //    .exports
-    //    .get_typed_function::<i32, i32>(&store, "__alloc")?;
+    // Call func
+    let returned_offset =
+        wasm_func
+            .call(&mut store, param_offset)
+            .map_err(|err| VMError::ExecutionError {
+                error: format!("Error while calling guest function {}: {}", function, err),
+                init_cost: init_gas_cost,
+            })?;
 
-    // Metering counters
-    if cfg!(not(feature = "gas_calibration")) {
-        let g_1 = instance
-            .exports
-            .get_global("wasmer_metering_remaining_points")?
-            .clone();
-        fenv.as_mut(store).remaining_points = Some(g_1.clone());
-        let g_2 = instance
-            .exports
-            .get_global("wasmer_metering_points_exhausted")?
-            .clone();
-        fenv.as_mut(store).exhausted_points = Some(g_2.clone());
+    // Take back the execution environment
+    let execution_env = shared_abi_env
+        .lock()
+        .take()
+        .expect("Execution environment unavailable after execution");
 
-        self.env.remaining_points = Some(g_1);
-        self.env.exhausted_points = Some(g_2);
-    }
+    // Read returned value
+    let ret = execution_env
+        .read_buffer(&mut store, returned_offset)
+        .map_err(|err| VMError::ExecutionError {
+            error: format!(
+                "Could not read return value from guest call {}: {}",
+                function, err
+            ),
+            init_cost: init_gas_cost,
+        })?;
 
+    // Get remaining gas
+    let remaining_gas = execution_env.get_remaining_gas(&mut store);
 
-
-    let (instance, init_rem_points) = context.create_vm_instance_and_init_env(&mut store)?;
-    
-
-    if cfg!(not(feature = "gas_calibration")) {
-        metering::set_remaining_points(&mut store, &instance, limit.saturating_sub(init_cost));
-    }
-
-    match context.execution(&mut store, &instance, function, param) {
-        Ok(mut response) => {
-            let gc_result = if cfg!(feature = "gas_calibration") {
-                Some(get_gas_calibration_result(&instance, &mut store))
-            } else {
-                None
-            };
-            response.init_cost = init_cost;
-            Ok((response, gc_result))
-        }
-        Err(err) => {
-            if cfg!(feature = "gas_calibration") {
-                exec_bail!(err, init_cost)
-            } else {
-                // Because the last needed more than the remaining points, we should have an error.
-                match metering::get_remaining_points(&mut store, &instance) {
-                    MeteringPoints::Remaining(..) => exec_bail!(err, init_cost),
-                    MeteringPoints::Exhausted => {
-                        exec_bail!(
-                            format!("Not enough gas, limit reached at: {function}"),
-                            init_cost
-                        )
-                    }
-                }
-            }
-        }
-    }
+    // Return response
+    Ok(Response {
+        ret,
+        remaining_gas,
+        init_gas_cost,
+    })
 }

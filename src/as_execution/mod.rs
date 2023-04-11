@@ -212,7 +212,7 @@ pub(crate) fn exec_as_module(
             } else {
                 None
             };
-            response.init_cost = init_cost;
+            response.init_gas_cost = init_cost;
             Ok((response, gc_result))
         }
         Err(err) => {

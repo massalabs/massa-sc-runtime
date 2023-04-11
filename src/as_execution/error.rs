@@ -18,9 +18,7 @@ pub enum ABIError {
 
 macro_rules! abi_bail {
     ($err:expr) => {
-        return Err(crate::as_execution::ABIError::Error(anyhow::anyhow!(
-            $err.to_string()
-        )))
+        return Err(super::ABIError::Error(anyhow::anyhow!($err.to_string())))
     };
 }
 

@@ -2,21 +2,23 @@
 //!
 //! IMPORTANT: these were designed for, and should not be called outside of ABIs.
 
-use wasmer::FunctionEnvMut;
+/*
 
-use super::abi::get_env;
-use super::env::{get_remaining_points, set_remaining_points, WasmV1Env, Metered};
-use super::error::{abi_bail, ABIResult};
+use wasmer::FunctionEnvMut;
+use wasmer_middlewares::metering::get_remaining_points;
+
+use super::{env::WasmV1ABIEnv, WasmV1Error};
 use crate::Response;
+
 
 /// Calls an exported function in a WASM module at a given address
 pub(crate) fn call_module(
-    ctx: &mut FunctionEnvMut<WasmV1Env>,
+    ctx: &mut FunctionEnvMut<WasmV1ABIEnv>,
     address: &str,
     function: &str,
     param: &[u8],
     raw_coins: i64,
-) -> ABIResult<Response> {
+) -> Result<Response, WasmV1Error> {
     let raw_coins: u64 = match raw_coins.try_into() {
         Ok(v) => v,
         Err(_) => abi_bail!("negative amount of coins in Call"),
@@ -28,7 +30,7 @@ pub(crate) fn call_module(
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         u64::MAX
     } else {
-        get_remaining_points(&env, ctx)?
+        get_remaining_points(&env, ctx)
     };
 
     let module = interface.get_module(&bytecode, remaining_gas)?;
@@ -49,11 +51,11 @@ pub(crate) fn call_module(
 
 /// Alternative to `call_module` to execute bytecode in a local context
 pub(crate) fn local_call(
-    ctx: &mut FunctionEnvMut<WasmV1Env>,
+    ctx: &mut FunctionEnvMut<WasmV1ABIEnv>,
     bytecode: &[u8],
     function: &str,
     param: &[u8],
-) -> ABIResult<Response> {
+) -> Result<Response, WasmV1Error> {
     let env = get_env(ctx)?;
     let interface = env.get_interface();
 
@@ -79,14 +81,17 @@ pub(crate) fn local_call(
 }
 
 /// Create a smart contract with the given `bytecode`
-pub(crate) fn create_sc(ctx: &mut FunctionEnvMut<WasmV1Env>, bytecode: &[u8]) -> ABIResult<String> {
+pub(crate) fn create_sc(
+    ctx: &mut FunctionEnvMut<WasmV1ABIEnv>,
+    bytecode: &[u8],
+) -> ABIResult<String> {
     let env = ctx.data();
     Ok(env.get_interface().create_module(bytecode)?)
 }
 
 /// Check the exports of a compiled module to see if it contains the given function
 pub(crate) fn function_exists(
-    ctx: &mut FunctionEnvMut<WasmV1Env>,
+    ctx: &mut FunctionEnvMut<WasmV1ABIEnv>,
     address: &str,
     function: &str,
 ) -> ABIResult<bool> {
@@ -104,3 +109,4 @@ pub(crate) fn function_exists(
         .get_module(&bytecode, remaining_gas)?
         .function_exists(function))
 }
+*/
