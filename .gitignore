@@ -6,3 +6,4 @@ wasm/*.wasm.map
 
 # IDE
 .idea
+.vscode

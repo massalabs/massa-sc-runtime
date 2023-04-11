@@ -1,4 +1,3 @@
-use crate::env::{ASEnv, Metered};
 use crate::middlewares::operator::{operator_field_str, OPERATOR_VARIANTS};
 use regex::{Regex, RegexSet};
 use std::collections::HashMap;
@@ -371,6 +370,7 @@ pub fn get_gas_calibration_result(
     result
 }
 
+/*
 pub(crate) fn _param_size_update(
     env: &ASEnv,
     store: &mut impl AsStoreMut,
@@ -397,3 +397,4 @@ pub(crate) fn _param_size_update(
     let error_msg = format!("Unable to set global {:?} with value: {}", global_ref, s);
     global_ref.set(store, s.into()).expect(&error_msg);
 }
+*/

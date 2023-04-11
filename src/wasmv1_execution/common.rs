@@ -5,13 +5,13 @@
 use wasmer::FunctionEnvMut;
 
 use super::abi::get_env;
-use super::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
+use super::env::{get_remaining_points, set_remaining_points, WasmV1Env, Metered};
 use super::error::{abi_bail, ABIResult};
 use crate::Response;
 
 /// Calls an exported function in a WASM module at a given address
 pub(crate) fn call_module(
-    ctx: &mut FunctionEnvMut<ASEnv>,
+    ctx: &mut FunctionEnvMut<WasmV1Env>,
     address: &str,
     function: &str,
     param: &[u8],
@@ -49,7 +49,7 @@ pub(crate) fn call_module(
 
 /// Alternative to `call_module` to execute bytecode in a local context
 pub(crate) fn local_call(
-    ctx: &mut FunctionEnvMut<ASEnv>,
+    ctx: &mut FunctionEnvMut<WasmV1Env>,
     bytecode: &[u8],
     function: &str,
     param: &[u8],
@@ -79,14 +79,14 @@ pub(crate) fn local_call(
 }
 
 /// Create a smart contract with the given `bytecode`
-pub(crate) fn create_sc(ctx: &mut FunctionEnvMut<ASEnv>, bytecode: &[u8]) -> ABIResult<String> {
+pub(crate) fn create_sc(ctx: &mut FunctionEnvMut<WasmV1Env>, bytecode: &[u8]) -> ABIResult<String> {
     let env = ctx.data();
     Ok(env.get_interface().create_module(bytecode)?)
 }
 
 /// Check the exports of a compiled module to see if it contains the given function
 pub(crate) fn function_exists(
-    ctx: &mut FunctionEnvMut<ASEnv>,
+    ctx: &mut FunctionEnvMut<WasmV1Env>,
     address: &str,
     function: &str,
 ) -> ABIResult<bool> {
