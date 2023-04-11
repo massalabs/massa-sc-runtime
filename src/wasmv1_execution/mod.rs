@@ -14,10 +14,8 @@ use abi::*;
 pub(crate) use error::*;
 use parking_lot::Mutex;
 use std::sync::Arc;
-use wasmer::{
-    imports, CompilerConfig, Cranelift, Engine, Features, Function, FunctionEnv, Module, Store,
-};
 use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
+use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
 
@@ -187,16 +185,7 @@ pub(crate) fn exec_wasmv1_module(
 
     // Create the ABI imports and pass them an empty environment for now
     let shared_abi_env: ABIEnv = Arc::new(Mutex::new(None)).into();
-    let fn_env = FunctionEnv::new(&mut store, shared_abi_env.clone());
-    let import_object = imports! {
-        "massa" => {
-            "abi_abort" =>  Function::new_typed_with_env(&mut store, &fn_env, abi_abort),
-            "abi_call" => Function::new_typed_with_env(&mut store, &fn_env, abi_call),
-            "abi_set_data" => Function::new_typed_with_env(&mut store, &fn_env, abi_set_data),
-            "abi_get_data" => Function::new_typed_with_env(&mut store, &fn_env, abi_get_data),
-            "abi_transfer_coins" => Function::new_typed_with_env(&mut store, &fn_env, abi_transfer_coins),
-        },
-    };
+    let import_object = register_abis(&mut store, shared_abi_env.clone());
 
     // Create an instance of the execution environment.
     let execution_env =
