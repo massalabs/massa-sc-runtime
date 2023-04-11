@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package abi;
+
+// General
+
+message Address {
+  string address = 1;
+}
+
+message Amount {
+  uint64 amount = 1;
+}
+
+message Empty {
+}
+
+// CreateSC
+
+message CreateSCRequest {
+  bytes bytecode = 1;
+}
+
+message CreateSCResponse {
+  Address address = 1;
+}
+
+// CallSC
+
+message CallRequest {
+  Address address = 1;
+  string function = 2;
+  bytes arg = 3;
+  Amount call_coins = 4;
+}
+
+message CallResponse {
+  bytes return_data = 1;
+}
+
+// Abort
+
+message AbortRequest {
+  string description = 1;
+}

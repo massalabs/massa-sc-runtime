@@ -169,4 +169,9 @@ impl ExecutionEnv {
     ) -> Result<i32, WasmV1Error> {
         self.ffi.write_buffer(store, data)
     }
+
+    /// Get gas costs.
+    pub fn get_gas_costs(&self) -> &GasCosts {
+        &self.gas_costs
+    }
 }
