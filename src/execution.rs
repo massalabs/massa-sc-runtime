@@ -33,15 +33,15 @@ impl RuntimeModule {
         compiler: Compiler,
     ) -> Result<Self> {
         match bytecode.first() {
-            Some(1) => Ok(Self::ASModule(ASModule::new(
+            Some(0) => Ok(Self::ASModule(ASModule::new(
                 bytecode, limit, gas_costs, compiler,
             )?)),
-            Some(2) => Ok(Self::WasmV1Module(WasmV1Module::new(
-                bytecode, limit, gas_costs, compiler,
-            )?)),
-            Some(_) => Ok(Self::ASModule(ASModule::new(
-                bytecode, limit, gas_costs, compiler,
-            )?)),
+            Some(1) => {
+                let res = WasmV1Module::compile(&bytecode[1..], limit, gas_costs, compiler)
+                    .map_err(|err| anyhow!("Failed to compile WasmV1 module: {}", err))?;
+                Ok(Self::WasmV1Module(res))
+            }
+            Some(v) => Err(anyhow!("Unsupported bytecode type: {}", v)),
             None => Err(anyhow!("Empty bytecode")),
         }
     }
@@ -62,7 +62,7 @@ impl RuntimeModule {
     pub fn serialize(&self) -> Result<Vec<u8>> {
         let ser = match self {
             RuntimeModule::ASModule(module) => module.serialize()?,
-            RuntimeModule::WasmV1Module(module) => module.serialize()?,
+            RuntimeModule::WasmV1Module(module) => module.serialize(),
         };
         Ok(ser)
     }
@@ -99,7 +99,9 @@ pub(crate) fn exec(
             exec_as_module(interface, module, function, param, limit, gas_costs)?
         }
         RuntimeModule::WasmV1Module(module) => {
-            exec_wasmv1_module(interface, module, function, param, limit, gas_costs)?
+            let res = exec_wasmv1_module(interface, module, function, param, limit, gas_costs)
+                .map_err(|err| anyhow!("Failed to execute WasmV1 module: {}", err.to_string()))?;
+            (res, None) // TODO add gas calibration
         }
     };
     Ok(response)

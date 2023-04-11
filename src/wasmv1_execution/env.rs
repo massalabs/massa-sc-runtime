@@ -1,159 +1,172 @@
-use super::{abi_bail, ABIResult};
+use std::sync::Arc;
+
+use super::{ffi::Ffi, WasmV1Error};
 use crate::types::Interface;
 use crate::GasCosts;
-use std::{
-    collections::HashMap,
-    sync::{atomic::AtomicBool, Arc},
-};
-use wasmer::{AsStoreMut, Global};
+use parking_lot::Mutex;
+use wasmer::{AsStoreMut, AsStoreRef, Imports, Instance, InstantiationError, TypedFunction};
+use wasmer_middlewares::metering::{self, MeteringPoints};
+use wasmer_types::TrapCode;
 
-/// AssemblyScript execution environment.
-///
-/// Contains the AS ffi env and all the data required to run a module.
+pub type ABIEnv = Arc<Mutex<Option<ExecutionEnv>>>;
+
+/// Execution environment for ABIs.
 #[derive(Clone)]
-pub struct WasmV1Env {
-    /// Set to true after a module execution was instantiated.
-    /// ABIs should be disabled in the AssemblyScript `start` function.
-    /// It prevents non-deterministic behaviour in the intances creation.
-    pub abi_enabled: Arc<AtomicBool>,
+pub struct ExecutionEnv {
     /// Exposed interface functions used by the ABIs and implemented externally.
     /// In `massa/massa-execution-worker` for example.
-    pub interface: Box<dyn Interface>,
-    /// Remaining metering points in the current execution context.
-    pub remaining_points: Option<Global>,
-    /// Cumulated exhausted points in the current execution context.
-    pub exhausted_points: Option<Global>,
+    interface: Box<dyn Interface>,
     /// Gas costs of different execution operations.
     gas_costs: GasCosts,
-    /// Initially added for gas calibration but unused at the moment.
-    param_size_map: HashMap<String, Option<Global>>,
+    /// Instance to execute
+    instance: Instance,
+    /// Memory interface
+    ffi: Ffi,
+    /// Gas cost of instance creation
+    init_gas_cost: u64,
 }
 
-impl WasmV1Env {
-    pub fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
-        Self {
-            abi_enabled: Arc::new(AtomicBool::new(false)),
+/// ABI environment giving ABIs access to the interface, gas costs and memory.
+impl ExecutionEnv {
+    /// Create a new ABI environment.
+    pub fn create_instance(
+        store: &mut impl AsStoreMut,
+        module: &super::WasmV1Module,
+        interface: &dyn Interface,
+        gas_costs: GasCosts,
+        import_object: &Imports,
+    ) -> Result<Self, WasmV1Error> {
+        // Create the instance
+        let instance = match Instance::new(store, &module.binary_module, &import_object) {
+            Ok(instance) => instance,
+            Err(err) => {
+                // Filter the error created by the metering middleware when there is not enough gas at initialization
+                if let InstantiationError::Start(ref e) = err {
+                    if let Some(trap) = e.clone().to_trap() {
+                        if trap == TrapCode::UnreachableCodeReached && e.trace().is_empty() {
+                            return Err(WasmV1Error::InstanciationError(
+                                "Not enough gas, limit reached at instance creation".to_string(),
+                            ));
+                        }
+                    }
+                }
+                return Err(WasmV1Error::InstanciationError(format!(
+                    "Error during instance creation: {}",
+                    err
+                )));
+            }
+        };
+
+        // Create FFI for memory access
+        let ffi = Ffi::try_new(&instance, store)
+            .map_err(|err| WasmV1Error::RuntimeError(format!("Could not create FFI: {}", err)))?;
+
+        // Infer the gas cost of instance creation (_start function call)
+        let init_gas_cost = match metering::get_remaining_points(store, &instance) {
+            MeteringPoints::Remaining(remaining_points) => module
+                .gas_limit_at_compilation
+                .checked_sub(remaining_points)
+                .expect(
+                    "Remaining gas after instance creation is higher than the gas limit at compilation",
+                ),
+            MeteringPoints::Exhausted => {
+                return Err(WasmV1Error::InstanciationError(
+                    "Not enough gas, gas exhausted after instance creation".to_string(),
+                ));
+            }
+        };
+
+        // Return the environment
+        Ok(Self {
             gas_costs,
             interface: interface.clone_box(),
-            remaining_points: None,
-            exhausted_points: None,
-            param_size_map: Default::default(),
+            instance,
+            ffi,
+            init_gas_cost,
+        })
+    }
+
+    /// Get gas cost of instance creation
+    pub fn get_init_gas_cost(&self) -> u64 {
+        self.init_gas_cost
+    }
+
+    /// Get interface.
+    pub fn get_interface(&self) -> &Box<dyn Interface> {
+        &self.interface
+    }
+
+    /// Get a typed guest function from the instance.
+    pub fn get_func(
+        &self,
+        store: &impl AsStoreRef,
+        function_name: &str,
+    ) -> Result<TypedFunction<i32, i32>, WasmV1Error> {
+        self.instance
+            .exports
+            .get_typed_function::<i32, i32>(&store, function_name)
+            .map_err(|err| {
+                WasmV1Error::RuntimeError(format!(
+                    "Error getting typed guest function {}: {}",
+                    function_name, err
+                ))
+            })
+    }
+
+    /// Try subtracting gas from the metering.
+    pub fn try_subtract_gas(
+        &self,
+        store: &mut impl AsStoreMut,
+        gas: u64,
+    ) -> Result<(), WasmV1Error> {
+        let remaining = match metering::get_remaining_points(store, &self.instance) {
+            metering::MeteringPoints::Remaining(remaining) => remaining,
+            metering::MeteringPoints::Exhausted => {
+                return Err(WasmV1Error::RuntimeError(
+                    "Gas exhausted before ABI call".into(),
+                ))
+            }
+        };
+        let new_remaining = match remaining.checked_sub(gas) {
+            Some(v) => v,
+            None => {
+                return Err(WasmV1Error::RuntimeError(
+                    "Gas exhausted after ABI call".into(),
+                ))
+            }
+        };
+        metering::set_remaining_points(store, &self.instance, new_remaining);
+        Ok(())
+    }
+
+    /// Get remaining gas.
+    pub fn get_remaining_gas(&self, store: &mut impl AsStoreMut) -> u64 {
+        match metering::get_remaining_points(store, &self.instance) {
+            metering::MeteringPoints::Remaining(remaining) => remaining,
+            metering::MeteringPoints::Exhausted => 0,
         }
     }
-    pub fn get_interface(&self) -> Box<dyn Interface> {
-        self.interface.clone()
-    }
-}
 
-impl Metered for WasmV1Env {
-    fn get_exhausted_points(&self) -> Option<&Global> {
-        self.exhausted_points.as_ref()
+    /// Set remaining gas.
+    pub fn set_remaining_gas(&self, store: &mut impl AsStoreMut, remaining_gas: u64) {
+        metering::set_remaining_points(store, &self.instance, remaining_gas);
     }
-    fn get_remaining_points(&self) -> Option<&Global> {
-        self.remaining_points.as_ref()
-    }
-    fn get_gc_param(&self, name: &str) -> Option<&Global> {
-        self.param_size_map.get(name)?.as_ref()
-    }
-    fn get_gas_costs(&self) -> GasCosts {
-        self.gas_costs.clone()
-    }
-}
 
-/// Trait describing a metered object.
-///
-/// An object implementing this trait can track the execution consumption.
-pub(crate) trait Metered {
-    fn get_exhausted_points(&self) -> Option<&Global>;
-    fn get_remaining_points(&self) -> Option<&Global>;
-    fn get_gc_param(&self, name: &str) -> Option<&Global>;
-    fn get_gas_costs(&self) -> GasCosts;
-}
-
-/// Get remaining metering points.
-/// Should be equivalent to:
-/// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L293
-pub(crate) fn get_remaining_points(
-    env: &impl Metered,
-    store: &mut impl AsStoreMut,
-) -> ABIResult<u64> {
-    if cfg!(feature = "gas_calibration") {
-        Ok(u64::MAX)
-    } else {
-        match env.get_exhausted_points().as_ref() {
-            Some(exhausted_points) => match exhausted_points.get(store).try_into() {
-                Ok::<i32, _>(exhausted) if exhausted > 0 => return Ok(0),
-                Ok::<i32, _>(_) => (),
-                Err(_) => abi_bail!("exhausted_points has wrong type"),
-            },
-            None => abi_bail!("Lost reference to exhausted_points"),
-        };
-        match env.get_remaining_points().as_ref() {
-            Some(remaining_points) => match remaining_points.get(store).try_into() {
-                Ok::<u64, _>(remaining) => Ok(remaining),
-                Err(_) => abi_bail!("remaining_points has wrong type"),
-            },
-            None => abi_bail!("Lost reference to remaining_points"),
-        }
+    /// Read buffer from memory.
+    pub fn read_buffer(
+        &self,
+        store: &impl AsStoreRef,
+        offset: i32,
+    ) -> Result<Vec<u8>, WasmV1Error> {
+        self.ffi.read_buffer(store, offset)
     }
-}
 
-/// Set remaining metering points.
-/// Should be equivalent to:
-/// https://github.com/wasmerio/wasmer/blob/8f2e49d52823cb7704d93683ce798aa84b6928c8/lib/middlewares/src/metering.rs#L343
-pub(crate) fn set_remaining_points(
-    env: &impl Metered,
-    store: &mut impl AsStoreMut,
-    points: u64,
-) -> ABIResult<()> {
-    if cfg!(not(feature = "gas_calibration")) {
-        match env.get_remaining_points().as_ref() {
-            Some(remaining_points) => {
-                if remaining_points.set(store, points.into()).is_err() {
-                    abi_bail!("Can't set remaining_points");
-                }
-            }
-            None => abi_bail!("Lost reference to remaining_points"),
-        };
-        match env.get_exhausted_points().as_ref() {
-            Some(exhausted_points) => {
-                if exhausted_points.set(store, 0i32.into()).is_err() {
-                    abi_bail!("Can't set exhausted_points")
-                }
-            }
-            None => abi_bail!("Lost reference to exhausted_points"),
-        };
+    /// Write buffer to memory.
+    pub fn write_buffer(
+        &self,
+        store: &mut impl AsStoreMut,
+        data: &[u8],
+    ) -> Result<i32, WasmV1Error> {
+        self.ffi.write_buffer(store, data)
     }
-    Ok(())
-}
-
-pub(crate) fn sub_remaining_gas(
-    env: &impl Metered,
-    store: &mut impl AsStoreMut,
-    gas: u64,
-) -> ABIResult<()> {
-    if cfg!(feature = "gas_calibration") {
-        return Ok(());
-    }
-    let remaining_gas = get_remaining_points(env, store)?;
-    if let Some(remaining_gas) = remaining_gas.checked_sub(gas) {
-        set_remaining_points(env, store, remaining_gas)?;
-    } else {
-        abi_bail!("Remaining gas reach zero")
-    }
-    Ok(())
-}
-
-pub(crate) fn sub_remaining_gas_abi(
-    env: &impl Metered,
-    store: &mut impl AsStoreMut,
-    abi_name: &str,
-) -> ABIResult<()> {
-    sub_remaining_gas(
-        env,
-        store,
-        *env.get_gas_costs().abi_costs.get(abi_name).ok_or_else(|| {
-            wasmer::RuntimeError::new(format!("Failed to get gas for {} ABI", abi_name))
-        })?,
-    )
 }
