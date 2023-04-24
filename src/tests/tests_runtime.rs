@@ -64,6 +64,144 @@ fn test_run_main() {
 
 #[test]
 #[serial]
+/// Test basic main-only SC execution
+fn test_run_call_loop_echo_wasmv1() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../abi_as/build/release.wasm_add"
+    ));
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+
+    match runtime_module.clone() {
+        RuntimeModule::ASModule(_) => {
+            println!("Module type ASModule");
+        }
+        RuntimeModule::WasmV1Module(module) => {
+            println!("Module type WasmV1Module");
+            for export_ in module.binary_module.exports() {
+                println!("{} {:?}", export_.name(), export_.ty());
+            }
+        }
+    }
+
+    let res = run_function(
+        &*interface,
+        runtime_module,
+        "call_loop_echo",
+        b"abcd",
+        100_000_000,
+        gas_costs,
+    )
+    .unwrap();
+    println!("{:?}", res);
+}
+
+#[test]
+#[serial]
+fn test_run_echo_loop_wasmv1() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../abi_as/build/release.wasm_add"
+    ));
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+
+    match runtime_module.clone() {
+        RuntimeModule::ASModule(_) => {
+            println!("Module type ASModule");
+        }
+        RuntimeModule::WasmV1Module(module) => {
+            println!("Module type WasmV1Module");
+            for export_ in module.binary_module.exports() {
+                println!("{} {:?}", export_.name(), export_.ty());
+            }
+        }
+    }
+
+    let res = run_function(
+        &*interface,
+        runtime_module,
+        "echo",
+        b"abcd",
+        100_000,
+        gas_costs,
+    )
+    .unwrap();
+    println!("{:?}", res);
+}
+
+#[test]
+#[serial]
+fn test_run_register_wasmv1() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../abi_as/build/release.wasm_add"
+    ));
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+
+    match runtime_module.clone() {
+        RuntimeModule::ASModule(_) => {
+            println!("Module type ASModule");
+        }
+        RuntimeModule::WasmV1Module(_) => {
+            println!("Module type WasmV1Module");
+        }
+    }
+
+    let res = run_function(
+        &*interface,
+        runtime_module,
+        "initialize",
+        b"",
+        100_000,
+        gas_costs,
+    )
+    .unwrap();
+    println!("{:?}", res);
+}
+
+#[test]
+#[serial]
+/// Test basic main-only SC execution
+fn test_run_main_wasmv1() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../abi_as/build/dmain.wasm_add"
+    ));
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+
+    match runtime_module.clone() {
+        RuntimeModule::ASModule(_) => {
+            println!("Module type ASModule");
+        }
+        RuntimeModule::WasmV1Module(_) => {
+            println!("Module type WasmV1Module");
+        }
+    }
+    run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+}
+
+#[test]
+#[serial]
 /// Test basic function-only SC execution
 fn test_run_function() {
     let gas_costs = GasCosts::default();
