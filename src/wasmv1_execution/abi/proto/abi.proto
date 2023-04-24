@@ -16,7 +16,6 @@ message Empty {
 }
 
 // CreateSC
-
 message CreateSCRequest {
   bytes bytecode = 1;
 }
@@ -26,7 +25,6 @@ message CreateSCResponse {
 }
 
 // CallSC
-
 message CallRequest {
   Address address = 1;
   string function = 2;
@@ -38,8 +36,34 @@ message CallResponse {
   bytes return_data = 1;
 }
 
-// Abort
+// LocalCall
+message LocalCallRequest {
+  Address address = 1;
+  string function = 2;
+  bytes arg = 3;
+}
 
-message AbortRequest {
-  string description = 1;
+message LocalCallResponse {
+  bytes return_data = 1;
+}
+
+// GenerateEvent
+message GenerateEventRequest {
+  string event = 1;
+}
+
+// TransferCoins
+message TransferCoinsRequest {
+  Address to_address = 1;
+  Amount raw_amount = 2;
+}
+
+// FunctionExists
+message FunctionExistsRequest {
+  Address address = 1;
+  string function = 2;
+}
+
+message FunctionExistsResponse {
+  bool exists = 1;
 }

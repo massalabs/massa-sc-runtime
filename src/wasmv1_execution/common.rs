@@ -42,25 +42,4 @@ pub(crate) fn local_call(
     }
     Ok(resp)
 }
-
-/// Check the exports of a compiled module to see if it contains the given function
-pub(crate) fn function_exists(
-    ctx: &mut FunctionEnvMut<WasmV1ABIEnv>,
-    address: &str,
-    function: &str,
-) -> ABIResult<bool> {
-    let env = get_env(ctx)?;
-    let interface = env.get_interface();
-    let bytecode = interface.raw_get_bytecode_for(address)?;
-
-    let remaining_gas = if cfg!(feature = "gas_calibration") {
-        u64::MAX
-    } else {
-        get_remaining_points(&env, ctx)?
-    };
-
-    Ok(interface
-        .get_module(&bytecode, remaining_gas)?
-        .function_exists(function))
-}
 */
