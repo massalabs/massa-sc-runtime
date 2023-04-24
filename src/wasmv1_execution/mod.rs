@@ -14,6 +14,7 @@ use abi::*;
 pub(crate) use error::*;
 use parking_lot::Mutex;
 use std::sync::Arc;
+use anyhow::Result;
 use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
 use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
@@ -70,21 +71,22 @@ impl WasmV1Module {
     }
 
     /// Deserialize a module
-    pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Self {
+    pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
         // Deserialization is only meant for Cranelift modules
         let engine = init_cl_engine(limit, gas_costs);
         let store = init_store(&engine);
         // Unsafe because code injection is possible
-        // That's not an issue because we only deserialize modules we have serialized by ourselves before.
-        // This also means that we expect the module to be valid and the deserialization to succeed.
+        // That's not an issue because we only deserialize modules we have serialized by ourselves
+        // before. This also means that we expect the module to be valid and the
+        // deserialization to succeed.
         let binary_module = unsafe { Module::deserialize(&store, ser_module) }
             .expect("Could not deserialize module");
-        WasmV1Module {
+        Ok(WasmV1Module {
             binary_module,
             gas_limit_at_compilation: limit,
             compiler: Compiler::CL,
             _engine: engine,
-        }
+        })
     }
 
     /// Check the exports of a compiled module to see if it contains the given function
@@ -184,18 +186,18 @@ pub(crate) fn exec_wasmv1_module(
     let mut store = init_store(&engine);
 
     // Create the ABI imports and pass them an empty environment for now
-    let shared_abi_env: ABIEnv = Arc::new(Mutex::new(None)).into();
+    let shared_abi_env: ABIEnv = Arc::new(Mutex::new(None));
     let import_object = register_abis(&mut store, shared_abi_env.clone());
 
     // Create an instance of the execution environment.
     let execution_env =
         ExecutionEnv::create_instance(&mut store, &module, interface, gas_costs, &import_object)
             .map_err(|err| {
-                VMError::InstanceError(format!(
-                    "Failed to create instance of execution environment: {}",
-                    err
-                ))
-            })?;
+            VMError::InstanceError(format!(
+                "Failed to create instance of execution environment: {}",
+                err
+            ))
+        })?;
 
     // Get gas cost of instance creation
     let init_gas_cost = execution_env.get_init_gas_cost();
@@ -212,16 +214,18 @@ pub(crate) fn exec_wasmv1_module(
     };
     execution_env.set_remaining_gas(&mut store, available_gas);
 
-    // Get function to execute. Must follow the following prototype: param_addr: i32 -> return_addr: i32
-    let wasm_func = execution_env
-        .get_func(&mut store, function)
-        .map_err(|err| VMError::ExecutionError {
-            error: format!(
-                "Could not find guest function {} for call: {}",
-                function, err
-            ),
-            init_gas_cost,
-        })?;
+    // Get function to execute. Must follow the following prototype: param_addr: i32 ->
+    // return_addr: i32
+    let wasm_func =
+        execution_env
+            .get_func(&store, function)
+            .map_err(|err| VMError::ExecutionError {
+                error: format!(
+                    "Could not find guest function {} for call: {}",
+                    function, err
+                ),
+                init_gas_cost,
+            })?;
 
     // Write function argument to guest memory
     let param_offset = execution_env
@@ -235,7 +239,8 @@ pub(crate) fn exec_wasmv1_module(
         })?;
 
     // Now that we have an instance, we can make the execution environment available to the ABIs.
-    // We avoided setting it before instance creation to prevent the implicit `_start` call from accessing the env and causing non-determinism in init gas usage.
+    // We avoided setting it before instance creation to prevent the implicit `_start` call from
+    // accessing the env and causing non-determinism in init gas usage.
     shared_abi_env.lock().replace(execution_env);
 
     // Call func
@@ -255,7 +260,7 @@ pub(crate) fn exec_wasmv1_module(
 
     // Read returned value
     let ret = execution_env
-        .read_buffer(&mut store, returned_offset)
+        .read_buffer(&store, returned_offset)
         .map_err(|err| VMError::ExecutionError {
             error: format!(
                 "Could not read return value from guest call {}: {}",
