@@ -141,6 +141,53 @@ fn test_run_echo_loop_wasmv1() {
 
 #[test]
 #[serial]
+fn test_call_abort_wasmv1() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../abi_as/build/debug.wasm_add"
+    ));
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000_000, gas_costs.clone(), Compiler::SP).unwrap();
+
+    match runtime_module.clone() {
+        RuntimeModule::ASModule(_) => {
+            panic!("Module type ASModule");
+        }
+        RuntimeModule::WasmV1Module(_) => {
+            println!("Ok module type WasmV1Module");
+        }
+    }
+
+    let res = run_function(
+        &*interface,
+        runtime_module,
+        "call_abort",
+        b"",
+        100_000_000,
+        gas_costs,
+    );
+
+    match res {
+        Err(e) if e.to_string().contains("abort test message") => {
+            println!("Ok abort: {:?}", e);
+            return;
+        }
+        Err(e) => {
+            println!("Test failed: {:?}", e);
+            panic!("Expected abort");
+        }
+        Ok(_) => {
+            panic!("Err expected");
+        }
+    }
+}
+
+#[test]
+#[serial]
 fn test_run_register_wasmv1() {
     let gas_costs = GasCosts::default();
     let interface: Box<dyn Interface> =
