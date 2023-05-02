@@ -32,30 +32,36 @@ enum RuntimeModuleId {
 impl RuntimeModule {
     /// Dispatch module creation corresponding to the first bytecode byte
     ///
-    /// * (1) TODO: target AssemblyScript (remove ident)
-    /// * (2) TODO: target X
-    /// * (_) target AssemblyScript
+    /// * (0): legacy AssemblyScript module
+    /// * (1): new agnostic module
+    /// * (_): unsupported module
     pub fn new(
         bytecode: &[u8],
         limit: u64,
         gas_costs: GasCosts,
         compiler: Compiler,
     ) -> Result<Self> {
+        if bytecode.len() <= 2 {
+            return Err(anyhow!("Too small bytecode"));
+        }
+
         let module_id = bytecode
             .first()
             .map(|&id| RuntimeModuleId::try_from(id))
-            .transpose()?;
+            .transpose()
+            .map_err(|err| anyhow!("Unsupported file format for SC({})", err))?
+            .unwrap(); // Safe to unwrap as we checked the bytecode length and for conversion errors
 
         match module_id {
-            Some(RuntimeModuleId::ASModuleId) => Ok(Self::ASModule(ASModule::new(
+            RuntimeModuleId::ASModuleId => Ok(Self::ASModule(ASModule::new(
                 bytecode, limit, gas_costs, compiler,
             )?)),
-            Some(RuntimeModuleId::WasmV1ModuleId) => {
+            RuntimeModuleId::WasmV1ModuleId => {
+                // Safe to use [1..] as we checked the bytecode length
                 let res = WasmV1Module::compile(&bytecode[1..], limit, gas_costs, compiler)
                     .map_err(|err| anyhow!("Failed to compile WasmV1 module: {}", err))?;
                 Ok(Self::WasmV1Module(res))
             }
-            None => Err(anyhow!("Empty bytecode")),
         }
     }
 
