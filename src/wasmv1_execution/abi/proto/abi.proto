@@ -9,7 +9,7 @@ message Address {
 }
 
 message Amount {
-  uint64 amount = 1;
+  fixed64 amount = 1;
 }
 
 message Empty {
