@@ -1,7 +1,7 @@
 mod abi;
 mod common;
 mod context;
-mod env;
+pub(crate) mod env;
 mod error;
 
 use crate::error::{exec_bail, VMResult};

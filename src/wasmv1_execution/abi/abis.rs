@@ -18,8 +18,8 @@ pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imp
             "abi_generate_event" => Function::new_typed_with_env(store, &fn_env, abi_generate_event),
             "abi_function_exists" => Function::new_typed_with_env(store, &fn_env, abi_function_exists),
 
-
             "abi_log" => Function::new_typed_with_env(store, &fn_env, abi_log),
+            "abi_echo" => Function::new_typed_with_env(store, &fn_env, abi_echo),
         },
     }
 }
@@ -56,7 +56,9 @@ pub(crate) fn abi_call(
                 remaining_gas,
                 handler.get_gas_costs().clone(),
             )
-            .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
+            .map_err(|err| {
+                WasmV1Error::RuntimeError(format!("Could not run function: {}", err))
+            })?;
             handler.set_remaining_gas(response.remaining_gas);
             handler.interface.finish_call().map_err(|err| {
                 WasmV1Error::RuntimeError(format!("Could not finish call: {}", err))
@@ -123,6 +125,7 @@ pub(crate) fn abi_create_sc(
                         err
                     ))
                 })?;
+
             Ok(proto::CreateScResponse {
                 address: Some(proto::Address { address }),
             })
@@ -273,6 +276,23 @@ pub fn abi_log(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32
             println!("wasm log: {}", message);
 
             Ok(proto::Empty {})
+        },
+    )
+}
+
+pub fn abi_echo(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "echo",
+        store_env,
+        arg_offset,
+        |_handler, req: proto::TestRequest| {
+            let message_in = req.message_in;
+
+            println!("abi_echo called with: {:?}", message_in);
+
+            Ok(proto::TestResponse {
+                message_out: message_in,
+            })
         },
     )
 }

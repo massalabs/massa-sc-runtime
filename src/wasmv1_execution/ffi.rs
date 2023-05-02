@@ -45,6 +45,7 @@ impl Ffi {
             return Err(WasmV1Error::RuntimeError(format!("Invalid memory read offset: {}", offset)));
         };
         let view = self.guest_memory.view(store);
+
         let mut len_buffer = [0u8; 4];
         view.read(offset, &mut len_buffer).map_err(|err| {
             WasmV1Error::RuntimeError(format!(
@@ -94,6 +95,7 @@ impl Ffi {
         let Ok(offset_u64): Result<u64, _> = offset.try_into() else {
             return Err(WasmV1Error::RuntimeError(format!("__alloc returned invalid pointer: {}", offset)));
         };
+
         self.guest_memory
             .view(store)
             .write(offset_u64, buffer)
