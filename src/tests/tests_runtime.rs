@@ -141,6 +141,52 @@ fn test_run_echo_loop_wasmv1() {
 
 #[test]
 #[serial]
+fn test_call_echo_rust_wasmv1() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../wasm-experiment/massa-rust-sc-examples/target/wasm32-unknown-unknown/debug/massa_rust_sc_examples.wasm_add"
+    ));
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000_000, gas_costs.clone(), Compiler::SP).unwrap();
+
+    match runtime_module.clone() {
+        RuntimeModule::ASModule(_) => {
+            panic!("Expected module type WasmV1Module");
+        }
+        RuntimeModule::WasmV1Module(_module) => {
+            println!("Module type WasmV1Module");
+            // for export_ in module.binary_module.exports() {
+            //     println!("{} {:?}", export_.name(), export_.ty());
+            // }
+        }
+    }
+
+    let res = run_function(
+        &*interface,
+        runtime_module,
+        "call_echo",
+        b"abcd",
+        100_000_000,
+        gas_costs,
+    );
+    match res {
+        Ok(res) => {
+            println!("{:?}", res);
+        },
+        Err(err) => {
+            println!("{}", err);
+            assert!(false);
+        },
+    }
+
+}
+
+#[test]
+#[serial]
 fn test_call_abort_wasmv1() {
     let gas_costs = GasCosts::default();
     let interface: Box<dyn Interface> =
