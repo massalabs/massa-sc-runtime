@@ -242,6 +242,8 @@
 <a href="#242" id="242">242</a>
 <a href="#243" id="243">243</a>
 <a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::as_execution::{exec_as_module, ASModule};
 <span class="kw">use </span><span class="kw">crate</span>::error::VMResult;
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::GasCalibrationResult;
@@ -276,19 +278,21 @@
 <span class="kw">impl </span>RuntimeModule {
     <span class="doccomment">/// Dispatch module creation corresponding to the first bytecode byte
     ///
-    /// * (1) TODO: target AssemblyScript (remove ident)
-    /// * (2) TODO: target X
-    /// * (_) target AssemblyScript
+    /// * (0): legacy AssemblyScript module
+    /// * (1): new agnostic module
+    /// * (_): guess it&#39;s a .wat, so defaulted to legacy AssemblyScript module
     </span><span class="kw">pub fn </span>new(
         bytecode: <span class="kw-2">&amp;</span>[u8],
         limit: u64,
         gas_costs: GasCosts,
         compiler: Compiler,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>module_id = bytecode
-            .first()
-            .map(|<span class="kw-2">&amp;</span>id| RuntimeModuleId::try_from(id))
-            .transpose()<span class="question-mark">?</span>;
+        <span class="kw">let </span>module_id = <span class="kw">match </span>bytecode.first() {
+            <span class="prelude-val">Some</span>(<span class="number">1</span>) =&gt; <span class="prelude-val">Some</span>(RuntimeModuleId::WasmV1ModuleId),
+            <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Some</span>(RuntimeModuleId::ASModuleId),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(RuntimeModuleId::ASModuleId), <span class="comment">// let&#39;s consider it is a .wat file
+            </span><span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
+        };
 
         <span class="kw">match </span>module_id {
             <span class="prelude-val">Some</span>(RuntimeModuleId::ASModuleId) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ASModule(ASModule::new(
