@@ -1,5 +1,6 @@
-use crate::as_execution::{init_store, ASContext, ASModule, Compiler};
+use crate::as_execution::{init_store, ASContext, ASModule};
 use crate::tests::{Ledger, TestInterface};
+use crate::Compiler;
 use crate::{
     run_function, run_main,
     types::{GasCosts, Interface},

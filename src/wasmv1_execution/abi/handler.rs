@@ -146,8 +146,7 @@ impl<'a, 'b> ABIHandler<'a, 'b> {
     }
 
     /// Return a raw value aka a Vec<u8> any encoding is up to the caller
-    pub fn return_value_raw(&mut self, value: &[u8]) -> Result<i32, WasmV1Error>
-    {
+    pub fn return_value_raw(&mut self, value: &[u8]) -> Result<i32, WasmV1Error> {
         self.exec_env
             .write_buffer(&mut self.store_env, value)
             .map_err(|err| {

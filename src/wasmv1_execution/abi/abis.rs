@@ -91,9 +91,7 @@ pub(crate) fn abi_local_call(
                 remaining_gas,
                 handler.get_gas_costs().clone(),
             )
-            .map_err(|err| {
-                WasmV1Error::RuntimeError(format!("Could not run function: {}", err))
-            })?;
+            .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
             handler.set_remaining_gas(response.remaining_gas);
 
             Ok(proto::LocalCallResponse {

@@ -1,5 +1,4 @@
 mod abi;
-mod common;
 mod env;
 mod error;
 mod ffi;
@@ -11,10 +10,10 @@ use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::{GasCosts, Interface, Response, VMError};
 use abi::*;
+use anyhow::Result;
 pub(crate) use error::*;
 use parking_lot::Mutex;
 use std::sync::Arc;
-use anyhow::Result;
 use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
 use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
@@ -193,11 +192,11 @@ pub(crate) fn exec_wasmv1_module(
     let execution_env =
         ExecutionEnv::create_instance(&mut store, &module, interface, gas_costs, &import_object)
             .map_err(|err| {
-            VMError::InstanceError(format!(
-                "Failed to create instance of execution environment: {}",
-                err
-            ))
-        })?;
+                VMError::InstanceError(format!(
+                    "Failed to create instance of execution environment: {}",
+                    err
+                ))
+            })?;
 
     // Get gas cost of instance creation
     let init_gas_cost = execution_env.get_init_gas_cost();
