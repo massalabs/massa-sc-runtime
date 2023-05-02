@@ -47,6 +47,10 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: check
+      - uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
   clippy:
     if: github.ref != 'refs/heads/staging'
@@ -101,6 +105,10 @@ jobs:
         with:
           command: test
           args: --features gas_calibration
+      - uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
   build: # quick hack because bors wrongly detect matrix jobs status
     # if: github.ref == 'refs/heads/staging'
@@ -153,6 +161,10 @@ jobs:
           toolchain: nightly
           components: rustfmt
           override: true
+      - uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions-rs/cargo@v1
         with:
           command: doc
@@ -161,4 +173,5 @@ jobs:
         with:
           branch: gh-pages
           folder: target/doc
+
 
