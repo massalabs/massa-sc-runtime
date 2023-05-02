@@ -17,6 +17,9 @@ pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imp
             "abi_transfer_coins" => Function::new_typed_with_env(store, &fn_env, abi_transfer_coins),
             "abi_generate_event" => Function::new_typed_with_env(store, &fn_env, abi_generate_event),
             "abi_function_exists" => Function::new_typed_with_env(store, &fn_env, abi_function_exists),
+
+
+            "abi_log" => Function::new_typed_with_env(store, &fn_env, abi_log),
         },
     }
 }
@@ -257,4 +260,19 @@ fn helper_get_module(
         .get_module(&bytecode, remaining_gas)
         .map_err(|err| WasmV1Error::RuntimeError(format!("Could not get module: {}", err)))?;
     Ok(module)
+}
+
+pub fn abi_log(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "log",
+        store_env,
+        arg_offset,
+        |_handler, req: proto::LogRequest| {
+            let message = req.message;
+
+            println!("wasm log: {}", message);
+
+            Ok(proto::Empty {})
+        },
+    )
 }
