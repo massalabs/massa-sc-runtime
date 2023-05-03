@@ -1,6 +1,6 @@
-use crate::as_execution::{ASModule, Compiler};
+use crate::as_execution::ASModule;
 use crate::types::{Interface, InterfaceClone};
-use crate::{GasCosts, RuntimeModule};
+use crate::{Compiler, GasCosts, RuntimeModule};
 
 use anyhow::{bail, Result};
 use parking_lot::Mutex;

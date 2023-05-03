@@ -1,4 +1,4 @@
-use crate::as_execution::Compiler;
+use crate::execution::Compiler;
 use crate::middlewares::operator::{OPERATOR_CARDINALITY, OPERATOR_VARIANTS};
 use crate::middlewares::operator::{
     _OPERATOR_BULK_MEMORY, _OPERATOR_NON_TRAPPING_FLOAT_TO_INT, _OPERATOR_THREAD, _OPERATOR_VECTOR,
@@ -110,7 +110,10 @@ fn test_basic_abi_call_loop() -> Result<()> {
 #[serial]
 fn test_basic_op() -> Result<()> {
     let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
-    let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/gc_basic_op.wat"));
+    let bytecode = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/gc_basic_op.wasm"
+    ));
 
     let gas_costs = GasCosts::default();
     let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
@@ -196,29 +199,27 @@ fn test_basic_abi_call_param_size() -> Result<()> {
     // Check SC src in massa-unit-tests-src for expected lengths
 
     // For now, this has been disabled in the code, so we disabled it here too
-    /*
-    assert_eq!(
-        gas_calibration_result
-            .counters
-            .get("Abi:ps:massa.assembly_script_set_data:0"),
-        Some(&8)
-    );
-    assert_eq!(
-        gas_calibration_result
-            .counters
-            .get("Abi:ps:massa.assembly_script_set_data:1"),
-        Some(&20)
-    );
-
+    // assert_eq!(
+    // gas_calibration_result
+    // .counters
+    // .get("Abi:ps:massa.assembly_script_set_data:0"),
+    // Some(&8)
+    // );
+    // assert_eq!(
+    // gas_calibration_result
+    // .counters
+    // .get("Abi:ps:massa.assembly_script_set_data:1"),
+    // Some(&20)
+    // );
+    //
     // Check param len send via run_main_gc + 2x (utf-16)
-    // TODO / FIXME: should be 14 but is now 18 - because param is now passed as &[u8] instead of &str
-    assert_eq!(
-        gas_calibration_result
-            .counters
-            .get("Abi:ps:massa.assembly_script_print:0"),
-        Some(&18)
-    );
-    */
+    // TODO / FIXME: should be 14 but is now 18 - because param is now passed as &[u8] instead of
+    // &str assert_eq!(
+    // gas_calibration_result
+    // .counters
+    // .get("Abi:ps:massa.assembly_script_print:0"),
+    // Some(&18)
+    // );
 
     for i in 0..4 {
         assert_eq!(

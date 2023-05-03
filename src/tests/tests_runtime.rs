@@ -1,5 +1,6 @@
-use crate::as_execution::{init_store, ASContext, ASModule, Compiler};
+use crate::as_execution::{init_store, ASContext, ASModule};
 use crate::tests::{Ledger, TestInterface};
+use crate::Compiler;
 use crate::{
     run_function, run_main,
     types::{GasCosts, Interface},
@@ -18,7 +19,7 @@ fn test_metering_safety() {
     let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/metering_override.wat"
+        "/wasm/metering_override.wasm"
     ));
 
     let gas_costs = GasCosts::default();
@@ -35,7 +36,7 @@ fn test_instantiation_safety() {
     let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/start_func_abi_call.wat"
+        "/wasm/start_func_abi_call.wasm"
     ));
 
     let gas_costs = GasCosts::default();
@@ -330,23 +331,44 @@ fn test_unsupported_builtins() {
 
 #[test]
 #[serial]
-/// Ensure that the execution of WAT files (text equivalent of WASM) is supported
+/// Ensure that WAT files (text equivalent of WASM) are rejected but their WASM equivalent are
+/// accepted
 ///
 /// WAT files are mostly used in testing
 fn test_wat() {
-    let gas_costs = GasCosts::default();
-    let interface: Box<dyn Interface> =
-        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/dummy.wat"));
+    {
+        let gas_costs = GasCosts::default();
+        let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/dummy.wat"));
 
-    let gas_limit = 100_000;
-    let runtime_module =
-        RuntimeModule::new(bytecode, gas_limit, gas_costs.clone(), Compiler::SP).unwrap();
-    let response = run_main(&*interface, runtime_module, gas_limit, gas_costs.clone()).unwrap();
+        let gas_limit = 100_000;
+        let runtime_module =
+            RuntimeModule::new(bytecode, gas_limit, gas_costs.clone(), Compiler::SP);
 
-    // Note: for now, exec main always return an empty vec
-    let excepted: Vec<u8> = Vec::new();
-    assert_eq!(response.ret, excepted);
+        match runtime_module {
+            Ok(_) => assert!(false, ".wat are not supported anymore"),
+            Err(err) => {
+                assert_eq!(
+                    true,
+                    err.to_string().contains("Unsupported file format for SC")
+                );
+            }
+        }
+    }
+    {
+        let gas_costs = GasCosts::default();
+        let interface: Box<dyn Interface> =
+            Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+        let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/dummy.wasm"));
+
+        let gas_limit = 100_000;
+        let runtime_module =
+            RuntimeModule::new(bytecode, gas_limit, gas_costs.clone(), Compiler::SP).unwrap();
+        let response = run_main(&*interface, runtime_module, gas_limit, gas_costs.clone()).unwrap();
+
+        // Note: for now, exec main always return an empty vec
+        let excepted: Vec<u8> = Vec::new();
+        assert_eq!(response.ret, excepted);
+    }
 }
 
 #[test]

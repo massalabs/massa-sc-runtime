@@ -4,11 +4,10 @@
 
 use wasmer::FunctionEnvMut;
 
-use crate::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
-use crate::{Response, RuntimeModule};
-
 use super::abi::get_env;
+use super::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 use super::error::{abi_bail, ABIResult};
+use crate::Response;
 
 /// Calls an exported function in a WASM module at a given address
 pub(crate) fn call_module(
@@ -33,7 +32,7 @@ pub(crate) fn call_module(
     };
 
     let module = interface.get_module(&bytecode, remaining_gas)?;
-    let resp = crate::execution_impl::run_function(
+    let resp = crate::execution::run_function(
         &*interface,
         module,
         function,
@@ -65,7 +64,7 @@ pub(crate) fn local_call(
     };
 
     let module = interface.get_module(bytecode, remaining_gas)?;
-    let resp = crate::execution_impl::run_function(
+    let resp = crate::execution::run_function(
         &*interface,
         module,
         function,
@@ -77,6 +76,12 @@ pub(crate) fn local_call(
         set_remaining_points(&env, ctx, resp.remaining_gas)?;
     }
     Ok(resp)
+}
+
+/// Create a smart contract with the given `bytecode`
+pub(crate) fn create_sc(ctx: &mut FunctionEnvMut<ASEnv>, bytecode: &[u8]) -> ABIResult<String> {
+    let env = ctx.data();
+    Ok(env.get_interface().create_module(bytecode)?)
 }
 
 /// Check the exports of a compiled module to see if it contains the given function
@@ -95,17 +100,7 @@ pub(crate) fn function_exists(
         get_remaining_points(&env, ctx)?
     };
 
-    match interface.get_module(&bytecode, remaining_gas)? {
-        RuntimeModule::ASModule(module) => Ok(module
-            .binary_module
-            .exports()
-            .functions()
-            .any(|export| export.name() == function)),
-    }
-}
-
-/// Create a smart contract with the given `bytecode`
-pub(crate) fn create_sc(ctx: &mut FunctionEnvMut<ASEnv>, bytecode: &[u8]) -> ABIResult<String> {
-    let env = ctx.data();
-    Ok(env.get_interface().create_module(bytecode)?)
+    Ok(interface
+        .get_module(&bytecode, remaining_gas)?
+        .function_exists(function))
 }

@@ -1,5 +1,5 @@
 use super::abi::*;
-use crate::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
+use super::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 use crate::types::Response;
 use crate::{GasCosts, Interface};
 use anyhow::{bail, Result};
@@ -110,7 +110,7 @@ impl ASContext {
                     return Ok(Response {
                         ret: Vec::new(), // main return empty vec
                         remaining_gas: remaining_gas?,
-                        init_cost: 0,
+                        init_gas_cost: 0,
                     });
                 }
                 let ret = if let Some(offset) = value.first() {
@@ -132,7 +132,7 @@ impl ASContext {
                 Ok(Response {
                     ret,
                     remaining_gas: remaining_gas?,
-                    init_cost: 0,
+                    init_gas_cost: 0,
                 })
             }
             Err(error) => bail!(error),

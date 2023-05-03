@@ -1,83 +1,26 @@
 mod abi;
 mod common;
 mod context;
+mod env;
 mod error;
 
-use anyhow::{anyhow, Result};
+use crate::error::{exec_bail, VMResult};
+use crate::execution::Compiler;
+use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
+use crate::middlewares::{dumper::Dumper, gas_calibration::GasCalibration};
+use crate::settings::max_number_of_pages;
+use crate::tunable_memory::LimitingTunables;
+use crate::{GasCosts, Interface, Response};
+use anyhow::Result;
 use std::sync::Arc;
 use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
 use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
-use wasmer_middlewares::Metering;
-
-use crate::middlewares::{dumper::Dumper, gas_calibration::GasCalibration};
-use crate::settings::max_number_of_pages;
-use crate::tunable_memory::LimitingTunables;
-use crate::GasCosts;
+use wasmer_middlewares::metering::MeteringPoints;
+use wasmer_middlewares::{metering, Metering};
 
 pub(crate) use context::*;
 pub(crate) use error::*;
-
-#[derive(Clone)]
-pub enum RuntimeModule {
-    ASModule(ASModule),
-}
-
-impl RuntimeModule {
-    /// Dispatch module creation corresponding to the first bytecode byte
-    ///
-    /// * (1) TODO: target AssemblyScript (remove ident)
-    /// * (2) TODO: target X
-    /// * (_) target AssemblyScript
-    pub fn new(
-        bytecode: &[u8],
-        limit: u64,
-        gas_costs: GasCosts,
-        compiler: Compiler,
-    ) -> Result<Self> {
-        match bytecode.first() {
-            Some(_) => Ok(Self::ASModule(ASModule::new(
-                bytecode, limit, gas_costs, compiler,
-            )?)),
-            None => Err(anyhow!("Empty bytecode")),
-        }
-    }
-
-    /// Used compiler for the current module
-    pub fn compiler(&self) -> Compiler {
-        match self {
-            RuntimeModule::ASModule(module) => module.compiler.clone(),
-        }
-    }
-
-    /// Serialize a RuntimeModule
-    ///
-    /// TODO: set a module identifier for other types of sub modules.
-    /// Distinction between runtime module ident and sub module ident must be clear.
-    /// If the serialization process becomes too complex use NOM.
-    pub fn serialize(&self) -> Result<Vec<u8>> {
-        let ser = match self {
-            RuntimeModule::ASModule(module) => module.serialize()?,
-        };
-        Ok(ser)
-    }
-
-    /// Deserialize a RuntimeModule
-    ///
-    /// NOTE: only deserialize from ASModule for now
-    /// TODO: make a distinction based on the runtime module identifier byte (see `serialize` description)
-    pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
-        let deser = RuntimeModule::ASModule(ASModule::deserialize(ser_module, limit, gas_costs)?);
-        Ok(deser)
-    }
-}
-
-/// Enum listing the available compilers
-#[derive(Clone)]
-pub enum Compiler {
-    CL,
-    SP,
-}
 
 /// An executable runtime module compiled from an AssemblyScript SC
 #[derive(Clone)]
@@ -128,6 +71,14 @@ impl ASModule {
             compiler: Compiler::CL,
             _engine: engine,
         })
+    }
+
+    /// Check the exports of a compiled module to see if it contains the given function
+    pub(crate) fn function_exists(&self, function: &str) -> bool {
+        self.binary_module
+            .exports()
+            .functions()
+            .any(|export| export.name() == function)
     }
 }
 
@@ -218,4 +169,67 @@ pub(crate) fn init_store(engine: &Engine) -> Result<Store> {
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
     let store = Store::new_with_tunables(engine, tunables);
     Ok(store)
+}
+
+/// Internal execution function, used on smart contract called from node or
+/// from another smart contract
+/// Parameters:
+/// * `interface`: Interface to call function in Massa from execution context
+/// * `as_module`: Pre compiled AS module that will be instantiated and executed
+/// * `function`: Name of the function to call
+/// * `param`: Parameter passed to the function
+/// * `cache`: Cache of pre compiled modules
+/// * `gas_costs`: Cost in gas of every VM operation
+///
+/// Return:
+/// * Output of the executed function, remaininng gas after execution and the initialization cost
+/// * Gas calibration result if it has been enabled
+pub(crate) fn exec_as_module(
+    interface: &dyn Interface,
+    as_module: ASModule,
+    function: &str,
+    param: &[u8],
+    limit: u64,
+    gas_costs: GasCosts,
+) -> VMResult<(Response, Option<GasCalibrationResult>)> {
+    let engine = match as_module.compiler {
+        Compiler::CL => init_cl_engine(limit, gas_costs.clone()),
+        Compiler::SP => init_sp_engine(limit, gas_costs.clone()),
+    };
+    let mut store = init_store(&engine)?;
+    let mut context = ASContext::new(interface, as_module.binary_module, gas_costs);
+    let (instance, init_rem_points) = context.create_vm_instance_and_init_env(&mut store)?;
+    let init_cost = as_module.initial_limit.saturating_sub(init_rem_points);
+
+    if cfg!(not(feature = "gas_calibration")) {
+        metering::set_remaining_points(&mut store, &instance, limit.saturating_sub(init_cost));
+    }
+
+    match context.execution(&mut store, &instance, function, param) {
+        Ok(mut response) => {
+            let gc_result = if cfg!(feature = "gas_calibration") {
+                Some(get_gas_calibration_result(&instance, &mut store))
+            } else {
+                None
+            };
+            response.init_gas_cost = init_cost;
+            Ok((response, gc_result))
+        }
+        Err(err) => {
+            if cfg!(feature = "gas_calibration") {
+                exec_bail!(err, init_cost)
+            } else {
+                // Because the last needed more than the remaining points, we should have an error.
+                match metering::get_remaining_points(&mut store, &instance) {
+                    MeteringPoints::Remaining(..) => exec_bail!(err, init_cost),
+                    MeteringPoints::Exhausted => {
+                        exec_bail!(
+                            format!("Not enough gas, limit reached at: {function}"),
+                            init_cost
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
