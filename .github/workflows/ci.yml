@@ -44,6 +44,10 @@ jobs:
           toolchain: nightly
           override: true
       - uses: Swatinem/rust-cache@v1
+      - uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions-rs/cargo@v1
         with:
           command: check
@@ -64,6 +68,10 @@ jobs:
           components: clippy
           override: true
       - uses: Swatinem/rust-cache@v1
+      - uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -91,6 +99,10 @@ jobs:
           toolchain: nightly
           override: true
       - uses: Swatinem/rust-cache@v1
+      - uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions-rs/cargo@v1
         with:
           command: build
@@ -153,6 +165,10 @@ jobs:
           toolchain: nightly
           components: rustfmt
           override: true
+      - uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions-rs/cargo@v1
         with:
           command: doc
@@ -161,4 +177,5 @@ jobs:
         with:
           branch: gh-pages
           folder: target/doc
+
 

@@ -5,7 +5,7 @@ use std::{
     path::PathBuf,
 };
 
-use crate::as_execution::RuntimeModule;
+use crate::execution::RuntimeModule;
 
 /// That's what is returned when a module is executed correctly since the end
 #[derive(Debug)]
@@ -15,7 +15,7 @@ pub struct Response {
     /// number of gas that remain after the execution (metering)
     pub remaining_gas: u64,
     /// number of gas required for the instance creation
-    pub init_cost: u64,
+    pub init_gas_cost: u64,
 }
 
 pub trait InterfaceClone {
