@@ -1,7 +1,4 @@
-use super::{
-    super::env::{ABIEnv, ExecutionEnv},
-    proto,
-};
+use super::super::env::{ABIEnv, ExecutionEnv};
 use crate::{wasmv1_execution::WasmV1Error, GasCosts, Interface};
 use std::io::Cursor;
 use wasmer::FunctionEnvMut;
@@ -15,8 +12,8 @@ pub fn handle_abi<F, Req, Resp>(
 ) -> Result<i32, WasmV1Error>
 where
     F: FnOnce(&mut ABIHandler, Req) -> Result<Resp, WasmV1Error>,
-    Req: proto::Message + Default,
-    Resp: proto::Message,
+    Req: prost::Message + Default,
+    Resp: prost::Message,
 {
     // get environment and interface
     let env_mutex = store_env.data().clone();
@@ -103,7 +100,7 @@ impl<'a, 'b> ABIHandler<'a, 'b> {
     /// Read argument
     pub fn read_arg<M>(&self, arg_offset: i32) -> Result<M, WasmV1Error>
     where
-        M: proto::Message + Default,
+        M: prost::Message + Default,
     {
         let byte_vec = self
             .exec_env
@@ -132,7 +129,7 @@ impl<'a, 'b> ABIHandler<'a, 'b> {
     /// Return a value
     pub fn return_value<M>(&mut self, value: M) -> Result<i32, WasmV1Error>
     where
-        M: proto::Message,
+        M: prost::Message,
     {
         let mut buf = Vec::with_capacity(value.encoded_len());
         value.encode(&mut buf).map_err(|err| {

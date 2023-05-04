@@ -1,7 +1,7 @@
 use super::{
     super::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
-    proto,
+    proto::massa::abi::v1 as proto,
 };
 use wasmer::{imports, AsStoreMut, Function, FunctionEnv, FunctionEnvMut, Imports};
 
