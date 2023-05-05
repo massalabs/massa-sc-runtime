@@ -364,9 +364,9 @@
         compiler_config.push_middleware(metering);
     }
 
-    EngineBuilder::new(compiler_config)
+    Engine::from(EngineBuilder::new(compiler_config)
         .set_features(<span class="prelude-val">Some</span>(FEATURES))
-        .engine()
+        .engine())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_cl_engine(limit: u64, gas_costs: GasCosts) -&gt; Engine {
@@ -395,16 +395,16 @@
         compiler_config.push_middleware(metering);
     }
 
-    EngineBuilder::new(compiler_config)
+    Engine::from(EngineBuilder::new(compiler_config)
         .set_features(<span class="prelude-val">Some</span>(FEATURES))
-        .engine()
+        .engine())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_store(engine: <span class="kw-2">&amp;mut </span>Engine) -&gt; <span class="prelude-ty">Result</span>&lt;Store&gt; {
     <span class="kw">let </span>base = BaseTunables::for_target(<span class="kw-2">&amp;</span>Target::default());
     <span class="kw">let </span>tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
     engine.set_tunables(tunables);
-    <span class="kw">let </span>store = Store::new(engine);
+    <span class="kw">let </span>store = Store::new(engine.clone());
     <span class="prelude-val">Ok</span>(store)
 }
 
