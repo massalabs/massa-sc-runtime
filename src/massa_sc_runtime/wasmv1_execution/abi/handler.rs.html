@@ -183,7 +183,13 @@
 <a href="#183" id="183">183</a>
 <a href="#184" id="184">184</a>
 <a href="#185" id="185">185</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::env::{ABIEnv, ExecutionEnv};
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+</pre></div><pre class="rust"><code><span class="kw">use super</span>::{
+    <span class="kw">super</span>::env::{ABIEnv, ExecutionEnv},
+    proto,
+};
 <span class="kw">use crate</span>::{wasmv1_execution::WasmV1Error, GasCosts, Interface};
 <span class="kw">use </span>std::io::Cursor;
 <span class="kw">use </span>wasmer::FunctionEnvMut;
@@ -197,8 +203,8 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt;
 <span class="kw">where
     </span>F: FnOnce(<span class="kw-2">&amp;mut </span>ABIHandler, Req) -&gt; <span class="prelude-ty">Result</span>&lt;Resp, WasmV1Error&gt;,
-    Req: prost::Message + Default,
-    Resp: prost::Message,
+    Req: proto::Message + Default,
+    Resp: proto::Message,
 {
     <span class="comment">// get environment and interface
     </span><span class="kw">let </span>env_mutex = store_env.data().clone();
@@ -285,7 +291,7 @@
     <span class="doccomment">/// Read argument
     </span><span class="kw">pub fn </span>read_arg&lt;M&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;M, WasmV1Error&gt;
     <span class="kw">where
-        </span>M: prost::Message + Default,
+        </span>M: proto::Message + Default,
     {
         <span class="kw">let </span>byte_vec = <span class="self">self
             </span>.exec_env
@@ -314,7 +320,7 @@
     <span class="doccomment">/// Return a value
     </span><span class="kw">pub fn </span>return_value&lt;M&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: M) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt;
     <span class="kw">where
-        </span>M: prost::Message,
+        </span>M: proto::Message,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::with_capacity(value.encoded_len());
         value.encode(<span class="kw-2">&amp;mut </span>buf).map_err(|err| {

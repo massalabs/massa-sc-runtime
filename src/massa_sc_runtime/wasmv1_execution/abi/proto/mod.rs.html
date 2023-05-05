@@ -2,58 +2,8 @@
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
-<a href="#5" id="5">5</a>
-<a href="#6" id="6">6</a>
-<a href="#7" id="7">7</a>
-<a href="#8" id="8">8</a>
-<a href="#9" id="9">9</a>
-<a href="#10" id="10">10</a>
-<a href="#11" id="11">11</a>
-<a href="#12" id="12">12</a>
-<a href="#13" id="13">13</a>
-<a href="#14" id="14">14</a>
-<a href="#15" id="15">15</a>
-<a href="#16" id="16">16</a>
-<a href="#17" id="17">17</a>
-<a href="#18" id="18">18</a>
-<a href="#19" id="19">19</a>
-<a href="#20" id="20">20</a>
-<a href="#21" id="21">21</a>
-<a href="#22" id="22">22</a>
-<a href="#23" id="23">23</a>
-<a href="#24" id="24">24</a>
-<a href="#25" id="25">25</a>
-<a href="#26" id="26">26</a>
-<a href="#27" id="27">27</a>
-<a href="#28" id="28">28</a>
-<a href="#29" id="29">29</a>
-</pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2023 MASSA LABS &lt;info@massa.net&gt;
-//
-</span><span class="doccomment">//! ## **Overview**
-//!
-//! This module contains Protobuf message definitions for the Massa blockchain ABI.
-//! It uses utilizes the `prost-build` tool to generate Rust code from the Protobuf definitions.
-//!
-//! ## **Structure**
-//!
-//! * `build.rs`: This file contains build instructions for generating Rust code from the Protobuf definitions using the `prost-build` tool.
-//! * `proto/`: This directory contains the Protobuf message definitions for the Massa blockchain ABI
-//! * `src/wasmv1_execution/abi/proto`: This directory contains the generated Rust code for the Protobuf message definitions.
-//! It also includes a `_includes.rs` file for importing the generated Rust modules and an `abi.bin` file for server reflection protocol.
-//!
-//! ## **Usage**
-//! To use this module, simply include it as a dependency in your Rust project&#39;s `Cargo.toml` file.
-//! You can then import the necessary Rust modules for the Massa ABI and use the Protobuf messages as needed.
-//!
+</pre></div><pre class="rust"><code><span class="kw">pub use </span>prost::Message;
 
-/// Massa protos Module
-</span><span class="kw">pub mod </span>massa {
-    <span class="doccomment">/// Massa ABI Module
-    </span><span class="kw">pub mod </span>abi {
-        <span class="doccomment">/// Version 1 of the Massa protos
-        </span><span class="kw">pub mod </span>v1 {
-            <span class="macro">include!</span>(<span class="string">&quot;massa.abi.v1.rs&quot;</span>);
-        }
-    }
-}
+<span class="comment">// Include the `abi` module, which is generated from the proto files.
+</span><span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">&quot;OUT_DIR&quot;</span>), <span class="string">&quot;/abi.rs&quot;</span>));
 </code></pre></div></section></main></body></html>
