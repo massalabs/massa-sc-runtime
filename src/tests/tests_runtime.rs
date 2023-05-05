@@ -1,6 +1,5 @@
-use crate::as_execution::{ ASContext, ASModule};
+use crate::as_execution::{ASContext, ASModule};
 use crate::tests::{Ledger, TestInterface};
-use wasmer::Store;
 use crate::Compiler;
 use crate::{
     run_function, run_main,
@@ -11,6 +10,7 @@ use parking_lot::Mutex;
 use rand::Rng;
 use serial_test::serial;
 use std::sync::Arc;
+use wasmer::Store;
 use wasmer::WasmPtr;
 
 #[test]
@@ -419,7 +419,6 @@ fn test_class_id() {
 
     // setup test specific context
     let (_, fenv) = context.resolver(&mut store);
-
 
     // get string and array offsets
     let return_string = instance.exports.get_function("return_string").unwrap();
