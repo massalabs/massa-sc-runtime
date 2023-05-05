@@ -128,9 +128,9 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
         compiler_config.push_middleware(metering);
     }
 
-    EngineBuilder::new(compiler_config)
+    Engine::from(EngineBuilder::new(compiler_config)
         .set_features(Some(FEATURES))
-        .engine()
+        .engine())
 }
 
 pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
@@ -159,9 +159,9 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
         compiler_config.push_middleware(metering);
     }
 
-    EngineBuilder::new(compiler_config)
+    Engine::from(EngineBuilder::new(compiler_config)
         .set_features(Some(FEATURES))
-        .engine()
+        .engine())
 }
 
 pub(crate) fn init_store(engine: &mut Engine) -> Result<Store> {
