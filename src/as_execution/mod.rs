@@ -13,8 +13,8 @@ use crate::tunable_memory::LimitingTunables;
 use crate::{GasCosts, Interface, Response};
 use anyhow::Result;
 use std::sync::Arc;
-use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target, Engine};
-use wasmer::{CompilerConfig, Cranelift,  Features, Module, Store};
+use wasmer::{wasmparser::Operator, BaseTunables, Engine, EngineBuilder, Pages, Target};
+use wasmer::{CompilerConfig, Cranelift, Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::metering::MeteringPoints;
 use wasmer_middlewares::{metering, Metering};
@@ -128,9 +128,11 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
         compiler_config.push_middleware(metering);
     }
 
-    Engine::from(EngineBuilder::new(compiler_config)
-        .set_features(Some(FEATURES))
-        .engine())
+    Engine::from(
+        EngineBuilder::new(compiler_config)
+            .set_features(Some(FEATURES))
+            .engine(),
+    )
 }
 
 pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
@@ -159,9 +161,11 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
         compiler_config.push_middleware(metering);
     }
 
-    Engine::from(EngineBuilder::new(compiler_config)
-        .set_features(Some(FEATURES))
-        .engine())
+    Engine::from(
+        EngineBuilder::new(compiler_config)
+            .set_features(Some(FEATURES))
+            .engine(),
+    )
 }
 
 pub(crate) fn init_store(engine: &mut Engine) -> Result<Store> {

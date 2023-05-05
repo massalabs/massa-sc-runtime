@@ -1190,9 +1190,6 @@ pub fn operator_field_str<'a>(op: &'a Operator) -> &'a str {
         Operator::I8x16MaxU => {
             stringify!(I8x16MaxU)
         }
-        Operator::I8x16RoundingAverageU => {
-            stringify!(I8x16RoundingAverageU)
-        }
         Operator::I16x8ExtAddPairwiseI8x16S => {
             stringify!(I16x8ExtAddPairwiseI8x16S)
         }
@@ -1273,9 +1270,6 @@ pub fn operator_field_str<'a>(op: &'a Operator) -> &'a str {
         }
         Operator::I16x8MaxU => {
             stringify!(I16x8MaxU)
-        }
-        Operator::I16x8RoundingAverageU => {
-            stringify!(I16x8RoundingAverageU)
         }
         Operator::I16x8ExtMulLowI8x16S => {
             stringify!(I16x8ExtMulLowI8x16S)
@@ -1553,30 +1547,6 @@ pub fn operator_field_str<'a>(op: &'a Operator) -> &'a str {
         Operator::I32x4RelaxedTruncSatF64x2UZero => {
             stringify!(I32x4RelaxedTruncSatF64x2UZero)
         }
-        Operator::F32x4Fma => {
-            stringify!(F32x4Fma)
-        }
-        Operator::F32x4Fms => {
-            stringify!(F32x4Fms)
-        }
-        Operator::F64x2Fma => {
-            stringify!(F64x2Fma)
-        }
-        Operator::F64x2Fms => {
-            stringify!(F64x2Fms)
-        }
-        Operator::I8x16LaneSelect => {
-            stringify!(I8x16LaneSelect)
-        }
-        Operator::I16x8LaneSelect => {
-            stringify!(I16x8LaneSelect)
-        }
-        Operator::I32x4LaneSelect => {
-            stringify!(I32x4LaneSelect)
-        }
-        Operator::I64x2LaneSelect => {
-            stringify!(I64x2LaneSelect)
-        }
         Operator::F32x4RelaxedMin => {
             stringify!(F32x4RelaxedMin)
         }
@@ -1589,6 +1559,20 @@ pub fn operator_field_str<'a>(op: &'a Operator) -> &'a str {
         Operator::F64x2RelaxedMax => {
             stringify!(F64x2RelaxedMax)
         }
+        Operator::I8x16AvgrU => stringify!(I8x16AvgrU),
+        Operator::I16x8AvgrU => stringify!(I16x8AvgrU),
+        Operator::F32x4RelaxedFma => stringify!(F32x4RelaxedFma),
+        Operator::F32x4RelaxedFnma => stringify!(F32x4RelaxedFnma),
+        Operator::F64x2RelaxedFma => stringify!(F64x2RelaxedFma),
+        Operator::F64x2RelaxedFnma => stringify!(F64x2RelaxedFnma),
+        Operator::I8x16RelaxedLaneselect => stringify!(I8x16RelaxedLaneselect),
+        Operator::I16x8RelaxedLaneselect => stringify!(I16x8RelaxedLaneselect),
+        Operator::I32x4RelaxedLaneselect => stringify!(I32x4RelaxedLaneselect),
+        Operator::I64x2RelaxedLaneselect => stringify!(I64x2RelaxedLaneselect),
+        Operator::I16x8RelaxedQ15mulrS => stringify!(I16x8RelaxedQ15mulrS),
+        Operator::I16x8DotI8x16I7x16S => stringify!(I16x8DotI8x16I7x16S),
+        Operator::I32x4DotI8x16I7x16AddS => stringify!(I32x4DotI8x16I7x16AddS),
+        Operator::F32x4RelaxedDotBf16x8AddF32x4 => stringify!(F32x4RelaxedDotBf16x8AddF32x4),
     }
 }
 
