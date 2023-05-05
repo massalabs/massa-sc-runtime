@@ -168,7 +168,7 @@ pub(crate) fn init_store(engine: &mut Engine) -> Result<Store> {
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
     engine.set_tunables(tunables);
-    let store = Store::new(engine);
+    let store = Store::new(engine.clone());
     Ok(store)
 }
 
