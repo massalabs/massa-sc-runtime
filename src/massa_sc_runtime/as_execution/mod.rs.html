@@ -234,6 +234,10 @@
 <a href="#234" id="234">234</a>
 <a href="#235" id="235">235</a>
 <a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>context;
@@ -249,8 +253,8 @@
 <span class="kw">use crate</span>::{GasCosts, Interface, Response};
 <span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target, Engine};
-<span class="kw">use </span>wasmer::{CompilerConfig, Cranelift,  Features, Module, Store};
+<span class="kw">use </span>wasmer::{wasmparser::Operator, BaseTunables, Engine, EngineBuilder, Pages, Target};
+<span class="kw">use </span>wasmer::{CompilerConfig, Cranelift, Features, Module, Store};
 <span class="kw">use </span>wasmer_compiler_singlepass::Singlepass;
 <span class="kw">use </span>wasmer_middlewares::metering::MeteringPoints;
 <span class="kw">use </span>wasmer_middlewares::{metering, Metering};
@@ -364,9 +368,11 @@
         compiler_config.push_middleware(metering);
     }
 
-    Engine::from(EngineBuilder::new(compiler_config)
-        .set_features(<span class="prelude-val">Some</span>(FEATURES))
-        .engine())
+    Engine::from(
+        EngineBuilder::new(compiler_config)
+            .set_features(<span class="prelude-val">Some</span>(FEATURES))
+            .engine(),
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_cl_engine(limit: u64, gas_costs: GasCosts) -&gt; Engine {
@@ -395,9 +401,11 @@
         compiler_config.push_middleware(metering);
     }
 
-    Engine::from(EngineBuilder::new(compiler_config)
-        .set_features(<span class="prelude-val">Some</span>(FEATURES))
-        .engine())
+    Engine::from(
+        EngineBuilder::new(compiler_config)
+            .set_features(<span class="prelude-val">Some</span>(FEATURES))
+            .engine(),
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_store(engine: <span class="kw-2">&amp;mut </span>Engine) -&gt; <span class="prelude-ty">Result</span>&lt;Store&gt; {
