@@ -412,7 +412,7 @@ fn test_class_id() {
         "/wasm/return_basic.wasm"
     ));
     let module = ASModule::new(bytecode, 100_000, GasCosts::default(), Compiler::SP).unwrap();
-    let mut store = init_store(&module._engine).unwrap();
+    let mut store = init_store(&mut module._engine).unwrap();
     let mut context = ASContext::new(&*interface, module.binary_module, GasCosts::default());
     let (instance, _) = context.create_vm_instance_and_init_env(&mut store).unwrap();
 

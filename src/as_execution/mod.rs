@@ -13,8 +13,8 @@ use crate::tunable_memory::LimitingTunables;
 use crate::{GasCosts, Interface, Response};
 use anyhow::Result;
 use std::sync::Arc;
-use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
-use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
+use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target, Engine};
+use wasmer::{CompilerConfig, Cranelift,  Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::metering::MeteringPoints;
 use wasmer_middlewares::{metering, Metering};
@@ -60,8 +60,8 @@ impl ASModule {
 
     pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
         // Deserialization is only meant for Cranelift modules
-        let engine = init_cl_engine(limit, gas_costs);
-        let store = init_store(&engine)?;
+        let mut engine = init_cl_engine(limit, gas_costs);
+        let store = init_store(&mut engine)?;
         // Unsafe because code injection is possible
         // That's not an issue because we only deserialize modules we have serialized by ourselves before
         let module = unsafe { Module::deserialize(&store, ser_module)? };
@@ -164,10 +164,11 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
         .engine()
 }
 
-pub(crate) fn init_store(engine: &Engine) -> Result<Store> {
+pub(crate) fn init_store(engine: &mut Engine) -> Result<Store> {
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
-    let store = Store::new_with_tunables(engine, tunables);
+    engine.set_tunables(tunables);
+    let store = Store::new(engine);
     Ok(store)
 }
 
@@ -192,11 +193,11 @@ pub(crate) fn exec_as_module(
     limit: u64,
     gas_costs: GasCosts,
 ) -> VMResult<(Response, Option<GasCalibrationResult>)> {
-    let engine = match as_module.compiler {
+    let mut engine = match as_module.compiler {
         Compiler::CL => init_cl_engine(limit, gas_costs.clone()),
         Compiler::SP => init_sp_engine(limit, gas_costs.clone()),
     };
-    let mut store = init_store(&engine)?;
+    let mut store = init_store(&mut engine)?;
     let mut context = ASContext::new(interface, as_module.binary_module, gas_costs);
     let (instance, init_rem_points) = context.create_vm_instance_and_init_env(&mut store)?;
     let init_cost = as_module.initial_limit.saturating_sub(init_rem_points);
