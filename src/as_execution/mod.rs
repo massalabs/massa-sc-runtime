@@ -134,7 +134,7 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     let mut engine = Engine::from(
         EngineBuilder::new(compiler_config)
             .set_features(Some(FEATURES))
-            .engine()
+            .engine(),
     );
     engine.set_tunables(tunables);
     engine
@@ -172,7 +172,7 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     let mut engine = Engine::from(
         EngineBuilder::new(compiler_config)
             .set_features(Some(FEATURES))
-            .engine()
+            .engine(),
     );
     engine.set_tunables(tunables);
     engine
@@ -202,7 +202,7 @@ pub(crate) fn exec_as_module(
         Compiler::CL => init_cl_engine(limit, gas_costs.clone()),
         Compiler::SP => init_sp_engine(limit, gas_costs.clone()),
     };
-    let mut store = Store::new(engine.clone());
+    let mut store = Store::new(engine);
     let mut context = ASContext::new(interface, as_module.binary_module, gas_costs);
     let (instance, init_rem_points) = context.create_vm_instance_and_init_env(&mut store)?;
     let init_cost = as_module.initial_limit.saturating_sub(init_rem_points);
