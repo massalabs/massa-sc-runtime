@@ -238,6 +238,7 @@
 <a href="#238" id="238">238</a>
 <a href="#239" id="239">239</a>
 <a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>context;
@@ -300,8 +301,8 @@
 
     <span class="kw">pub fn </span>deserialize(ser_module: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// Deserialization is only meant for Cranelift modules
-        </span><span class="kw">let </span><span class="kw-2">mut </span>engine = init_cl_engine(limit, gas_costs);
-        <span class="kw">let </span>store = init_store(<span class="kw-2">&amp;mut </span>engine)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>engine = init_cl_engine(limit, gas_costs);
+        <span class="kw">let </span>store = Store::new(engine.clone());
         <span class="comment">// Unsafe because code injection is possible
         // That&#39;s not an issue because we only deserialize modules we have serialized by ourselves before
         </span><span class="kw">let </span>module = <span class="kw">unsafe </span>{ Module::deserialize(<span class="kw-2">&amp;</span>store, ser_module)<span class="question-mark">? </span>};
@@ -368,11 +369,16 @@
         compiler_config.push_middleware(metering);
     }
 
-    Engine::from(
+    <span class="kw">let </span>base = BaseTunables::for_target(<span class="kw-2">&amp;</span>Target::default());
+    <span class="kw">let </span>tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
+
+    <span class="kw">let </span><span class="kw-2">mut </span>engine = Engine::from(
         EngineBuilder::new(compiler_config)
             .set_features(<span class="prelude-val">Some</span>(FEATURES))
             .engine(),
-    )
+    );
+    engine.set_tunables(tunables);
+    engine
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_cl_engine(limit: u64, gas_costs: GasCosts) -&gt; Engine {
@@ -401,21 +407,17 @@
         compiler_config.push_middleware(metering);
     }
 
-    Engine::from(
+    <span class="kw">let </span>base = BaseTunables::for_target(<span class="kw-2">&amp;</span>Target::default());
+    <span class="kw">let </span>tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
+
+    <span class="kw">let </span><span class="kw-2">mut </span>engine = Engine::from(
         EngineBuilder::new(compiler_config)
             .set_features(<span class="prelude-val">Some</span>(FEATURES))
             .engine(),
-    )
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_store(engine: <span class="kw-2">&amp;mut </span>Engine) -&gt; <span class="prelude-ty">Result</span>&lt;Store&gt; {
-    <span class="kw">let </span>base = BaseTunables::for_target(<span class="kw-2">&amp;</span>Target::default());
-    <span class="kw">let </span>tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
+    );
     engine.set_tunables(tunables);
-    <span class="kw">let </span>store = Store::new(engine.clone());
-    <span class="prelude-val">Ok</span>(store)
+    engine
 }
-
 <span class="doccomment">/// Internal execution function, used on smart contract called from node or
 /// from another smart contract
 /// Parameters:
@@ -437,11 +439,11 @@
     limit: u64,
     gas_costs: GasCosts,
 ) -&gt; VMResult&lt;(Response, <span class="prelude-ty">Option</span>&lt;GasCalibrationResult&gt;)&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>engine = <span class="kw">match </span>as_module.compiler {
+    <span class="kw">let </span>engine = <span class="kw">match </span>as_module.compiler {
         Compiler::CL =&gt; init_cl_engine(limit, gas_costs.clone()),
         Compiler::SP =&gt; init_sp_engine(limit, gas_costs.clone()),
     };
-    <span class="kw">let </span><span class="kw-2">mut </span>store = init_store(<span class="kw-2">&amp;mut </span>engine)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>store = Store::new(engine);
     <span class="kw">let </span><span class="kw-2">mut </span>context = ASContext::new(interface, as_module.binary_module, gas_costs);
     <span class="kw">let </span>(instance, init_rem_points) = context.create_vm_instance_and_init_env(<span class="kw-2">&amp;mut </span>store)<span class="question-mark">?</span>;
     <span class="kw">let </span>init_cost = as_module.initial_limit.saturating_sub(init_rem_points);

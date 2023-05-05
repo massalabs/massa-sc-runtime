@@ -283,6 +283,9 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>env;
 <span class="kw">mod </span>error;
@@ -357,8 +360,8 @@
     <span class="doccomment">/// Deserialize a module
     </span><span class="kw">pub fn </span>deserialize(ser_module: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// Deserialization is only meant for Cranelift modules
-        </span><span class="kw">let </span><span class="kw-2">mut </span>engine = init_cl_engine(limit, gas_costs);
-        <span class="kw">let </span>store = init_store(<span class="kw-2">&amp;mut </span>engine);
+        </span><span class="kw">let </span>engine = init_cl_engine(limit, gas_costs);
+        <span class="kw">let </span>store = Store::new(engine.clone());
         <span class="comment">// Unsafe because code injection is possible
         // That&#39;s not an issue because we only deserialize modules we have serialized by ourselves
         // before. This also means that we expect the module to be valid and the
@@ -422,11 +425,16 @@
     }));
     compiler_config.push_middleware(metering);
 
-    Engine::from(
+    <span class="kw">let </span>base = BaseTunables::for_target(<span class="kw-2">&amp;</span>Target::default());
+    <span class="kw">let </span>tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
+
+    <span class="kw">let </span><span class="kw-2">mut </span>engine = Engine::from(
         EngineBuilder::new(compiler_config)
             .set_features(<span class="prelude-val">Some</span>(FEATURES))
             .engine(),
-    )
+    );
+    engine.set_tunables(tunables);
+    engine
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_cl_engine(limit: u64, gas_costs: GasCosts) -&gt; Engine {
@@ -445,18 +453,16 @@
     }));
     compiler_config.push_middleware(metering);
 
-    Engine::from(
+    <span class="kw">let </span>base = BaseTunables::for_target(<span class="kw-2">&amp;</span>Target::default());
+    <span class="kw">let </span>tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
+
+    <span class="kw">let </span><span class="kw-2">mut </span>engine = Engine::from(
         EngineBuilder::new(compiler_config)
             .set_features(<span class="prelude-val">Some</span>(FEATURES))
             .engine(),
-    )
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_store(engine: <span class="kw-2">&amp;mut </span>Engine) -&gt; Store {
-    <span class="kw">let </span>base_tunables = BaseTunables::for_target(<span class="kw-2">&amp;</span>Target::default());
-    <span class="kw">let </span>tunables = LimitingTunables::new(base_tunables, Pages(max_number_of_pages()));
+    );
     engine.set_tunables(tunables);
-    Store::new(engine.clone())
+    engine
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>exec_wasmv1_module(
@@ -468,11 +474,11 @@
     gas_costs: GasCosts,
 ) -&gt; VMResult&lt;Response&gt; {
     <span class="comment">// Init store
-    </span><span class="kw">let </span><span class="kw-2">mut </span>engine = <span class="kw">match </span>module.compiler {
+    </span><span class="kw">let </span>engine = <span class="kw">match </span>module.compiler {
         Compiler::CL =&gt; init_cl_engine(gas_limit, gas_costs.clone()),
         Compiler::SP =&gt; init_sp_engine(gas_limit, gas_costs.clone()),
     };
-    <span class="kw">let </span><span class="kw-2">mut </span>store = init_store(<span class="kw-2">&amp;mut </span>engine);
+    <span class="kw">let </span><span class="kw-2">mut </span>store = Store::new(engine);
 
     <span class="comment">// Create the ABI imports and pass them an empty environment for now
     </span><span class="kw">let </span>shared_abi_env: ABIEnv = Arc::new(Mutex::new(<span class="prelude-val">None</span>));
