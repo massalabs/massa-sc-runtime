@@ -60,8 +60,8 @@ impl ASModule {
 
     pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
         // Deserialization is only meant for Cranelift modules
-        let mut engine = init_cl_engine(limit, gas_costs);
-        let store = init_store(&mut engine)?;
+        let engine = init_cl_engine(limit, gas_costs);
+        let store = Store::new(engine.clone());
         // Unsafe because code injection is possible
         // That's not an issue because we only deserialize modules we have serialized by ourselves before
         let module = unsafe { Module::deserialize(&store, ser_module)? };
@@ -128,11 +128,16 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
         compiler_config.push_middleware(metering);
     }
 
-    Engine::from(
+    let base = BaseTunables::for_target(&Target::default());
+    let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
+
+    let mut engine = Engine::from(
         EngineBuilder::new(compiler_config)
             .set_features(Some(FEATURES))
-            .engine(),
-    )
+            .engine()
+    );
+    engine.set_tunables(tunables);
+    engine
 }
 
 pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
@@ -161,21 +166,17 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
         compiler_config.push_middleware(metering);
     }
 
-    Engine::from(
-        EngineBuilder::new(compiler_config)
-            .set_features(Some(FEATURES))
-            .engine(),
-    )
-}
-
-pub(crate) fn init_store(engine: &mut Engine) -> Result<Store> {
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
-    engine.set_tunables(tunables);
-    let store = Store::new(engine.clone());
-    Ok(store)
-}
 
+    let mut engine = Engine::from(
+        EngineBuilder::new(compiler_config)
+            .set_features(Some(FEATURES))
+            .engine()
+    );
+    engine.set_tunables(tunables);
+    engine
+}
 /// Internal execution function, used on smart contract called from node or
 /// from another smart contract
 /// Parameters:
@@ -197,11 +198,11 @@ pub(crate) fn exec_as_module(
     limit: u64,
     gas_costs: GasCosts,
 ) -> VMResult<(Response, Option<GasCalibrationResult>)> {
-    let mut engine = match as_module.compiler {
+    let engine = match as_module.compiler {
         Compiler::CL => init_cl_engine(limit, gas_costs.clone()),
         Compiler::SP => init_sp_engine(limit, gas_costs.clone()),
     };
-    let mut store = init_store(&mut engine)?;
+    let mut store = Store::new(engine.clone());
     let mut context = ASContext::new(interface, as_module.binary_module, gas_costs);
     let (instance, init_rem_points) = context.create_vm_instance_and_init_env(&mut store)?;
     let init_cost = as_module.initial_limit.saturating_sub(init_rem_points);
