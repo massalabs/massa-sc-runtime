@@ -13,8 +13,7 @@ wasmer-compiler-cranelift = "=3.3.0"
 wasmer-types = "=3.3.0"
 wasmer-middlewares = "=3.3.0"
 tracing = "0.1"
-# todo remove branch and use tag or revision for as-ffi-bindings
-as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", branch = "testnet_23" }
+as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", tag = "v0.4.0" }
 base64 = "0.21"
 serial_test = "1.0.0"
 loupe = "0.1"
