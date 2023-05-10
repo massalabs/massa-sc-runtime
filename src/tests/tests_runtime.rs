@@ -1,4 +1,4 @@
-use crate::as_execution::{init_store, ASContext, ASModule};
+use crate::as_execution::{ASContext, ASModule};
 use crate::tests::{Ledger, TestInterface};
 use crate::Compiler;
 use crate::{
@@ -10,6 +10,7 @@ use parking_lot::Mutex;
 use rand::Rng;
 use serial_test::serial;
 use std::sync::Arc;
+use wasmer::Store;
 use wasmer::WasmPtr;
 
 #[test]
@@ -412,15 +413,12 @@ fn test_class_id() {
         "/wasm/return_basic.wasm"
     ));
     let module = ASModule::new(bytecode, 100_000, GasCosts::default(), Compiler::SP).unwrap();
-    let mut store = init_store(&module._engine).unwrap();
+    let mut store = Store::new(module._engine);
     let mut context = ASContext::new(&*interface, module.binary_module, GasCosts::default());
     let (instance, _) = context.create_vm_instance_and_init_env(&mut store).unwrap();
 
     // setup test specific context
     let (_, fenv) = context.resolver(&mut store);
-    let fenv_mut = fenv.into_mut(&mut store);
-    let memory = context.env.get_ffi_env().memory.as_ref().unwrap();
-    let memory_view = memory.view(&fenv_mut);
 
     // get string and array offsets
     let return_string = instance.exports.get_function("return_string").unwrap();
@@ -439,6 +437,10 @@ fn test_class_id() {
         .unwrap()
         .i32()
         .unwrap();
+
+    let memory = context.env.get_ffi_env().memory.as_ref().unwrap();
+    let fenv_mut = fenv.into_mut(&mut store);
+    let memory_view = memory.view(&fenv_mut);
 
     // use `u32` size to retrieve the class id
     // see https://www.assemblyscript.org/runtime.html#memory-layout
