@@ -132,7 +132,7 @@ fn test_run_echo_loop_wasmv1() {
         runtime_module,
         "echo",
         b"abcd",
-        100_000,
+        100_000_000,
         gas_costs,
     )
     .unwrap();
@@ -169,20 +169,21 @@ fn test_call_echo_rust_wasmv1() {
         &*interface,
         runtime_module,
         "call_echo",
-        b"abcd",
+        b"test",
         100_000_000,
         gas_costs,
     );
     match res {
         Ok(res) => {
+            let res = String::from_utf8_lossy(&res.ret);
             println!("{:?}", res);
-        },
+            assert_eq!(res, "test");
+        }
         Err(err) => {
             println!("{}", err);
             assert!(false);
-        },
+        }
     }
-
 }
 
 #[test]
@@ -370,6 +371,47 @@ fn test_run_empty_main() {
         gas_costs.clone(),
     )
     .expect("Failed to run empty_main.wasm");
+    // Here we avoid hard-coding a value (that can change in future wasmer release)
+    assert!(a.remaining_gas > 0);
+
+    let mut rng = rand::thread_rng();
+    let cost = rng.gen_range(1..1_000_000);
+    gas_costs.launch_cost = cost;
+    let b = run_main(&*interface, runtime_module, 10_000_000, gas_costs)
+        .expect("Failed to run empty_main.wasm");
+    // Between 2 calls, the metering cost should be the difference
+    assert_eq!(a.remaining_gas - b.remaining_gas, cost);
+}
+
+#[test]
+#[serial]
+/// Even if our SC is empty there is still an initial and minimum metering cost,
+/// because we have a memory allocator to init.
+///
+/// This test ensure that this initial cost is correctly debited.
+fn test_run_main_rust_wasmv1() {
+    let mut gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"),
+        "/../wasm-experiment/massa-rust-sc-examples/target/wasm32-unknown-unknown/debug/massa_rust_sc_examples.wasm_add"));
+    gas_costs.launch_cost = 0;
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+
+    let a = match run_main(
+        &*interface,
+        runtime_module.clone(),
+        10_000_000,
+        gas_costs.clone(),
+    ) {
+        Ok(a) => a,
+        Err(e) => {
+            println!("e: {}", e);
+            panic!("Failed to run main")
+        }
+    };
+
     // Here we avoid hard-coding a value (that can change in future wasmer release)
     assert!(a.remaining_gas > 0);
 
