@@ -1035,6 +1035,7 @@ dependencies = [
  "glob",
  "loupe",
  "massa_hash",
+ "massa_proto",
  "more-asserts 0.3.1",
  "num_enum",
  "parking_lot",
@@ -1067,6 +1068,16 @@ dependencies = [
  "nom",
  "serde",
  "thiserror",
+]
+
+[[package]]
+name = "massa_proto"
+version = "0.1.0"
+dependencies = [
+ "glob",
+ "prost",
+ "prost-build",
+ "prost-types",
 ]
 
 [[package]]
