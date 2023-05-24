@@ -40,7 +40,8 @@ impl ExecutionEnv {
         let instance = match Instance::new(store, &module.binary_module, import_object) {
             Ok(instance) => instance,
             Err(err) => {
-                // Filter the error created by the metering middleware when there is not enough gas at initialization
+                // Filter the error created by the metering middleware when there is not enough gas
+                // at initialization
                 if let InstantiationError::Start(ref e) = err {
                     if let Some(trap) = e.clone().to_trap() {
                         if trap == TrapCode::UnreachableCodeReached && e.trace().is_empty() {
