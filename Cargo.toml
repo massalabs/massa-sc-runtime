@@ -11,6 +11,9 @@ chrono = { version = "=0.4", features = ["clock"], default-features = false }
 displaydoc = "0.2"
 function_name = "0.3"
 loupe = "0.1"
+#massa_hash = { git = "https://github.com/massalabs/massa.git", package = "massa_hash" }
+more-asserts = "0.3"
+num_enum = "0.5"
 more-asserts = "0.3"
 num_enum = "0.5"
 parking_lot = "0.12"
