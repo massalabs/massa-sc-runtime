@@ -88,7 +88,7 @@ impl Interface for TestInterface {
         Ok(false)
     }
 
-    fn hash(&self, data: &[u8]) -> Result<[u8; 32]> {
+    fn hash(&self, _data: &[u8]) -> Result<[u8; 32]> {
         unimplemented!()
     }
 
