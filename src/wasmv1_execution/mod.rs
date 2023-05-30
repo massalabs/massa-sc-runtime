@@ -73,7 +73,7 @@ impl WasmV1Module {
     pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
         // Deserialization is only meant for Cranelift modules
         let engine = init_cl_engine(limit, gas_costs);
-        let store = init_store(&engine);
+        let store = Store::new(engine.clone());
         // Unsafe because code injection is possible
         // That's not an issue because we only deserialize modules we have serialized by ourselves
         // before. This also means that we expect the module to be valid and the
@@ -137,9 +137,16 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     }));
     compiler_config.push_middleware(metering);
 
-    EngineBuilder::new(compiler_config)
-        .set_features(Some(FEATURES))
-        .engine()
+    let base = BaseTunables::for_target(&Target::default());
+    let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
+
+    let mut engine = Engine::from(
+        EngineBuilder::new(compiler_config)
+            .set_features(Some(FEATURES))
+            .engine(),
+    );
+    engine.set_tunables(tunables);
+    engine
 }
 
 pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
@@ -158,15 +165,16 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     }));
     compiler_config.push_middleware(metering);
 
-    EngineBuilder::new(compiler_config)
-        .set_features(Some(FEATURES))
-        .engine()
-}
+    let base = BaseTunables::for_target(&Target::default());
+    let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
 
-pub(crate) fn init_store(engine: &Engine) -> Store {
-    let base_tunables = BaseTunables::for_target(&Target::default());
-    let tunables = LimitingTunables::new(base_tunables, Pages(max_number_of_pages()));
-    Store::new_with_tunables(engine, tunables)
+    let mut engine = Engine::from(
+        EngineBuilder::new(compiler_config)
+            .set_features(Some(FEATURES))
+            .engine(),
+    );
+    engine.set_tunables(tunables);
+    engine
 }
 
 pub(crate) fn exec_wasmv1_module(
@@ -182,7 +190,7 @@ pub(crate) fn exec_wasmv1_module(
         Compiler::CL => init_cl_engine(gas_limit, gas_costs.clone()),
         Compiler::SP => init_sp_engine(gas_limit, gas_costs.clone()),
     };
-    let mut store = init_store(&engine);
+    let mut store = Store::new(engine);
 
     // Create the ABI imports and pass them an empty environment for now
     let shared_abi_env: ABIEnv = Arc::new(Mutex::new(None));
