@@ -4,7 +4,7 @@ use wasmer::{
     MemoryType, Pages, TableType, Tunables,
 };
 
-//! Limitation of the memory
+/// Limitation of the memory
 /// A custom tunables that allows you to set a memory limit.
 ///
 /// After adjusting the memory limits, it delegates all other logic
