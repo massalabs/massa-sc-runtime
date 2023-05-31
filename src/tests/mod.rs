@@ -88,8 +88,8 @@ impl Interface for TestInterface {
         Ok(false)
     }
 
-    fn hash(&self, data: &[u8]) -> Result<[u8; 32]> {
-        Ok(massa_hash::Hash::compute_from(data).into_bytes())
+    fn hash(&self, _data: &[u8]) -> Result<[u8; 32]> {
+        unimplemented!()
     }
 
     fn raw_append_data(&self, _key: &[u8], _value: &[u8]) -> Result<()> {
