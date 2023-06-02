@@ -147,7 +147,9 @@ fn test_call_echo_rust_wasmv1() {
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../massa-rust-sc-examples/target/wasm32-unknown-unknown/debug/massa_rust_sc_echo.wasm_add"
+        // "/../massa-rust-sc-examples/target/wasm32-unknown-unknown/debug/massa_rust_sc_echo.
+        // wasm_add",
+        "/../as_abi_protobuf_enum_test/build/release.wasm_add"
     ));
 
     let runtime_module =
@@ -159,17 +161,26 @@ fn test_call_echo_rust_wasmv1() {
         }
         RuntimeModule::WasmV1Module(_module) => {
             println!("Module type WasmV1Module");
-            // for export_ in module.binary_module.exports() {
-            //     println!("{} {:?}", export_.name(), export_.ty());
-            // }
+            for export_ in _module.binary_module.exports() {
+                println!("{} {:?}", export_.name(), export_.ty());
+            }
         }
-    }
+    };
+
+    use massa_proto::massa::abi::v1 as proto;
+
+    let addr1 = proto::Address {
+        version: proto::AddressVersion::Value3 as i32,
+        address: "sc addr".into(),
+    };
+    let mut f_arg = Vec::with_capacity(prost::Message::encoded_len(&addr1));
+    prost::Message::encode(&addr1, &mut f_arg).unwrap();
 
     let res = run_function(
         &*interface,
         runtime_module,
-        "call_echo",
-        b"test",
+        "address_receive",
+        &f_arg,
         100_000_000,
         gas_costs,
     );
@@ -177,7 +188,7 @@ fn test_call_echo_rust_wasmv1() {
         Ok(res) => {
             let res = String::from_utf8_lossy(&res.ret);
             println!("{:?}", res);
-            assert_eq!(res, "test");
+            assert_eq!(res, "");
         }
         Err(err) => {
             println!("{}", err);
@@ -393,8 +404,10 @@ fn test_run_main_rust_wasmv1() {
     let mut gas_costs = GasCosts::default();
     let interface: Box<dyn Interface> =
         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"),
-        "/../massa-rust-sc-examples/target/wasm32-unknown-unknown/debug/massa_rust_sc_deploy_sc.wasm_add"));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../as_abi_protobuf_enum_test/build/release.wasm_add"
+    ));
     gas_costs.launch_cost = 0;
     let runtime_module =
         RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();

@@ -34,7 +34,7 @@ pub(crate) fn abi_call(
         store_env,
         arg_offset,
         |handler, req: proto::CallRequest| {
-            let Some(proto::Address{address}) = req.address else {
+            let Some(proto::Address{version: _, address}) = req.address else {
                 return Err(WasmV1Error::RuntimeError("No address provided".into()));
             };
             let Some(proto::Amount{amount}) = req.call_coins else {
@@ -56,9 +56,7 @@ pub(crate) fn abi_call(
                 remaining_gas,
                 handler.get_gas_costs().clone(),
             )
-            .map_err(|err| {
-                WasmV1Error::RuntimeError(format!("Could not run function: {}", err))
-            })?;
+            .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
             handler.set_remaining_gas(response.remaining_gas);
             handler.interface.finish_call().map_err(|err| {
                 WasmV1Error::RuntimeError(format!("Could not finish call: {}", err))
@@ -80,7 +78,7 @@ pub(crate) fn abi_local_call(
         store_env,
         arg_offset,
         |handler, req: proto::LocalCallRequest| {
-            let Some(proto::Address{address}) = req.address else {
+            let Some(proto::Address{version: _, address}) = req.address else {
                 return Err(WasmV1Error::RuntimeError("No address provided".into()));
             };
 
@@ -127,7 +125,10 @@ pub(crate) fn abi_create_sc(
                 })?;
 
             Ok(proto::CreateScResponse {
-                address: Some(proto::Address { address }),
+                address: Some(proto::Address {
+                    version: proto::AddressVersion::Value1 as i32,
+                    address,
+                }),
             })
         },
     )
@@ -143,7 +144,7 @@ pub fn abi_transfer_coins(
         store_env,
         arg_offset,
         |handler, req: proto::TransferCoinsRequest| -> Result<proto::Empty, WasmV1Error> {
-            let Some(proto::Address{address}) = req.to_address else {
+            let Some(proto::Address{version: _, address}) = req.to_address else {
                 return Err(WasmV1Error::RuntimeError("No address provided".into()));
             };
 
@@ -217,7 +218,7 @@ fn abi_function_exists(
         |handler,
          req: proto::FunctionExistsRequest|
          -> Result<proto::FunctionExistsResponse, WasmV1Error> {
-            let Some(proto::Address{address}) = req.address else {
+            let Some(proto::Address{version: _, address}) = req.address else {
                 return Err(WasmV1Error::RuntimeError("No address provided".into()));
             };
 
