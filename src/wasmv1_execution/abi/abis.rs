@@ -1,3 +1,5 @@
+use crate::wasmv1_execution::types::{Address, Amount};
+
 use super::{
     super::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
@@ -34,10 +36,10 @@ pub(crate) fn abi_call(
         store_env,
         arg_offset,
         |handler, req: proto::CallRequest| {
-            let Some(proto::Address{address}) = req.address else {
+            let Some(proto::NativeAddress{address}) = req.address else {
                 return Err(WasmV1Error::RuntimeError("No address provided".into()));
             };
-            let Some(proto::Amount{amount}) = req.call_coins else {
+            let Some(proto::NativeAmount{amount}) = req.call_coins else {
                 return Err(WasmV1Error::RuntimeError("No coins provided".into()));
             };
             let bytecode = handler
@@ -56,9 +58,7 @@ pub(crate) fn abi_call(
                 remaining_gas,
                 handler.get_gas_costs().clone(),
             )
-            .map_err(|err| {
-                WasmV1Error::RuntimeError(format!("Could not run function: {}", err))
-            })?;
+            .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
             handler.set_remaining_gas(response.remaining_gas);
             handler.interface.finish_call().map_err(|err| {
                 WasmV1Error::RuntimeError(format!("Could not finish call: {}", err))
@@ -80,7 +80,7 @@ pub(crate) fn abi_local_call(
         store_env,
         arg_offset,
         |handler, req: proto::LocalCallRequest| {
-            let Some(proto::Address{address}) = req.address else {
+            let Some(proto::NativeAddress{address}) = req.address else {
                 return Err(WasmV1Error::RuntimeError("No address provided".into()));
             };
 
@@ -127,7 +127,7 @@ pub(crate) fn abi_create_sc(
                 })?;
 
             Ok(proto::CreateScResponse {
-                address: Some(proto::Address { address }),
+                address: Some(proto::NativeAddress {  category: todo!(), version: todo!(), content: address.into_bytes()}),
             })
         },
     )
@@ -143,13 +143,12 @@ pub fn abi_transfer_coins(
         store_env,
         arg_offset,
         |handler, req: proto::TransferCoinsRequest| -> Result<proto::Empty, WasmV1Error> {
-            let Some(proto::Address{address}) = req.to_address else {
-                return Err(WasmV1Error::RuntimeError("No address provided".into()));
-            };
-
-            let Some(proto::Amount{amount}) = req.raw_amount else {
-                return Err(WasmV1Error::RuntimeError("No coins provided".into()));
-            };
+            let address = req
+                .target_address
+                .ok_or(WasmV1Error::RuntimeError("No address provided".into()))?;
+            let amount = req
+                .amount_to_transfer
+                .ok_or(WasmV1Error::RuntimeError("No coins provided".into()))?;
 
             // Do not remove this. It could be used for gas_calibration in future.
             // if cfg!(feature = "gas_calibration") {
@@ -157,9 +156,17 @@ pub fn abi_transfer_coins(
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(), true);
             // }
 
+            let address_string: String = Address::from(address)
+                .try_into()
+                .map_err(|err| WasmV1Error::RuntimeError(err))?;
+
+            let amount = Amount::from(amount)
+                .try_into()
+                .map_err(|err| WasmV1Error::RuntimeError(err))?;
+
             handler
                 .interface
-                .transfer_coins(&address, amount)
+                .transfer_coins(&address_string, amount)
                 .map_err(|err| {
                     WasmV1Error::RuntimeError(format!("Transfer coins failed: {}", err))
                 })?;
@@ -217,7 +224,7 @@ fn abi_function_exists(
         |handler,
          req: proto::FunctionExistsRequest|
          -> Result<proto::FunctionExistsResponse, WasmV1Error> {
-            let Some(proto::Address{address}) = req.address else {
+            let Some(proto::NativeAddress{ category, version, content }) = req.target_sc_address else {
                 return Err(WasmV1Error::RuntimeError("No address provided".into()));
             };
 
@@ -231,7 +238,7 @@ fn abi_function_exists(
 
             Ok(proto::FunctionExistsResponse {
                 exists: helper_get_module(handler, bytecode, remaining_gas)?
-                    .function_exists(&req.function),
+                    .function_exists(&req.function_name),
             })
         },
     )
@@ -295,4 +302,24 @@ pub fn abi_echo(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i3
             })
         },
     )
+}
+
+
+enum Category {
+    Unspecified,
+    User,
+    SC,
+}
+
+
+fn check_category(cat: Category) -> Result<(), ()> {
+
+    match cat {
+        // match know values
+        Category::User => Ok(()),
+        Category::SC => Ok(()),
+
+        // any invalid value
+        _ => Err(()),
+    }
 }
