@@ -1,10 +1,11 @@
-use crate::wasmv1_execution::types::{Address, Amount};
+use crate::wasmv1_execution::types::{TryToString, TryToU64};
 
 use super::{
     super::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
 };
-use massa_proto::massa::abi::v1 as proto;
+use massa_proto_rs::massa::abi::v1::{self as proto, AddressCategory};
+use tracing::field::debug;
 use wasmer::{imports, AsStoreMut, Function, FunctionEnv, FunctionEnvMut, Imports};
 
 /// Register all ABIs to a store
@@ -36,15 +37,17 @@ pub(crate) fn abi_call(
         store_env,
         arg_offset,
         |handler, req: proto::CallRequest| {
-            let Some(proto::NativeAddress{address}) = req.address else {
-                return Err(WasmV1Error::RuntimeError("No address provided".into()));
-            };
-            let Some(proto::NativeAmount{amount}) = req.call_coins else {
-                return Err(WasmV1Error::RuntimeError("No coins provided".into()));
-            };
+            let address = req
+                .target_sc_address
+                .ok_or_else(|| WasmV1Error::RuntimeError("No address provided".into()))?;
+
+            let amount = req
+                .call_coins
+                .ok_or_else(|| WasmV1Error::RuntimeError("No coins provided".into()))?;
+
             let bytecode = handler
                 .interface
-                .init_call(&address, amount)
+                .init_call(&address.try_to_string()?, amount.try_to_u64()?)
                 .map_err(|err| {
                     WasmV1Error::RuntimeError(format!("Could not init call: {}", err))
                 })?;
@@ -53,8 +56,8 @@ pub(crate) fn abi_call(
             let response = crate::execution::run_function(
                 handler.interface,
                 module,
-                &req.function,
-                &req.arg,
+                &req.target_function_name,
+                &req.function_arg,
                 remaining_gas,
                 handler.get_gas_costs().clone(),
             )
@@ -63,9 +66,7 @@ pub(crate) fn abi_call(
             handler.interface.finish_call().map_err(|err| {
                 WasmV1Error::RuntimeError(format!("Could not finish call: {}", err))
             })?;
-            Ok(proto::CallResponse {
-                return_data: response.ret,
-            })
+            Ok(proto::CallResponse { data: response.ret })
         },
     )
 }
@@ -80,28 +81,26 @@ pub(crate) fn abi_local_call(
         store_env,
         arg_offset,
         |handler, req: proto::LocalCallRequest| {
-            let Some(proto::NativeAddress{address}) = req.address else {
-                return Err(WasmV1Error::RuntimeError("No address provided".into()));
-            };
+            let address = req
+                .target_sc_address
+                .ok_or_else(|| WasmV1Error::RuntimeError("No address provided".into()))?;
 
-            let bytecode = helper_get_bytecode(handler, address)?;
+            let bytecode = helper_get_bytecode(handler, address.try_to_string()?)?;
             let remaining_gas = handler.get_remaining_gas();
             let module = helper_get_module(handler, bytecode, remaining_gas)?;
 
             let response = crate::execution::run_function(
                 handler.interface,
                 module,
-                &req.function,
-                &req.arg,
+                &req.target_function_name,
+                &req.function_arg,
                 remaining_gas,
                 handler.get_gas_costs().clone(),
             )
             .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
             handler.set_remaining_gas(response.remaining_gas);
 
-            Ok(proto::LocalCallResponse {
-                return_data: response.ret,
-            })
+            Ok(proto::LocalCallResponse { data: response.ret })
         },
     )
 }
@@ -126,8 +125,13 @@ pub(crate) fn abi_create_sc(
                     ))
                 })?;
 
+            tracing::warn!("FIXME: NativeAddress version is hardcoded to 0");
             Ok(proto::CreateScResponse {
-                address: Some(proto::NativeAddress {  category: todo!(), version: todo!(), content: address.into_bytes()}),
+                sc_address: Some(proto::NativeAddress {
+                    category: AddressCategory::ScAddress as i32,
+                    version: 0u64,
+                    content: address.into_bytes(),
+                }),
             })
         },
     )
@@ -156,17 +160,9 @@ pub fn abi_transfer_coins(
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(), true);
             // }
 
-            let address_string: String = Address::from(address)
-                .try_into()
-                .map_err(|err| WasmV1Error::RuntimeError(err))?;
-
-            let amount = Amount::from(amount)
-                .try_into()
-                .map_err(|err| WasmV1Error::RuntimeError(err))?;
-
             handler
                 .interface
-                .transfer_coins(&address_string, amount)
+                .transfer_coins(&address.try_to_string()?, amount.try_to_u64()?)
                 .map_err(|err| {
                     WasmV1Error::RuntimeError(format!("Transfer coins failed: {}", err))
                 })?;
@@ -224,11 +220,11 @@ fn abi_function_exists(
         |handler,
          req: proto::FunctionExistsRequest|
          -> Result<proto::FunctionExistsResponse, WasmV1Error> {
-            let Some(proto::NativeAddress{ category, version, content }) = req.target_sc_address else {
-                return Err(WasmV1Error::RuntimeError("No address provided".into()));
-            };
+            let address = req
+                .target_sc_address
+                .ok_or_else(|| WasmV1Error::RuntimeError("No address provided".into()))?;
 
-            let bytecode = helper_get_bytecode(handler, address)?;
+            let bytecode = helper_get_bytecode(handler, address.try_to_string()?)?;
 
             let remaining_gas = if cfg!(feature = "gas_calibration") {
                 u64::MAX
@@ -304,16 +300,13 @@ pub fn abi_echo(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i3
     )
 }
 
-
 enum Category {
     Unspecified,
     User,
     SC,
 }
 
-
 fn check_category(cat: Category) -> Result<(), ()> {
-
     match cat {
         // match know values
         Category::User => Ok(()),
