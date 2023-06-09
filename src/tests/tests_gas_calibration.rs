@@ -1,7 +1,8 @@
 use crate::execution::Compiler;
 use crate::middlewares::operator::{OPERATOR_CARDINALITY, OPERATOR_VARIANTS};
 use crate::middlewares::operator::{
-    _OPERATOR_BULK_MEMORY, _OPERATOR_NON_TRAPPING_FLOAT_TO_INT, _OPERATOR_THREAD, _OPERATOR_VECTOR,
+    _OPERATOR_BULK_MEMORY, _OPERATOR_NON_TRAPPING_FLOAT_TO_INT,
+    _OPERATOR_THREAD, _OPERATOR_VECTOR,
 };
 use crate::tests::{Ledger, TestInterface};
 use crate::{run_main_gc, GasCosts, RuntimeModule};
@@ -17,16 +18,23 @@ use std::sync::Arc;
 #[test]
 #[serial]
 fn test_basic_abi_call_counter() -> Result<()> {
-    let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
+    let interface: TestInterface =
+        TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/gc_abi_call_basic.wasm"
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
-    let gas_calibration_result =
-        run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
+    let runtime_module =
+        RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
+    let gas_calibration_result = run_main_gc(
+        &interface,
+        runtime_module,
+        b"",
+        100_000,
+        gas_costs.clone(),
+    )?;
     // println!("gas_calibration_result: {:?}", gas_calibration_result);
 
     // Note:
@@ -78,16 +86,23 @@ fn test_basic_abi_call_counter() -> Result<()> {
 #[test]
 #[serial]
 fn test_basic_abi_call_loop() -> Result<()> {
-    let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
+    let interface: TestInterface =
+        TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/gc_abi_call_for.wasm"
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
-    let gas_calibration_result =
-        run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
+    let runtime_module =
+        RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
+    let gas_calibration_result = run_main_gc(
+        &interface,
+        runtime_module,
+        b"",
+        100_000,
+        gas_costs.clone(),
+    )?;
     assert_eq!(
         gas_calibration_result.counters.len(),
         2 + 5 + OPERATOR_CARDINALITY
@@ -109,23 +124,31 @@ fn test_basic_abi_call_loop() -> Result<()> {
 #[test]
 #[serial]
 fn test_basic_op() -> Result<()> {
-    let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
+    let interface: TestInterface =
+        TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/gc_basic_op.wasm"
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
-    let gas_calibration_result =
-        run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
+    let runtime_module =
+        RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
+    let gas_calibration_result = run_main_gc(
+        &interface,
+        runtime_module,
+        b"",
+        100_000,
+        gas_costs.clone(),
+    )?;
     // 1 for env.abort + 4 env.abort parameters
     assert_eq!(
         gas_calibration_result.counters.len(),
         1 + 4 + OPERATOR_CARDINALITY
     );
     // Abi call issued
-    // assert_eq!(gas_calibration_result.0.get("Abi:call:massa.assembly_script_print"), Some(&1));
+    // assert_eq!(gas_calibration_result.0.get("Abi:call:massa.
+    // assembly_script_print"), Some(&1));
     assert_eq!(
         gas_calibration_result.counters.get("Abi:call:env.abort"),
         Some(&0)
@@ -145,11 +168,15 @@ fn test_basic_op() -> Result<()> {
     ]);
 
     for op_exec in &op_executed {
-        ma::assert_gt!(gas_calibration_result.counters.get(*op_exec).unwrap(), &0);
+        ma::assert_gt!(
+            gas_calibration_result.counters.get(*op_exec).unwrap(),
+            &0
+        );
     }
 
     for (k, v) in gas_calibration_result.counters.iter() {
-        if (*k).starts_with("Wasm:") && !op_executed.contains(&((*k).as_str())) {
+        if (*k).starts_with("Wasm:") && !op_executed.contains(&((*k).as_str()))
+        {
             assert_eq!(*v, 0);
         }
     }
@@ -160,14 +187,16 @@ fn test_basic_op() -> Result<()> {
 #[test]
 #[serial]
 fn test_basic_abi_call_param_size() -> Result<()> {
-    let interface: TestInterface = TestInterface(Arc::new(Mutex::new(Ledger::new())));
+    let interface: TestInterface =
+        TestInterface(Arc::new(Mutex::new(Ledger::new())));
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/gc_abi_call_param_size.wasm"
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
+    let runtime_module =
+        RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
     let gas_calibration_result = run_main_gc(
         &interface,
         runtime_module,
@@ -178,8 +207,8 @@ fn test_basic_abi_call_param_size() -> Result<()> {
     // println!("gas_calibration_result: {:?}", gas_calibration_result);
 
     // Note:
-    // 3 counters for abi call count (assembly_script_print + assembly_script_set_data + abort)
-    // 7 counters for
+    // 3 counters for abi call count (assembly_script_print +
+    // assembly_script_set_data + abort) 7 counters for
     // assembly_script (1 param)
     // assembly_script_set_data (2 params)
     // abort (4 params)
@@ -213,8 +242,8 @@ fn test_basic_abi_call_param_size() -> Result<()> {
     // );
     //
     // Check param len send via run_main_gc + 2x (utf-16)
-    // TODO / FIXME: should be 14 but is now 18 - because param is now passed as &[u8] instead of
-    // &str assert_eq!(
+    // TODO / FIXME: should be 14 but is now 18 - because param is now passed as
+    // &[u8] instead of &str assert_eq!(
     // gas_calibration_result
     // .counters
     // .get("Abi:ps:massa.assembly_script_print:0"),
@@ -236,9 +265,10 @@ fn test_basic_abi_call_param_size() -> Result<()> {
 #[test]
 fn test_operators_definition() {
     // Check that OPERATOR_* are ~ "valid"
-    // OPERATOR_* arrays are defined manually or using some python scripts so we need to
-    // ensure that everything defined in ok
-    // Here we assume that OPERATOR_VARIANTS is valid (e.g. contains all wasm op name)
+    // OPERATOR_* arrays are defined manually or using some python scripts so we
+    // need to ensure that everything defined in ok
+    // Here we assume that OPERATOR_VARIANTS is valid (e.g. contains all wasm op
+    // name)
 
     let op_variants = HashSet::from(OPERATOR_VARIANTS);
     assert_eq!(op_variants.len(), OPERATOR_VARIANTS.len());

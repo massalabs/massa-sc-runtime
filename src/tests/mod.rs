@@ -36,7 +36,12 @@ impl Interface for TestInterface {
         Ok(1)
     }
 
-    fn transfer_coins(&self, _to_address: &str, _raw_amount: u64) -> Result<()> {
+    fn transfer_coins(
+        &self,
+        _to_address: &str,
+        _raw_amount: u64,
+    ) -> Result<()> {
+        println!("Transfer {} coins to {}", _raw_amount, _to_address);
         Ok(())
     }
 
@@ -71,7 +76,8 @@ impl Interface for TestInterface {
     }
 
     fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule> {
-        let as_module = ASModule::new(bytecode, limit, GasCosts::default(), Compiler::SP)?;
+        let as_module =
+            ASModule::new(bytecode, limit, GasCosts::default(), Compiler::SP)?;
         let module = RuntimeModule::ASModule(as_module);
         Ok(module)
     }
@@ -96,7 +102,12 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn raw_append_data_for(&self, _address: &str, _key: &[u8], _value: &[u8]) -> Result<()> {
+    fn raw_append_data_for(
+        &self,
+        _address: &str,
+        _key: &[u8],
+        _value: &[u8],
+    ) -> Result<()> {
         Ok(())
     }
 
@@ -118,13 +129,23 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn raw_set_data_for(&self, _address: &str, _key: &[u8], value: &[u8]) -> Result<()> {
+    fn raw_set_data_for(
+        &self,
+        _address: &str,
+        _key: &[u8],
+        value: &[u8],
+    ) -> Result<()> {
         let mut bytes = self.0.lock().clone();
         bytes.insert(String::from_str("print").unwrap(), value.to_vec());
         Ok(())
     }
 
-    fn signature_verify(&self, _data: &[u8], _signature: &str, _public_key: &str) -> Result<bool> {
+    fn signature_verify(
+        &self,
+        _data: &[u8],
+        _signature: &str,
+        _public_key: &str,
+    ) -> Result<bool> {
         Ok(false)
     }
 
@@ -136,7 +157,11 @@ impl Interface for TestInterface {
         Ok(1)
     }
 
-    fn raw_set_bytecode_for(&self, address: &str, bytecode: &[u8]) -> Result<()> {
+    fn raw_set_bytecode_for(
+        &self,
+        address: &str,
+        bytecode: &[u8],
+    ) -> Result<()> {
         self.0.lock().insert(address.to_string(), bytecode.to_vec());
         Ok(())
     }
@@ -222,9 +247,10 @@ impl Interface for TestInterface {
     }
 
     fn get_time(&self) -> Result<u64> {
-        // Using chrono as a test dummy implementation to make sure the ABI is called correctly
-        // Note that Massa node implementation uses the time of the context slot
-        // in order to ensure determinism, not the UTC time
+        // Using chrono as a test dummy implementation to make sure the ABI is
+        // called correctly Note that Massa node implementation uses the
+        // time of the context slot in order to ensure determinism, not
+        // the UTC time
         Ok(chrono::offset::Utc::now()
             .timestamp_millis()
             .try_into()

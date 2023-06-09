@@ -5,11 +5,13 @@ use std::fmt::{self, Debug};
 use std::sync::Mutex;
 use std::time::Instant;
 use wasmer::{
-    wasmparser::Operator, AsStoreMut, Extern, FunctionMiddleware, Instance, LocalFunctionIndex,
-    MiddlewareError, MiddlewareReaderState, ModuleMiddleware,
+    wasmparser::Operator, AsStoreMut, Extern, FunctionMiddleware, Instance,
+    LocalFunctionIndex, MiddlewareError, MiddlewareReaderState,
+    ModuleMiddleware,
 };
 use wasmer_types::{
-    ExportIndex, GlobalIndex, GlobalInit, GlobalType, ImportIndex, ModuleInfo, Mutability, Type,
+    ExportIndex, GlobalIndex, GlobalInit, GlobalType, ImportIndex, ModuleInfo,
+    Mutability, Type,
 };
 
 #[derive(Debug, Clone)]
@@ -50,7 +52,12 @@ impl ModuleMiddleware for GasCalibration {
         _local_function_index: LocalFunctionIndex,
     ) -> Box<dyn FunctionMiddleware> {
         Box::new(FunctionGasCalibration {
-            global_indexes: self.global_indexes.lock().unwrap().clone().unwrap(),
+            global_indexes: self
+                .global_indexes
+                .lock()
+                .unwrap()
+                .clone()
+                .unwrap(),
         })
     }
 
@@ -77,9 +84,11 @@ impl ModuleMiddleware for GasCalibration {
             let index = import_key.import_idx;
 
             // -> env.abort OR massa.assembly_script_print
-            let function_fullname = format!("{}.{}", module_name, function_name);
+            let function_fullname =
+                format!("{}.{}", module_name, function_name);
 
-            // Append a global for this 'imports' (== abi call) and initialize it.
+            // Append a global for this 'imports' (== abi call) and initialize
+            // it.
             let global_index = module_info
                 .globals
                 .push(GlobalType::new(Type::I64, Mutability::Var));
@@ -98,12 +107,16 @@ impl ModuleMiddleware for GasCalibration {
             // Append a global per param size per 'imports' (== abi call)
             let function_sig = if let ImportIndex::Function(f) = import_index {
                 module_info.functions.get(*f).unwrap_or_else(|| {
-                    panic!("Cannot get function signature for {}", function_name)
+                    panic!(
+                        "Cannot get function signature for {}",
+                        function_name
+                    )
                 })
             } else {
                 panic!("ImportIndex is not a function??");
             };
-            let function_type = module_info.signatures.get(*function_sig).unwrap();
+            let function_type =
+                module_info.signatures.get(*function_sig).unwrap();
             let param_count = function_type.params().len();
 
             for i in 0..param_count {
@@ -141,18 +154,20 @@ impl ModuleMiddleware for GasCalibration {
                 .insert((*op_name).to_string(), global_index);
         }
 
-        // println!("module info function names: {:?}", module_info.function_names);
-        // println!("module info exports: {:?}", module_info.exports);
-        // println!("module info imports: {:?}", module_info.imports);
-        // println!("module info functions: {:?}", module_info.functions);
-        // println!("module info num imported functions: {:?}", module_info.num_imported_functions);
-        // println!("module info start function: {:?}", module_info.start_function);
-        // println!("module info passive elements: {:?}", module_info.passive_elements);
+        // println!("module info function names: {:?}",
+        // module_info.function_names); println!("module info exports:
+        // {:?}", module_info.exports); println!("module info imports:
+        // {:?}", module_info.imports); println!("module info functions:
+        // {:?}", module_info.functions); println!("module info num
+        // imported functions: {:?}", module_info.num_imported_functions);
+        // println!("module info start function: {:?}",
+        // module_info.start_function); println!("module info passive
+        // elements: {:?}", module_info.passive_elements);
         // println!("module info signatures: {:?}", module_info.signatures);
 
         // Append a global variable for time elapsed of this function.
-        // Note: transform_module_info can take quite some time and thus we need this timing
-        // for accurate gas calibration
+        // Note: transform_module_info can take quite some time and thus we need
+        // this timing for accurate gas calibration
         let global_index = module_info
             .globals
             .push(GlobalType::new(Type::F64, Mutability::Var));
@@ -165,7 +180,8 @@ impl ModuleMiddleware for GasCalibration {
         );
 
         // indexes.transform_module_info_ms += duration.as_millis() as f64;
-        // println!("Time elapsed in {}() is: {:?}", "transform_module_info", duration);
+        // println!("Time elapsed in {}() is: {:?}", "transform_module_info",
+        // duration);
 
         *global_indexes = Some(indexes)
     }
@@ -183,12 +199,15 @@ impl FunctionMiddleware for FunctionGasCalibration {
         state.push_operator(operator.clone());
 
         if let Operator::Call { function_index } = operator {
-            // let f = self.global_indexes.imports_call_map.get(&function_index).unwrap();
-            // println!("Operator::Call {:?}", f);
+            // let f = self.global_indexes.imports_call_map.get(&
+            // function_index).unwrap(); println!("Operator::Call
+            // {:?}", f);
 
-            //state.push_operator(operator);
+            // state.push_operator(operator);
 
-            if let Some(index) = self.global_indexes.imports_call_map.get(&function_index) {
+            if let Some(index) =
+                self.global_indexes.imports_call_map.get(&function_index)
+            {
                 // println!("Found function index: {}", function_index);
                 state.extend(&[
                     // incr function call counter
@@ -203,27 +222,30 @@ impl FunctionMiddleware for FunctionGasCalibration {
                 ]);
             } else {
                 // Note: here we are skipping call to 'local function'
-                // For instance, getOpKeys() use derOpKeys() (local) + get_op_keys() (abi)
-                // Uncomment the line 'println!("...", module_info.functions);' to view the list of
+                // For instance, getOpKeys() use derOpKeys() (local) +
+                // get_op_keys() (abi) Uncomment the line
+                // 'println!("...", module_info.functions);' to view the list of
                 // all functions (import + local)
-                // Note2: Signature of function (e.g. arguments types + return type) can be seen with:
-                // println!("...", module_info.signatures);
+                // Note2: Signature of function (e.g. arguments types + return
+                // type) can be seen with: println!("...",
+                // module_info.signatures);
 
-                // println!("Skipping unknown function index: {}", function_index);
+                // println!("Skipping unknown function index: {}",
+                // function_index);
             }
         }
 
         let op_name = operator_field_str(&operator);
-        let index = self
-            .global_indexes
-            .op_call_map
-            .get(op_name)
-            .ok_or_else(|| {
-                MiddlewareError::new(
-                    "GasCalibration",
-                    format!("Unable to get index for op: {}", op_name),
-                )
-            })?;
+        let index =
+            self.global_indexes
+                .op_call_map
+                .get(op_name)
+                .ok_or_else(|| {
+                    MiddlewareError::new(
+                        "GasCalibration",
+                        format!("Unable to get index for op: {}", op_name),
+                    )
+                })?;
 
         state.extend(&[
             Operator::GlobalGet {
@@ -347,9 +369,10 @@ pub fn get_gas_calibration_result(
 
                 if let Some(cap) = rgx_iter.next() {
                     if let Some(fn_name) = cap.get(1) {
-                        result
-                            .timers
-                            .insert(format!("Time:{}", fn_name.as_str()), timer_value.unwrap());
+                        result.timers.insert(
+                            format!("Time:{}", fn_name.as_str()),
+                            timer_value.unwrap(),
+                        );
                     }
                 }
             }
@@ -365,36 +388,35 @@ pub fn get_gas_calibration_result(
         duration.as_secs_f64(),
     );
 
-    // println!("Time elapsed in {}() is: {:?}", "gas_calibration_result", duration);
+    // println!("Time elapsed in {}() is: {:?}", "gas_calibration_result",
+    // duration);
 
     result
 }
 
-/*
-pub(crate) fn _param_size_update(
-    env: &ASEnv,
-    store: &mut impl AsStoreMut,
-    function_name: &str,
-    param_len: usize,
-    is_str: bool,
-) {
-    // println!("Calling param_size_update: {} {}", function_name, param_len);
-    let function_full_name = format!("wgc_ps_{}", function_name);
-    let global_ref = env
-        .get_gc_param(&function_full_name)
-        .unwrap_or_else(|| panic!("Unable to find counter for {}", function_full_name));
-    // Cannot fail as the middleware define it as i64
-    let v: i64 = global_ref
-        .get(store)
-        .try_into()
-        .expect("Unable to convert global ref to i64");
-
-    // AssemblyScript use utf-16 string so we need to mult by 2
-    let s = v + match is_str {
-        true => (param_len * 2) as i64,
-        false => param_len as i64,
-    };
-    let error_msg = format!("Unable to set global {:?} with value: {}", global_ref, s);
-    global_ref.set(store, s.into()).expect(&error_msg);
-}
-*/
+// pub(crate) fn _param_size_update(
+// env: &ASEnv,
+// store: &mut impl AsStoreMut,
+// function_name: &str,
+// param_len: usize,
+// is_str: bool,
+// ) {
+// println!("Calling param_size_update: {} {}", function_name, param_len);
+// let function_full_name = format!("wgc_ps_{}", function_name);
+// let global_ref = env
+// .get_gc_param(&function_full_name)
+// .unwrap_or_else(|| panic!("Unable to find counter for {}",
+// function_full_name)); Cannot fail as the middleware define it as i64
+// let v: i64 = global_ref
+// .get(store)
+// .try_into()
+// .expect("Unable to convert global ref to i64");
+//
+// AssemblyScript use utf-16 string so we need to mult by 2
+// let s = v + match is_str {
+// true => (param_len * 2) as i64,
+// false => param_len as i64,
+// };
+// let error_msg = format!("Unable to set global {:?} with value: {}",
+// global_ref, s); global_ref.set(store, s.into()).expect(&error_msg);
+// }

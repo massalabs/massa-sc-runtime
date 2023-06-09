@@ -1,7 +1,7 @@
 use std::fmt::{self, Debug};
 use wasmer::{
-    wasmparser::Operator, FunctionMiddleware, LocalFunctionIndex, MiddlewareError,
-    MiddlewareReaderState, ModuleMiddleware,
+    wasmparser::Operator, FunctionMiddleware, LocalFunctionIndex,
+    MiddlewareError, MiddlewareReaderState, ModuleMiddleware,
 };
 use wasmer_types::ModuleInfo;
 

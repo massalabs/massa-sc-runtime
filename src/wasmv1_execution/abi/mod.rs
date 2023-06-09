@@ -1,5 +1,5 @@
 mod abis;
 mod handler;
-mod proto;
+mod helper_traits;
 
 pub use abis::register_abis;
