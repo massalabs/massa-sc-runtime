@@ -6,10 +6,15 @@ use super::{
 };
 use massa_proto_rs::massa::abi::v1::{self as proto, AddressCategory};
 use tracing::field::debug;
-use wasmer::{imports, AsStoreMut, Function, FunctionEnv, FunctionEnvMut, Imports};
+use wasmer::{
+    imports, AsStoreMut, Function, FunctionEnv, FunctionEnvMut, Imports,
+};
 
 /// Register all ABIs to a store
-pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imports {
+pub fn register_abis(
+    store: &mut impl AsStoreMut,
+    shared_abi_env: ABIEnv,
+) -> Imports {
     let fn_env = FunctionEnv::new(store, shared_abi_env);
     imports! {
         "massa" => {
@@ -37,19 +42,22 @@ pub(crate) fn abi_call(
         store_env,
         arg_offset,
         |handler, req: proto::CallRequest| {
-            let address = req
-                .target_sc_address
-                .ok_or_else(|| WasmV1Error::RuntimeError("No address provided".into()))?;
+            let address = req.target_sc_address.ok_or_else(|| {
+                WasmV1Error::RuntimeError("No address provided".into())
+            })?;
 
-            let amount = req
-                .call_coins
-                .ok_or_else(|| WasmV1Error::RuntimeError("No coins provided".into()))?;
+            let amount = req.call_coins.ok_or_else(|| {
+                WasmV1Error::RuntimeError("No coins provided".into())
+            })?;
 
             let bytecode = handler
                 .interface
                 .init_call(&address.try_to_string()?, amount.try_to_u64()?)
                 .map_err(|err| {
-                    WasmV1Error::RuntimeError(format!("Could not init call: {}", err))
+                    WasmV1Error::RuntimeError(format!(
+                        "Could not init call: {}",
+                        err
+                    ))
                 })?;
             let remaining_gas = handler.get_remaining_gas();
             let module = helper_get_module(handler, bytecode, remaining_gas)?;
@@ -61,10 +69,18 @@ pub(crate) fn abi_call(
                 remaining_gas,
                 handler.get_gas_costs().clone(),
             )
-            .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
+            .map_err(|err| {
+                WasmV1Error::RuntimeError(format!(
+                    "Could not run function: {}",
+                    err
+                ))
+            })?;
             handler.set_remaining_gas(response.remaining_gas);
             handler.interface.finish_call().map_err(|err| {
-                WasmV1Error::RuntimeError(format!("Could not finish call: {}", err))
+                WasmV1Error::RuntimeError(format!(
+                    "Could not finish call: {}",
+                    err
+                ))
             })?;
             Ok(proto::CallResponse { data: response.ret })
         },
@@ -81,11 +97,12 @@ pub(crate) fn abi_local_call(
         store_env,
         arg_offset,
         |handler, req: proto::LocalCallRequest| {
-            let address = req
-                .target_sc_address
-                .ok_or_else(|| WasmV1Error::RuntimeError("No address provided".into()))?;
+            let address = req.target_sc_address.ok_or_else(|| {
+                WasmV1Error::RuntimeError("No address provided".into())
+            })?;
 
-            let bytecode = helper_get_bytecode(handler, address.try_to_string()?)?;
+            let bytecode =
+                helper_get_bytecode(handler, address.try_to_string()?)?;
             let remaining_gas = handler.get_remaining_gas();
             let module = helper_get_module(handler, bytecode, remaining_gas)?;
 
@@ -97,7 +114,12 @@ pub(crate) fn abi_local_call(
                 remaining_gas,
                 handler.get_gas_costs().clone(),
             )
-            .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
+            .map_err(|err| {
+                WasmV1Error::RuntimeError(format!(
+                    "Could not run function: {}",
+                    err
+                ))
+            })?;
             handler.set_remaining_gas(response.remaining_gas);
 
             Ok(proto::LocalCallResponse { data: response.ret })
@@ -146,25 +168,30 @@ pub fn abi_transfer_coins(
         "transfer_coins",
         store_env,
         arg_offset,
-        |handler, req: proto::TransferCoinsRequest| -> Result<proto::Empty, WasmV1Error> {
-            let address = req
-                .target_address
-                .ok_or(WasmV1Error::RuntimeError("No address provided".into()))?;
+        |handler,
+         req: proto::TransferCoinsRequest|
+         -> Result<proto::Empty, WasmV1Error> {
+            let address = req.target_address.ok_or(
+                WasmV1Error::RuntimeError("No address provided".into()),
+            )?;
             let amount = req
                 .amount_to_transfer
                 .ok_or(WasmV1Error::RuntimeError("No coins provided".into()))?;
 
-            // Do not remove this. It could be used for gas_calibration in future.
-            // if cfg!(feature = "gas_calibration") {
+            // Do not remove this. It could be used for gas_calibration in
+            // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
-            //     param_size_update(&env, &mut ctx, &fname, to_address.len(), true);
-            // }
+            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
+            // true); }
 
             handler
                 .interface
                 .transfer_coins(&address.try_to_string()?, amount.try_to_u64()?)
                 .map_err(|err| {
-                    WasmV1Error::RuntimeError(format!("Transfer coins failed: {}", err))
+                    WasmV1Error::RuntimeError(format!(
+                        "Transfer coins failed: {}",
+                        err
+                    ))
                 })?;
 
             Ok(proto::Empty {})
@@ -185,7 +212,10 @@ pub fn abi_generate_event(
                 .interface
                 .generate_event(req.event)
                 .map_err(|err| {
-                    WasmV1Error::RuntimeError(format!("Failed to generate event: {}", err))
+                    WasmV1Error::RuntimeError(format!(
+                        "Failed to generate event: {}",
+                        err
+                    ))
                 })?;
 
             Ok(proto::Empty {})
@@ -194,13 +224,19 @@ pub fn abi_generate_event(
 }
 
 /// Function designed to abort execution.
-fn abi_abort(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
+fn abi_abort(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
     handle_abi_raw(
         "abi_abort",
         store_env,
         arg_offset,
         |_handler, req: Vec<u8>| -> Result<Vec<u8>, WasmV1Error> {
-            let msg = format!("Guest program abort: {}", String::from_utf8_lossy(&req));
+            let msg = format!(
+                "Guest program abort: {}",
+                String::from_utf8_lossy(&req)
+            );
             dbg!(&msg);
 
             Err(WasmV1Error::RuntimeError(msg))
@@ -208,7 +244,8 @@ fn abi_abort(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, 
     )
 }
 
-/// Check the exports of a compiled module to see if it contains the given function
+/// Check the exports of a compiled module to see if it contains the given
+/// function
 fn abi_function_exists(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
@@ -220,11 +257,12 @@ fn abi_function_exists(
         |handler,
          req: proto::FunctionExistsRequest|
          -> Result<proto::FunctionExistsResponse, WasmV1Error> {
-            let address = req
-                .target_sc_address
-                .ok_or_else(|| WasmV1Error::RuntimeError("No address provided".into()))?;
+            let address = req.target_sc_address.ok_or_else(|| {
+                WasmV1Error::RuntimeError("No address provided".into())
+            })?;
 
-            let bytecode = helper_get_bytecode(handler, address.try_to_string()?)?;
+            let bytecode =
+                helper_get_bytecode(handler, address.try_to_string()?)?;
 
             let remaining_gas = if cfg!(feature = "gas_calibration") {
                 u64::MAX
@@ -244,15 +282,16 @@ fn helper_get_bytecode(
     handler: &mut super::handler::ABIHandler,
     address: String,
 ) -> Result<Vec<u8>, WasmV1Error> {
-    let bytecode = handler
-        .interface
-        .raw_get_bytecode_for(&address)
-        .map_err(|err| {
-            WasmV1Error::RuntimeError(format!(
-                "Could not get bytecode for address: {}: {}",
-                address, err
-            ))
-        })?;
+    let bytecode =
+        handler
+            .interface
+            .raw_get_bytecode_for(&address)
+            .map_err(|err| {
+                WasmV1Error::RuntimeError(format!(
+                    "Could not get bytecode for address: {}: {}",
+                    address, err
+                ))
+            })?;
     Ok(bytecode)
 }
 
@@ -264,11 +303,16 @@ fn helper_get_module(
     let module = handler
         .interface
         .get_module(&bytecode, remaining_gas)
-        .map_err(|err| WasmV1Error::RuntimeError(format!("Could not get module: {}", err)))?;
+        .map_err(|err| {
+            WasmV1Error::RuntimeError(format!("Could not get module: {}", err))
+        })?;
     Ok(module)
 }
 
-pub fn abi_log(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
+pub fn abi_log(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
     handle_abi(
         "log",
         store_env,
@@ -283,7 +327,10 @@ pub fn abi_log(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32
     )
 }
 
-pub fn abi_echo(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
+pub fn abi_echo(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
     handle_abi(
         "echo",
         store_env,

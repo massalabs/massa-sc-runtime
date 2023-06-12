@@ -9,7 +9,10 @@ pub(crate) trait TryToString {
 impl TryToString for NativeAddress {
     fn try_to_string(&self) -> Result<String, WasmV1Error> {
         String::from_utf8(self.content.clone()).map_err(|err| {
-            WasmV1Error::RuntimeError(format!("Could not convert address to string: {}", err))
+            WasmV1Error::RuntimeError(format!(
+                "Could not convert address to string: {}",
+                err
+            ))
         })
     }
 }

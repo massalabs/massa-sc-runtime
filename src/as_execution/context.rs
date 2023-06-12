@@ -5,7 +5,8 @@ use crate::{GasCosts, Interface};
 use anyhow::{bail, Result};
 use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
 use wasmer::{
-    imports, Function, FunctionEnv, Imports, Instance, InstantiationError, Module, Store, Value,
+    imports, Function, FunctionEnv, Imports, Instance, InstantiationError,
+    Module, Store, Value,
 };
 use wasmer_middlewares::metering::{self, MeteringPoints};
 use wasmer_types::TrapCode;
@@ -56,10 +57,13 @@ impl ASContext {
                 Ok((instance, post_init_points))
             }
             Err(err) => {
-                // Filter the error created by the metering middleware when there is not enough gas at initialization
+                // Filter the error created by the metering middleware when
+                // there is not enough gas at initialization
                 if let InstantiationError::Start(ref e) = err {
                     if let Some(trap) = e.clone().to_trap() {
-                        if trap == TrapCode::UnreachableCodeReached && e.trace().is_empty() {
+                        if trap == TrapCode::UnreachableCodeReached
+                            && e.trace().is_empty()
+                        {
                             bail!("Not enough gas, limit reached at initialization");
                         }
                     }
@@ -83,7 +87,11 @@ impl ASContext {
             if metering_initial_cost > remaining_gas {
                 bail!("Not enough gas to launch the virtual machine")
             }
-            set_remaining_points(&self.env, store, remaining_gas - metering_initial_cost)?;
+            set_remaining_points(
+                &self.env,
+                store,
+                remaining_gas - metering_initial_cost,
+            )?;
         }
 
         // Now can exec
@@ -92,7 +100,11 @@ impl ASContext {
         let res = if argc == 0 {
             wasm_func.call(store, &[])
         } else if argc == 1 {
-            let param_ptr = *BufferPtr::alloc(&param.to_vec(), self.env.get_ffi_env(), store)?;
+            let param_ptr = *BufferPtr::alloc(
+                &param.to_vec(),
+                self.env.get_ffi_env(),
+                store,
+            )?;
             wasm_func.call(store, &[Value::I32(param_ptr.offset() as i32)])
         } else {
             bail!("Unexpected number of parameters in the function called")
@@ -147,8 +159,8 @@ impl ASContext {
     ) -> Result<()> {
         let memory = instance.exports.get_memory("memory")?;
 
-        // NOTE: only add functions (__new, ...) if these exists in wasm/wat files
-        //       so we can still exec some very basic wat files
+        // NOTE: only add functions (__new, ...) if these exists in wasm/wat
+        // files       so we can still exec some very basic wat files
         let fn_new = instance
             .exports
             .get_typed_function::<(i32, i32), i32>(&store, "__new")
@@ -203,7 +215,10 @@ impl ASContext {
         Ok(())
     }
 
-    pub(crate) fn resolver(&self, store: &mut Store) -> (Imports, FunctionEnv<ASEnv>) {
+    pub(crate) fn resolver(
+        &self,
+        store: &mut Store,
+    ) -> (Imports, FunctionEnv<ASEnv>) {
         let fenv = FunctionEnv::new(store, self.env.clone());
 
         let imports = imports! {

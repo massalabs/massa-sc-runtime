@@ -4,7 +4,10 @@ use super::{ffi::Ffi, WasmV1Error};
 use crate::types::Interface;
 use crate::GasCosts;
 use parking_lot::Mutex;
-use wasmer::{AsStoreMut, AsStoreRef, Imports, Instance, InstantiationError, TypedFunction};
+use wasmer::{
+    AsStoreMut, AsStoreRef, Imports, Instance, InstantiationError,
+    TypedFunction,
+};
 use wasmer_middlewares::metering::{self, MeteringPoints};
 use wasmer_types::TrapCode;
 
@@ -13,8 +16,8 @@ pub type ABIEnv = Arc<Mutex<Option<ExecutionEnv>>>;
 /// Execution environment for ABIs.
 #[derive(Clone)]
 pub struct ExecutionEnv {
-    /// Exposed interface functions used by the ABIs and implemented externally.
-    /// In `massa/massa-execution-worker` for example.
+    /// Exposed interface functions used by the ABIs and implemented
+    /// externally. In `massa/massa-execution-worker` for example.
     interface: Box<dyn Interface>,
     /// Gas costs of different execution operations.
     gas_costs: GasCosts,
@@ -37,14 +40,20 @@ impl ExecutionEnv {
         import_object: &Imports,
     ) -> Result<Self, WasmV1Error> {
         // Create the instance
-        let instance = match Instance::new(store, &module.binary_module, import_object) {
+        let instance = match Instance::new(
+            store,
+            &module.binary_module,
+            import_object,
+        ) {
             Ok(instance) => instance,
             Err(err) => {
-                // Filter the error created by the metering middleware when there is not enough gas
-                // at initialization
+                // Filter the error created by the metering middleware when
+                // there is not enough gas at initialization
                 if let InstantiationError::Start(ref e) = err {
                     if let Some(trap) = e.clone().to_trap() {
-                        if trap == TrapCode::UnreachableCodeReached && e.trace().is_empty() {
+                        if trap == TrapCode::UnreachableCodeReached
+                            && e.trace().is_empty()
+                        {
                             return Err(WasmV1Error::InstanciationError(
                                 "Not enough gas, limit reached at instance creation".to_string(),
                             ));
@@ -59,8 +68,9 @@ impl ExecutionEnv {
         };
 
         // Create FFI for memory access
-        let ffi = Ffi::try_new(&instance, store)
-            .map_err(|err| WasmV1Error::RuntimeError(format!("Could not create FFI: {}", err)))?;
+        let ffi = Ffi::try_new(&instance, store).map_err(|err| {
+            WasmV1Error::RuntimeError(format!("Could not create FFI: {}", err))
+        })?;
 
         // Infer the gas cost of instance creation (_start function call)
         let init_gas_cost = match metering::get_remaining_points(store, &instance) {
@@ -120,14 +130,15 @@ impl ExecutionEnv {
         store: &mut impl AsStoreMut,
         gas: u64,
     ) -> Result<(), WasmV1Error> {
-        let remaining = match metering::get_remaining_points(store, &self.instance) {
-            metering::MeteringPoints::Remaining(remaining) => remaining,
-            metering::MeteringPoints::Exhausted => {
-                return Err(WasmV1Error::RuntimeError(
-                    "Gas exhausted before ABI call".into(),
-                ))
-            }
-        };
+        let remaining =
+            match metering::get_remaining_points(store, &self.instance) {
+                metering::MeteringPoints::Remaining(remaining) => remaining,
+                metering::MeteringPoints::Exhausted => {
+                    return Err(WasmV1Error::RuntimeError(
+                        "Gas exhausted before ABI call".into(),
+                    ))
+                }
+            };
         let new_remaining = match remaining.checked_sub(gas) {
             Some(v) => v,
             None => {
@@ -149,7 +160,11 @@ impl ExecutionEnv {
     }
 
     /// Set remaining gas.
-    pub fn set_remaining_gas(&self, store: &mut impl AsStoreMut, remaining_gas: u64) {
+    pub fn set_remaining_gas(
+        &self,
+        store: &mut impl AsStoreMut,
+        remaining_gas: u64,
+    ) {
         metering::set_remaining_points(store, &self.instance, remaining_gas);
     }
 
