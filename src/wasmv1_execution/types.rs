@@ -1,4 +1,4 @@
-use massa_proto_rs::massa::abi::v1::{NativeAddress, NativeAmount};
+use massa_proto_rs::massa::model::v1::{NativeAddress, NativeAmount};
 
 use super::WasmV1Error;
 

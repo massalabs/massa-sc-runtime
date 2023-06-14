@@ -4,8 +4,11 @@ use super::{
     super::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
 };
-use massa_proto_rs::massa::abi::v1::{self as proto, AddressCategory};
-use tracing::field::debug;
+use massa_proto_rs::massa::{
+    abi::v1::{self as proto, NativeAddressToStringRequest},
+    model::v1::{AddressCategory, NativeAddress},
+};
+
 use wasmer::{
     imports, AsStoreMut, Function, FunctionEnv, FunctionEnvMut, Imports,
 };
@@ -25,9 +28,10 @@ pub fn register_abis(
             "abi_transfer_coins" => Function::new_typed_with_env(store, &fn_env, abi_transfer_coins),
             "abi_generate_event" => Function::new_typed_with_env(store, &fn_env, abi_generate_event),
             "abi_function_exists" => Function::new_typed_with_env(store, &fn_env, abi_function_exists),
+            "abi_native_address_to_string" =>
+                Function::new_typed_with_env(store, &fn_env, abi_native_address_to_string),
 
             "abi_log" => Function::new_typed_with_env(store, &fn_env, abi_log),
-            "abi_echo" => Function::new_typed_with_env(store, &fn_env, abi_echo),
         },
     }
 }
@@ -149,7 +153,7 @@ pub(crate) fn abi_create_sc(
 
             tracing::warn!("FIXME: NativeAddress version is hardcoded to 0");
             Ok(proto::CreateScResponse {
-                sc_address: Some(proto::NativeAddress {
+                sc_address: Some(NativeAddress {
                     category: AddressCategory::ScAddress as i32,
                     version: 0u64,
                     content: address.into_bytes(),
@@ -327,26 +331,32 @@ pub fn abi_log(
     )
 }
 
-pub fn abi_echo(
+pub fn abi_native_address_to_string(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
     handle_abi(
-        "echo",
+        "native_address_to_string",
         store_env,
         arg_offset,
-        |_handler, req: proto::TestRequest| {
-            let message_in = req.message_in;
+        |_handler,
+         req: NativeAddressToStringRequest|
+         -> Result<Vec<u8>, WasmV1Error> {
+            let address = req.address_to_convert.ok_or_else(|| {
+                WasmV1Error::RuntimeError("No address to convert".to_string())
+            })?;
 
-            println!("abi_echo called with: {:?}", message_in);
+            let address = NativeAddress::try_from(address).map_err(|err| {
+                WasmV1Error::RuntimeError(format!(
+                    "Could not convert to address: {}",
+                    err
+                ))
+            })?;
 
-            Ok(proto::TestResponse {
-                message_out: message_in,
-            })
+            Ok(address.try_to_string()?.into_bytes())
         },
     )
 }
-
 enum Category {
     Unspecified,
     User,
