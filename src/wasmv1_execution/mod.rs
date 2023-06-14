@@ -2,7 +2,6 @@ mod abi;
 mod env;
 mod error;
 mod ffi;
-mod types;
 
 use self::env::{ABIEnv, ExecutionEnv};
 use crate::error::VMResult;
