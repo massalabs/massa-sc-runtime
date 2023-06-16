@@ -8,6 +8,9 @@
 //! thiserror="1"
 //! clap={ version = "4", features= ["derive"] }
 //! ```
+
+// This file is derived from the same script located in the massa repository
+
 use std::fs::File;
 use std::io::Error;
 use std::io::{Cursor, Read};
