@@ -8,46 +8,27 @@ use super::{
 
 use massa_proto_rs::massa::{
     abi::v1::{
-        self as proto,
-        check_native_address_response::{self, CheckNativeAddressResult},
-        native_address_from_string_response::{
-            self, NativeAddressFromStringResult,
-        },
-        native_address_to_string_response::{
-            self, NativeAddressToStringResult,
-        },
-        native_hash_from_string_response::{self, NativeHashFromStringResult},
-        native_hash_to_string_response::{self, NativeHashToStringResult},
-        native_pub_key_from_string_response::{
-            self, NativePubKeyFromStringResult,
-        },
-        native_pub_key_to_string_response::{self, NativePubKeyToStringResult},
-        native_sig_from_string_response::{self, NativeSigFromStringResult},
-        native_sig_to_string_response::{self, NativeSigToStringResult},
-        AddNativeAmountsRequest, AddNativeAmountsResponse, CallRequest,
-        CallResponse, CheckNativeAddressRequest, CheckNativeAddressResponse,
-        CheckNativeAmountRequest, CheckNativeAmountResponse,
-        CheckNativeHashRequest, CheckNativeHashResponse,
-        CheckNativePubKeyRequest, CheckNativePubKeyResponse,
-        CheckNativeSigRequest, CheckNativeSigResponse, CreateScRequest,
-        CreateScResponse, DivRemNativeAmountRequest,
-        DivRemNativeAmountResponse, Empty, FunctionExistsRequest,
-        FunctionExistsResponse, GenerateEventRequest, LocalCallRequest,
-        LocalCallResponse, LogRequest, MulNativeAmountRequest,
-        MulNativeAmountResponse, NativeAddressFromStringRequest,
-        NativeAddressFromStringResponse, NativeAddressToStringRequest,
-        NativeAddressToStringResponse, NativeAmountFromBytesRequest,
-        NativeAmountFromBytesResponse, NativeAmountFromStringRequest,
-        NativeAmountFromStringResponse, NativeAmountToBytesRequest,
-        NativeAmountToBytesResponse, NativeAmountToStringRequest,
-        NativeAmountToStringResponse, NativeHashFromStringRequest,
-        NativeHashFromStringResponse, NativeHashToStringRequest,
-        NativeHashToStringResponse, NativePubKeyFromStringRequest,
-        NativePubKeyFromStringResponse, NativePubKeyToStringRequest,
-        NativePubKeyToStringResponse, NativeSigFromStringRequest,
-        NativeSigFromStringResponse, NativeSigToStringRequest,
-        NativeSigToStringResponse, SubNativeAmountsRequest,
-        SubNativeAmountsResponse, TransferCoinsRequest, check_native_pub_key_response::{self, CheckNativePubKeyResult}, check_native_sig_response::{self, CheckNativeSigResult},
+        self as proto, abi_response, resp_result, AbiResponse,
+        AddNativeAmountsRequest, CallRequest, CallResponse,
+        CheckNativeAddressRequest, CheckNativeAddressResult,
+        CheckNativeAmountRequest, CheckNativeHashRequest,
+        CheckNativePubKeyRequest, CheckNativePubKeyResult,
+        CheckNativeSigRequest, CheckNativeSigResult, CreateScRequest,
+        CreateScResponse, DivRemNativeAmountRequest, Empty,
+        FunctionExistsRequest, FunctionExistsResponse, GenerateEventRequest,
+        LocalCallRequest, LocalCallResponse, LogRequest,
+        MulNativeAmountRequest, NativeAddressFromStringRequest,
+        NativeAddressFromStringResult, NativeAddressToStringRequest,
+        NativeAddressToStringResult, NativeAmountFromBytesRequest,
+        NativeAmountFromStringRequest, NativeAmountToBytesRequest,
+        NativeAmountToStringRequest, NativeHashFromStringRequest,
+        NativeHashFromStringResult, NativeHashToStringRequest,
+        NativeHashToStringResult, NativePubKeyFromStringRequest,
+        NativePubKeyFromStringResult, NativePubKeyToStringRequest,
+        NativePubKeyToStringResult, NativeSigFromStringRequest,
+        NativeSigFromStringResult, NativeSigToStringRequest,
+        NativeSigToStringResult, RespResult, SubNativeAmountsRequest,
+        TransferCoinsRequest,
     },
     model::v1::{AddressCategory, NativeAddress, NativePubKey},
 };
@@ -58,26 +39,30 @@ use wasmer::{
 
 // This macro ease the construction of the Error variant of the response to an
 // ABI call.
-// /!\ it requires `Rest` to be aliased to the correct response type.
-// /!\ this is achieved by a `use whatever_mod_name::Resp as Resp` at the
-// /!\ beginning of the abi function.
 macro_rules! resp_err {
     ($err:expr) => {
-        Resp::Error(proto::Error {
+        abi_response::Resp::Error(proto::Error {
             message: $err.to_string(),
         })
     };
 }
 
+// Same as resp_err but for the Result variant of the response.
+macro_rules! resp_res {
+    ($result:tt, { $($field:ident: $value:expr),* $(,)? }) => {
+        abi_response::Resp::Res(RespResult {
+            res:
+        Some(resp_result::Res::$result($result {
+            $($field: $value,)*
+        }))})
+    };
+}
+
 // This macro is used to construct a response to an ABI call.
 // It is used in the abi_* functions below.
-// /!\ for this macro to work 'Response' must be in scope.
-// /!\ as every response have a difference name but the same structure this is
-// /!\ achieved by a `use WhatEverResponse as Response` at the beginning of the
-// /!à abi function.
 macro_rules! response {
     ($response:expr) => {
-        Response {
+        AbiResponse {
             resp: Some($response),
         }
     };
@@ -514,16 +499,13 @@ pub fn abi_native_address_to_string(
         arg_offset,
         |_handler,
          req: NativeAddressToStringRequest|
-         -> Result<NativeAddressToStringResponse, WasmV1Error> {
-            use native_address_to_string_response::Resp;
-            use NativeAddressToStringResponse as Response;
-
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(address) = req.to_convert else {
                 return Ok(response!(resp_err!("No address to convert")));
             };
 
             let resp = match TryInto::try_into(&address) {
-                Ok(addr) => Resp::Res(NativeAddressToStringResult {
+                Ok(addr) => resp_res!(NativeAddressToStringResult, {
                     converted_address: addr,
                 }),
                 Err(err) => resp_err!(err),
@@ -544,16 +526,15 @@ pub fn abi_native_pubkey_to_string(
         arg_offset,
         |_handler,
          req: NativePubKeyToStringRequest|
-         -> Result<NativePubKeyToStringResponse, WasmV1Error> {
-            use native_pub_key_to_string_response::Resp;
-            use NativePubKeyToStringResponse as Response;
+         -> Result<AbiResponse, WasmV1Error> {
+            use abi_response::Resp;
 
             let Some(pubkey) = req.to_convert else {
-            return Ok(response!(resp_err!("No pubkey to convert")));
+                return Ok(response!(resp_err!("No pubkey to convert")));
             };
 
             let resp = match TryInto::try_into(&pubkey) {
-                Ok(pubkey) => Resp::Res(NativePubKeyToStringResult {
+                Ok(pubkey) => resp_res!(NativePubKeyToStringResult, {
                     converted_pubkey: pubkey,
                 }),
                 Err(err) => resp_err!(err),
@@ -574,10 +555,7 @@ pub fn abi_native_sig_to_string(
         arg_offset,
         |_handler,
          req: NativeSigToStringRequest|
-         -> Result<NativeSigToStringResponse, WasmV1Error> {
-            use native_sig_to_string_response::Resp;
-            use NativeSigToStringResponse as Response;
-
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(sig) = req.to_convert else {
                 return Ok(response!(resp_err!("No sig to convert")));
 
@@ -585,7 +563,7 @@ pub fn abi_native_sig_to_string(
 
             let resp = match TryInto::try_into(&sig) {
                 Ok(sig) => {
-                    Resp::Res(NativeSigToStringResult { converted_sig: sig })
+                    resp_res!(NativeSigToStringResult, { converted_sig: sig })
                 }
                 Err(err) => resp_err!(err),
             };
@@ -605,16 +583,13 @@ pub fn abi_native_hash_to_string(
         arg_offset,
         |_handler,
          req: NativeHashToStringRequest|
-         -> Result<NativeHashToStringResponse, WasmV1Error> {
-            use native_hash_to_string_response::Resp;
-            use NativeHashToStringResponse as Response;
-
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(hash) = req.to_convert else {
                 return Ok(response!(resp_err!("No hash to convert")));
             };
 
             let resp = match TryInto::try_into(&hash) {
-                Ok(hash) => Resp::Res(NativeHashToStringResult {
+                Ok(hash) => resp_res!(NativeHashToStringResult, {
                     converted_hash: hash,
                 }),
                 Err(err) => resp_err!(err),
@@ -635,12 +610,9 @@ pub fn abi_native_address_from_string(
         arg_offset,
         |_handler,
          req: NativeAddressFromStringRequest|
-         -> Result<NativeAddressFromStringResponse, WasmV1Error> {
-            use native_address_from_string_response::Resp;
-            use NativeAddressFromStringResponse as Response;
-
+         -> Result<AbiResponse, WasmV1Error> {
             let resp = match TryInto::try_into(&req.to_convert) {
-                Ok(address) => Resp::Res(NativeAddressFromStringResult {
+                Ok(address) => resp_res!(NativeAddressFromStringResult, {
                     converted_address: Some(address),
                 }),
                 Err(err) => resp_err!(err),
@@ -661,12 +633,9 @@ pub fn abi_native_pubkey_from_string(
         arg_offset,
         |_handler,
          req: NativePubKeyFromStringRequest|
-         -> Result<NativePubKeyFromStringResponse, WasmV1Error> {
-            use native_pub_key_from_string_response::Resp;
-            use NativePubKeyFromStringResponse as Response;
-
+         -> Result<AbiResponse, WasmV1Error> {
             let resp = match TryInto::try_into(&req.to_convert) {
-                Ok(pubkey) => Resp::Res(NativePubKeyFromStringResult {
+                Ok(pubkey) => resp_res!(NativePubKeyFromStringResult, {
                     converted_pubkey: Some(pubkey),
                 }),
                 Err(err) => resp_err!(err),
@@ -687,12 +656,9 @@ pub fn abi_native_sig_from_string(
         arg_offset,
         |_handler,
          req: NativeSigFromStringRequest|
-         -> Result<NativeSigFromStringResponse, WasmV1Error> {
-            use native_sig_from_string_response::Resp;
-            use NativeSigFromStringResponse as Response;
-
+         -> Result<AbiResponse, WasmV1Error> {
             let resp = match TryInto::try_into(&req.to_convert) {
-                Ok(sig) => Resp::Res(NativeSigFromStringResult {
+                Ok(sig) => resp_res!(NativeSigFromStringResult, {
                     converted_sig: Some(sig),
                 }),
                 Err(err) => resp_err!(err),
@@ -713,12 +679,9 @@ pub fn abi_native_hash_from_string(
         arg_offset,
         |_handler,
          req: NativeHashFromStringRequest|
-         -> Result<NativeHashFromStringResponse, WasmV1Error> {
-            use native_hash_from_string_response::Resp;
-            use NativeHashFromStringResponse as Response;
-
+         -> Result<AbiResponse, WasmV1Error> {
             let resp = match TryInto::try_into(&req.to_convert) {
-                Ok(hash) => Resp::Res(NativeHashFromStringResult {
+                Ok(hash) => resp_res!(NativeHashFromStringResult, {
                     converted_hash: Some(hash),
                 }),
                 Err(err) => resp_err!(err),
@@ -739,17 +702,14 @@ pub fn abi_check_native_address(
         arg_offset,
         |_handler,
          req: CheckNativeAddressRequest|
-         -> Result<CheckNativeAddressResponse, WasmV1Error> {
-            use check_native_address_response::Resp;
-            use CheckNativeAddressResponse as Response;
-
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(address) = req.to_check else {
                 return Ok(response!(resp_err!("No address to check")));
             };
 
             let resp = match address.is_valid() {
                 Ok(is_valid) => {
-                    Resp::Res(CheckNativeAddressResult { is_valid })
+                    resp_res!(CheckNativeAddressResult, { is_valid: is_valid })
                 }
                 Err(err) => resp_err!(err),
             };
@@ -768,16 +728,17 @@ pub fn abi_check_native_pubkey(
         arg_offset,
         |_handler,
          req: CheckNativePubKeyRequest|
-         -> Result<CheckNativePubKeyResponse, WasmV1Error> {
-            use check_native_pub_key_response::Resp;
-            use CheckNativePubKeyResponse as Response;
-
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(pubkey) = req.to_check else {
                 return Ok(response!(resp_err!("No pubkey to check")));
              };
 
             let resp = match pubkey.is_valid() {
-                Ok(is_valid) => Resp::Res(CheckNativePubKeyResult { is_valid }),
+                Ok(is_valid) => {
+                    resp_res!(CheckNativePubKeyResult, { is_valid: is_valid
+
+                    })
+                }
                 Err(err) => resp_err!(err),
             };
 
@@ -795,21 +756,19 @@ pub fn abi_check_native_sig(
         arg_offset,
         |_handler,
          req: CheckNativeSigRequest|
-         -> Result<CheckNativeSigResponse, WasmV1Error> {
-            use check_native_sig_response::Resp;
-            use CheckNativeSigResponse as Response;
-
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(sig) = req.to_check else {
                 return Ok(response!(resp_err!("No sig to check")));
             };
 
             let resp = match sig.is_valid() {
-                Ok(is_valid) => Resp::Res(CheckNativeSigResult { is_valid }),
+                Ok(is_valid) => {
+                    resp_res!(CheckNativeSigResult, { is_valid: is_valid })
+                }
                 Err(err) => resp_err!(err),
             };
 
             Ok(response!(resp))
-
         },
     )
 }
@@ -823,7 +782,7 @@ pub fn abi_check_native_hash(
         arg_offset,
         |_handler,
          req: CheckNativeHashRequest|
-         -> Result<CheckNativeHashResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
 pub fn abi_check_native_amount(
@@ -836,7 +795,7 @@ pub fn abi_check_native_amount(
         arg_offset,
         |_handler,
          req: CheckNativeAmountRequest|
-         -> Result<CheckNativeAmountResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
 pub fn abi_add_native_amounts(
@@ -849,7 +808,7 @@ pub fn abi_add_native_amounts(
         arg_offset,
         |_handler,
          req: AddNativeAmountsRequest|
-         -> Result<AddNativeAmountsResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
 pub fn abi_sub_native_amounts(
@@ -862,7 +821,7 @@ pub fn abi_sub_native_amounts(
         arg_offset,
         |_handler,
          req: SubNativeAmountsRequest|
-         -> Result<SubNativeAmountsResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
 pub fn abi_mul_native_amount(
@@ -875,7 +834,7 @@ pub fn abi_mul_native_amount(
         arg_offset,
         |_handler,
          req: MulNativeAmountRequest|
-         -> Result<MulNativeAmountResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
 pub fn abi_div_rem_native_amount(
@@ -888,7 +847,7 @@ pub fn abi_div_rem_native_amount(
         arg_offset,
         |_handler,
          req: DivRemNativeAmountRequest|
-         -> Result<DivRemNativeAmountResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
 pub fn abi_div_rem_native_amounts(
@@ -901,7 +860,7 @@ pub fn abi_div_rem_native_amounts(
         arg_offset,
         |_handler,
          req: DivRemNativeAmountRequest|
-         -> Result<DivRemNativeAmountResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
 pub fn abi_native_amount_to_string(
@@ -914,9 +873,7 @@ pub fn abi_native_amount_to_string(
         arg_offset,
         |_handler,
          req: NativeAmountToStringRequest|
-         -> Result<NativeAmountToStringResponse, WasmV1Error> {
-            todo!()
-        },
+         -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
 pub fn abi_native_amount_from_string(
@@ -929,9 +886,7 @@ pub fn abi_native_amount_from_string(
         arg_offset,
         |_handler,
          req: NativeAmountFromStringRequest|
-         -> Result<NativeAmountFromStringResponse, WasmV1Error> {
-            todo!()
-        },
+         -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
 pub fn abi_native_amount_to_bytes(
@@ -944,9 +899,7 @@ pub fn abi_native_amount_to_bytes(
         arg_offset,
         |_handler,
          req: NativeAmountToBytesRequest|
-         -> Result<NativeAmountToBytesResponse, WasmV1Error> {
-            todo!()
-        },
+         -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
 pub fn abi_native_amount_from_bytes(
@@ -959,9 +912,7 @@ pub fn abi_native_amount_from_bytes(
         arg_offset,
         |_handler,
          req: NativeAmountFromBytesRequest|
-         -> Result<NativeAmountFromBytesResponse, WasmV1Error> {
-            todo!()
-        },
+         -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
 enum Category {
