@@ -15,8 +15,8 @@ use massa_proto_rs::massa::{
         CheckNativePubKeyRequest, CheckNativePubKeyResult,
         CheckNativeSigRequest, CheckNativeSigResult, CreateScRequest,
         CreateScResponse, DivRemNativeAmountRequest, FunctionExistsRequest,
-        FunctionExistsResponse, GenerateEventRequest, LocalCallRequest,
-        LocalCallResponse, LogRequest, MulNativeAmountRequest,
+        FunctionExistsResponse, GenerateEventRequest, GenerateEventResult,
+        LocalCallRequest, LocalCallResponse, MulNativeAmountRequest,
         NativeAddressFromStringRequest, NativeAddressFromStringResult,
         NativeAddressToStringRequest, NativeAddressToStringResult,
         NativeAmountFromStringRequest, NativeAmountToStringRequest,
@@ -26,7 +26,7 @@ use massa_proto_rs::massa::{
         NativePubKeyToStringRequest, NativePubKeyToStringResult,
         NativeSigFromStringRequest, NativeSigFromStringResult,
         NativeSigToStringRequest, NativeSigToStringResult, RespResult,
-        SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult, GenerateEventResult,
+        SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult,
     },
     model::v1::{AddressCategory, NativeAddress, NativePubKey},
 };
@@ -179,9 +179,6 @@ pub fn register_abis(
                 &fn_env,
                 abi_native_amount_from_string,
             ),
-
-
-            "abi_log" => Function::new_typed_with_env(store, &fn_env, abi_log),
         },
     }
 }
@@ -468,18 +465,6 @@ fn helper_get_module(
     Ok(module)
 }
 
-pub fn abi_log(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi("log", store_env, arg_offset, |_handler, req: LogRequest| {
-        let message = req.message;
-
-        println!("wasm log: {}", message);
-
-        Ok(Empty {})
-    })
-}
 
 pub fn abi_native_address_to_string(
     store_env: FunctionEnvMut<ABIEnv>,
