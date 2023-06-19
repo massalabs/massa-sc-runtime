@@ -14,21 +14,19 @@ use massa_proto_rs::massa::{
         CheckNativeAmountRequest, CheckNativeHashRequest,
         CheckNativePubKeyRequest, CheckNativePubKeyResult,
         CheckNativeSigRequest, CheckNativeSigResult, CreateScRequest,
-        CreateScResponse, DivRemNativeAmountRequest, Empty,
-        FunctionExistsRequest, FunctionExistsResponse, GenerateEventRequest,
-        LocalCallRequest, LocalCallResponse, LogRequest,
-        MulNativeAmountRequest, NativeAddressFromStringRequest,
-        NativeAddressFromStringResult, NativeAddressToStringRequest,
-        NativeAddressToStringResult, NativeAmountFromBytesRequest,
-        NativeAmountFromStringRequest, NativeAmountToBytesRequest,
-        NativeAmountToStringRequest, NativeHashFromStringRequest,
-        NativeHashFromStringResult, NativeHashToStringRequest,
-        NativeHashToStringResult, NativePubKeyFromStringRequest,
-        NativePubKeyFromStringResult, NativePubKeyToStringRequest,
-        NativePubKeyToStringResult, NativeSigFromStringRequest,
-        NativeSigFromStringResult, NativeSigToStringRequest,
-        NativeSigToStringResult, RespResult, SubNativeAmountsRequest,
-        TransferCoinsRequest,
+        CreateScResponse, DivRemNativeAmountRequest, FunctionExistsRequest,
+        FunctionExistsResponse, GenerateEventRequest, LocalCallRequest,
+        LocalCallResponse, LogRequest, MulNativeAmountRequest,
+        NativeAddressFromStringRequest, NativeAddressFromStringResult,
+        NativeAddressToStringRequest, NativeAddressToStringResult,
+        NativeAmountFromStringRequest, NativeAmountToStringRequest,
+        NativeHashFromStringRequest, NativeHashFromStringResult,
+        NativeHashToStringRequest, NativeHashToStringResult,
+        NativePubKeyFromStringRequest, NativePubKeyFromStringResult,
+        NativePubKeyToStringRequest, NativePubKeyToStringResult,
+        NativeSigFromStringRequest, NativeSigFromStringResult,
+        NativeSigToStringRequest, NativeSigToStringResult, RespResult,
+        SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult, GenerateEventResult,
     },
     model::v1::{AddressCategory, NativeAddress, NativePubKey},
 };
@@ -181,16 +179,6 @@ pub fn register_abis(
                 &fn_env,
                 abi_native_amount_from_string,
             ),
-            "abi_native_amount_to_bytes" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_native_amount_to_bytes,
-            ),
-            "abi_native_amount_from_bytes" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_native_amount_from_bytes,
-            ),
 
 
             "abi_log" => Function::new_typed_with_env(store, &fn_env, abi_log),
@@ -334,7 +322,9 @@ pub fn abi_transfer_coins(
         "transfer_coins",
         store_env,
         arg_offset,
-        |handler, req: TransferCoinsRequest| -> Result<Empty, WasmV1Error> {
+        |handler,
+         req: TransferCoinsRequest|
+         -> Result<TransferCoinsResult, WasmV1Error> {
             let address = req.target_address.ok_or(
                 WasmV1Error::RuntimeError("No address provided".into()),
             )?;
@@ -361,7 +351,7 @@ pub fn abi_transfer_coins(
                     ))
                 })?;
 
-            Ok(Empty {})
+            Ok(TransferCoinsResult {})
         },
     )
 }
@@ -374,7 +364,9 @@ pub fn abi_generate_event(
         "generate_event",
         store_env,
         arg_offset,
-        |_handler, req: GenerateEventRequest| {
+        |_handler,
+         req: GenerateEventRequest|
+         -> Result<GenerateEventResult, WasmV1Error> {
             _handler
                 .interface
                 .generate_event(req.event)
@@ -385,7 +377,7 @@ pub fn abi_generate_event(
                     ))
                 })?;
 
-            Ok(Empty {})
+            Ok(GenerateEventResult {})
         },
     )
 }
@@ -889,32 +881,7 @@ pub fn abi_native_amount_from_string(
          -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
-pub fn abi_native_amount_to_bytes(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "native_amount_to_bytes",
-        store_env,
-        arg_offset,
-        |_handler,
-         req: NativeAmountToBytesRequest|
-         -> Result<AbiResponse, WasmV1Error> { todo!() },
-    )
-}
-pub fn abi_native_amount_from_bytes(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "native_amount_from_bytes",
-        store_env,
-        arg_offset,
-        |_handler,
-         req: NativeAmountFromBytesRequest|
-         -> Result<AbiResponse, WasmV1Error> { todo!() },
-    )
-}
+
 enum Category {
     Unspecified,
     User,
