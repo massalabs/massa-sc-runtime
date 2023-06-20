@@ -58,25 +58,38 @@ impl TryInto<String> for NativeHash {
 
 impl TryInto<NativeAddress> for String {
     fn try_into(&self) -> Result<NativeAddress, WasmV1Error> {
-        Ok(NativeAddress{ category: todo!(), version: todo!(), content: todo!() })
+        Ok(NativeAddress {
+            category: todo!(),
+            version: todo!(),
+            content: todo!(),
+        })
     }
 }
 
 impl TryInto<NativePubKey> for String {
     fn try_into(&self) -> Result<NativePubKey, WasmV1Error> {
-        Ok(NativePubKey{ version: todo!(), content: todo!() })
+        Ok(NativePubKey {
+            version: todo!(),
+            content: todo!(),
+        })
     }
 }
 
 impl TryInto<NativeSig> for String {
     fn try_into(&self) -> Result<NativeSig, WasmV1Error> {
-        Ok(NativeSig{ version: todo!(), content: todo!() })
+        Ok(NativeSig {
+            version: todo!(),
+            content: todo!(),
+        })
     }
 }
 
 impl TryInto<NativeHash> for String {
     fn try_into(&self) -> Result<NativeHash, WasmV1Error> {
-        Ok(NativeHash{ version: todo!(), content: todo!() })
+        Ok(NativeHash {
+            version: todo!(),
+            content: todo!(),
+        })
     }
 }
 

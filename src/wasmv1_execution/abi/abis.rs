@@ -14,8 +14,8 @@ use massa_proto_rs::massa::{
         CheckNativeAmountRequest, CheckNativeHashRequest,
         CheckNativePubKeyRequest, CheckNativePubKeyResult,
         CheckNativeSigRequest, CheckNativeSigResult, CreateScRequest,
-        CreateScResponse, DivRemNativeAmountRequest, FunctionExistsRequest,
-        FunctionExistsResponse, GenerateEventRequest, GenerateEventResult,
+        CreateScResult, DivRemNativeAmountRequest, FunctionExistsRequest,
+        FunctionExistsResult, GenerateEventRequest, GenerateEventResult,
         LocalCallRequest, LocalCallResponse, MulNativeAmountRequest,
         NativeAddressFromStringRequest, NativeAddressFromStringResult,
         NativeAddressToStringRequest, NativeAddressToStringResult,
@@ -287,25 +287,25 @@ pub(crate) fn abi_create_sc(
         "create_sc",
         store_env,
         arg_offset,
-        |handler, req: CreateScRequest| {
-            let address = handler
-                .interface
-                .create_module(&req.bytecode)
-                .map_err(|err| {
-                    WasmV1Error::RuntimeError(format!(
-                        "Could not create new smart contract: {}",
-                        err
-                    ))
-                })?;
+        |handler, req: CreateScRequest| -> Result<AbiResponse, WasmV1Error> {
+            let resp = match handler.interface.create_module(&req.bytecode) {
+                Ok(addr) => {
+                    tracing::warn!(
+                        "FIXME: NativeAddress version is hardcoded to 0"
+                    );
+                    let addr = NativeAddress {
+                        category: AddressCategory::ScAddress as i32,
+                        version: 0u64,
+                        content: addr.into_bytes(),
+                    };
+                    resp_res!(CreateScResult, {
+                        sc_address: Some(addr)
+                    })
+                }
+                Err(err) => resp_err!(err),
+            };
 
-            tracing::warn!("FIXME: NativeAddress version is hardcoded to 0");
-            Ok(CreateScResponse {
-                sc_address: Some(NativeAddress {
-                    category: AddressCategory::ScAddress as i32,
-                    version: 0u64,
-                    content: address.into_bytes(),
-                }),
-            })
+            Ok(response!(resp))
         },
     )
 }
@@ -412,10 +412,10 @@ fn abi_function_exists(
         arg_offset,
         |handler,
          req: FunctionExistsRequest|
-         -> Result<FunctionExistsResponse, WasmV1Error> {
-            let address = req.target_sc_address.ok_or_else(|| {
-                WasmV1Error::RuntimeError("No address provided".into())
-            })?;
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(address) = req.target_sc_address else {
+                return Ok(response!(resp_err!("No address provided")));
+            };
 
             let bytecode =
                 helper_get_bytecode(handler, TryInto::try_into(&address)?)?;
@@ -426,10 +426,16 @@ fn abi_function_exists(
                 handler.get_remaining_gas()
             };
 
-            Ok(FunctionExistsResponse {
-                exists: helper_get_module(handler, bytecode, remaining_gas)?
-                    .function_exists(&req.function_name),
-            })
+            let Ok(module) = helper_get_module(handler, bytecode, remaining_gas) else {
+                return Ok(response!(resp_res!(FunctionExistsResult, {
+                    exists: false
+                })));
+            };
+
+            let resp = resp_res!(FunctionExistsResult, {
+                exists: module.function_exists(&req.function_name) });
+
+            Ok(response!(resp))
         },
     )
 }
@@ -464,7 +470,6 @@ fn helper_get_module(
         })?;
     Ok(module)
 }
-
 
 pub fn abi_native_address_to_string(
     store_env: FunctionEnvMut<ABIEnv>,
