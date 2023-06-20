@@ -41,6 +41,7 @@ impl Interface for TestInterface {
         _to_address: &str,
         _raw_amount: u64,
     ) -> Result<()> {
+        println!("Transfer {} coins to {}", _raw_amount, _to_address);
         Ok(())
     }
 

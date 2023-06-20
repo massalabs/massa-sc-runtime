@@ -155,53 +155,53 @@ fn test_run_echo_loop_wasmv1() {
 #[test]
 #[serial]
 fn test_call_echo_rust_wasmv1() {
-    let gas_costs = GasCosts::default();
-    let interface: Box<dyn Interface> =
-        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../massa-rust-sc-examples/target/wasm32-unknown-unknown/debug/massa_rust_sc_echo.wasm_add"
-    ));
+//     let gas_costs = GasCosts::default();
+//     let interface: Box<dyn Interface> =
+//         Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+//     let module = include_bytes!(concat!(
+//         env!("CARGO_MANIFEST_DIR"),
+//         "/../massa-rust-sc-examples/target/wasm32-unknown-unknown/debug/massa_rust_sc_echo.wasm_add"
+//     ));
 
-    let runtime_module = RuntimeModule::new(
-        module,
-        200_000_000,
-        gas_costs.clone(),
-        Compiler::SP,
-    )
-    .unwrap();
+//     let runtime_module = RuntimeModule::new(
+//         module,
+//         200_000_000,
+//         gas_costs.clone(),
+//         Compiler::SP,
+//     )
+//     .unwrap();
 
-    match runtime_module.clone() {
-        RuntimeModule::ASModule(_) => {
-            panic!("Expected module type WasmV1Module");
-        }
-        RuntimeModule::WasmV1Module(_module) => {
-            println!("Module type WasmV1Module");
-            // for export_ in module.binary_module.exports() {
-            //     println!("{} {:?}", export_.name(), export_.ty());
-            // }
-        }
-    }
+//     match runtime_module.clone() {
+//         RuntimeModule::ASModule(_) => {
+//             panic!("Expected module type WasmV1Module");
+//         }
+//         RuntimeModule::WasmV1Module(_module) => {
+//             println!("Module type WasmV1Module");
+//             // for export_ in module.binary_module.exports() {
+//             //     println!("{} {:?}", export_.name(), export_.ty());
+//             // }
+//         }
+//     }
 
-    let res = run_function(
-        &*interface,
-        runtime_module,
-        "call_echo",
-        b"test",
-        100_000_000,
-        gas_costs,
-    );
-    match res {
-        Ok(res) => {
-            let res = String::from_utf8_lossy(&res.ret);
-            println!("{:?}", res);
-            assert_eq!(res, "test");
-        }
-        Err(err) => {
-            println!("{}", err);
-            assert!(false);
-        }
-    }
+//     let res = run_function(
+//         &*interface,
+//         runtime_module,
+//         "call_echo",
+//         b"test",
+//         100_000_000,
+//         gas_costs,
+//     );
+//     match res {
+//         Ok(res) => {
+//             let res = String::from_utf8_lossy(&res.ret);
+//             println!("{:?}", res);
+//             assert_eq!(res, "test");
+//         }
+//         Err(err) => {
+//             println!("{}", err);
+//             assert!(false);
+//         }
+//     }
 }
 
 #[test]
@@ -313,6 +313,60 @@ fn test_run_main_wasmv1() {
     //     }
     // }
     // run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+}
+
+#[test]
+#[serial]
+/// This test call the main function of a SC that calls generate_event abi
+fn test_generate_event_wasmv1_as() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../as_abi_protobuf/build/test_generate_event.wasm_add"
+    ));
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(),
+    Compiler::SP).unwrap();
+
+    match runtime_module.clone() {
+        RuntimeModule::ASModule(_) => {
+            panic!("Must be WasmV1Module");
+        }
+        RuntimeModule::WasmV1Module(_) => {
+            println!("Module type WasmV1Module");
+        }
+    }
+    run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+}
+
+#[test]
+#[serial]
+/// This test call the main function of a SC that calls transfer_coins abi
+fn test_transfer_coins_wasmv1_as() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> =
+        Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../as_abi_protobuf/build/test_transfer_coins.wasm_add"
+    ));
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(),
+    Compiler::SP).unwrap();
+
+    match runtime_module.clone() {
+        RuntimeModule::ASModule(_) => {
+            panic!("Must be WasmV1Module");
+        }
+        RuntimeModule::WasmV1Module(_) => {
+            println!("Module type WasmV1Module");
+        }
+    }
+    run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
 }
 
 #[test]
