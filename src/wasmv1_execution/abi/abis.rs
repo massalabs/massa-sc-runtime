@@ -39,29 +39,23 @@ use wasmer::{
 // ABI call.
 macro_rules! resp_err {
     ($err:expr) => {
-        abi_response::Resp::Error(proto::Error {
-            message: $err.to_string(),
-        })
-    };
-}
-
-// Same as resp_err but for the Result variant of the response.
-macro_rules! resp_res {
-    ($result:tt, { $($field:ident: $value:expr),* $(,)? }) => {
-        abi_response::Resp::Res(RespResult {
-            res:
-        Some(resp_result::Res::$result($result {
-            $($field: $value,)*
-        }))})
-    };
-}
-
-// This macro is used to construct a response to an ABI call.
-// It is used in the abi_* functions below.
-macro_rules! response {
-    ($response:expr) => {
         AbiResponse {
-            resp: Some($response),
+            resp: Some(abi_response::Resp::Error(proto::Error {
+                message: $err.to_string(),
+            })),
+        }
+    };
+}
+
+// Same as resp_err but for the ok variant of the response.
+macro_rules! resp_ok {
+    ($result:tt, { $($field:ident: $value:expr),* $(,)? }) => {
+        AbiResponse {
+            resp: Some(abi_response::Resp::Res(RespResult {
+                res: Some(resp_result::Res::$result($result {
+                    $($field: $value,)*
+                }))
+            }))
         }
     };
 }
@@ -298,14 +292,14 @@ pub(crate) fn abi_create_sc(
                         version: 0u64,
                         content: addr.into_bytes(),
                     };
-                    resp_res!(CreateScResult, {
+                    resp_ok!(CreateScResult, {
                         sc_address: Some(addr)
                     })
                 }
                 Err(err) => resp_err!(err),
             };
 
-            Ok(response!(resp))
+            Ok(resp)
         },
     )
 }
@@ -414,7 +408,7 @@ fn abi_function_exists(
          req: FunctionExistsRequest|
          -> Result<AbiResponse, WasmV1Error> {
             let Some(address) = req.target_sc_address else {
-                return Ok(response!(resp_err!("No address provided")));
+                return Ok(resp_err!("No address provided"));
             };
 
             let bytecode =
@@ -427,15 +421,14 @@ fn abi_function_exists(
             };
 
             let Ok(module) = helper_get_module(handler, bytecode, remaining_gas) else {
-                return Ok(response!(resp_res!(FunctionExistsResult, {
+                return Ok(resp_ok!(FunctionExistsResult, {
                     exists: false
-                })));
+                }));
+
             };
 
-            let resp = resp_res!(FunctionExistsResult, {
-                exists: module.function_exists(&req.function_name) });
-
-            Ok(response!(resp))
+            Ok(resp_ok!(FunctionExistsResult, {
+                exists: module.function_exists(&req.function_name) }))
         },
     )
 }
@@ -483,17 +476,15 @@ pub fn abi_native_address_to_string(
          req: NativeAddressToStringRequest|
          -> Result<AbiResponse, WasmV1Error> {
             let Some(address) = req.to_convert else {
-                return Ok(response!(resp_err!("No address to convert")));
+                return Ok(resp_err!("No address to convert"));
             };
 
-            let resp = match TryInto::try_into(&address) {
-                Ok(addr) => resp_res!(NativeAddressToStringResult, {
+            Ok(match TryInto::try_into(&address) {
+                Ok(addr) => resp_ok!(NativeAddressToStringResult, {
                     converted_address: addr,
                 }),
                 Err(err) => resp_err!(err),
-            };
-
-            Ok(response!(resp))
+            })
         },
     )
 }
@@ -509,20 +500,16 @@ pub fn abi_native_pubkey_to_string(
         |_handler,
          req: NativePubKeyToStringRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            use abi_response::Resp;
-
             let Some(pubkey) = req.to_convert else {
-                return Ok(response!(resp_err!("No pubkey to convert")));
+                return Ok(resp_err!("No pubkey to convert"));
             };
 
-            let resp = match TryInto::try_into(&pubkey) {
-                Ok(pubkey) => resp_res!(NativePubKeyToStringResult, {
+            Ok(match TryInto::try_into(&pubkey) {
+                Ok(pubkey) => resp_ok!(NativePubKeyToStringResult, {
                     converted_pubkey: pubkey,
                 }),
                 Err(err) => resp_err!(err),
-            };
-
-            Ok(response!(resp))
+            })
         },
     )
 }
@@ -539,18 +526,16 @@ pub fn abi_native_sig_to_string(
          req: NativeSigToStringRequest|
          -> Result<AbiResponse, WasmV1Error> {
             let Some(sig) = req.to_convert else {
-                return Ok(response!(resp_err!("No sig to convert")));
+                return Ok(resp_err!("No sig to convert"));
 
             };
 
-            let resp = match TryInto::try_into(&sig) {
+            Ok(match TryInto::try_into(&sig) {
                 Ok(sig) => {
-                    resp_res!(NativeSigToStringResult, { converted_sig: sig })
+                    resp_ok!(NativeSigToStringResult, { converted_sig: sig })
                 }
                 Err(err) => resp_err!(err),
-            };
-
-            Ok(response!(resp))
+            })
         },
     )
 }
@@ -567,17 +552,15 @@ pub fn abi_native_hash_to_string(
          req: NativeHashToStringRequest|
          -> Result<AbiResponse, WasmV1Error> {
             let Some(hash) = req.to_convert else {
-                return Ok(response!(resp_err!("No hash to convert")));
+                return Ok(resp_err!("No hash to convert"));
             };
 
-            let resp = match TryInto::try_into(&hash) {
-                Ok(hash) => resp_res!(NativeHashToStringResult, {
+            Ok(match TryInto::try_into(&hash) {
+                Ok(hash) => resp_ok!(NativeHashToStringResult, {
                     converted_hash: hash,
                 }),
                 Err(err) => resp_err!(err),
-            };
-
-            Ok(response!(resp))
+            })
         },
     )
 }
@@ -593,14 +576,12 @@ pub fn abi_native_address_from_string(
         |_handler,
          req: NativeAddressFromStringRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let resp = match TryInto::try_into(&req.to_convert) {
-                Ok(address) => resp_res!(NativeAddressFromStringResult, {
+            Ok(match TryInto::try_into(&req.to_convert) {
+                Ok(address) => resp_ok!(NativeAddressFromStringResult, {
                     converted_address: Some(address),
                 }),
                 Err(err) => resp_err!(err),
-            };
-
-            Ok(response!(resp))
+            })
         },
     )
 }
@@ -616,14 +597,12 @@ pub fn abi_native_pubkey_from_string(
         |_handler,
          req: NativePubKeyFromStringRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let resp = match TryInto::try_into(&req.to_convert) {
-                Ok(pubkey) => resp_res!(NativePubKeyFromStringResult, {
+            Ok(match TryInto::try_into(&req.to_convert) {
+                Ok(pubkey) => resp_ok!(NativePubKeyFromStringResult, {
                     converted_pubkey: Some(pubkey),
                 }),
                 Err(err) => resp_err!(err),
-            };
-
-            Ok(response!(resp))
+            })
         },
     )
 }
@@ -639,14 +618,12 @@ pub fn abi_native_sig_from_string(
         |_handler,
          req: NativeSigFromStringRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let resp = match TryInto::try_into(&req.to_convert) {
-                Ok(sig) => resp_res!(NativeSigFromStringResult, {
+            Ok(match TryInto::try_into(&req.to_convert) {
+                Ok(sig) => resp_ok!(NativeSigFromStringResult, {
                     converted_sig: Some(sig),
                 }),
                 Err(err) => resp_err!(err),
-            };
-
-            Ok(response!(resp))
+            })
         },
     )
 }
@@ -662,14 +639,12 @@ pub fn abi_native_hash_from_string(
         |_handler,
          req: NativeHashFromStringRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let resp = match TryInto::try_into(&req.to_convert) {
-                Ok(hash) => resp_res!(NativeHashFromStringResult, {
+            Ok(match TryInto::try_into(&req.to_convert) {
+                Ok(hash) => resp_ok!(NativeHashFromStringResult, {
                     converted_hash: Some(hash),
                 }),
                 Err(err) => resp_err!(err),
-            };
-
-            Ok(response!(resp))
+            })
         },
     )
 }
@@ -686,17 +661,15 @@ pub fn abi_check_native_address(
          req: CheckNativeAddressRequest|
          -> Result<AbiResponse, WasmV1Error> {
             let Some(address) = req.to_check else {
-                return Ok(response!(resp_err!("No address to check")));
+                return Ok(resp_err!("No address to check"));
             };
 
-            let resp = match address.is_valid() {
+            Ok(match address.is_valid() {
                 Ok(is_valid) => {
-                    resp_res!(CheckNativeAddressResult, { is_valid: is_valid })
+                    resp_ok!(CheckNativeAddressResult, { is_valid: is_valid })
                 }
                 Err(err) => resp_err!(err),
-            };
-
-            Ok(response!(resp))
+            })
         },
     )
 }
@@ -712,19 +685,17 @@ pub fn abi_check_native_pubkey(
          req: CheckNativePubKeyRequest|
          -> Result<AbiResponse, WasmV1Error> {
             let Some(pubkey) = req.to_check else {
-                return Ok(response!(resp_err!("No pubkey to check")));
+                return Ok(resp_err!("No pubkey to check"));
              };
 
-            let resp = match pubkey.is_valid() {
+            Ok(match pubkey.is_valid() {
                 Ok(is_valid) => {
-                    resp_res!(CheckNativePubKeyResult, { is_valid: is_valid
+                    resp_ok!(CheckNativePubKeyResult, { is_valid: is_valid
 
                     })
                 }
                 Err(err) => resp_err!(err),
-            };
-
-            Ok(response!(resp))
+            })
         },
     )
 }
@@ -740,17 +711,15 @@ pub fn abi_check_native_sig(
          req: CheckNativeSigRequest|
          -> Result<AbiResponse, WasmV1Error> {
             let Some(sig) = req.to_check else {
-                return Ok(response!(resp_err!("No sig to check")));
+                return Ok(resp_err!("No sig to check"));
             };
 
-            let resp = match sig.is_valid() {
+            Ok(match sig.is_valid() {
                 Ok(is_valid) => {
-                    resp_res!(CheckNativeSigResult, { is_valid: is_valid })
+                    resp_ok!(CheckNativeSigResult, { is_valid: is_valid })
                 }
                 Err(err) => resp_err!(err),
-            };
-
-            Ok(response!(resp))
+            })
         },
     )
 }
