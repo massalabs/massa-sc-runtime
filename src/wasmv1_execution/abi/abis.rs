@@ -16,17 +16,17 @@ use massa_proto_rs::massa::{
         CheckNativeSigRequest, CheckNativeSigResult, CreateScRequest,
         CreateScResult, DivRemNativeAmountRequest, FunctionExistsRequest,
         FunctionExistsResult, GenerateEventRequest, GenerateEventResult,
-        LocalCallRequest, LocalCallResponse, MulNativeAmountRequest,
-        NativeAddressFromStringRequest, NativeAddressFromStringResult,
-        NativeAddressToStringRequest, NativeAddressToStringResult,
-        NativeAmountFromStringRequest, NativeAmountToStringRequest,
-        NativeHashFromStringRequest, NativeHashFromStringResult,
-        NativeHashToStringRequest, NativeHashToStringResult,
-        NativePubKeyFromStringRequest, NativePubKeyFromStringResult,
-        NativePubKeyToStringRequest, NativePubKeyToStringResult,
-        NativeSigFromStringRequest, NativeSigFromStringResult,
-        NativeSigToStringRequest, NativeSigToStringResult, RespResult,
-        SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult,
+        MulNativeAmountRequest, NativeAddressFromStringRequest,
+        NativeAddressFromStringResult, NativeAddressToStringRequest,
+        NativeAddressToStringResult, NativeAmountFromStringRequest,
+        NativeAmountToStringRequest, NativeHashFromStringRequest,
+        NativeHashFromStringResult, NativeHashToStringRequest,
+        NativeHashToStringResult, NativePubKeyFromStringRequest,
+        NativePubKeyFromStringResult, NativePubKeyToStringRequest,
+        NativePubKeyToStringResult, NativeSigFromStringRequest,
+        NativeSigFromStringResult, NativeSigToStringRequest,
+        NativeSigToStringResult, RespResult, SubNativeAmountsRequest,
+        TransferCoinsRequest, TransferCoinsResult,
     },
     model::v1::{AddressCategory, NativeAddress, NativePubKey},
 };
@@ -241,7 +241,7 @@ pub(crate) fn abi_local_call(
         "local_call",
         store_env,
         arg_offset,
-        |handler, req: LocalCallRequest| {
+        |handler, req: CallRequest| {
             let address = req.target_sc_address.ok_or_else(|| {
                 WasmV1Error::RuntimeError("No address provided".into())
             })?;
@@ -267,7 +267,7 @@ pub(crate) fn abi_local_call(
             })?;
             handler.set_remaining_gas(response.remaining_gas);
 
-            Ok(LocalCallResponse { data: response.ret })
+            Ok(CallResponse { data: response.ret })
         },
     )
 }
