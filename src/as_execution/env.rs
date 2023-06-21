@@ -90,10 +90,11 @@ pub(crate) fn get_remaining_points(
     if cfg!(feature = "gas_calibration") {
         Ok(u64::MAX)
     } else {
+
         match env.get_exhausted_points().as_ref() {
             Some(exhausted_points) => match exhausted_points.get(store).try_into() {
-                Ok::<i32, _>(exhausted) if exhausted > 0 => return Ok(0),
-                Ok::<i32, _>(_) => (),
+                Ok::<u64, _>(exhausted) if exhausted > 0 => return Ok(0),
+                Ok::<u64, _>(_) => (),
                 Err(_) => abi_bail!("exhausted_points has wrong type"),
             },
             None => abi_bail!("Lost reference to exhausted_points"),
