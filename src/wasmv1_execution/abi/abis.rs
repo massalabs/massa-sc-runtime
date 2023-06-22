@@ -191,6 +191,7 @@ pub(crate) fn abi_call(
             let address = req.target_sc_address.ok_or_else(|| {
                 WasmV1Error::RuntimeError("No address provided".into())
             })?;
+            let address = native_address_to_string(handler, address)?;
 
             let amount = req.call_coins.ok_or_else(|| {
                 WasmV1Error::RuntimeError("No coins provided".into())
@@ -198,15 +199,12 @@ pub(crate) fn abi_call(
 
             let amount = handler
                 .interface
-                .native_amount_from_mantissa_scale(
-                    amount.mantissa,
-                    amount.scale,
-                )
+                .amount_from_mantissa_scale(amount.mantissa, amount.scale)
                 .map_err(|err| WasmV1Error::RuntimeError(err.to_string()))?;
 
             let bytecode = handler
                 .interface
-                .init_call(&TryInto::try_into(&address)?, amount)
+                .init_call(&address, amount)
                 .map_err(|err| {
                     WasmV1Error::RuntimeError(format!(
                         "Could not init call: {}",
@@ -241,6 +239,21 @@ pub(crate) fn abi_call(
     )
 }
 
+fn native_address_to_string(
+    handler: &mut super::handler::ABIHandler<'_, '_>,
+    address: NativeAddress,
+) -> Result<String, WasmV1Error> {
+    let address = handler
+        .interface
+        .native_address_to_string(
+            address.category,
+            address.version,
+            &address.content,
+        )
+        .map_err(|err| WasmV1Error::RuntimeError(err.to_string()))?;
+    Ok(address)
+}
+
 /// Alternative to `call_module` to execute bytecode in a local context
 pub(crate) fn abi_local_call(
     store_env: FunctionEnvMut<ABIEnv>,
@@ -255,8 +268,9 @@ pub(crate) fn abi_local_call(
                 WasmV1Error::RuntimeError("No address provided".into())
             })?;
 
-            let bytecode =
-                helper_get_bytecode(handler, TryInto::try_into(&address)?)?;
+            let address = native_address_to_string(handler, address)?;
+
+            let bytecode = helper_get_bytecode(handler, address)?;
             let remaining_gas = handler.get_remaining_gas();
             let module = helper_get_module(handler, bytecode, remaining_gas)?;
 
@@ -337,12 +351,12 @@ pub fn abi_transfer_coins(
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
             // true); }
 
-            let Ok(address) = TryInto::try_into(&address) else {
+            let Ok(address) = native_address_to_string(handler, address) else {
                 return resp_err!("Invalid address");
             };
 
             let Ok(raw_amount) =
-                handler.interface.native_amount_from_mantissa_scale(
+                handler.interface.amount_from_mantissa_scale(
                     amount.mantissa,
                     amount.scale
                 ) else {
@@ -425,7 +439,7 @@ fn abi_function_exists(
                 return resp_err!("No address provided");
             };
 
-            let Ok(address) = TryInto::try_into(&address) else {
+            let Ok(address) = native_address_to_string(handler, address) else {
                 return resp_err!("Invalid address");
             };
 
@@ -491,14 +505,14 @@ pub fn abi_native_address_to_string(
         "native_address_to_string",
         store_env,
         arg_offset,
-        |_handler,
+        |handler,
          req: NativeAddressToStringRequest|
          -> Result<AbiResponse, WasmV1Error> {
             let Some(address) = req.to_convert else {
                 return resp_err!("No address to convert");
             };
 
-            match TryInto::try_into(&address) {
+            match native_address_to_string(handler, address) {
                 Ok(addr) => resp_ok!(NativeAddressToStringResult, {
                     converted_address: addr,
                 }),
@@ -592,15 +606,23 @@ pub fn abi_native_address_from_string(
         "native_address_from_string",
         store_env,
         arg_offset,
-        |_handler,
+        |handler,
          req: NativeAddressFromStringRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            match TryInto::try_into(&req.to_convert) {
-                Ok(address) => resp_ok!(NativeAddressFromStringResult, {
-                    converted_address: Some(address),
-                }),
-                Err(err) => resp_err!(err),
-            }
+            let Ok((category, version, content)) =
+                handler.interface.native_address_from_str(&req.to_convert) else {
+                    return resp_err!("Could not parse address");
+                };
+
+            let address = NativeAddress {
+                category,
+                version,
+                content,
+            };
+
+            resp_ok!(NativeAddressFromStringResult, {
+                converted_address: Some(address),
+            })
         },
     )
 }
@@ -849,14 +871,14 @@ pub fn abi_native_amount_to_string(
             };
 
             let Ok(amount) =
-                handler.interface.native_amount_from_mantissa_scale(
+                handler.interface.amount_from_mantissa_scale(
                     amount.mantissa,
                     amount.scale,
                 ) else {
                     return resp_err!("Invalid amount");
                 };
 
-            match handler.interface.native_amount_to_string(amount) {
+            match handler.interface.amount_to_string(amount) {
                 Ok(amount) => {
                     resp_ok!(NativeAmountToStringResult, { converted_amount: amount })
                 }
@@ -865,6 +887,7 @@ pub fn abi_native_amount_to_string(
         },
     )
 }
+
 pub fn abi_native_amount_from_string(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
@@ -877,11 +900,11 @@ pub fn abi_native_amount_from_string(
          req: NativeAmountFromStringRequest|
          -> Result<AbiResponse, WasmV1Error> {
             let Ok(amount) =
-                handler.interface.native_amount_from_str(&req.to_convert) else {
+                handler.interface.amount_from_str(&req.to_convert) else {
                     return resp_err!("Invalid amount");
                 };
             let Ok((mantissa, scale))=
-                handler.interface.native_amount_to_mantissa_scale(amount) else {
+                handler.interface.amount_to_mantissa_scale(amount) else {
                     return resp_err!("Invalid amount");
                 };
             let amount = NativeAmount { mantissa, scale };
