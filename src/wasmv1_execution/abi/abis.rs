@@ -9,23 +9,25 @@ use super::{
 use massa_proto_rs::massa::{
     abi::v1::{
         self as proto, abi_response, resp_result, AbiResponse,
-        AddNativeAmountsRequest, CallRequest, CallResponse,
-        CheckNativeAddressRequest, CheckNativeAddressResult,
-        CheckNativeAmountRequest, CheckNativeHashRequest,
-        CheckNativePubKeyRequest, CheckNativePubKeyResult,
-        CheckNativeSigRequest, CheckNativeSigResult, CreateScRequest,
-        CreateScResult, DivRemNativeAmountRequest, FunctionExistsRequest,
-        FunctionExistsResult, GenerateEventRequest, GenerateEventResult,
-        MulNativeAmountRequest, NativeAddressFromStringRequest,
-        NativeAddressFromStringResult, NativeAddressToStringRequest,
-        NativeAddressToStringResult, NativeAmountFromStringRequest,
-        NativeAmountToStringRequest, NativeHashFromStringRequest,
-        NativeHashFromStringResult, NativeHashToStringRequest,
-        NativeHashToStringResult, NativePubKeyFromStringRequest,
-        NativePubKeyFromStringResult, NativePubKeyToStringRequest,
-        NativePubKeyToStringResult, NativeSigFromStringRequest,
-        NativeSigFromStringResult, NativeSigToStringRequest,
-        NativeSigToStringResult, RespResult, SubNativeAmountsRequest,
+        AddNativeAmountsRequest, AppendDataRequest, AppendDataResult,
+        CallRequest, CallResponse, CheckNativeAddressRequest,
+        CheckNativeAddressResult, CheckNativeAmountRequest,
+        CheckNativeHashRequest, CheckNativePubKeyRequest,
+        CheckNativePubKeyResult, CheckNativeSigRequest, CheckNativeSigResult,
+        CreateScRequest, CreateScResult, DeleteDataRequest, DeleteDataResult,
+        DivRemNativeAmountRequest, FunctionExistsRequest, FunctionExistsResult,
+        GenerateEventRequest, GenerateEventResult, GetDataRequest,
+        GetDataResult, HasDataRequest, HasDataResult, MulNativeAmountRequest,
+        NativeAddressFromStringRequest, NativeAddressFromStringResult,
+        NativeAddressToStringRequest, NativeAddressToStringResult,
+        NativeAmountFromStringRequest, NativeAmountToStringRequest,
+        NativeHashFromStringRequest, NativeHashFromStringResult,
+        NativeHashToStringRequest, NativeHashToStringResult,
+        NativePubKeyFromStringRequest, NativePubKeyFromStringResult,
+        NativePubKeyToStringRequest, NativePubKeyToStringResult,
+        NativeSigFromStringRequest, NativeSigFromStringResult,
+        NativeSigToStringRequest, NativeSigToStringResult, RespResult,
+        SetDataRequest, SetDataResult, SubNativeAmountsRequest,
         TransferCoinsRequest, TransferCoinsResult,
     },
     model::v1::{AddressCategory, NativeAddress, NativePubKey},
@@ -68,6 +70,11 @@ pub fn register_abis(
     let fn_env = FunctionEnv::new(store, shared_abi_env);
     imports! {
         "massa" => {
+            "abi_set_data" => Function::new_typed_with_env(store, &fn_env, abi_set_data),
+            "abi_get_data" => Function::new_typed_with_env(store, &fn_env, abi_get_data),
+            "abi_delete_data" => Function::new_typed_with_env(store, &fn_env, abi_delete_data),
+            "abi_append_data" => Function::new_typed_with_env(store, &fn_env, abi_append_data),
+            "abi_has_data" => Function::new_typed_with_env(store, &fn_env, abi_has_data),
             "abi_abort" => Function::new_typed_with_env(store, &fn_env, abi_abort),
             "abi_call" => Function::new_typed_with_env(store, &fn_env, abi_call),
             "abi_local_call" =>
@@ -394,6 +401,96 @@ fn abi_abort(
             dbg!(&msg);
 
             Err(WasmV1Error::RuntimeError(msg))
+        },
+    )
+}
+
+fn abi_set_data(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_set_data",
+        store_env,
+        arg_offset,
+        |handler, req: SetDataRequest| -> Result<AbiResponse, WasmV1Error> {
+            if let Err(e) = handler.interface.raw_set_data(&req.key, &req.value)
+            {
+                return resp_err!(format!("Failed to set data: {}", e));
+            }
+            resp_ok!(SetDataResult, {})
+        },
+    )
+}
+
+fn abi_get_data(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_data",
+        store_env,
+        arg_offset,
+        |handler, req: GetDataRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(data) = handler.interface.raw_get_data(&req.key) else
+            {
+                return resp_err!("Failed to get data");
+            };
+            resp_ok!(GetDataResult, { value: data })
+        },
+    )
+}
+
+fn abi_delete_data(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_delete_data",
+        store_env,
+        arg_offset,
+        |handler, req: DeleteDataRequest| -> Result<AbiResponse, WasmV1Error> {
+            if let Err(e) = handler.interface.raw_delete_data(&req.key) {
+                return resp_err!(format!("Failed to delete data: {}", e));
+            }
+            resp_ok!(DeleteDataResult, {})
+        },
+    )
+}
+
+fn abi_append_data(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_append_data",
+        store_env,
+        arg_offset,
+        |handler, req: AppendDataRequest| -> Result<AbiResponse, WasmV1Error> {
+            if let Err(e) =
+                handler.interface.raw_append_data(&req.key, &req.value)
+            {
+                return resp_err!(format!("Failed to append data: {}", e));
+            }
+            resp_ok!(AppendDataResult, {})
+        },
+    )
+}
+
+fn abi_has_data(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_has_data",
+        store_env,
+        arg_offset,
+        |handler, req: HasDataRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.has_data(&req.key) else
+            {
+                return resp_err!("Failed to check if data exists");
+            };
+            resp_ok!(HasDataResult, { has_data: res })
         },
     )
 }
