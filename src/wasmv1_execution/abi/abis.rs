@@ -22,7 +22,8 @@ use massa_proto_rs::massa::{
         HasDataResult, MulNativeAmountRequest, NativeAddressFromStringRequest,
         NativeAddressFromStringResult, NativeAddressToStringRequest,
         NativeAddressToStringResult, NativeAmountFromStringRequest,
-        NativeAmountToStringRequest, NativeHashFromStringRequest,
+        NativeAmountFromStringResult, NativeAmountToStringRequest,
+        NativeAmountToStringResult, NativeHashFromStringRequest,
         NativeHashFromStringResult, NativeHashToStringRequest,
         NativeHashToStringResult, NativePubKeyFromStringRequest,
         NativePubKeyFromStringResult, NativePubKeyToStringRequest,
@@ -31,7 +32,7 @@ use massa_proto_rs::massa::{
         NativeSigToStringResult, RespResult, SetDataRequest, SetDataResult,
         SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult,
     },
-    model::v1::{AddressCategory, NativeAddress, NativePubKey},
+    model::v1::{AddressCategory, NativeAddress, NativeAmount, NativePubKey},
 };
 
 use wasmer::{
@@ -213,12 +214,17 @@ pub(crate) fn abi_call(
                 WasmV1Error::RuntimeError("No coins provided".into())
             })?;
 
+            let amount = handler
+                .interface
+                .native_amount_from_mantissa_scale(
+                    amount.mantissa,
+                    amount.scale,
+                )
+                .map_err(|err| WasmV1Error::RuntimeError(err.to_string()))?;
+
             let bytecode = handler
                 .interface
-                .init_call(
-                    &TryInto::try_into(&address)?,
-                    TryInto::try_into(&amount)?,
-                )
+                .init_call(&TryInto::try_into(&address)?, amount)
                 .map_err(|err| {
                     WasmV1Error::RuntimeError(format!(
                         "Could not init call: {}",
@@ -409,8 +415,12 @@ pub fn abi_transfer_coins(
                 return resp_err!("Invalid address");
             };
 
-            let Ok(raw_amount) = TryInto::try_into( &amount) else {
-                return resp_err!("Invalid amount");
+            let Ok(raw_amount) =
+                handler.interface.native_amount_from_mantissa_scale(
+                    amount.mantissa,
+                    amount.scale
+                ) else {
+                    return resp_err!("Invalid amount");
             };
 
             let transfer_coins =
@@ -995,9 +1005,28 @@ pub fn abi_native_amount_to_string(
         "native_amount_to_string",
         store_env,
         arg_offset,
-        |_handler,
+        |handler,
          req: NativeAmountToStringRequest|
-         -> Result<AbiResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(amount) = req.to_convert else {
+                return resp_err!("No amount to convert");
+            };
+
+            let Ok(amount) =
+                handler.interface.native_amount_from_mantissa_scale(
+                    amount.mantissa,
+                    amount.scale,
+                ) else {
+                    return resp_err!("Invalid amount");
+                };
+
+            match handler.interface.native_amount_to_string(amount) {
+                Ok(amount) => {
+                    resp_ok!(NativeAmountToStringResult, { converted_amount: amount })
+                }
+                Err(err) => resp_err!(err),
+            }
+        },
     )
 }
 pub fn abi_native_amount_from_string(
@@ -1008,9 +1037,21 @@ pub fn abi_native_amount_from_string(
         "native_amount_from_string",
         store_env,
         arg_offset,
-        |_handler,
+        |handler,
          req: NativeAmountFromStringRequest|
-         -> Result<AbiResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> {
+            let Ok(amount) =
+                handler.interface.native_amount_from_str(&req.to_convert) else {
+                    return resp_err!("Invalid amount");
+                };
+            let Ok((mantissa, scale))=
+                handler.interface.native_amount_to_mantissa_scale(amount) else {
+                    return resp_err!("Invalid amount");
+                };
+            let amount = NativeAmount { mantissa, scale };
+
+            resp_ok!(NativeAmountFromStringResult, { converted_amount: Some(amount) })
+        },
     )
 }
 
