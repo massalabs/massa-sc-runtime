@@ -134,6 +134,10 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
+      - uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions-rs/cargo@v1
         with:
           command: clean
