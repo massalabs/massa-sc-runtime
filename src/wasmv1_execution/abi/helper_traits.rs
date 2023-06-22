@@ -117,13 +117,9 @@ impl Check for NativeHash {
     }
 }
 
-pub(crate) trait TryToU64 {
-    fn try_to_u64(&self) -> Result<u64, WasmV1Error>;
-}
-
 // TODO: this is a temporary implementation, need to manage denum
-impl TryToU64 for NativeAmount {
-    fn try_to_u64(&self) -> Result<u64, WasmV1Error> {
+impl TryInto<u64> for NativeAmount {
+    fn try_into(&self) -> Result<u64, WasmV1Error> {
         Ok(self.mantissa)
     }
 }
