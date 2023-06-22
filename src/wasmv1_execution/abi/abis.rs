@@ -323,19 +323,21 @@ pub(crate) fn abi_create_sc(
         store_env,
         arg_offset,
         |handler, req: CreateScRequest| -> Result<AbiResponse, WasmV1Error> {
-            match handler.interface.create_module(&req.bytecode) {
+            let addr = handler.interface.create_module(&req.bytecode);
+
+            match addr {
                 Ok(addr) => {
-                    tracing::warn!(
-                        "FIXME: NativeAddress version is hardcoded to 0"
-                    );
-                    let addr = NativeAddress {
-                        category: AddressCategory::ScAddress as i32,
-                        version: 0u64,
-                        content: addr.into_bytes(),
+                    let Ok((category, version, content)) =
+                    handler.interface.native_address_from_str(&addr) else {
+                        return resp_err!("Could not parse address");
                     };
-                    resp_ok!(CreateScResult, {
-                        sc_address: Some(addr)
-                    })
+
+                    let addr = NativeAddress {
+                        category,
+                        version,
+                        content,
+                    };
+                    resp_ok!(CreateScResult, { sc_address: Some(addr) })
                 }
                 Err(err) => resp_err!(err),
             }
@@ -459,7 +461,7 @@ pub fn abi_generate_event(
         arg_offset,
         |_handler,
          req: GenerateEventRequest|
-         -> Result<GenerateEventResult, WasmV1Error> {
+         -> Result<AbiResponse, WasmV1Error> {
             _handler
                 .interface
                 .generate_event(req.event)
@@ -470,7 +472,7 @@ pub fn abi_generate_event(
                     ))
                 })?;
 
-            Ok(GenerateEventResult {})
+            resp_ok!(GenerateEventResult, {})
         },
     )
 }
