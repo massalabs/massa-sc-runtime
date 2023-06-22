@@ -1,5 +1,5 @@
 use massa_proto_rs::massa::model::v1::{
-    NativeAddress, NativeAmount, NativeHash, NativePubKey, NativeSig,
+    NativeAddress, NativeHash, NativePubKey, NativeSig,
 };
 
 use crate::wasmv1_execution::WasmV1Error;
@@ -114,12 +114,5 @@ impl Check for NativeSig {
 impl Check for NativeHash {
     fn is_valid(&self) -> Result<bool, WasmV1Error> {
         Ok(todo!())
-    }
-}
-
-// TODO: this is a temporary implementation, need to manage denum
-impl TryInto<u64> for NativeAmount {
-    fn try_into(&self) -> Result<u64, WasmV1Error> {
-        Ok(self.mantissa)
     }
 }
