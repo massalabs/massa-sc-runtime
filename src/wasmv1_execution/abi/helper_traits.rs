@@ -12,17 +12,6 @@ pub(crate) trait Check {
     fn is_valid(&self) -> Result<bool, WasmV1Error>;
 }
 
-impl TryInto<String> for NativeAddress {
-    fn try_into(&self) -> Result<String, WasmV1Error> {
-        String::from_utf8(self.content.clone()).map_err(|err| {
-            WasmV1Error::RuntimeError(format!(
-                "Could not convert address to string: {}",
-                err
-            ))
-        })
-    }
-}
-
 impl TryInto<String> for NativePubKey {
     fn try_into(&self) -> Result<String, WasmV1Error> {
         String::from_utf8(self.content.clone()).map_err(|err| {
@@ -52,16 +41,6 @@ impl TryInto<String> for NativeHash {
                 "Could not convert hash to string: {}",
                 err
             ))
-        })
-    }
-}
-
-impl TryInto<NativeAddress> for String {
-    fn try_into(&self) -> Result<NativeAddress, WasmV1Error> {
-        Ok(NativeAddress {
-            category: todo!(),
-            version: todo!(),
-            content: todo!(),
         })
     }
 }
