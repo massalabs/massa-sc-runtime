@@ -317,14 +317,14 @@ fn test_run_main_wasmv1() {
 
 #[test]
 #[serial]
-/// Test basic main-only SC execution
+/// Test test_get_current_period_and_thread
 fn test_get_current_period_and_thread() {
      let gas_costs = GasCosts::default();
      let interface: Box<dyn Interface> =
          Box::new(TestInterface(Arc::new(Mutex::new(Ledger::new()))));
      let module = include_bytes!(concat!(
          env!("CARGO_MANIFEST_DIR"),
-         "/../as_abi_protobuf/build/test_period_thread.wasm"
+         "/../as_abi_protobuf/build/test_period_thread.wasm_add"
      ));
 
      let runtime_module =
