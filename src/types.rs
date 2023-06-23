@@ -1,4 +1,5 @@
 use anyhow::{anyhow, bail, Result};
+use massa_proto_rs::massa::model::v1::{NativePubKey, NativeSig};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -341,7 +342,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("hash")
     }
 
-    // Verify signature
+    // Verify signature (legacy)
     fn signature_verify(
         &self,
         data: &[u8],
@@ -349,6 +350,46 @@ pub trait Interface: Send + Sync + InterfaceClone {
         public_key: &str,
     ) -> Result<bool> {
         unimplemented!("signature_verify")
+    }
+
+    // Verify native signature
+    fn verify_native_signature(
+        &self,
+        signature: NativeSig,
+        message: &[u8],
+        public_key: NativePubKey,
+    ) -> Result<bool> {
+        unimplemented!("verify_native_signature")
+    }
+
+    // Verify EVM signature
+    fn verify_evm_signature(
+        &self,
+        signature: &[u8],
+        message: &[u8],
+        public_key: &[u8],
+    ) -> Result<bool> {
+        unimplemented!("verify_evm_signature")
+    }
+
+    // Verify BLS signature
+    fn verify_bls_signature(
+        &self,
+        signature: &[u8],
+        message: &[u8],
+        public_key: &[u8],
+    ) -> Result<bool> {
+        unimplemented!("verify_bls_signature")
+    }
+
+    // Verify BLS multi signature
+    fn verify_bls_multi_signature(
+        &self,
+        signature: &[u8],
+        message: &[u8],
+        public_keys: Vec<Vec<u8>>,
+    ) -> Result<bool> {
+        unimplemented!("verify_bls_multi_signature")
     }
 
     // Convert a public key to an address

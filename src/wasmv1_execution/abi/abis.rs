@@ -31,6 +31,10 @@ use massa_proto_rs::massa::{
         NativeSigFromStringResult, NativeSigToStringRequest,
         NativeSigToStringResult, RespResult, SetDataRequest, SetDataResult,
         SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult,
+        VerifyBlsMultiSigRequest, VerifyBlsMultiSigResult,
+        VerifyBlsSingleSigRequest, VerifyBlsSingleSigResult,
+        VerifyEvmSigRequest, VerifyEvmSigResult, VerifyNativeSigRequest,
+        VerifyNativeSigResult,
     },
     model::v1::{AddressCategory, NativeAddress, NativeAmount, NativePubKey},
 };
@@ -584,6 +588,92 @@ fn abi_has_data(
                 return resp_err!("Failed to check if data exists");
             };
             resp_ok!(HasDataResult, { has_data: res })
+        },
+    )
+}
+
+fn abi_verify_native_signature(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_verify_native_signature",
+        store_env,
+        arg_offset,
+        |handler,
+         req: VerifyNativeSigRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(sig) = req.sig else {
+                return resp_err!("No signature provided");
+            };
+            let Some(pub_key) = req.pub_key else {
+                return resp_err!("No public key provided");
+            };
+            let Ok(is_verified) = handler.interface.verify_native_signature(sig, &req.message, pub_key) else
+            {
+                return resp_err!("Native signature verification failed");
+            };
+            resp_ok!(VerifyNativeSigResult, { is_verified: is_verified })
+        },
+    )
+}
+
+fn abi_verify_evm_signature(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_verify_evm_signature",
+        store_env,
+        arg_offset,
+        |handler,
+         req: VerifyEvmSigRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Ok(is_verified) = handler.interface.verify_evm_signature(&req.sig, &req.message, &req.pub_key) else
+            {
+                return resp_err!("EVM signature verification failed");
+            };
+            resp_ok!(VerifyEvmSigResult, { is_verified: is_verified })
+        },
+    )
+}
+
+fn abi_verify_bls_signature(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_verify_bls_signature",
+        store_env,
+        arg_offset,
+        |handler,
+         req: VerifyBlsSingleSigRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Ok(is_verified) = handler.interface.verify_bls_signature(&req.sig, &req.message, &req.pub_key) else
+            {
+                return resp_err!("BLS signature verification failed");
+            };
+            resp_ok!(VerifyBlsSingleSigResult, { is_verified: is_verified })
+        },
+    )
+}
+
+fn abi_verify_bls_multi_signature(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_verify_bls_multi_signature",
+        store_env,
+        arg_offset,
+        |handler,
+         req: VerifyBlsMultiSigRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Ok(is_verified) = handler.interface.verify_bls_multi_signature(&req.sig, &req.message, req.pub_keys) else
+            {
+                return resp_err!("BLS multi signature verification failed");
+            };
+            resp_ok!(VerifyBlsMultiSigResult, { is_verified: is_verified })
         },
     )
 }
