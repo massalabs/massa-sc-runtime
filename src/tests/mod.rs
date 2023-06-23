@@ -2,7 +2,7 @@ use crate::as_execution::ASModule;
 use crate::types::{Interface, InterfaceClone};
 use crate::{Compiler, GasCosts, RuntimeModule};
 
-use anyhow::{bail, Result};
+use anyhow::Result;
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 

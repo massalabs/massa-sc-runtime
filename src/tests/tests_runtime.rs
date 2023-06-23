@@ -329,6 +329,33 @@ fn test_run_main_wasmv1() {
 
 #[test]
 #[serial]
+/// Test test_get_current_period_and_thread
+fn test_get_current_period_and_thread() {
+     let gas_costs = GasCosts::default();
+     let interface: Box<dyn Interface> =
+         Box::new(TestInterface);
+     let module = include_bytes!(concat!(
+         env!("CARGO_MANIFEST_DIR"),
+         "/../as_abi_protobuf/build/test_period_thread.wasm_add"
+     ));
+
+     let runtime_module =
+         RuntimeModule::new(module, 200_000, gas_costs.clone(),
+     Compiler::SP).unwrap();
+
+     match runtime_module.clone() {
+         RuntimeModule::ASModule(_) => {
+             println!("Module type ASModule");
+         }
+         RuntimeModule::WasmV1Module(_) => {
+             println!("Module type WasmV1Module");
+         }
+     }
+     run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+}
+
+#[test]
+#[serial]
 /// This test call the main function of a SC that calls generate_event abi
 fn test_generate_event_wasmv1_as() {
     // let gas_costs = GasCosts::default();
