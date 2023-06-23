@@ -455,6 +455,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn hash_sha256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
         unimplemented!("hash_sha256")
     }
+
+    // Keccak256 hash bytes
+    fn hash_keccak256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
+        unimplemented!("hash_keccak256")
+    }
 }
 
 impl dyn Interface {

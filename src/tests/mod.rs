@@ -291,6 +291,16 @@ impl Interface for TestInterface {
         Ok(hash)
     }
 
+    // Keccak256 hash data
+    fn hash_keccak256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
+        println!("Hash keccak256 with bytes {:?}", bytes);
+        // Todo: Find a keccak256 impl
+        let mut hasher = Sha256::new();
+        hasher.update(bytes);
+        let hash = hasher.finalize().into();
+        Ok(hash)
+    }
+
     /// Returns the native hash of the given bytes
     fn native_hash(&self, bytes: &[u8]) -> Result<NativeHash> {
         println!("Native hash with bytes {:?}", bytes);
