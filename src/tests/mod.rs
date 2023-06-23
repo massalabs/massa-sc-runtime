@@ -3,6 +3,7 @@ use crate::types::{Interface, InterfaceClone};
 use crate::{Compiler, GasCosts, RuntimeModule};
 
 use anyhow::Result;
+use massa_proto_rs::massa::model::v1::NativeHash;
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
@@ -287,6 +288,16 @@ impl Interface for TestInterface {
         let mut hasher = Sha256::new();
         hasher.update(bytes);
         let hash = hasher.finalize().into();
+        Ok(hash)
+    }
+
+    /// Returns the native hash of the given bytes
+    fn native_hash(&self, bytes: &[u8]) -> Result<NativeHash> {
+        println!("Native hash with bytes {:?}", bytes);
+
+        let hash_bytes = [0u8; 32];
+        let hash = NativeHash { version: 0, content: hash_bytes.to_vec() };
+
         Ok(hash)
     }
 }

@@ -1,4 +1,5 @@
 use anyhow::{anyhow, bail, Result};
+use massa_proto_rs::massa::model::v1::NativeHash;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -339,6 +340,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     // Hash data
     fn hash(&self, data: &[u8]) -> Result<[u8; 32]> {
         unimplemented!("hash")
+    }
+
+    /// Returns the native hash of the given bytes
+    fn native_hash(&self, bytes: &[u8]) -> Result<NativeHash> {
+        unimplemented!("native_hash")
     }
 
     // Verify signature
