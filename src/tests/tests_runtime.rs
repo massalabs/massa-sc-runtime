@@ -18,14 +18,14 @@ fn test_datastore_abis() {
     let interface = TestInterface;
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_datastore.wasm_add"
+        "/../as_abi_protobuf/build/test_datastore.wasm_add"
     ));
     let gas_costs = GasCosts::default();
 
     let runtime_module =
         RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP)
             .unwrap();
-    run_main(&interface, runtime_module, 100_000, gas_costs).unwrap();
+    run_main(&interface, runtime_module, 100_000_000, gas_costs).unwrap();
 }
 
 #[test]
