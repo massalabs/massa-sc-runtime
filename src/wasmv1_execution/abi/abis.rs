@@ -30,7 +30,7 @@ use massa_proto_rs::massa::{
         NativePubKeyToStringResult, NativeSigFromStringRequest,
         NativeSigFromStringResult, NativeSigToStringRequest,
         NativeSigToStringResult, RespResult, SetDataRequest, SetDataResult,
-        SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult,
+        SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult, NativeHashRequest, HashSha256Request, HashSha256Result, NativeHashResult, Keccak256Request, Keccak256Result,
     },
     model::v1::{AddressCategory, NativeAddress, NativeAmount, NativePubKey},
 };
@@ -191,6 +191,21 @@ pub fn register_abis(
                 store,
                 &fn_env,
                 abi_get_current_thread,
+            ),
+            "abi_native_hash" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_native_hash,
+            ),
+            "abi_hash_sha256" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_hash_sha256,
+            ),
+            "abi_hash_keccak256" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_hash_keccak256,
             ),
         },
     }
@@ -395,6 +410,86 @@ pub(crate) fn abi_get_current_thread(
                 Ok(thread) => resp_ok!(GetCurrentThreadResult, {
                     thread: thread as i32
                 }),
+                Err(err) => resp_err!(err),
+            }
+        },
+    )
+}
+
+/// performs a hash on a bytearray and returns the native_hash
+pub(crate) fn abi_native_hash(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "native_hash",
+        store_env,
+        arg_offset,
+        |handler,
+        req: NativeHashRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            // Do not remove this. It could be used for gas_calibration in
+            // future. if cfg!(feature = "gas_calibration") {
+            //     let fname = format!("massa.{}:0", function_name!());
+            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
+            // true); }
+            
+            match handler.interface.native_hash(&req.data) {
+                Ok(hash) => {
+                    resp_ok!(NativeHashResult, { hash: Some(hash) })
+                },
+                Err(err) => resp_err!(err),
+            }
+        },
+    )
+}
+
+/// performs a sha256 hash on byte array and returns the hash as byte array
+pub(crate) fn abi_hash_sha256(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "hash_sha256",
+        store_env,
+        arg_offset,
+        |handler,
+        req: HashSha256Request|
+         -> Result<AbiResponse, WasmV1Error> {
+            // Do not remove this. It could be used for gas_calibration in
+            // future. if cfg!(feature = "gas_calibration") {
+            //     let fname = format!("massa.{}:0", function_name!());
+            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
+            // true); }
+
+            match handler.interface.hash_sha256(&req.data) {
+                Ok(hash) => resp_ok!(HashSha256Result, { hash: hash.to_vec() }),
+                Err(err) => resp_err!(err),
+            }
+        },
+    )
+}
+
+/// performs a keccak256 hash on byte array and returns the hash as byte array
+pub(crate) fn abi_hash_keccak256(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "hash_keccak256",
+        store_env,
+        arg_offset,
+        |handler,
+        req: Keccak256Request|
+         -> Result<AbiResponse, WasmV1Error> {
+            // Do not remove this. It could be used for gas_calibration in
+            // future. if cfg!(feature = "gas_calibration") {
+            //     let fname = format!("massa.{}:0", function_name!());
+            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
+            // true); }
+
+            match handler.interface.hash_keccak256(&req.data) {
+                Ok(hash) => resp_ok!(Keccak256Result, { hash: hash.to_vec() }),
                 Err(err) => resp_err!(err),
             }
         },
