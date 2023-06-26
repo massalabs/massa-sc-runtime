@@ -1,5 +1,7 @@
 use anyhow::{anyhow, bail, Result};
-use massa_proto_rs::massa::model::v1::{NativeHash, Slot, NativeAddress, NativeAmount};
+use massa_proto_rs::massa::model::v1::{
+    NativeAddress, NativeAmount, NativeHash, Slot,
+};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -177,7 +179,10 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("get_balance_for")
     }
 
-    fn get_balance_wasmv1(&self, address: Option<NativeAddress>) -> Result<NativeAmount> {
+    fn get_balance_wasmv1(
+        &self,
+        address: Option<NativeAddress>,
+    ) -> Result<NativeAmount> {
         unimplemented!("get_balance_wasmv1")
     }
 
@@ -231,7 +236,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn raw_set_bytecode_wasmv1(
         &self,
         bytecode: &[u8],
-        address: Option<NativeAddress>
+        address: Option<NativeAddress>,
     ) -> Result<()> {
         unimplemented!("raw_set_bytecode_wasmv1")
     }
@@ -271,8 +276,12 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn raw_get_data_for(&self, address: &str, key: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("raw_get_data_for")
     }
-    
-    fn raw_get_data_wasmv1(&self, key: &[u8], address: Option<NativeAddress>) -> Result<Vec<u8>> {
+
+    fn raw_get_data_wasmv1(
+        &self,
+        key: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<Vec<u8>> {
         unimplemented!("raw_get_data_wasmv1")
     }
 
@@ -335,7 +344,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("raw_delete_data_for")
     }
 
-    fn raw_delete_data_wasmv1(&self, key: &[u8], address: Option<NativeAddress>) -> Result<()> {
+    fn raw_delete_data_wasmv1(
+        &self,
+        key: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<()> {
         unimplemented!("raw_delete_data_wasmv1")
     }
 
@@ -370,8 +383,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn raw_get_bytecode_for(&self, address: &str) -> Result<Vec<u8>> {
         unimplemented!("raw_get_bytecode_for")
     }
-    
-    fn raw_get_bytecode_wasmv1(&self, address: Option<NativeAddress>) -> Result<Vec<u8>> {
+
+    fn raw_get_bytecode_wasmv1(
+        &self,
+        address: Option<NativeAddress>,
+    ) -> Result<Vec<u8>> {
         unimplemented!("raw_get_bytecode_wasmv1")
     }
 
@@ -523,7 +539,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn hash_keccak256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
         unimplemented!("hash_keccak256")
     }
-  
+
     fn amount_from_mantissa_scale(
         &self,
         mantissa: u64,
@@ -614,7 +630,7 @@ impl dyn Interface {
         self.raw_set_data_wasmv1(
             key,
             serde_json::to_string::<T>(value)?.as_bytes(),
-            address
+            address,
         )
     }
 }

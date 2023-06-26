@@ -18,18 +18,20 @@ use massa_proto_rs::massa::{
         DivRemNativeAmountRequest, FunctionExistsRequest, FunctionExistsResult,
         GenerateEventRequest, GenerateEventResult, GetCurrentSlotRequest,
         GetCurrentSlotResult, GetDataRequest, GetDataResult, HasDataRequest,
-        HasDataResult, MulNativeAmountRequest, NativeAddressFromStringRequest,
-        NativeAddressFromStringResult, NativeAddressToStringRequest,
-        NativeAddressToStringResult, NativeAmountFromStringRequest,
-        NativeAmountFromStringResult, NativeAmountToStringRequest,
-        NativeAmountToStringResult, NativeHashFromStringRequest,
-        NativeHashFromStringResult, NativeHashToStringRequest,
+        HasDataResult, HashSha256Request, HashSha256Result, Keccak256Request,
+        Keccak256Result, MulNativeAmountRequest,
+        NativeAddressFromStringRequest, NativeAddressFromStringResult,
+        NativeAddressToStringRequest, NativeAddressToStringResult,
+        NativeAmountFromStringRequest, NativeAmountFromStringResult,
+        NativeAmountToStringRequest, NativeAmountToStringResult,
+        NativeHashFromStringRequest, NativeHashFromStringResult,
+        NativeHashRequest, NativeHashResult, NativeHashToStringRequest,
         NativeHashToStringResult, NativePubKeyFromStringRequest,
         NativePubKeyFromStringResult, NativePubKeyToStringRequest,
         NativePubKeyToStringResult, NativeSigFromStringRequest,
         NativeSigFromStringResult, NativeSigToStringRequest,
         NativeSigToStringResult, RespResult, SetDataRequest, SetDataResult,
-        SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult, NativeHashRequest, HashSha256Request, HashSha256Result, NativeHashResult, Keccak256Request, Keccak256Result,
+        SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult,
     },
     model::v1::{AddressCategory, NativeAddress, NativeAmount, NativePubKey},
 };
@@ -391,19 +393,17 @@ pub(crate) fn abi_native_hash(
         "native_hash",
         store_env,
         arg_offset,
-        |handler,
-        req: NativeHashRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: NativeHashRequest| -> Result<AbiResponse, WasmV1Error> {
             // Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
             // true); }
-            
+
             match handler.interface.native_hash(&req.data) {
                 Ok(hash) => {
                     resp_ok!(NativeHashResult, { hash: Some(hash) })
-                },
+                }
                 Err(err) => resp_err!(err),
             }
         },
@@ -419,9 +419,7 @@ pub(crate) fn abi_hash_sha256(
         "hash_sha256",
         store_env,
         arg_offset,
-        |handler,
-        req: HashSha256Request|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: HashSha256Request| -> Result<AbiResponse, WasmV1Error> {
             // Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
@@ -445,9 +443,7 @@ pub(crate) fn abi_hash_keccak256(
         "hash_keccak256",
         store_env,
         arg_offset,
-        |handler,
-        req: Keccak256Request|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: Keccak256Request| -> Result<AbiResponse, WasmV1Error> {
             // Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
@@ -474,7 +470,6 @@ pub fn abi_transfer_coins(
         |handler,
          req: TransferCoinsRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            
             let Some(address) = req.target_address else {
                 return resp_err!("No address provided");
             };
@@ -489,8 +484,11 @@ pub fn abi_transfer_coins(
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
             // true); }
 
-            let transfer_coins =
-                handler.interface.transfer_coins_wasmv1(address, amount, req.sender_address);
+            let transfer_coins = handler.interface.transfer_coins_wasmv1(
+                address,
+                amount,
+                req.sender_address,
+            );
             match transfer_coins {
                 Ok(_) => resp_ok!(TransferCoinsResult, {}),
                 Err(err) => {
@@ -557,8 +555,9 @@ fn abi_set_data(
         store_env,
         arg_offset,
         |handler, req: SetDataRequest| -> Result<AbiResponse, WasmV1Error> {
-
-            if let Err(e) = handler.interface.raw_set_data_wasmv1(&req.key, &req.value, None)
+            if let Err(e) = handler
+                .interface
+                .raw_set_data_wasmv1(&req.key, &req.value, None)
             {
                 return resp_err!(format!("Failed to set data: {}", e));
             }
@@ -594,7 +593,10 @@ fn abi_delete_data(
         store_env,
         arg_offset,
         |handler, req: DeleteDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            if let Err(e) = handler.interface.raw_delete_data_wasmv1(&req.key, req.address) {
+            if let Err(e) = handler
+                .interface
+                .raw_delete_data_wasmv1(&req.key, req.address)
+            {
                 return resp_err!(format!("Failed to delete data: {}", e));
             }
             resp_ok!(DeleteDataResult, {})
@@ -611,9 +613,11 @@ fn abi_append_data(
         store_env,
         arg_offset,
         |handler, req: AppendDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            if let Err(e) =
-                handler.interface.raw_append_data_wasmv1(&req.key, &req.value, req.address)
-            {
+            if let Err(e) = handler.interface.raw_append_data_wasmv1(
+                &req.key,
+                &req.value,
+                req.address,
+            ) {
                 return resp_err!(format!("Failed to append data: {}", e));
             }
             resp_ok!(AppendDataResult, {})

@@ -3,7 +3,9 @@ use crate::types::{Interface, InterfaceClone};
 use crate::{Compiler, GasCosts, RuntimeModule};
 
 use anyhow::Result;
-use massa_proto_rs::massa::model::v1::{NativeHash, Slot, NativeAmount, NativeAddress};
+use massa_proto_rs::massa::model::v1::{
+    NativeAddress, NativeAmount, NativeHash, Slot,
+};
 use sha2::{Digest, Sha256};
 use sha3::Keccak256;
 use std::collections::BTreeMap;
@@ -60,7 +62,10 @@ impl Interface for TestInterface {
                 );
             }
             None => {
-                println!("Transfer {:?} coins to {:?} from the current address", raw_amount, to_address);
+                println!(
+                    "Transfer {:?} coins to {:?} from the current address",
+                    raw_amount, to_address
+                );
             }
         }
         Ok(())
@@ -169,7 +174,10 @@ impl Interface for TestInterface {
     ) -> Result<()> {
         match address {
             Some(address) => {
-                println!("Raw append data for {:?} at {:?} with value {:?}", address, key, value);
+                println!(
+                    "Raw append data for {:?} at {:?} with value {:?}",
+                    address, key, value
+                );
             }
             None => {
                 println!("Raw append data at {:?} for current address with value {:?}", key, value);
@@ -188,7 +196,11 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn raw_delete_data_wasmv1(&self, key: &[u8], address: Option<NativeAddress>) -> Result<()> {
+    fn raw_delete_data_wasmv1(
+        &self,
+        key: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<()> {
         match address {
             Some(address) => {
                 println!("Raw delete data for {:?} at {:?}", address, key);
@@ -210,7 +222,11 @@ impl Interface for TestInterface {
         Ok(vec![])
     }
 
-    fn raw_get_data_wasmv1(&self, key: &[u8], address: Option<NativeAddress>) -> Result<Vec<u8>> {
+    fn raw_get_data_wasmv1(
+        &self,
+        key: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<Vec<u8>> {
         match address {
             Some(address) => {
                 println!("Raw get data for {:?} at {:?}", address, key);
@@ -248,10 +264,16 @@ impl Interface for TestInterface {
     ) -> Result<()> {
         match address {
             Some(address) => {
-                println!("Raw set data for {:?} at {:?} with value {:?}", address, key, value);
+                println!(
+                    "Raw set data for {:?} at {:?} with value {:?}",
+                    address, key, value
+                );
             }
             None => {
-                println!("Raw set data at {:?} for current address with value {:?}", key, value);
+                println!(
+                    "Raw set data at {:?} for current address with value {:?}",
+                    key, value
+                );
             }
         }
         Ok(())
@@ -284,8 +306,11 @@ impl Interface for TestInterface {
         println!("Get balance for");
         Ok(0)
     }
-    
-    fn get_balance_wasmv1(&self, address: Option<NativeAddress>) -> Result<NativeAmount> {
+
+    fn get_balance_wasmv1(
+        &self,
+        address: Option<NativeAddress>,
+    ) -> Result<NativeAmount> {
         match address {
             Some(address) => {
                 println!("Get balance for {:?}", address);
@@ -294,7 +319,10 @@ impl Interface for TestInterface {
                 println!("Get balance for current address");
             }
         }
-        Ok(NativeAmount {mantissa: 0, scale: 1})
+        Ok(NativeAmount {
+            mantissa: 0,
+            scale: 1,
+        })
     }
 
     fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
@@ -313,18 +341,24 @@ impl Interface for TestInterface {
         );
         Ok(())
     }
-    
+
     fn raw_set_bytecode_wasmv1(
         &self,
         bytecode: &[u8],
-        address: Option<NativeAddress>
+        address: Option<NativeAddress>,
     ) -> Result<()> {
         match address {
             Some(address) => {
-                println!("Raw set bytecode for {:?} with bytecode {:?}", address, bytecode);
+                println!(
+                    "Raw set bytecode for {:?} with bytecode {:?}",
+                    address, bytecode
+                );
             }
             None => {
-                println!("Raw set bytecode for current address with bytecode {:?}", bytecode);
+                println!(
+                    "Raw set bytecode for current address with bytecode {:?}",
+                    bytecode
+                );
             }
         }
         Ok(())
@@ -437,7 +471,10 @@ impl Interface for TestInterface {
         println!("Native hash with bytes {:?}", bytes);
 
         let hash_bytes = [0u8; 32];
-        let hash = NativeHash { version: 0, content: hash_bytes.to_vec() };
+        let hash = NativeHash {
+            version: 0,
+            content: hash_bytes.to_vec(),
+        };
 
         Ok(hash)
     }
