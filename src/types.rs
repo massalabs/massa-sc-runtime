@@ -460,6 +460,42 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn hash_keccak256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
         unimplemented!("hash_keccak256")
     }
+  
+    fn amount_from_mantissa_scale(
+        &self,
+        mantissa: u64,
+        scale: u32,
+    ) -> Result<u64> {
+        unimplemented!("amount_from_mantissa_scale")
+    }
+
+    fn amount_to_mantissa_scale(&self, amount: u64) -> Result<(u64, u32)> {
+        unimplemented!("amount_to_mantissa_scale")
+    }
+
+    fn amount_from_str(&self, amount: &str) -> Result<u64> {
+        unimplemented!("amount_from_str")
+    }
+
+    fn amount_to_string(&self, amount: u64) -> Result<String> {
+        unimplemented!("amount_to_string")
+    }
+
+    fn native_address_from_str(
+        &self,
+        address: &str,
+    ) -> Result<(i32, u64, Vec<u8>)> {
+        unimplemented!("native_address_from_str")
+    }
+
+    fn native_address_to_string(
+        &self,
+        category: i32,
+        version: u64,
+        content: &[u8],
+    ) -> Result<String> {
+        unimplemented!("native_address_to_string")
+    }
 }
 
 impl dyn Interface {
