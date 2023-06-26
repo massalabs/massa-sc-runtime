@@ -16,9 +16,8 @@ use massa_proto_rs::massa::{
         CheckNativePubKeyResult, CheckNativeSigRequest, CheckNativeSigResult,
         CreateScRequest, CreateScResult, DeleteDataRequest, DeleteDataResult,
         DivRemNativeAmountRequest, FunctionExistsRequest, FunctionExistsResult,
-        GenerateEventRequest, GenerateEventResult, GetCurrentPeriodRequest,
-        GetCurrentPeriodResult, GetCurrentThreadRequest,
-        GetCurrentThreadResult, GetDataRequest, GetDataResult, HasDataRequest,
+        GenerateEventRequest, GenerateEventResult, GetCurrentSlotRequest,
+        GetCurrentSlotResult, GetDataRequest, GetDataResult, HasDataRequest,
         HasDataResult, MulNativeAmountRequest, NativeAddressFromStringRequest,
         NativeAddressFromStringResult, NativeAddressToStringRequest,
         NativeAddressToStringResult, NativeAmountFromStringRequest,
@@ -182,15 +181,10 @@ pub fn register_abis(
                 &fn_env,
                 abi_native_amount_from_string,
             ),
-            "abi_get_current_period" => Function::new_typed_with_env(
+            "abi_get_current_slot" => Function::new_typed_with_env(
                 store,
                 &fn_env,
-                abi_get_current_period,
-            ),
-            "abi_get_current_thread" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_get_current_thread,
+                abi_get_current_slot,
             ),
             "abi_native_hash" => Function::new_typed_with_env(
                 store,
@@ -360,17 +354,17 @@ pub(crate) fn abi_create_sc(
     )
 }
 
-/// gets the period of the current execution slot
-pub(crate) fn abi_get_current_period(
+/// gets the current execution slot
+pub(crate) fn abi_get_current_slot(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
     handle_abi(
-        "get_current_period",
+        "get_current_slot",
         store_env,
         arg_offset,
         |handler,
-         _req: GetCurrentPeriodRequest|
+         _req: GetCurrentSlotRequest|
          -> Result<AbiResponse, WasmV1Error> {
             // Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
@@ -378,37 +372,9 @@ pub(crate) fn abi_get_current_period(
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
             // true); }
 
-            match handler.interface.get_current_period() {
-                Ok(period) => resp_ok!(GetCurrentPeriodResult, {
-                    period: period as i64
-                }),
-                Err(err) => resp_err!(err),
-            }
-        },
-    )
-}
-
-/// gets the thread of the current execution slot
-pub(crate) fn abi_get_current_thread(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "get_current_thread",
-        store_env,
-        arg_offset,
-        |handler,
-         _req: GetCurrentThreadRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            // Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = "gas_calibration") {
-            //     let fname = format!("massa.{}:0", function_name!());
-            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
-            // true); }
-
-            match handler.interface.get_current_thread() {
-                Ok(thread) => resp_ok!(GetCurrentThreadResult, {
-                    thread: thread as i32
+            match handler.interface.get_current_slot() {
+                Ok(slot) => resp_ok!(GetCurrentSlotResult, {
+                    slot: Some(slot)
                 }),
                 Err(err) => resp_err!(err),
             }

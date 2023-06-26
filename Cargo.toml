@@ -11,7 +11,7 @@ chrono = { version = "=0.4", features = ["clock"], default-features = false }
 displaydoc = "0.2"
 function_name = "0.3"
 loupe = "0.1"
-massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs", branch = "feature/Improve_ABI_types_in_wasmv1", features = ["tonic-build"]}
+massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs", branch = "feature/Improve_ABI_types_in_wasmv1_leo", features = ["tonic-build"]}
 more-asserts = "0.3"
 num_enum = "0.6.1"
 parking_lot = "0.12"
@@ -24,6 +24,7 @@ serde = "=1.0"
 serde_json = "=1.0"
 serial_test = "1.0.0"
 sha2 = "=0.10.6"
+sha3 = "=0.10.8"
 thiserror = "1.0"
 tracing = "0.1"
 wasmer = { version = "=3.3.0", features = ["static-artifact-create"] }

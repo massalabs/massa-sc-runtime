@@ -1,5 +1,5 @@
 use anyhow::{anyhow, bail, Result};
-use massa_proto_rs::massa::model::v1::NativeHash;
+use massa_proto_rs::massa::model::v1::{NativeHash, Slot};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -97,8 +97,7 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_get_balance_for"), 41);
         abi_costs.insert(String::from("assembly_script_get_call_coins"), 9);
         abi_costs.insert(String::from("assembly_script_get_call_stack"), 56);
-        abi_costs.insert(String::from("assembly_script_get_current_period"), 9);
-        abi_costs.insert(String::from("assembly_script_get_current_thread"), 8);
+        abi_costs.insert(String::from("assembly_script_get_current_slot"), 9);
         abi_costs.insert(String::from("assembly_script_get_data"), 85);
         abi_costs.insert(String::from("assembly_script_get_data_for"), 139);
         abi_costs.insert(String::from("assembly_script_get_keys"), 26);
@@ -390,6 +389,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Returns the thread of the current execution slot
     fn get_current_thread(&self) -> Result<u8> {
         unimplemented!("get_current_thread")
+    }
+
+    /// Returns the current execution slot
+    fn get_current_slot(&self) -> Result<Slot> {
+        unimplemented!("get_current_slot")
     }
 
     /// Expect to return a list of owned addresses

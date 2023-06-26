@@ -3,8 +3,9 @@ use crate::types::{Interface, InterfaceClone};
 use crate::{Compiler, GasCosts, RuntimeModule};
 
 use anyhow::Result;
-use massa_proto_rs::massa::model::v1::NativeHash;
+use massa_proto_rs::massa::model::v1::{NativeHash, Slot};
 use sha2::{Digest, Sha256};
+use sha3::Keccak256;
 use std::collections::BTreeMap;
 
 #[derive(Clone)]
@@ -73,6 +74,14 @@ impl Interface for TestInterface {
     fn get_current_thread(&self) -> Result<u8> {
         println!("Get current thread");
         Ok(0)
+    }
+
+    fn get_current_slot(&self) -> Result<Slot> {
+        println!("Get current slot");
+        Ok(Slot {
+            period: 0,
+            thread: 0,
+        })
     }
 
     fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule> {
@@ -294,10 +303,10 @@ impl Interface for TestInterface {
     // Keccak256 hash data
     fn hash_keccak256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
         println!("Hash keccak256 with bytes {:?}", bytes);
-        // Todo: Find a keccak256 impl
-        let mut hasher = Sha256::new();
+        let mut hasher = Keccak256::new();
         hasher.update(bytes);
         let hash = hasher.finalize().into();
+
         Ok(hash)
     }
 
