@@ -330,7 +330,7 @@ fn test_run_main_wasmv1() {
 #[test]
 #[serial]
 /// Test test_get_current_period_and_thread
-fn test_get_current_period_and_thread() {
+fn test_get_current_period_and_thread_wasmv1_as() {
      let gas_costs = GasCosts::default();
      let interface: Box<dyn Interface> =
          Box::new(TestInterface);
@@ -345,7 +345,7 @@ fn test_get_current_period_and_thread() {
 
      match runtime_module.clone() {
          RuntimeModule::ASModule(_) => {
-             println!("Module type ASModule");
+            panic!("Error: Module type ASModule, expected WasmV1Module!");
          }
          RuntimeModule::WasmV1Module(_) => {
              println!("Module type WasmV1Module");
@@ -357,7 +357,7 @@ fn test_get_current_period_and_thread() {
 #[test]
 #[serial]
 /// Test test_native_hash
-fn test_native_hash() {
+fn test_native_hash_wasmv1_as() {
      let gas_costs = GasCosts::default();
      let interface: Box<dyn Interface> =
          Box::new(TestInterface);
@@ -372,7 +372,7 @@ fn test_native_hash() {
 
      match runtime_module.clone() {
          RuntimeModule::ASModule(_) => {
-             println!("Module type ASModule");
+             panic!("Error: Module type ASModule, expected WasmV1Module!");
          }
          RuntimeModule::WasmV1Module(_) => {
              println!("Module type WasmV1Module");
