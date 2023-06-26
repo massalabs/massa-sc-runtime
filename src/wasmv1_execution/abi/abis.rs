@@ -474,6 +474,7 @@ pub fn abi_transfer_coins(
         |handler,
          req: TransferCoinsRequest|
          -> Result<AbiResponse, WasmV1Error> {
+            
             let Some(address) = req.target_address else {
                 return resp_err!("No address provided");
             };
@@ -488,20 +489,8 @@ pub fn abi_transfer_coins(
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
             // true); }
 
-            let Ok(address) = native_address_to_string(handler, address) else {
-                return resp_err!("Invalid address");
-            };
-
-            let Ok(raw_amount) =
-                handler.interface.amount_from_mantissa_scale(
-                    amount.mantissa,
-                    amount.scale
-                ) else {
-                    return resp_err!("Invalid amount");
-            };
-
             let transfer_coins =
-                handler.interface.transfer_coins(&address, raw_amount);
+                handler.interface.transfer_coins_wasmv1(address, amount, req.sender_address);
             match transfer_coins {
                 Ok(_) => resp_ok!(TransferCoinsResult, {}),
                 Err(err) => {
@@ -568,7 +557,8 @@ fn abi_set_data(
         store_env,
         arg_offset,
         |handler, req: SetDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            if let Err(e) = handler.interface.raw_set_data(&req.key, &req.value)
+
+            if let Err(e) = handler.interface.raw_set_data_wasmv1(&req.key, &req.value, None)
             {
                 return resp_err!(format!("Failed to set data: {}", e));
             }
@@ -586,7 +576,7 @@ fn abi_get_data(
         store_env,
         arg_offset,
         |handler, req: GetDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            let Ok(data) = handler.interface.raw_get_data(&req.key) else
+            let Ok(data) = handler.interface.raw_get_data_wasmv1(&req.key, req.address) else
             {
                 return resp_err!("Failed to get data");
             };
@@ -604,7 +594,7 @@ fn abi_delete_data(
         store_env,
         arg_offset,
         |handler, req: DeleteDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            if let Err(e) = handler.interface.raw_delete_data(&req.key) {
+            if let Err(e) = handler.interface.raw_delete_data_wasmv1(&req.key, req.address) {
                 return resp_err!(format!("Failed to delete data: {}", e));
             }
             resp_ok!(DeleteDataResult, {})
@@ -622,7 +612,7 @@ fn abi_append_data(
         arg_offset,
         |handler, req: AppendDataRequest| -> Result<AbiResponse, WasmV1Error> {
             if let Err(e) =
-                handler.interface.raw_append_data(&req.key, &req.value)
+                handler.interface.raw_append_data_wasmv1(&req.key, &req.value, req.address)
             {
                 return resp_err!(format!("Failed to append data: {}", e));
             }
@@ -640,7 +630,7 @@ fn abi_has_data(
         store_env,
         arg_offset,
         |handler, req: HasDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.has_data(&req.key) else
+            let Ok(res) = handler.interface.has_data_wasmv1(&req.key, req.address) else
             {
                 return resp_err!("Failed to check if data exists");
             };
