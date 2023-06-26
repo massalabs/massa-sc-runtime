@@ -351,7 +351,7 @@ fn test_get_current_period_and_thread() {
              println!("Module type WasmV1Module");
          }
      }
-     run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+     run_main(&*interface, runtime_module, 100_000_000, gas_costs).unwrap();
 }
 
 #[test]
@@ -378,7 +378,7 @@ fn test_native_hash() {
              println!("Module type WasmV1Module");
          }
      }
-     run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+     run_main(&*interface, runtime_module, 100_000_000, gas_costs).unwrap();
 }
 
 #[test]
