@@ -16,21 +16,22 @@ use massa_proto_rs::massa::{
         CheckNativePubKeyResult, CheckNativeSigRequest, CheckNativeSigResult,
         CreateScRequest, CreateScResult, DeleteDataRequest, DeleteDataResult,
         DivRemNativeAmountRequest, FunctionExistsRequest, FunctionExistsResult,
-        GenerateEventRequest, GenerateEventResult, GetCurrentPeriodRequest,
-        GetCurrentPeriodResult, GetCurrentThreadRequest,
-        GetCurrentThreadResult, GetDataRequest, GetDataResult, HasDataRequest,
-        HasDataResult, MulNativeAmountRequest, NativeAddressFromStringRequest,
-        NativeAddressFromStringResult, NativeAddressToStringRequest,
-        NativeAddressToStringResult, NativeAmountFromStringRequest,
-        NativeAmountFromStringResult, NativeAmountToStringRequest,
-        NativeAmountToStringResult, NativeHashFromStringRequest,
-        NativeHashFromStringResult, NativeHashToStringRequest,
+        GenerateEventRequest, GenerateEventResult, GetCurrentSlotRequest,
+        GetCurrentSlotResult, GetDataRequest, GetDataResult, HasDataRequest,
+        HasDataResult, HashSha256Request, HashSha256Result, Keccak256Request,
+        Keccak256Result, MulNativeAmountRequest,
+        NativeAddressFromStringRequest, NativeAddressFromStringResult,
+        NativeAddressToStringRequest, NativeAddressToStringResult,
+        NativeAmountFromStringRequest, NativeAmountFromStringResult,
+        NativeAmountToStringRequest, NativeAmountToStringResult,
+        NativeHashFromStringRequest, NativeHashFromStringResult,
+        NativeHashRequest, NativeHashResult, NativeHashToStringRequest,
         NativeHashToStringResult, NativePubKeyFromStringRequest,
         NativePubKeyFromStringResult, NativePubKeyToStringRequest,
         NativePubKeyToStringResult, NativeSigFromStringRequest,
         NativeSigFromStringResult, NativeSigToStringRequest,
         NativeSigToStringResult, RespResult, SetDataRequest, SetDataResult,
-        SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult, NativeHashRequest, HashSha256Request, HashSha256Result, NativeHashResult, Keccak256Request, Keccak256Result,
+        SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult,
     },
     model::v1::{AddressCategory, NativeAddress, NativeAmount, NativePubKey},
 };
@@ -182,15 +183,10 @@ pub fn register_abis(
                 &fn_env,
                 abi_native_amount_from_string,
             ),
-            "abi_get_current_period" => Function::new_typed_with_env(
+            "abi_get_current_slot" => Function::new_typed_with_env(
                 store,
                 &fn_env,
-                abi_get_current_period,
-            ),
-            "abi_get_current_thread" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_get_current_thread,
+                abi_get_current_slot,
             ),
             "abi_native_hash" => Function::new_typed_with_env(
                 store,
@@ -360,17 +356,17 @@ pub(crate) fn abi_create_sc(
     )
 }
 
-/// gets the period of the current execution slot
-pub(crate) fn abi_get_current_period(
+/// gets the current execution slot
+pub(crate) fn abi_get_current_slot(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
     handle_abi(
-        "get_current_period",
+        "get_current_slot",
         store_env,
         arg_offset,
         |handler,
-         _req: GetCurrentPeriodRequest|
+         _req: GetCurrentSlotRequest|
          -> Result<AbiResponse, WasmV1Error> {
             // Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
@@ -378,37 +374,9 @@ pub(crate) fn abi_get_current_period(
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
             // true); }
 
-            match handler.interface.get_current_period() {
-                Ok(period) => resp_ok!(GetCurrentPeriodResult, {
-                    period: period as i64
-                }),
-                Err(err) => resp_err!(err),
-            }
-        },
-    )
-}
-
-/// gets the thread of the current execution slot
-pub(crate) fn abi_get_current_thread(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "get_current_thread",
-        store_env,
-        arg_offset,
-        |handler,
-         _req: GetCurrentThreadRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            // Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = "gas_calibration") {
-            //     let fname = format!("massa.{}:0", function_name!());
-            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
-            // true); }
-
-            match handler.interface.get_current_thread() {
-                Ok(thread) => resp_ok!(GetCurrentThreadResult, {
-                    thread: thread as i32
+            match handler.interface.get_current_slot() {
+                Ok(slot) => resp_ok!(GetCurrentSlotResult, {
+                    slot: Some(slot)
                 }),
                 Err(err) => resp_err!(err),
             }
@@ -425,19 +393,17 @@ pub(crate) fn abi_native_hash(
         "native_hash",
         store_env,
         arg_offset,
-        |handler,
-        req: NativeHashRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: NativeHashRequest| -> Result<AbiResponse, WasmV1Error> {
             // Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
             // true); }
-            
+
             match handler.interface.native_hash(&req.data) {
                 Ok(hash) => {
                     resp_ok!(NativeHashResult, { hash: Some(hash) })
-                },
+                }
                 Err(err) => resp_err!(err),
             }
         },
@@ -453,9 +419,7 @@ pub(crate) fn abi_hash_sha256(
         "hash_sha256",
         store_env,
         arg_offset,
-        |handler,
-        req: HashSha256Request|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: HashSha256Request| -> Result<AbiResponse, WasmV1Error> {
             // Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
@@ -479,9 +443,7 @@ pub(crate) fn abi_hash_keccak256(
         "hash_keccak256",
         store_env,
         arg_offset,
-        |handler,
-        req: Keccak256Request|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: Keccak256Request| -> Result<AbiResponse, WasmV1Error> {
             // Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
@@ -522,20 +484,11 @@ pub fn abi_transfer_coins(
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
             // true); }
 
-            let Ok(address) = native_address_to_string(handler, address) else {
-                return resp_err!("Invalid address");
-            };
-
-            let Ok(raw_amount) =
-                handler.interface.amount_from_mantissa_scale(
-                    amount.mantissa,
-                    amount.scale
-                ) else {
-                    return resp_err!("Invalid amount");
-            };
-
-            let transfer_coins =
-                handler.interface.transfer_coins(&address, raw_amount);
+            let transfer_coins = handler.interface.transfer_coins_wasmv1(
+                address,
+                amount,
+                req.sender_address,
+            );
             match transfer_coins {
                 Ok(_) => resp_ok!(TransferCoinsResult, {}),
                 Err(err) => {
@@ -602,7 +555,9 @@ fn abi_set_data(
         store_env,
         arg_offset,
         |handler, req: SetDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            if let Err(e) = handler.interface.raw_set_data(&req.key, &req.value)
+            if let Err(e) = handler
+                .interface
+                .raw_set_data_wasmv1(&req.key, &req.value, None)
             {
                 return resp_err!(format!("Failed to set data: {}", e));
             }
@@ -620,7 +575,7 @@ fn abi_get_data(
         store_env,
         arg_offset,
         |handler, req: GetDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            let Ok(data) = handler.interface.raw_get_data(&req.key) else
+            let Ok(data) = handler.interface.raw_get_data_wasmv1(&req.key, req.address) else
             {
                 return resp_err!("Failed to get data");
             };
@@ -638,7 +593,10 @@ fn abi_delete_data(
         store_env,
         arg_offset,
         |handler, req: DeleteDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            if let Err(e) = handler.interface.raw_delete_data(&req.key) {
+            if let Err(e) = handler
+                .interface
+                .raw_delete_data_wasmv1(&req.key, req.address)
+            {
                 return resp_err!(format!("Failed to delete data: {}", e));
             }
             resp_ok!(DeleteDataResult, {})
@@ -655,9 +613,11 @@ fn abi_append_data(
         store_env,
         arg_offset,
         |handler, req: AppendDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            if let Err(e) =
-                handler.interface.raw_append_data(&req.key, &req.value)
-            {
+            if let Err(e) = handler.interface.raw_append_data_wasmv1(
+                &req.key,
+                &req.value,
+                req.address,
+            ) {
                 return resp_err!(format!("Failed to append data: {}", e));
             }
             resp_ok!(AppendDataResult, {})
@@ -674,7 +634,7 @@ fn abi_has_data(
         store_env,
         arg_offset,
         |handler, req: HasDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.has_data(&req.key) else
+            let Ok(res) = handler.interface.has_data_wasmv1(&req.key, req.address) else
             {
                 return resp_err!("Failed to check if data exists");
             };

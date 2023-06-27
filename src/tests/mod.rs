@@ -3,8 +3,11 @@ use crate::types::{Interface, InterfaceClone};
 use crate::{Compiler, GasCosts, RuntimeModule};
 
 use anyhow::Result;
-use massa_proto_rs::massa::model::v1::NativeHash;
+use massa_proto_rs::massa::model::v1::{
+    NativeAddress, NativeAmount, NativeHash, Slot,
+};
 use sha2::{Digest, Sha256};
+use sha3::Keccak256;
 use std::collections::BTreeMap;
 
 #[derive(Clone)]
@@ -27,11 +30,6 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn get_balance(&self) -> Result<u64> {
-        println!("Get balance");
-        Ok(0)
-    }
-
     fn transfer_coins(&self, to_address: &str, raw_amount: u64) -> Result<()> {
         println!("Transfer {} coins to {}", raw_amount, to_address);
         Ok(())
@@ -47,6 +45,29 @@ impl Interface for TestInterface {
             "Transfer {} coins from {} to {}",
             raw_amount, from_address, to_address
         );
+        Ok(())
+    }
+
+    fn transfer_coins_wasmv1(
+        &self,
+        to_address: NativeAddress,
+        raw_amount: NativeAmount,
+        from_address: Option<NativeAddress>,
+    ) -> Result<()> {
+        match from_address {
+            Some(from_address) => {
+                println!(
+                    "Transfer {:?} coins from {:?} to {:?}",
+                    raw_amount, from_address, to_address
+                );
+            }
+            None => {
+                println!(
+                    "Transfer {:?} coins to {:?} from the current address",
+                    raw_amount, to_address
+                );
+            }
+        }
         Ok(())
     }
 
@@ -75,6 +96,14 @@ impl Interface for TestInterface {
         Ok(0)
     }
 
+    fn get_current_slot(&self) -> Result<Slot> {
+        println!("Get current slot");
+        Ok(Slot {
+            period: 0,
+            thread: 0,
+        })
+    }
+
     fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule> {
         println!("Get module");
         let as_module =
@@ -95,6 +124,22 @@ impl Interface for TestInterface {
 
     fn has_data_for(&self, address: &str, key: &[u8]) -> Result<bool> {
         println!("Has data for {} at {:?}", address, key);
+        Ok(false)
+    }
+
+    fn has_data_wasmv1(
+        &self,
+        key: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<bool> {
+        match address {
+            Some(address) => {
+                println!("Has data for {:?} at {:?}", address, key);
+            }
+            None => {
+                println!("Has data at {:?} for current address", key);
+            }
+        }
         Ok(false)
     }
 
@@ -121,6 +166,26 @@ impl Interface for TestInterface {
         Ok(())
     }
 
+    fn raw_append_data_wasmv1(
+        &self,
+        key: &[u8],
+        value: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<()> {
+        match address {
+            Some(address) => {
+                println!(
+                    "Raw append data for {:?} at {:?} with value {:?}",
+                    address, key, value
+                );
+            }
+            None => {
+                println!("Raw append data at {:?} for current address with value {:?}", key, value);
+            }
+        }
+        Ok(())
+    }
+
     fn raw_delete_data(&self, key: &[u8]) -> Result<()> {
         println!("Raw delete data at {:?}", key);
         Ok(())
@@ -131,8 +196,45 @@ impl Interface for TestInterface {
         Ok(())
     }
 
+    fn raw_delete_data_wasmv1(
+        &self,
+        key: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<()> {
+        match address {
+            Some(address) => {
+                println!("Raw delete data for {:?} at {:?}", address, key);
+            }
+            None => {
+                println!("Raw delete data at {:?} for current address", key);
+            }
+        }
+        Ok(())
+    }
+
+    fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>> {
+        println!("Raw get data at {:?}", key);
+        Ok(vec![])
+    }
+
     fn raw_get_data_for(&self, address: &str, key: &[u8]) -> Result<Vec<u8>> {
         println!("Raw get data for {} at {:?}", address, key);
+        Ok(vec![])
+    }
+
+    fn raw_get_data_wasmv1(
+        &self,
+        key: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<Vec<u8>> {
+        match address {
+            Some(address) => {
+                println!("Raw get data for {:?} at {:?}", address, key);
+            }
+            None => {
+                println!("Raw get data at {:?} for current address", key);
+            }
+        }
         Ok(vec![])
     }
 
@@ -154,6 +256,29 @@ impl Interface for TestInterface {
         Ok(())
     }
 
+    fn raw_set_data_wasmv1(
+        &self,
+        key: &[u8],
+        value: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<()> {
+        match address {
+            Some(address) => {
+                println!(
+                    "Raw set data for {:?} at {:?} with value {:?}",
+                    address, key, value
+                );
+            }
+            None => {
+                println!(
+                    "Raw set data at {:?} for current address with value {:?}",
+                    key, value
+                );
+            }
+        }
+        Ok(())
+    }
+
     fn signature_verify(
         &self,
         data: &[u8],
@@ -172,9 +297,37 @@ impl Interface for TestInterface {
         Ok(0)
     }
 
+    fn get_balance(&self) -> Result<u64> {
+        println!("Get balance");
+        Ok(0)
+    }
+
     fn get_balance_for(&self, _address: &str) -> Result<u64> {
         println!("Get balance for");
         Ok(0)
+    }
+
+    fn get_balance_wasmv1(
+        &self,
+        address: Option<NativeAddress>,
+    ) -> Result<NativeAmount> {
+        match address {
+            Some(address) => {
+                println!("Get balance for {:?}", address);
+            }
+            None => {
+                println!("Get balance for current address");
+            }
+        }
+        Ok(NativeAmount {
+            mantissa: 0,
+            scale: 1,
+        })
+    }
+
+    fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
+        println!("Raw set bytecode with bytecode {:?}", bytecode);
+        Ok(())
     }
 
     fn raw_set_bytecode_for(
@@ -189,19 +342,31 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
-        println!("Raw set bytecode with bytecode {:?}", bytecode);
+    fn raw_set_bytecode_wasmv1(
+        &self,
+        bytecode: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<()> {
+        match address {
+            Some(address) => {
+                println!(
+                    "Raw set bytecode for {:?} with bytecode {:?}",
+                    address, bytecode
+                );
+            }
+            None => {
+                println!(
+                    "Raw set bytecode for current address with bytecode {:?}",
+                    bytecode
+                );
+            }
+        }
         Ok(())
     }
 
     fn print(&self, message: &str) -> Result<()> {
         println!("Print {}", message);
         Ok(())
-    }
-
-    fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>> {
-        println!("Raw get data at {:?}", key);
-        Ok(vec![])
     }
 
     fn get_call_coins(&self) -> Result<u64> {
@@ -294,10 +459,10 @@ impl Interface for TestInterface {
     // Keccak256 hash data
     fn hash_keccak256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
         println!("Hash keccak256 with bytes {:?}", bytes);
-        // Todo: Find a keccak256 impl
-        let mut hasher = Sha256::new();
+        let mut hasher = Keccak256::new();
         hasher.update(bytes);
         let hash = hasher.finalize().into();
+
         Ok(hash)
     }
 
@@ -306,7 +471,10 @@ impl Interface for TestInterface {
         println!("Native hash with bytes {:?}", bytes);
 
         let hash_bytes = [0u8; 32];
-        let hash = NativeHash { version: 0, content: hash_bytes.to_vec() };
+        let hash = NativeHash {
+            version: 0,
+            content: hash_bytes.to_vec(),
+        };
 
         Ok(hash)
     }
