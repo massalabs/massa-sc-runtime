@@ -959,7 +959,7 @@ dependencies = [
 [[package]]
 name = "massa-proto-rs"
 version = "0.1.0"
-source = "git+https://github.com/massalabs/massa-proto-rs?branch=feature/Improve_ABI_types_in_wasmv1_leo#8ab381cfd91a411275d57ce67082273f180c2147"
+source = "git+https://github.com/massalabs/massa-proto-rs?branch=feature/Improve_ABI_types_in_wasmv1#a1afa1ece8933cd717ff14f2562162b10873aa46"
 dependencies = [
  "glob",
  "prost",
