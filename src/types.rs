@@ -113,7 +113,6 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_has_data_for"), 115);
         abi_costs.insert(String::from("assembly_script_has_op_key"), 78);
         abi_costs.insert(String::from("assembly_script_hash"), 83);
-        // keccak
         abi_costs.insert(String::from("assembly_script_keccak256_hash"), 83);
         abi_costs.insert(String::from("assembly_script_print"), 35);
         abi_costs.insert(String::from("assembly_script_send_message"), 316);
@@ -122,9 +121,8 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_set_data"), 158);
         abi_costs.insert(String::from("assembly_script_set_data_for"), 165);
         abi_costs.insert(String::from("assembly_script_signature_verify"), 98);
-        // evm verify
         abi_costs
-            .insert(String::from("assembly_script_evm_signature_verify"), 98);
+            .insert(String::from("assembly_script_evm_signature_verify"), 264);
         abi_costs.insert(String::from("assembly_script_transfer_coins"), 62);
         abi_costs
             .insert(String::from("assembly_script_transfer_coins_for"), 102);
