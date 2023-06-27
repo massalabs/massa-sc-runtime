@@ -599,12 +599,14 @@ impl dyn Interface {
         key: &[u8],
         address: Option<NativeAddress>,
     ) -> Result<T> {
+        // TODO: Avoid using this many conversions, protobuf serialization should be enough
         Ok(serde_json::from_str::<T>(std::str::from_utf8(
             &self.raw_get_data_wasmv1(key, address)?,
         )?)?)
     }
 
     pub fn set_data<T: Serialize>(&self, key: &[u8], value: &T) -> Result<()> {
+        // TODO: Avoid using this many conversions, protobuf serialization should be enough
         self.raw_set_data(key, serde_json::to_string::<T>(value)?.as_bytes())
     }
 
