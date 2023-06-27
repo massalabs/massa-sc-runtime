@@ -33,7 +33,13 @@ wasmer-compiler-singlepass = "=3.3.0"
 wasmer-middlewares = "=3.3.0"
 wasmer-types = "=3.3.0"
 
+[build-dependencies]
+serde = "=1.0"
+serde_json = "=1.0"
+which = "4.4.0"
+
 [features]
 gas_calibration = []
 testing = []
 dumper = []
+build-wasm = []
