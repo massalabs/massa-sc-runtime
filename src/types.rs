@@ -113,6 +113,8 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_has_data_for"), 115);
         abi_costs.insert(String::from("assembly_script_has_op_key"), 78);
         abi_costs.insert(String::from("assembly_script_hash"), 83);
+        // keccak
+        abi_costs.insert(String::from("assembly_script_keccak256_hash"), 83);
         abi_costs.insert(String::from("assembly_script_print"), 35);
         abi_costs.insert(String::from("assembly_script_send_message"), 316);
         abi_costs.insert(String::from("assembly_script_set_bytecode"), 74);
@@ -120,6 +122,9 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_set_data"), 158);
         abi_costs.insert(String::from("assembly_script_set_data_for"), 165);
         abi_costs.insert(String::from("assembly_script_signature_verify"), 98);
+        // evm verify
+        abi_costs
+            .insert(String::from("assembly_script_evm_signature_verify"), 98);
         abi_costs.insert(String::from("assembly_script_transfer_coins"), 62);
         abi_costs
             .insert(String::from("assembly_script_transfer_coins_for"), 102);
@@ -355,8 +360,8 @@ pub trait Interface: Send + Sync + InterfaceClone {
     // Verify native signature
     fn verify_native_signature(
         &self,
-        signature: NativeSig,
         message: &[u8],
+        signature: NativeSig,
         public_key: NativePubKey,
     ) -> Result<bool> {
         unimplemented!("verify_native_signature")
@@ -365,8 +370,8 @@ pub trait Interface: Send + Sync + InterfaceClone {
     // Verify EVM signature
     fn verify_evm_signature(
         &self,
-        signature: &[u8],
         message: &[u8],
+        signature: &[u8],
         public_key: &[u8],
     ) -> Result<bool> {
         unimplemented!("verify_evm_signature")

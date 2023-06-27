@@ -611,7 +611,7 @@ fn abi_verify_native_signature(
             let Some(pub_key) = req.pub_key else {
                 return resp_err!("No public key provided");
             };
-            let Ok(is_verified) = handler.interface.verify_native_signature(sig, &req.message, pub_key) else
+            let Ok(is_verified) = handler.interface.verify_native_signature(&req.message, sig,  pub_key) else
             {
                 return resp_err!("Native signature verification failed");
             };
@@ -631,7 +631,7 @@ fn abi_verify_evm_signature(
         |handler,
          req: VerifyEvmSigRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let Ok(is_verified) = handler.interface.verify_evm_signature(&req.sig, &req.message, &req.pub_key) else
+            let Ok(is_verified) = handler.interface.verify_evm_signature(&req.message, &req.sig, &req.pub_key) else
             {
                 return resp_err!("EVM signature verification failed");
             };
