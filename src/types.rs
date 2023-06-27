@@ -471,6 +471,10 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("hash_sha256")
     }
 
+    fn hash_keccak256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
+        unimplemented!("hash_keccak256")
+    }
+
     fn amount_from_mantissa_scale(
         &self,
         mantissa: u64,
