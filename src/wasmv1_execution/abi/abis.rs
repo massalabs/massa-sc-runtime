@@ -78,7 +78,6 @@ pub fn register_abis(
         "massa" => {
             "abi_verify_native_signature" => Function::new_typed_with_env(store, &fn_env, abi_verify_native_signature),
             "abi_verify_evm_signature" => Function::new_typed_with_env(store, &fn_env, abi_verify_evm_signature),
-            "abi_verify_bn254_signature" => Function::new_typed_with_env(store, &fn_env, abi_verify_bn254_signature),
             "abi_set_data" => Function::new_typed_with_env(store, &fn_env, abi_set_data),
             "abi_get_data" => Function::new_typed_with_env(store, &fn_env, abi_get_data),
             "abi_delete_data" => Function::new_typed_with_env(store, &fn_env, abi_delete_data),
@@ -637,26 +636,6 @@ fn abi_verify_evm_signature(
                 return resp_err!("EVM signature verification failed");
             };
             resp_ok!(VerifyEvmSigResult, { is_verified: is_verified })
-        },
-    )
-}
-
-fn abi_verify_bn254_signature(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "abi_verify_bn254_signature",
-        store_env,
-        arg_offset,
-        |handler,
-         req: VerifyBlsSingleSigRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            let Ok(is_verified) = handler.interface.verify_bn254_signature(&req.sig, &req.message, &req.pub_key) else
-            {
-                return resp_err!("BLS signature verification failed");
-            };
-            resp_ok!(VerifyBlsSingleSigResult, { is_verified: is_verified })
         },
     )
 }

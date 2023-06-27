@@ -372,16 +372,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("verify_evm_signature")
     }
 
-    // Verify bn254 signature
-    fn verify_bn254_signature(
-        &self,
-        signature: &[u8],
-        message: &[u8],
-        public_key: &[u8],
-    ) -> Result<bool> {
-        unimplemented!("verify_bls_signature")
-    }
-
     // Convert a public key to an address
     fn address_from_public_key(&self, public_key: &str) -> Result<String> {
         unimplemented!("address_from_public_key")
