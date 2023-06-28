@@ -31,12 +31,9 @@ use massa_proto_rs::massa::{
         NativeSigFromStringResult, NativeSigToStringRequest,
         NativeSigToStringResult, RespResult, SetDataRequest, SetDataResult,
         SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult,
-        VerifyBlsMultiSigRequest, VerifyBlsMultiSigResult,
-        VerifyBlsSingleSigRequest, VerifyBlsSingleSigResult,
-        VerifyEvmSigRequest, VerifyEvmSigResult, VerifyNativeSigRequest,
-        VerifyNativeSigResult,
+        VerifyEvmSigRequest, VerifyEvmSigResult,
     },
-    model::v1::{AddressCategory, NativeAddress, NativeAmount, NativePubKey},
+    model::v1::{NativeAddress, NativeAmount},
 };
 
 use wasmer::{
@@ -76,7 +73,6 @@ pub fn register_abis(
     let fn_env = FunctionEnv::new(store, shared_abi_env);
     imports! {
         "massa" => {
-            "abi_verify_native_signature" => Function::new_typed_with_env(store, &fn_env, abi_verify_native_signature),
             "abi_verify_evm_signature" => Function::new_typed_with_env(store, &fn_env, abi_verify_evm_signature),
             "abi_set_data" => Function::new_typed_with_env(store, &fn_env, abi_set_data),
             "abi_get_data" => Function::new_typed_with_env(store, &fn_env, abi_get_data),
@@ -590,32 +586,6 @@ fn abi_has_data(
                 return resp_err!("Failed to check if data exists");
             };
             resp_ok!(HasDataResult, { has_data: res })
-        },
-    )
-}
-
-fn abi_verify_native_signature(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "abi_verify_native_signature",
-        store_env,
-        arg_offset,
-        |handler,
-         req: VerifyNativeSigRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            let Some(sig) = req.sig else {
-                return resp_err!("No signature provided");
-            };
-            let Some(pub_key) = req.pub_key else {
-                return resp_err!("No public key provided");
-            };
-            let Ok(is_verified) = handler.interface.verify_native_signature(&req.message, sig,  pub_key) else
-            {
-                return resp_err!("Native signature verification failed");
-            };
-            resp_ok!(VerifyNativeSigResult, { is_verified: is_verified })
         },
     )
 }
