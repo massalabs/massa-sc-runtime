@@ -316,6 +316,21 @@ pub(crate) fn assembly_script_hash(
     Ok(ptr as i32)
 }
 
+/// performs a hash on a bytearray and returns the hash
+#[named]
+pub(crate) fn assembly_script_keccak256_hash(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    value: i32,
+) -> ABIResult<i32> {
+    let env = get_env(&ctx)?;
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let memory = get_memory!(env);
+    let bytes = read_buffer(memory, &ctx, value)?;
+    let hash = env.get_interface().hash_keccak256(&bytes)?.to_vec();
+    let ptr = pointer_from_bytearray(&env, &mut ctx, &hash)?.offset();
+    Ok(ptr as i32)
+}
+
 /// Get keys (aka entries) in the datastore
 #[named]
 pub(crate) fn assembly_script_get_keys(
@@ -677,6 +692,28 @@ pub(crate) fn assembly_script_signature_verify(
     // }
     Ok(env.get_interface().signature_verify(
         data.as_bytes(),
+        &signature,
+        &public_key,
+    )? as i32)
+}
+
+/// Verify an EVM signature.
+/// Returns Ok(1) if correctly verified, Ok(0) otherwise.
+#[named]
+pub(crate) fn assembly_script_evm_signature_verify(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    data: i32,
+    signature: i32,
+    public_key: i32,
+) -> ABIResult<i32> {
+    let env = get_env(&ctx)?;
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let memory = get_memory!(env);
+    let data = read_buffer(memory, &ctx, data)?;
+    let signature = read_buffer(memory, &ctx, signature)?;
+    let public_key = read_buffer(memory, &ctx, public_key)?;
+    Ok(env.get_interface().verify_evm_signature(
+        &data,
         &signature,
         &public_key,
     )? as i32)

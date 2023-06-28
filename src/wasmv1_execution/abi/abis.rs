@@ -32,8 +32,9 @@ use massa_proto_rs::massa::{
         NativeSigFromStringResult, NativeSigToStringRequest,
         NativeSigToStringResult, RespResult, SetDataRequest, SetDataResult,
         SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult,
+        VerifyEvmSigRequest, VerifyEvmSigResult,
     },
-    model::v1::{AddressCategory, NativeAddress, NativeAmount, NativePubKey},
+    model::v1::{NativeAddress, NativeAmount},
 };
 
 use wasmer::{
@@ -73,6 +74,7 @@ pub fn register_abis(
     let fn_env = FunctionEnv::new(store, shared_abi_env);
     imports! {
         "massa" => {
+            "abi_verify_evm_signature" => Function::new_typed_with_env(store, &fn_env, abi_verify_evm_signature),
             "abi_set_data" => Function::new_typed_with_env(store, &fn_env, abi_set_data),
             "abi_get_data" => Function::new_typed_with_env(store, &fn_env, abi_get_data),
             "abi_delete_data" => Function::new_typed_with_env(store, &fn_env, abi_delete_data),
@@ -639,6 +641,26 @@ fn abi_has_data(
                 return resp_err!("Failed to check if data exists");
             };
             resp_ok!(HasDataResult, { has_data: res })
+        },
+    )
+}
+
+fn abi_verify_evm_signature(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_verify_evm_signature",
+        store_env,
+        arg_offset,
+        |handler,
+         req: VerifyEvmSigRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Ok(is_verified) = handler.interface.verify_evm_signature(&req.message, &req.sig, &req.pub_key) else
+            {
+                return resp_err!("EVM signature verification failed");
+            };
+            resp_ok!(VerifyEvmSigResult, { is_verified: is_verified })
         },
     )
 }
