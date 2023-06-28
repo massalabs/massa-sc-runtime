@@ -35,7 +35,7 @@ fn test_ledger_op_keys_abis() {
     let interface = TestInterface;
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/build/test_ledger_op_keys.wasm_add"
+        "/wasm/test_ledger_op_keys.wasm_add"
     ));
     let gas_costs = GasCosts::default();
 

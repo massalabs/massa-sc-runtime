@@ -565,7 +565,7 @@ fn abi_get_balance(
         store_env,
         arg_offset,
         |handler, req: GetBalanceRequest| -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.get_balance_wasmv1(req.address) else
+            let Ok(res) = handler.interface.get_balance_wasmv1(req.optional_address) else
             {
                 return resp_err!("Failed to get balance");
             };
@@ -585,7 +585,7 @@ fn abi_get_bytecode(
         |handler,
          req: GetBytecodeRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.raw_get_bytecode_wasmv1(req.address) else
+            let Ok(res) = handler.interface.raw_get_bytecode_wasmv1(req.optional_address) else
             {
                 return resp_err!("Failed to get bytecode");
             };
@@ -605,7 +605,7 @@ fn abi_set_bytecode(
         |handler,
          req: SetBytecodeRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.raw_set_bytecode_wasmv1(&req.bytecode, req.address) else
+            let Ok(res) = handler.interface.raw_set_bytecode_wasmv1(&req.bytecode, req.optional_address) else
             {
                 return resp_err!("Failed to set bytecode");
             };
@@ -623,7 +623,7 @@ fn abi_get_keys(
         store_env,
         arg_offset,
         |handler, req: GetKeysRequest| -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.get_keys_wasmv1(&req.prefix, req.address) else
+            let Ok(res) = handler.interface.get_keys_wasmv1(&req.prefix, req.optional_address) else
             {
                 return resp_err!("Failed to get keys");
             };
@@ -641,7 +641,7 @@ fn abi_get_op_keys(
         store_env,
         arg_offset,
         |handler, req: GetOpKeysRequest| -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.get_op_keys(&req.prefix) else
+            let Ok(res) = handler.interface.get_op_keys(/*&req.prefix*/) else
             {
                 return resp_err!("Failed to get op keys");
             };
