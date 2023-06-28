@@ -429,6 +429,15 @@ impl Interface for TestInterface {
         ])
     }
 
+    fn get_op_keys_wasmv1(&self, prefix: &[u8]) -> Result<Vec<Vec<u8>>> {
+        println!("Get op keys wasmv1 called with prefix {:?}", prefix);
+        Ok(vec![
+            vec![0, 1, 2, 3, 4, 5, 6, 11],
+            vec![127, 128],
+            vec![254, 255],
+        ])
+    }
+
     fn has_op_key(&self, key: &[u8]) -> Result<bool> {
         println!("Has op key at {:?}", key);
         let ds: BTreeMap<Vec<u8>, Vec<u8>> = BTreeMap::from([

@@ -405,6 +405,10 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("get_op_keys")
     }
 
+    fn get_op_keys_wasmv1(&self, prefix: &[u8]) -> Result<Vec<Vec<u8>>> {
+        unimplemented!("get_op_keys_wasmv1")
+    }
+
     /// Check if key is in operation datastore
     fn has_op_key(&self, key: &[u8]) -> Result<bool> {
         unimplemented!("has_op_data")

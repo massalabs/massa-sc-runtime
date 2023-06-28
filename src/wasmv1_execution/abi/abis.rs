@@ -641,7 +641,7 @@ fn abi_get_op_keys(
         store_env,
         arg_offset,
         |handler, req: GetOpKeysRequest| -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.get_op_keys(&req.prefix) else
+            let Ok(res) = handler.interface.get_op_keys_wasmv1(&req.prefix) else
             {
                 return resp_err!("Failed to get op keys");
             };
