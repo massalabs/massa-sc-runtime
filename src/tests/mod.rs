@@ -3,9 +3,7 @@ use crate::types::{Interface, InterfaceClone};
 use crate::{Compiler, GasCosts, RuntimeModule};
 
 use anyhow::Result;
-use massa_proto_rs::massa::model::v1::{
-    NativeAddress, NativeAmount, NativeHash, Slot,
-};
+use massa_proto_rs::massa::model::v1::*;
 use sha2::{Digest, Sha256};
 use sha3::Keccak256;
 use std::collections::BTreeMap;
@@ -50,9 +48,9 @@ impl Interface for TestInterface {
 
     fn transfer_coins_wasmv1(
         &self,
-        to_address: NativeAddress,
+        to_address: String,
         raw_amount: NativeAmount,
-        from_address: Option<NativeAddress>,
+        from_address: Option<String>,
     ) -> Result<()> {
         match from_address {
             Some(from_address) => {
@@ -130,7 +128,7 @@ impl Interface for TestInterface {
     fn has_data_wasmv1(
         &self,
         key: &[u8],
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<bool> {
         match address {
             Some(address) => {
@@ -170,7 +168,7 @@ impl Interface for TestInterface {
         &self,
         key: &[u8],
         value: &[u8],
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<()> {
         match address {
             Some(address) => {
@@ -199,7 +197,7 @@ impl Interface for TestInterface {
     fn raw_delete_data_wasmv1(
         &self,
         key: &[u8],
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<()> {
         match address {
             Some(address) => {
@@ -225,7 +223,7 @@ impl Interface for TestInterface {
     fn raw_get_data_wasmv1(
         &self,
         key: &[u8],
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<Vec<u8>> {
         match address {
             Some(address) => {
@@ -260,7 +258,7 @@ impl Interface for TestInterface {
         &self,
         key: &[u8],
         value: &[u8],
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<()> {
         match address {
             Some(address) => {
@@ -309,7 +307,7 @@ impl Interface for TestInterface {
 
     fn get_balance_wasmv1(
         &self,
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<NativeAmount> {
         match address {
             Some(address) => {
@@ -345,7 +343,7 @@ impl Interface for TestInterface {
     fn raw_set_bytecode_wasmv1(
         &self,
         bytecode: &[u8],
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<()> {
         match address {
             Some(address) => {
@@ -466,17 +464,11 @@ impl Interface for TestInterface {
         Ok(hash)
     }
 
-    /// Returns the native hash of the given bytes
-    fn native_hash(&self, bytes: &[u8]) -> Result<NativeHash> {
-        println!("Native hash with bytes {:?}", bytes);
+    /// Returns the blake3 hash of the given bytes
+    fn blake3_hash(&self, bytes: &[u8]) -> Result<[u8; 32]> {
+        println!("Blake3 hash with bytes {:?}", bytes);
 
-        let hash_bytes = [0u8; 32];
-        let hash = NativeHash {
-            version: 0,
-            content: hash_bytes.to_vec(),
-        };
-
-        Ok(hash)
+        Ok([0u8; 32])
     }
 }
 

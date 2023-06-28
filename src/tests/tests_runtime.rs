@@ -18,7 +18,7 @@ fn test_datastore_abis() {
     let interface = TestInterface;
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../as_abi_protobuf/build/test_datastore.wasm_add"
+        "/wasm/test_datastore.wasm_add"
     ));
     let gas_costs = GasCosts::default();
 
@@ -335,7 +335,7 @@ fn test_get_current_period_and_thread_wasmv1_as() {
     let interface: Box<dyn Interface> = Box::new(TestInterface);
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../as_abi_protobuf/build/test_period_thread.wasm_add"
+        "/wasm/test_period_thread.wasm_add"
     ));
 
     let runtime_module =
@@ -361,7 +361,7 @@ fn test_native_hash_wasmv1_as() {
     let interface: Box<dyn Interface> = Box::new(TestInterface);
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../as_abi_protobuf/build/test_hash.wasm_add"
+        "/wasm/test_hash.wasm_add"
     ));
 
     let runtime_module =
@@ -388,7 +388,7 @@ fn test_generate_event_wasmv1_as() {
     //     Box::new(TestInterface);
     // let module = include_bytes!(concat!(
     //     env!("CARGO_MANIFEST_DIR"),
-    //     "/../as_abi_protobuf/build/test_generate_event.wasm_add"
+    //     "/wasm/test_generate_event.wasm_add"
     // ));
 
     // let runtime_module =
@@ -415,7 +415,7 @@ fn test_abort_wasmv1_as() {
     //     Box::new(TestInterface);
     // let module = include_bytes!(concat!(
     //     env!("CARGO_MANIFEST_DIR"),
-    //     "/../as_abi_protobuf/build/test_abort.wasm_add"
+    //     "/wasm/test_abort.wasm_add"
     // ));
 
     // let runtime_module =
@@ -457,7 +457,7 @@ fn test_transfer_coins_wasmv1_as() {
     //     Box::new(TestInterface);
     // let module = include_bytes!(concat!(
     //     env!("CARGO_MANIFEST_DIR"),
-    //     "/../as_abi_protobuf/build/test_transfer_coins.wasm_add"
+    //     "/wasm/test_transfer_coins.wasm_add"
     // ));
 
     // let runtime_module =

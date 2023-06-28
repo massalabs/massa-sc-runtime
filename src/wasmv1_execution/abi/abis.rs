@@ -1,40 +1,11 @@
-use crate::wasmv1_execution::abi::helper_traits::Check;
-
 use super::{
     super::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
-    helper_traits::TryInto,
 };
 
 use massa_proto_rs::massa::{
-    abi::v1::{
-        self as proto, abi_response, resp_result, AbiResponse,
-        AddNativeAmountsRequest, AppendDataRequest, AppendDataResult,
-        CallRequest, CallResponse, CheckNativeAddressRequest,
-        CheckNativeAddressResult, CheckNativeAmountRequest,
-        CheckNativeHashRequest, CheckNativePubKeyRequest,
-        CheckNativePubKeyResult, CheckNativeSigRequest, CheckNativeSigResult,
-        CreateScRequest, CreateScResult, DeleteDataRequest, DeleteDataResult,
-        DivRemNativeAmountRequest, FunctionExistsRequest, FunctionExistsResult,
-        GenerateEventRequest, GenerateEventResult, GetCurrentSlotRequest,
-        GetCurrentSlotResult, GetDataRequest, GetDataResult, HasDataRequest,
-        HasDataResult, HashSha256Request, HashSha256Result, Keccak256Request,
-        Keccak256Result, MulNativeAmountRequest,
-        NativeAddressFromStringRequest, NativeAddressFromStringResult,
-        NativeAddressToStringRequest, NativeAddressToStringResult,
-        NativeAmountFromStringRequest, NativeAmountFromStringResult,
-        NativeAmountToStringRequest, NativeAmountToStringResult,
-        NativeHashFromStringRequest, NativeHashFromStringResult,
-        NativeHashRequest, NativeHashResult, NativeHashToStringRequest,
-        NativeHashToStringResult, NativePubKeyFromStringRequest,
-        NativePubKeyFromStringResult, NativePubKeyToStringRequest,
-        NativePubKeyToStringResult, NativeSigFromStringRequest,
-        NativeSigFromStringResult, NativeSigToStringRequest,
-        NativeSigToStringResult, RespResult, SetDataRequest, SetDataResult,
-        SubNativeAmountsRequest, TransferCoinsRequest, TransferCoinsResult,
-        VerifyEvmSigRequest, VerifyEvmSigResult,
-    },
-    model::v1::{NativeAddress, NativeAmount},
+    abi::v1::{self as proto, *},
+    model::v1::*,
 };
 
 use wasmer::{
@@ -92,65 +63,6 @@ pub fn register_abis(
                 Function::new_typed_with_env(store, &fn_env, abi_generate_event),
             "abi_function_exists" =>
                 Function::new_typed_with_env(store, &fn_env, abi_function_exists),
-
-            "abi_native_address_to_string" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_native_address_to_string,
-            ),
-            "abi_native_pubkey_to_string" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_native_pubkey_to_string,
-            ),
-            "abi_native_sig_to_string" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_native_sig_to_string,
-            ),
-            "abi_native_hash_to_string" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_native_hash_to_string,
-            ),
-
-            "abi_native_address_from_string" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_native_address_from_string,
-            ),
-            "abi_native_pubkey_from_string" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_native_pubkey_from_string,
-            ),
-            "abi_native_sig_from_string" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_native_sig_from_string,
-            ),
-            "abi_native_hash_from_string" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_native_hash_from_string,
-            ),
-
-            "abi_check_native_address" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_check_native_address,
-            ),
-            "abi_check_native_pubkey" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_check_native_pubkey,
-            ),
-            "abi_check_native_sig" =>
-                Function::new_typed_with_env(store, &fn_env, abi_check_native_sig),
-
-            "abi_check_native_hash" =>
-                Function::new_typed_with_env(store, &fn_env, abi_check_native_hash),
-
             "abi_check_native_amount" => Function::new_typed_with_env(
                 store,
                 &fn_env,
@@ -190,10 +102,10 @@ pub fn register_abis(
                 &fn_env,
                 abi_get_current_slot,
             ),
-            "abi_native_hash" => Function::new_typed_with_env(
+            "abi_blake3_hash" => Function::new_typed_with_env(
                 store,
                 &fn_env,
-                abi_native_hash,
+                abi_blake3_hash,
             ),
             "abi_hash_sha256" => Function::new_typed_with_env(
                 store,
@@ -219,11 +131,6 @@ pub(crate) fn abi_call(
         store_env,
         arg_offset,
         |handler, req: CallRequest| {
-            let address = req.target_sc_address.ok_or_else(|| {
-                WasmV1Error::RuntimeError("No address provided".into())
-            })?;
-            let address = native_address_to_string(handler, address)?;
-
             let amount = req.call_coins.ok_or_else(|| {
                 WasmV1Error::RuntimeError("No coins provided".into())
             })?;
@@ -235,7 +142,7 @@ pub(crate) fn abi_call(
 
             let bytecode = handler
                 .interface
-                .init_call(&address, amount)
+                .init_call(&req.target_sc_address, amount)
                 .map_err(|err| {
                     WasmV1Error::RuntimeError(format!(
                         "Could not init call: {}",
@@ -270,21 +177,6 @@ pub(crate) fn abi_call(
     )
 }
 
-fn native_address_to_string(
-    handler: &mut super::handler::ABIHandler<'_, '_>,
-    address: NativeAddress,
-) -> Result<String, WasmV1Error> {
-    let address = handler
-        .interface
-        .native_address_to_string(
-            address.category,
-            address.version,
-            &address.content,
-        )
-        .map_err(|err| WasmV1Error::RuntimeError(err.to_string()))?;
-    Ok(address)
-}
-
 /// Alternative to `call_module` to execute bytecode in a local context
 pub(crate) fn abi_local_call(
     store_env: FunctionEnvMut<ABIEnv>,
@@ -295,13 +187,7 @@ pub(crate) fn abi_local_call(
         store_env,
         arg_offset,
         |handler, req: CallRequest| {
-            let address = req.target_sc_address.ok_or_else(|| {
-                WasmV1Error::RuntimeError("No address provided".into())
-            })?;
-
-            let address = native_address_to_string(handler, address)?;
-
-            let bytecode = helper_get_bytecode(handler, address)?;
+            let bytecode = helper_get_bytecode(handler, req.target_sc_address)?;
             let remaining_gas = handler.get_remaining_gas();
             let module = helper_get_module(handler, bytecode, remaining_gas)?;
 
@@ -340,17 +226,7 @@ pub(crate) fn abi_create_sc(
 
             match addr {
                 Ok(addr) => {
-                    let Ok((category, version, content)) =
-                    handler.interface.native_address_from_str(&addr) else {
-                        return resp_err!("Could not parse address");
-                    };
-
-                    let addr = NativeAddress {
-                        category,
-                        version,
-                        content,
-                    };
-                    resp_ok!(CreateScResult, { sc_address: Some(addr) })
+                    resp_ok!(CreateScResult, { sc_address: addr })
                 }
                 Err(err) => resp_err!(err),
             }
@@ -387,7 +263,7 @@ pub(crate) fn abi_get_current_slot(
 }
 
 /// performs a hash on a bytearray and returns the native_hash
-pub(crate) fn abi_native_hash(
+pub(crate) fn abi_blake3_hash(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
@@ -395,16 +271,16 @@ pub(crate) fn abi_native_hash(
         "native_hash",
         store_env,
         arg_offset,
-        |handler, req: NativeHashRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: Blake3HashRequest| -> Result<AbiResponse, WasmV1Error> {
             // Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
             // true); }
 
-            match handler.interface.native_hash(&req.data) {
+            match handler.interface.blake3_hash(&req.data) {
                 Ok(hash) => {
-                    resp_ok!(NativeHashResult, { hash: Some(hash) })
+                    resp_ok!(Blake3HashResult, { hash: hash.to_vec() })
                 }
                 Err(err) => resp_err!(err),
             }
@@ -472,10 +348,6 @@ pub fn abi_transfer_coins(
         |handler,
          req: TransferCoinsRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let Some(address) = req.target_address else {
-                return resp_err!("No address provided");
-            };
-
             let Some(amount) = req.amount_to_transfer else {
                 return resp_err!("No coins provided");
             };
@@ -487,9 +359,9 @@ pub fn abi_transfer_coins(
             // true); }
 
             let transfer_coins = handler.interface.transfer_coins_wasmv1(
-                address,
+                req.target_address,
                 amount,
-                req.sender_address,
+                req.optional_sender_address,
             );
             match transfer_coins {
                 Ok(_) => resp_ok!(TransferCoinsResult, {}),
@@ -514,7 +386,7 @@ pub fn abi_generate_event(
          -> Result<AbiResponse, WasmV1Error> {
             _handler
                 .interface
-                .generate_event(req.event)
+                .generate_event_wasmv1(req.event)
                 .map_err(|err| {
                     WasmV1Error::RuntimeError(format!(
                         "Failed to generate event: {}",
@@ -577,10 +449,12 @@ fn abi_get_data(
         store_env,
         arg_offset,
         |handler, req: GetDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            let Ok(data) = handler.interface.raw_get_data_wasmv1(&req.key, req.address) else
-            {
-                return resp_err!("Failed to get data");
-            };
+            let Ok(data) =
+                handler
+                .interface
+                .raw_get_data_wasmv1(&req.key, req.optional_address) else {
+                    return resp_err!("Failed to get data");
+                };
             resp_ok!(GetDataResult, { value: data })
         },
     )
@@ -597,7 +471,7 @@ fn abi_delete_data(
         |handler, req: DeleteDataRequest| -> Result<AbiResponse, WasmV1Error> {
             if let Err(e) = handler
                 .interface
-                .raw_delete_data_wasmv1(&req.key, req.address)
+                .raw_delete_data_wasmv1(&req.key, req.optional_address)
             {
                 return resp_err!(format!("Failed to delete data: {}", e));
             }
@@ -618,7 +492,7 @@ fn abi_append_data(
             if let Err(e) = handler.interface.raw_append_data_wasmv1(
                 &req.key,
                 &req.value,
-                req.address,
+                req.optional_address,
             ) {
                 return resp_err!(format!("Failed to append data: {}", e));
             }
@@ -636,8 +510,9 @@ fn abi_has_data(
         store_env,
         arg_offset,
         |handler, req: HasDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.has_data_wasmv1(&req.key, req.address) else
-            {
+            let Ok(res) = handler
+                .interface
+                .has_data_wasmv1(&req.key, req.optional_address) else {
                 return resp_err!("Failed to check if data exists");
             };
             resp_ok!(HasDataResult, { has_data: res })
@@ -678,16 +553,9 @@ fn abi_function_exists(
         |handler,
          req: FunctionExistsRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let Some(address) = req.target_sc_address else {
-                return resp_err!("No address provided");
-            };
-
-            let Ok(address) = native_address_to_string(handler, address) else {
-                return resp_err!("Invalid address");
-            };
-
-            let Ok(bytecode) = helper_get_bytecode(handler, address) else {
-                return resp_err!("No SC found at the given address");
+            let Ok(bytecode) =
+                helper_get_bytecode(handler, req.target_sc_address) else {
+                    return resp_err!("No SC found at the given address");
             };
 
             let remaining_gas = if cfg!(feature = "gas_calibration") {
@@ -740,286 +608,6 @@ fn helper_get_module(
     Ok(module)
 }
 
-pub fn abi_native_address_to_string(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "native_address_to_string",
-        store_env,
-        arg_offset,
-        |handler,
-         req: NativeAddressToStringRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            let Some(address) = req.to_convert else {
-                return resp_err!("No address to convert");
-            };
-
-            match native_address_to_string(handler, address) {
-                Ok(addr) => resp_ok!(NativeAddressToStringResult, {
-                    converted_address: addr,
-                }),
-                Err(err) => resp_err!(err),
-            }
-        },
-    )
-}
-
-pub fn abi_native_pubkey_to_string(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "native_pubkey_to_string",
-        store_env,
-        arg_offset,
-        |_handler,
-         req: NativePubKeyToStringRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            let Some(pubkey) = req.to_convert else {
-                return resp_err!("No pubkey to convert");
-            };
-
-            match TryInto::try_into(&pubkey) {
-                Ok(pubkey) => resp_ok!(NativePubKeyToStringResult, {
-                    converted_pubkey: pubkey,
-                }),
-                Err(err) => resp_err!(err),
-            }
-        },
-    )
-}
-
-pub fn abi_native_sig_to_string(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "native_sig_to_string",
-        store_env,
-        arg_offset,
-        |_handler,
-         req: NativeSigToStringRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            let Some(sig) = req.to_convert else {
-                return resp_err!("No sig to convert");
-
-            };
-
-            match TryInto::try_into(&sig) {
-                Ok(sig) => {
-                    resp_ok!(NativeSigToStringResult, { converted_sig: sig })
-                }
-                Err(err) => resp_err!(err),
-            }
-        },
-    )
-}
-
-pub fn abi_native_hash_to_string(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "native_hash_to_string",
-        store_env,
-        arg_offset,
-        |_handler,
-         req: NativeHashToStringRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            let Some(hash) = req.to_convert else {
-                return resp_err!("No hash to convert");
-            };
-
-            match TryInto::try_into(&hash) {
-                Ok(hash) => resp_ok!(NativeHashToStringResult, {
-                    converted_hash: hash,
-                }),
-                Err(err) => resp_err!(err),
-            }
-        },
-    )
-}
-
-pub fn abi_native_address_from_string(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "native_address_from_string",
-        store_env,
-        arg_offset,
-        |handler,
-         req: NativeAddressFromStringRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            let Ok((category, version, content)) =
-                handler.interface.native_address_from_str(&req.to_convert) else {
-                    return resp_err!("Could not parse address");
-                };
-
-            let address = NativeAddress {
-                category,
-                version,
-                content,
-            };
-
-            resp_ok!(NativeAddressFromStringResult, {
-                converted_address: Some(address),
-            })
-        },
-    )
-}
-
-pub fn abi_native_pubkey_from_string(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "native_pubkey_from_string",
-        store_env,
-        arg_offset,
-        |_handler,
-         req: NativePubKeyFromStringRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            match TryInto::try_into(&req.to_convert) {
-                Ok(pubkey) => resp_ok!(NativePubKeyFromStringResult, {
-                    converted_pubkey: Some(pubkey),
-                }),
-                Err(err) => resp_err!(err),
-            }
-        },
-    )
-}
-
-pub fn abi_native_sig_from_string(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "native_sig_from_string",
-        store_env,
-        arg_offset,
-        |_handler,
-         req: NativeSigFromStringRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            match TryInto::try_into(&req.to_convert) {
-                Ok(sig) => resp_ok!(NativeSigFromStringResult, {
-                    converted_sig: Some(sig),
-                }),
-                Err(err) => resp_err!(err),
-            }
-        },
-    )
-}
-
-pub fn abi_native_hash_from_string(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "native_hash_from_string",
-        store_env,
-        arg_offset,
-        |_handler,
-         req: NativeHashFromStringRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            match TryInto::try_into(&req.to_convert) {
-                Ok(hash) => resp_ok!(NativeHashFromStringResult, {
-                    converted_hash: Some(hash),
-                }),
-                Err(err) => resp_err!(err),
-            }
-        },
-    )
-}
-
-pub fn abi_check_native_address(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "check_native_address",
-        store_env,
-        arg_offset,
-        |_handler,
-         req: CheckNativeAddressRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            let Some(address) = req.to_check else {
-                return resp_err!("No address to check");
-            };
-
-            match address.is_valid() {
-                Ok(is_valid) => {
-                    resp_ok!(CheckNativeAddressResult, { is_valid: is_valid })
-                }
-                Err(err) => resp_err!(err),
-            }
-        },
-    )
-}
-pub fn abi_check_native_pubkey(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "check_native_pubkey",
-        store_env,
-        arg_offset,
-        |_handler,
-         req: CheckNativePubKeyRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            let Some(pubkey) = req.to_check else {
-                return resp_err!("No pubkey to check");
-             };
-
-            match pubkey.is_valid() {
-                Ok(is_valid) => {
-                    resp_ok!(CheckNativePubKeyResult, { is_valid: is_valid
-
-                    })
-                }
-                Err(err) => resp_err!(err),
-            }
-        },
-    )
-}
-pub fn abi_check_native_sig(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "check_native_sig",
-        store_env,
-        arg_offset,
-        |_handler,
-         req: CheckNativeSigRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            let Some(sig) = req.to_check else {
-                return resp_err!("No sig to check");
-            };
-
-            match sig.is_valid() {
-                Ok(is_valid) => {
-                    resp_ok!(CheckNativeSigResult, { is_valid: is_valid })
-                }
-                Err(err) => resp_err!(err),
-            }
-        },
-    )
-}
-pub fn abi_check_native_hash(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "check_native_hash",
-        store_env,
-        arg_offset,
-        |_handler,
-         req: CheckNativeHashRequest|
-         -> Result<AbiResponse, WasmV1Error> { todo!() },
-    )
-}
 pub fn abi_check_native_amount(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
