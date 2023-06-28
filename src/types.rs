@@ -1,5 +1,4 @@
 use anyhow::{anyhow, bail, Result};
-use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
     path::PathBuf,
@@ -149,30 +148,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("finish_call")
     }
 
-    /// Get the SCE ledger balance for the current address.
-    /// Defaults to zero if the address is not found.
-    fn get_balance(&self) -> Result<u64> {
-        unimplemented!("get_balance")
-    }
-
     /// Get the SCE ledger balance for an address.
     /// Defaults to zero if the address is not found.
-    fn get_balance_for(&self, address: &str) -> Result<u64> {
+    fn get_balance(&self, address: &str) -> Result<u64> {
         unimplemented!("get_balance_for")
     }
 
-    /// Transfer an amount from the address on the current call stack to a target address.
-    fn transfer_coins(&self, to_address: &str, raw_amount: u64) -> Result<()> {
-        unimplemented!("transfer_coins")
-    }
-
     /// Transfer an amount from the specified address to a target address.
-    fn transfer_coins_for(
-        &self,
-        from_address: &str,
-        to_address: &str,
-        raw_amount: u64,
-    ) -> Result<()> {
+    fn transfer_coins(&self, from_address: &str, to_address: &str, raw_amount: u64) -> Result<()> {
         unimplemented!("transfer_coins_for")
     }
 
@@ -183,13 +166,8 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     /// Sets the executable bytecode at a target address.
     /// The target address must exist and the current context must have access rights.
-    fn raw_set_bytecode_for(&self, address: &str, bytecode: &[u8]) -> Result<()> {
-        unimplemented!("raw_set_bytecode_for")
-    }
-
-    /// Sets the executable bytecode at a current address.
-    fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
-        unimplemented!("raw_set_bytecode")
+    fn set_bytecode(&self, address: &str, bytecode: &[u8]) -> Result<()> {
+        unimplemented!("set_bytecode")
     }
 
     /// Requires a new address that contains the sent &[u8]
@@ -197,99 +175,55 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("create_module")
     }
 
-    /// Print function for examples
-    fn print(&self, message: &str) -> Result<()> {
-        unimplemented!("print")
-    }
-
     /// Return datastore keys
     /// Will only return keys with a given prefix if provided in args
-    fn get_keys(&self, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {
-        unimplemented!("get_op_keys")
-    }
-
-    /// Return datastore keys
-    /// Will only return keys with a given prefix if provided in args
-    fn get_keys_for(&self, address: &str, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {
-        unimplemented!("get_op_keys_for")
-    }
-
-    /// Return the datastore value of the corresponding key
-    fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>> {
-        unimplemented!("raw_get_data")
-    }
-
-    /// Set the datastore value for the corresponding key
-    fn raw_set_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
-        unimplemented!("raw_set_data")
-    }
-
-    /// Append a value to the current datastore value for the corresponding key
-    fn raw_append_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
-        unimplemented!("raw_append_data")
-    }
-
-    /// Delete a datastore entry
-    fn raw_delete_data(&self, key: &[u8]) -> Result<()> {
-        unimplemented!("raw_delete_data")
+    fn get_ds_keys(&self, address: &str, prefix: &[u8]) -> Result<BTreeSet<Vec<u8>>> {
+        unimplemented!("get_ds_keys")
     }
 
     /// Requires the data at the address
-    fn raw_get_data_for(&self, address: &str, key: &[u8]) -> Result<Vec<u8>> {
-        unimplemented!("raw_get_data_for")
+    fn get_ds_value(&self, address: &str, key: &[u8]) -> Result<Vec<u8>> {
+        unimplemented!("get_ds_value")
     }
 
     /// Set the datastore value for the corresponding key of the given address
-    fn raw_set_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()> {
-        unimplemented!("raw_set_data_for")
+    fn set_ds_value(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()> {
+        unimplemented!("set_ds_value")
     }
 
     /// Append a value to the current datastore value for the corresponding key and the given address
-    fn raw_append_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()> {
-        unimplemented!("raw_append_data_for")
+    fn append_ds_value(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()> {
+        unimplemented!("append_ds_value")
     }
 
     /// Delete a datastore entry at of the given address
-    fn raw_delete_data_for(&self, address: &str, key: &[u8]) -> Result<()> {
-        unimplemented!("raw_delete_data_for")
-    }
-
-    /// Requires to replace the data in the current address
-    ///
-    /// Note:
-    /// The execution lib will always use the current context address for the update
-    fn has_data(&self, key: &[u8]) -> Result<bool> {
-        unimplemented!("has_data")
+    fn delete_ds_entry(&self, address: &str, key: &[u8]) -> Result<()> {
+        unimplemented!("delete_ds_entry")
     }
 
     /// Check if a datastore entry exists
-    fn has_data_for(&self, address: &str, key: &[u8]) -> Result<bool> {
-        unimplemented!("has_data_for")
-    }
-
-    /// Returns bytecode of the current address
-    fn raw_get_bytecode(&self) -> Result<Vec<u8>> {
-        unimplemented!("raw_get_bytecode")
+    fn ds_entry_exists(&self, address: &str, key: &[u8]) -> Result<bool> {
+        unimplemented!("ds_entry_exists")
     }
 
     /// Returns bytecode of the target address
-    fn raw_get_bytecode_for(&self, address: &str) -> Result<Vec<u8>> {
-        unimplemented!("raw_get_bytecode_for")
+    fn get_bytecode(&self, address: &str) -> Result<Vec<u8>> {
+        unimplemented!("get_bytecode")
     }
 
     /// Return operation datastore keys
-    fn get_op_keys(&self) -> Result<Vec<Vec<u8>>> {
+    fn get_op_keys(&self, prefix: &[u8]) -> Result<BTreeSet<Vec<u8>>> {
         unimplemented!("get_op_keys")
     }
 
     /// Check if key is in operation datastore
-    fn has_op_key(&self, key: &[u8]) -> Result<bool> {
-        unimplemented!("has_op_data")
+    fn op_entry_exists(&self, key: &[u8]) -> Result<bool> {
+        unimplemented!("op_entry_exists")
     }
 
     /// Return operation datastore data for a given key
-    fn get_op_data(&self, key: &[u8]) -> Result<Vec<u8>> {
-        unimplemented!("get_op_data")
+    fn get_op_value(&self, key: &[u8]) -> Result<Vec<u8>> {
+        unimplemented!("get_op_value")
     }
 
     /// Check whether or not the caller has write access in the current context
@@ -403,27 +337,5 @@ pub trait Interface: Send + Sync + InterfaceClone {
     // Sha256 hash bytes
     fn hash_sha256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
         unimplemented!("hash_sha256")
-    }
-}
-
-impl dyn Interface {
-    pub fn get_data<T: DeserializeOwned>(&self, key: &[u8]) -> Result<T> {
-        Ok(serde_json::from_str::<T>(std::str::from_utf8(
-            &self.raw_get_data(key)?,
-        )?)?)
-    }
-
-    pub fn set_data<T: Serialize>(&self, key: &[u8], value: &T) -> Result<()> {
-        self.raw_set_data(key, serde_json::to_string::<T>(value)?.as_bytes())
-    }
-
-    pub fn get_data_for<T: DeserializeOwned>(&self, address: &str, key: &[u8]) -> Result<T> {
-        Ok(serde_json::from_str::<T>(std::str::from_utf8(
-            &self.raw_get_data_for(address, key)?,
-        )?)?)
-    }
-
-    pub fn set_data_for<T: Serialize>(&self, address: &str, key: &[u8], value: &T) -> Result<()> {
-        self.raw_set_data_for(address, key, serde_json::to_string::<T>(value)?.as_bytes())
     }
 }

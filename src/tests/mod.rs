@@ -5,6 +5,7 @@ use crate::{Compiler, GasCosts, RuntimeModule};
 use anyhow::{bail, Result};
 use parking_lot::Mutex;
 use sha2::{Digest, Sha256};
+use std::collections::BTreeSet;
 use std::sync::Arc;
 use std::{collections::BTreeMap, str::FromStr};
 
@@ -32,15 +33,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn get_balance(&self) -> Result<u64> {
-        Ok(1)
-    }
-
-    fn transfer_coins(&self, _to_address: &str, _raw_amount: u64) -> Result<()> {
-        Ok(())
-    }
-
-    fn transfer_coins_for(
+    fn transfer_coins(
         &self,
         _from_address: &str,
         _to_address: &str,
@@ -80,11 +73,7 @@ impl Interface for TestInterface {
         Ok(vec![])
     }
 
-    fn has_data(&self, _key: &[u8]) -> Result<bool> {
-        Ok(false)
-    }
-
-    fn has_data_for(&self, _address: &str, _key: &[u8]) -> Result<bool> {
+    fn ds_entry_exists(&self, _address: &str, _key: &[u8]) -> Result<bool> {
         Ok(false)
     }
 
@@ -92,33 +81,19 @@ impl Interface for TestInterface {
         unimplemented!()
     }
 
-    fn raw_append_data(&self, _key: &[u8], _value: &[u8]) -> Result<()> {
+    fn append_ds_value(&self, _address: &str, _key: &[u8], _value: &[u8]) -> Result<()> {
         Ok(())
     }
 
-    fn raw_append_data_for(&self, _address: &str, _key: &[u8], _value: &[u8]) -> Result<()> {
+    fn delete_ds_entry(&self, _address: &str, _key: &[u8]) -> Result<()> {
         Ok(())
     }
 
-    fn raw_delete_data(&self, _key: &[u8]) -> Result<()> {
-        Ok(())
-    }
-
-    fn raw_delete_data_for(&self, _address: &str, _key: &[u8]) -> Result<()> {
-        Ok(())
-    }
-
-    fn raw_get_data_for(&self, _address: &str, _key: &[u8]) -> Result<Vec<u8>> {
+    fn get_ds_value(&self, _address: &str, _key: &[u8]) -> Result<Vec<u8>> {
         Ok(vec![])
     }
 
-    fn raw_set_data(&self, _key: &[u8], value: &[u8]) -> Result<()> {
-        let mut bytes = self.0.lock().clone();
-        bytes.insert(String::from_str("print").unwrap(), value.to_vec());
-        Ok(())
-    }
-
-    fn raw_set_data_for(&self, _address: &str, _key: &[u8], value: &[u8]) -> Result<()> {
+    fn set_ds_value(&self, _address: &str, _key: &[u8], value: &[u8]) -> Result<()> {
         let mut bytes = self.0.lock().clone();
         bytes.insert(String::from_str("print").unwrap(), value.to_vec());
         Ok(())
@@ -132,35 +107,13 @@ impl Interface for TestInterface {
         Ok(0)
     }
 
-    fn get_balance_for(&self, _address: &str) -> Result<u64> {
+    fn get_balance(&self, _address: &str) -> Result<u64> {
         Ok(1)
     }
 
-    fn raw_set_bytecode_for(&self, address: &str, bytecode: &[u8]) -> Result<()> {
+    fn set_bytecode(&self, address: &str, bytecode: &[u8]) -> Result<()> {
         self.0.lock().insert(address.to_string(), bytecode.to_vec());
         Ok(())
-    }
-
-    fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
-        let address = String::from("get_string");
-        self.0.lock().insert(address, bytecode.to_vec());
-        Ok(())
-    }
-
-    fn print(&self, message: &str) -> Result<()> {
-        println!("{}", message);
-        self.0
-            .lock()
-            .insert("print".into(), message.as_bytes().to_vec());
-        Ok(())
-    }
-
-    fn raw_get_data(&self, _: &[u8]) -> Result<Vec<u8>> {
-        let bytes = self.0.lock().clone();
-        match bytes.get(&"print".to_string()) {
-            Some(bytes) => Ok(bytes.clone()),
-            _ => Ok(vec![]),
-        }
     }
 
     fn get_call_coins(&self) -> Result<u64> {
@@ -188,15 +141,17 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn get_op_keys(&self) -> Result<Vec<Vec<u8>>> {
+    fn get_op_keys(&self, _prefix: &[u8]) -> Result<BTreeSet<Vec<u8>>> {
         Ok(vec![
             vec![0, 1, 2, 3, 4, 5, 6, 11],
             vec![127, 128],
             vec![254, 255],
-        ])
+        ]
+        .into_iter()
+        .collect())
     }
 
-    fn has_op_key(&self, key: &[u8]) -> Result<bool> {
+    fn op_entry_exists(&self, key: &[u8]) -> Result<bool> {
         let ds: BTreeMap<Vec<u8>, Vec<u8>> = BTreeMap::from([
             (vec![0, 1, 2, 3, 4, 5, 6, 11], vec![65]),
             (vec![127, 128], vec![66, 67]),
@@ -206,7 +161,7 @@ impl Interface for TestInterface {
         Ok(ds.contains_key(key))
     }
 
-    fn get_op_data(&self, key: &[u8]) -> Result<Vec<u8>> {
+    fn get_op_value(&self, key: &[u8]) -> Result<Vec<u8>> {
         let ds: BTreeMap<Vec<u8>, Vec<u8>> = BTreeMap::from([
             (vec![0, 1, 2, 3, 4, 5, 6, 11], vec![65]),
             (vec![127, 128], vec![66, 67]),
