@@ -24,6 +24,7 @@ serde = "=1.0"
 serde_json = "=1.0"
 serial_test = "1.0.0"
 sha2 = "=0.10.6"
+sha3 = "=0.10.8"
 thiserror = "1.0"
 tracing = "0.1"
 wasmer = { version = "=3.3.0", features = ["static-artifact-create"] }
@@ -32,7 +33,13 @@ wasmer-compiler-singlepass = "=3.3.0"
 wasmer-middlewares = "=3.3.0"
 wasmer-types = "=3.3.0"
 
+[build-dependencies]
+serde = "=1.0"
+serde_json = "=1.0"
+which = "4.4.0"
+
 [features]
 gas_calibration = []
 testing = []
 dumper = []
+build-wasm = []

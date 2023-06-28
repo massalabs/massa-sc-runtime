@@ -1,4 +1,7 @@
 use anyhow::{anyhow, bail, Result};
+use massa_proto_rs::massa::model::v1::{
+    NativeAddress, NativeAmount, NativeHash, Slot,
+};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -96,8 +99,7 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_get_balance_for"), 41);
         abi_costs.insert(String::from("assembly_script_get_call_coins"), 9);
         abi_costs.insert(String::from("assembly_script_get_call_stack"), 56);
-        abi_costs.insert(String::from("assembly_script_get_current_period"), 9);
-        abi_costs.insert(String::from("assembly_script_get_current_thread"), 8);
+        abi_costs.insert(String::from("assembly_script_get_current_slot"), 9);
         abi_costs.insert(String::from("assembly_script_get_data"), 85);
         abi_costs.insert(String::from("assembly_script_get_data_for"), 139);
         abi_costs.insert(String::from("assembly_script_get_keys"), 26);
@@ -180,6 +182,13 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("get_balance_for")
     }
 
+    fn get_balance_wasmv1(
+        &self,
+        address: Option<NativeAddress>,
+    ) -> Result<NativeAmount> {
+        unimplemented!("get_balance_wasmv1")
+    }
+
     /// Transfer an amount from the address on the current call stack to a
     /// target address.
     fn transfer_coins(&self, to_address: &str, raw_amount: u64) -> Result<()> {
@@ -196,10 +205,24 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("transfer_coins_for")
     }
 
+    fn transfer_coins_wasmv1(
+        &self,
+        to_address: NativeAddress,
+        raw_amount: NativeAmount,
+        from_address: Option<NativeAddress>,
+    ) -> Result<()> {
+        unimplemented!("transfer_coins_wasmv1")
+    }
+
     /// Get the amount of coins that have been made available for use by the
     /// caller of the currently executing code.
     fn get_call_coins(&self) -> Result<u64> {
         bail!("unimplemented function get_call_coins_for in interface")
+    }
+
+    /// Sets the executable bytecode at a current address.
+    fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
+        unimplemented!("raw_set_bytecode")
     }
 
     /// Sets the executable bytecode at a target address.
@@ -213,9 +236,12 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("raw_set_bytecode_for")
     }
 
-    /// Sets the executable bytecode at a current address.
-    fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
-        unimplemented!("raw_set_bytecode")
+    fn raw_set_bytecode_wasmv1(
+        &self,
+        bytecode: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<()> {
+        unimplemented!("raw_set_bytecode_wasmv1")
     }
 
     /// Requires a new address that contains the sent &[u8]
@@ -249,24 +275,22 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("raw_get_data")
     }
 
-    /// Set the datastore value for the corresponding key
-    fn raw_set_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
-        unimplemented!("raw_set_data")
-    }
-
-    /// Append a value to the current datastore value for the corresponding key
-    fn raw_append_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
-        unimplemented!("raw_append_data")
-    }
-
-    /// Delete a datastore entry
-    fn raw_delete_data(&self, key: &[u8]) -> Result<()> {
-        unimplemented!("raw_delete_data")
-    }
-
     /// Requires the data at the address
     fn raw_get_data_for(&self, address: &str, key: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("raw_get_data_for")
+    }
+
+    fn raw_get_data_wasmv1(
+        &self,
+        key: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<Vec<u8>> {
+        unimplemented!("raw_get_data_wasmv1")
+    }
+
+    /// Set the datastore value for the corresponding key
+    fn raw_set_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
+        unimplemented!("raw_set_data")
     }
 
     /// Set the datastore value for the corresponding key of the given address
@@ -277,6 +301,20 @@ pub trait Interface: Send + Sync + InterfaceClone {
         value: &[u8],
     ) -> Result<()> {
         unimplemented!("raw_set_data_for")
+    }
+
+    fn raw_set_data_wasmv1(
+        &self,
+        key: &[u8],
+        value: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<()> {
+        unimplemented!("raw_set_data_wasmv1")
+    }
+
+    /// Append a value to the current datastore value for the corresponding key
+    fn raw_append_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
+        unimplemented!("raw_append_data")
     }
 
     /// Append a value to the current datastore value for the corresponding key
@@ -290,9 +328,31 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("raw_append_data_for")
     }
 
+    fn raw_append_data_wasmv1(
+        &self,
+        key: &[u8],
+        value: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<()> {
+        unimplemented!("raw_append_data_wasmv1")
+    }
+
+    /// Delete a datastore entry
+    fn raw_delete_data(&self, key: &[u8]) -> Result<()> {
+        unimplemented!("raw_delete_data")
+    }
+
     /// Delete a datastore entry at of the given address
     fn raw_delete_data_for(&self, address: &str, key: &[u8]) -> Result<()> {
         unimplemented!("raw_delete_data_for")
+    }
+
+    fn raw_delete_data_wasmv1(
+        &self,
+        key: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<()> {
+        unimplemented!("raw_delete_data_wasmv1")
     }
 
     /// Requires to replace the data in the current address
@@ -309,6 +369,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("has_data_for")
     }
 
+    fn has_data_wasmv1(
+        &self,
+        key: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<bool> {
+        unimplemented!("has_data_wasmv1")
+    }
+
     /// Returns bytecode of the current address
     fn raw_get_bytecode(&self) -> Result<Vec<u8>> {
         unimplemented!("raw_get_bytecode")
@@ -317,6 +385,13 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Returns bytecode of the target address
     fn raw_get_bytecode_for(&self, address: &str) -> Result<Vec<u8>> {
         unimplemented!("raw_get_bytecode_for")
+    }
+
+    fn raw_get_bytecode_wasmv1(
+        &self,
+        address: Option<NativeAddress>,
+    ) -> Result<Vec<u8>> {
+        unimplemented!("raw_get_bytecode_wasmv1")
     }
 
     /// Return operation datastore keys
@@ -342,6 +417,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     // Hash data
     fn hash(&self, data: &[u8]) -> Result<[u8; 32]> {
         unimplemented!("hash")
+    }
+
+    /// Returns the native hash of the given bytes
+    fn native_hash(&self, bytes: &[u8]) -> Result<NativeHash> {
+        unimplemented!("native_hash")
     }
 
     // Verify signature
@@ -397,6 +477,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Returns the thread of the current execution slot
     fn get_current_thread(&self) -> Result<u8> {
         unimplemented!("get_current_thread")
+    }
+
+    /// Returns the current execution slot
+    fn get_current_slot(&self) -> Result<Slot> {
+        unimplemented!("get_current_slot")
     }
 
     /// Expect to return a list of owned addresses
@@ -463,6 +548,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("hash_sha256")
     }
 
+    // Keccak256 hash bytes
     fn hash_keccak256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
         unimplemented!("hash_keccak256")
     }
@@ -511,10 +597,6 @@ impl dyn Interface {
         )?)?)
     }
 
-    pub fn set_data<T: Serialize>(&self, key: &[u8], value: &T) -> Result<()> {
-        self.raw_set_data(key, serde_json::to_string::<T>(value)?.as_bytes())
-    }
-
     pub fn get_data_for<T: DeserializeOwned>(
         &self,
         address: &str,
@@ -523,6 +605,22 @@ impl dyn Interface {
         Ok(serde_json::from_str::<T>(std::str::from_utf8(
             &self.raw_get_data_for(address, key)?,
         )?)?)
+    }
+
+    pub fn get_data_wasmv1<T: DeserializeOwned>(
+        &self,
+        key: &[u8],
+        address: Option<NativeAddress>,
+    ) -> Result<T> {
+        // TODO: Avoid using this many conversions, protobuf serialization should be enough
+        Ok(serde_json::from_str::<T>(std::str::from_utf8(
+            &self.raw_get_data_wasmv1(key, address)?,
+        )?)?)
+    }
+
+    pub fn set_data<T: Serialize>(&self, key: &[u8], value: &T) -> Result<()> {
+        // TODO: Avoid using this many conversions, protobuf serialization should be enough
+        self.raw_set_data(key, serde_json::to_string::<T>(value)?.as_bytes())
     }
 
     pub fn set_data_for<T: Serialize>(
@@ -535,6 +633,19 @@ impl dyn Interface {
             address,
             key,
             serde_json::to_string::<T>(value)?.as_bytes(),
+        )
+    }
+
+    pub fn set_data_wasmv1<T: Serialize>(
+        &self,
+        key: &[u8],
+        value: &T,
+        address: Option<NativeAddress>,
+    ) -> Result<()> {
+        self.raw_set_data_wasmv1(
+            key,
+            serde_json::to_string::<T>(value)?.as_bytes(),
+            address,
         )
     }
 }
