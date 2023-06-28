@@ -1,7 +1,5 @@
 use anyhow::{anyhow, bail, Result};
-use massa_proto_rs::massa::model::v1::{
-    NativeAddress, NativeAmount, NativeHash, Slot,
-};
+use massa_proto_rs::massa::model::v1::{NativeAmount, Slot};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -184,7 +182,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     fn get_balance_wasmv1(
         &self,
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<NativeAmount> {
         unimplemented!("get_balance_wasmv1")
     }
@@ -207,9 +205,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     fn transfer_coins_wasmv1(
         &self,
-        to_address: NativeAddress,
+        to_address: String,
         raw_amount: NativeAmount,
-        from_address: Option<NativeAddress>,
+        from_address: Option<String>,
     ) -> Result<()> {
         unimplemented!("transfer_coins_wasmv1")
     }
@@ -239,7 +237,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn raw_set_bytecode_wasmv1(
         &self,
         bytecode: &[u8],
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<()> {
         unimplemented!("raw_set_bytecode_wasmv1")
     }
@@ -283,7 +281,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn raw_get_data_wasmv1(
         &self,
         key: &[u8],
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<Vec<u8>> {
         unimplemented!("raw_get_data_wasmv1")
     }
@@ -307,7 +305,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         &self,
         key: &[u8],
         value: &[u8],
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<()> {
         unimplemented!("raw_set_data_wasmv1")
     }
@@ -332,7 +330,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         &self,
         key: &[u8],
         value: &[u8],
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<()> {
         unimplemented!("raw_append_data_wasmv1")
     }
@@ -350,7 +348,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn raw_delete_data_wasmv1(
         &self,
         key: &[u8],
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<()> {
         unimplemented!("raw_delete_data_wasmv1")
     }
@@ -372,7 +370,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn has_data_wasmv1(
         &self,
         key: &[u8],
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<bool> {
         unimplemented!("has_data_wasmv1")
     }
@@ -389,7 +387,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     fn raw_get_bytecode_wasmv1(
         &self,
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<Vec<u8>> {
         unimplemented!("raw_get_bytecode_wasmv1")
     }
@@ -419,9 +417,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("hash")
     }
 
-    /// Returns the native hash of the given bytes
-    fn native_hash(&self, bytes: &[u8]) -> Result<NativeHash> {
-        unimplemented!("native_hash")
+    /// Returns the blake3 hash of the given bytes
+    fn blake3_hash(&self, bytes: &[u8]) -> Result<[u8; 32]> {
+        unimplemented!("blake3_hash")
     }
 
     // Verify signature
@@ -503,6 +501,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Generate a smart contract event
     fn generate_event(&self, _event: String) -> Result<()> {
         unimplemented!("generate_event")
+    }
+
+    /// Generate a smart contract event
+    fn generate_event_wasmv1(&self, _event: Vec<u8>) -> Result<()> {
+        let msg = String::from_utf8_lossy(&_event);
+        println!("{}", msg);
+
+        Ok(())
     }
 
     /// For the given bytecode:
@@ -610,16 +616,18 @@ impl dyn Interface {
     pub fn get_data_wasmv1<T: DeserializeOwned>(
         &self,
         key: &[u8],
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<T> {
-        // TODO: Avoid using this many conversions, protobuf serialization should be enough
+        // TODO: Avoid using this many conversions, protobuf serialization
+        // should be enough
         Ok(serde_json::from_str::<T>(std::str::from_utf8(
             &self.raw_get_data_wasmv1(key, address)?,
         )?)?)
     }
 
     pub fn set_data<T: Serialize>(&self, key: &[u8], value: &T) -> Result<()> {
-        // TODO: Avoid using this many conversions, protobuf serialization should be enough
+        // TODO: Avoid using this many conversions, protobuf serialization
+        // should be enough
         self.raw_set_data(key, serde_json::to_string::<T>(value)?.as_bytes())
     }
 
@@ -640,7 +648,7 @@ impl dyn Interface {
         &self,
         key: &[u8],
         value: &T,
-        address: Option<NativeAddress>,
+        address: Option<String>,
     ) -> Result<()> {
         self.raw_set_data_wasmv1(
             key,
