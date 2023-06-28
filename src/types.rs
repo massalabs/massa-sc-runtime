@@ -344,7 +344,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("hash")
     }
 
-    // Verify signature (legacy)
+    // Verify signature
     fn signature_verify(
         &self,
         data: &[u8],
