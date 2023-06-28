@@ -1,5 +1,4 @@
 use anyhow::{anyhow, bail, Result};
-use massa_proto_rs::massa::model::v1::{NativePubKey, NativeSig};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -353,16 +352,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
         public_key: &str,
     ) -> Result<bool> {
         unimplemented!("signature_verify")
-    }
-
-    // Verify native signature
-    fn verify_native_signature(
-        &self,
-        message: &[u8],
-        signature: NativeSig,
-        public_key: NativePubKey,
-    ) -> Result<bool> {
-        unimplemented!("verify_native_signature")
     }
 
     // Verify EVM signature
