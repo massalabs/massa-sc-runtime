@@ -327,32 +327,31 @@ fn test_run_main_wasmv1() {
     // run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
 }
 
-// #[test]
-// #[serial]
-// /// Test test_get_current_period_and_thread
-// fn test_get_current_period_and_thread() {
-//      let gas_costs = GasCosts::default();
-//      let interface: Box<dyn Interface> =
-//          Box::new(TestInterface);
-//      let module = include_bytes!(concat!(
-//          env!("CARGO_MANIFEST_DIR"),
-//          "/../as_abi_protobuf/build/test_period_thread.wasm_add"
-//      ));
+#[test]
+#[serial]
+/// Test test_get_current_period_and_thread
+fn test_get_current_period_and_thread() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> = Box::new(TestInterface);
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../as_abi_protobuf/build/test_period_thread.wasm_add"
+    ));
 
-//      let runtime_module =
-//          RuntimeModule::new(module, 200_000, gas_costs.clone(),
-//      Compiler::SP).unwrap();
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP)
+            .unwrap();
 
-//      match runtime_module.clone() {
-//          RuntimeModule::ASModule(_) => {
-//              println!("Module type ASModule");
-//          }
-//          RuntimeModule::WasmV1Module(_) => {
-//              println!("Module type WasmV1Module");
-//          }
-//      }
-//      run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
-// }
+    match runtime_module.clone() {
+        RuntimeModule::ASModule(_) => {
+            println!("Module type ASModule");
+        }
+        RuntimeModule::WasmV1Module(_) => {
+            println!("Module type WasmV1Module");
+        }
+    }
+    run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+}
 
 #[test]
 #[serial]
