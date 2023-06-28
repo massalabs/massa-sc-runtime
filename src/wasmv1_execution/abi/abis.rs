@@ -45,6 +45,14 @@ pub fn register_abis(
     let fn_env = FunctionEnv::new(store, shared_abi_env);
     imports! {
         "massa" => {
+            "abi_get_remaining_gas" => Function::new_typed_with_env(store, &fn_env, abi_get_remaining_gas),
+            "abi_get_owned_addresses" => Function::new_typed_with_env(store, &fn_env, abi_get_owned_addresses),
+            "abi_get_call_stack" => Function::new_typed_with_env(store, &fn_env, abi_get_call_stack),
+            "abi_address_from_public_key" => Function::new_typed_with_env(store, &fn_env, abi_address_from_public_key),
+            "abi_unsafe_random" => Function::new_typed_with_env(store, &fn_env, abi_unsafe_random),
+            "abi_get_call_coins" => Function::new_typed_with_env(store, &fn_env, abi_get_call_coins),
+            "abi_get_native_time" => Function::new_typed_with_env(store, &fn_env, abi_get_native_time),
+            "abi_caller_has_write_access" => Function::new_typed_with_env(store, &fn_env, abi_caller_has_write_access),
             "abi_verify_evm_signature" => Function::new_typed_with_env(store, &fn_env, abi_verify_evm_signature),
             "abi_set_data" => Function::new_typed_with_env(store, &fn_env, abi_set_data),
             "abi_get_data" => Function::new_typed_with_env(store, &fn_env, abi_get_data),
@@ -536,6 +544,184 @@ fn abi_verify_evm_signature(
                 return resp_err!("EVM signature verification failed");
             };
             resp_ok!(VerifyEvmSigResult, { is_verified: is_verified })
+        },
+    )
+}
+
+fn abi_get_remaining_gas(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_remaining_gas",
+        store_env,
+        arg_offset,
+        |handler,
+         _req: GetRemainingGasRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Ok(gas) = handler.get_remaining_gas().try_into() else {
+                return resp_err!("Remaining gas is too large to fit into a i64");
+            };
+            resp_ok!(GetRemainingGasResult, { remaining_gas: gas })
+        },
+    )
+}
+
+fn abi_get_owned_addresses(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_owned_addresses",
+        store_env,
+        arg_offset,
+        |handler,
+         _req: GetOwnedAddressesRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler.interface.get_owned_addresses() {
+                Err(e) => {
+                    resp_err!(format!("Failed to get owned addresses: {}", e))
+                }
+                Ok(addresses) => {
+                    resp_ok!(GetOwnedAddressesResult, { addresses: addresses })
+                }
+            }
+        },
+    )
+}
+
+fn abi_get_call_stack(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_call_stack",
+        store_env,
+        arg_offset,
+        |handler,
+         _req: GetCallStackRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler.interface.get_call_stack() {
+                Err(e) => {
+                    resp_err!(format!("Failed to get the call stack: {}", e))
+                }
+                Ok(call_stack) => {
+                    resp_ok!(GetCallStackResult, { calls: call_stack })
+                }
+            }
+        },
+    )
+}
+
+fn abi_address_from_public_key(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_address_from_public_key",
+        store_env,
+        arg_offset,
+        |handler,
+         req: AddressFromPubKeyRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler.interface.address_from_public_key(&req.pub_key) {
+                Err(e) => resp_err!(format!(
+                    "Failed to get the address from the public key: {}",
+                    e
+                )),
+                Ok(address) => {
+                    resp_ok!(AddressFromPubKeyResult, { address: address })
+                }
+            }
+        },
+    )
+}
+
+fn abi_unsafe_random(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_unsafe_random",
+        store_env,
+        arg_offset,
+        |handler,
+         req: UnsafeRandomRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            // TODO
+            resp_ok!(UnsafeRandomResult, {})
+        },
+    )
+}
+
+fn abi_get_call_coins(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_call_coins",
+        store_env,
+        arg_offset,
+        |handler,
+         _req: GetCallCoinsRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler.interface.get_call_coins() {
+                Err(e) => {
+                    resp_err!(format!("Failed to get the call coins: {}", e))
+                }
+                Ok(coins) => {
+                    resp_ok!(GetCallCoinsResult, { coins: Some(NativeAmount { mantissa: coins, scale: 0 }) })
+                }
+            }
+        },
+    )
+}
+
+fn abi_get_native_time(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_native_time",
+        store_env,
+        arg_offset,
+        |handler,
+         _req: GetNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler.interface.get_time() {
+                Err(e) => {
+                    resp_err!(format!("Failed to get the time: {}", e))
+                }
+                Ok(time) => {
+                    resp_ok!(GetNativeTimeResult, { time: Some(NativeTime { milliseconds: time }) })
+                }
+            }
+        },
+    )
+}
+
+fn abi_caller_has_write_access(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_caller_has_write_access",
+        store_env,
+        arg_offset,
+        |handler,
+         _req: CallerHasWriteAccessRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler.interface.caller_has_write_access() {
+                Err(e) => {
+                    resp_err!(format!(
+                        "Failed to get the caller's write access: {}",
+                        e
+                    ))
+                }
+                Ok(has_write_access) => {
+                    resp_ok!(CallerHasWriteAccessResult, { has_write_access: has_write_access })
+                }
+            }
         },
     )
 }
