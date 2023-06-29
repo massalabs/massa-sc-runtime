@@ -163,6 +163,16 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("init_call")
     }
 
+    /// Prepare the execution of a module at the given address and transfer a
+    /// given amount of coins
+    fn init_call_wasmv1(
+        &self,
+        address: &str,
+        raw_coins: NativeAmount,
+    ) -> Result<Vec<u8>> {
+        unimplemented!("init_call")
+    }
+
     /// Finish a call
     fn finish_call(&self) -> Result<()> {
         unimplemented!("finish_call")
@@ -517,10 +527,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     /// Generate a smart contract event
     fn generate_event_wasmv1(&self, _event: Vec<u8>) -> Result<()> {
-        let msg = String::from_utf8_lossy(&_event);
-        println!("{}", msg);
-
-        Ok(())
+        unimplemented!("generate_event_wasmv1")
     }
 
     /// For the given bytecode:
@@ -571,40 +578,65 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("hash_keccak256")
     }
 
-    fn amount_from_mantissa_scale(
+    fn native_amount_from_str_wasmv1(
         &self,
-        mantissa: u64,
-        scale: u32,
-    ) -> Result<u64> {
-        unimplemented!("amount_from_mantissa_scale")
+        amount: &str,
+    ) -> Result<NativeAmount> {
+        unimplemented!("native_amount_from_str_wasmv1");
     }
 
-    fn amount_to_mantissa_scale(&self, amount: u64) -> Result<(u64, u32)> {
-        unimplemented!("amount_to_mantissa_scale")
-    }
-
-    fn amount_from_str(&self, amount: &str) -> Result<u64> {
-        unimplemented!("amount_from_str")
-    }
-
-    fn amount_to_string(&self, amount: u64) -> Result<String> {
-        unimplemented!("amount_to_string")
-    }
-
-    fn native_address_from_str(
+    fn native_amount_to_string_wasmv1(
         &self,
-        address: &str,
-    ) -> Result<(i32, u64, Vec<u8>)> {
-        unimplemented!("native_address_from_str")
-    }
-
-    fn native_address_to_string(
-        &self,
-        category: i32,
-        version: u64,
-        content: &[u8],
+        amount: &NativeAmount,
     ) -> Result<String> {
-        unimplemented!("native_address_to_string")
+        unimplemented!("native_amount_to_string_wasmv1");
+    }
+
+    fn check_native_amount_wasmv1(
+        &self,
+        amount: &NativeAmount,
+    ) -> Result<bool> {
+        unimplemented!("check_native_amount_wasmv1");
+    }
+
+    fn add_native_amounts_wasmv1(
+        &self,
+        amount1: &NativeAmount,
+        amount2: &NativeAmount,
+    ) -> Result<NativeAmount> {
+        unimplemented!("add_native_amounts_wasmv1");
+    }
+
+    fn sub_native_amounts_wasmv1(
+        &self,
+        amount1: &NativeAmount,
+        amount2: &NativeAmount,
+    ) -> Result<NativeAmount> {
+        unimplemented!("sub_native_amounts_wasmv1");
+    }
+
+    fn mul_native_amount_wasmv1(
+        &self,
+        amount: &NativeAmount,
+        factor: u64,
+    ) -> Result<NativeAmount> {
+        unimplemented!("mul_native_amount_wasmv1");
+    }
+
+    fn div_rem_native_amount_wasmv1(
+        &self,
+        dividend: &NativeAmount,
+        divisor: u64,
+    ) -> Result<(NativeAmount, NativeAmount)> {
+        unimplemented!("div_rem_native_amount_wasmv1");
+    }
+
+    fn div_rem_native_amounts_wasmv1(
+        &self,
+        dividend: &NativeAmount,
+        divisor: &NativeAmount,
+    ) -> Result<(u64, NativeAmount)> {
+        unimplemented!("div_rem_native_amounts_wasmv1");
     }
 }
 

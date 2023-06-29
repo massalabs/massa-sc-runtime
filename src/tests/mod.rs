@@ -153,7 +153,7 @@ impl Interface for TestInterface {
         println!("Raw get bytecode called on address {:?}", address);
         Ok(vec![])
     }
-    
+
     fn get_keys_wasmv1(
         &self,
         prefix: &[u8],
@@ -161,10 +161,16 @@ impl Interface for TestInterface {
     ) -> Result<BTreeSet<Vec<u8>>> {
         match address {
             Some(address) => {
-                println!("Get keys called on address {:?} with prefix {:?}", address, prefix);
+                println!(
+                    "Get keys called on address {:?} with prefix {:?}",
+                    address, prefix
+                );
             }
             None => {
-                println!("Get keys called on current address with prefix {:?}", prefix);
+                println!(
+                    "Get keys called on current address with prefix {:?}",
+                    prefix
+                );
             }
         }
         Ok(BTreeSet::new())
@@ -342,8 +348,8 @@ impl Interface for TestInterface {
             }
         }
         Ok(NativeAmount {
-            mantissa: 0,
-            scale: 1,
+            mandatory_mantissa: Some(0),
+            mandatory_scale: Some(1),
         })
     }
 
@@ -386,8 +392,11 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn print(&self, message: &str) -> Result<()> {
-        println!("Print {}", message);
+    /// Generate a smart contract event
+    fn generate_event_wasmv1(&self, _event: Vec<u8>) -> Result<()> {
+        let msg = String::from_utf8_lossy(&_event);
+        println!("{}", msg);
+
         Ok(())
     }
 
@@ -399,6 +408,12 @@ impl Interface for TestInterface {
     fn create_module(&self, module: &[u8]) -> Result<String> {
         println!("Create module with module {:?}", module);
         Ok("".to_string())
+    }
+
+    /// Print function for examples
+    fn print(&self, message: &str) -> Result<()> {
+        println!("{}", message);
+        Ok(())
     }
 
     fn send_message(
@@ -502,6 +517,95 @@ impl Interface for TestInterface {
         println!("Blake3 hash with bytes {:?}", bytes);
 
         Ok([0u8; 32])
+    }
+
+    fn native_amount_from_str_wasmv1(
+        &self,
+        _amount: &str,
+    ) -> Result<NativeAmount> {
+        Ok(NativeAmount {
+            mandatory_mantissa: Some(100),
+            mandatory_scale: Some(0),
+        })
+    }
+
+    fn native_amount_to_string_wasmv1(
+        &self,
+        _amount: &NativeAmount,
+    ) -> Result<String> {
+        println!("native_amount_to_string_wasmv1");
+        Ok("string amount".to_string())
+    }
+
+    fn check_native_amount_wasmv1(
+        &self,
+        _amount: &NativeAmount,
+    ) -> Result<bool> {
+        Ok(true)
+    }
+
+    fn add_native_amounts_wasmv1(
+        &self,
+        _amount1: &NativeAmount,
+        _amount2: &NativeAmount,
+    ) -> Result<NativeAmount> {
+        Ok(NativeAmount {
+            mandatory_mantissa: Some(100),
+            mandatory_scale: Some(0),
+        })
+    }
+
+    fn sub_native_amounts_wasmv1(
+        &self,
+        _amount1: &NativeAmount,
+        _amount2: &NativeAmount,
+    ) -> Result<NativeAmount> {
+        Ok(NativeAmount {
+            mandatory_mantissa: Some(100),
+            mandatory_scale: Some(0),
+        })
+    }
+
+    fn mul_native_amount_wasmv1(
+        &self,
+        _amount: &NativeAmount,
+        _factor: u64,
+    ) -> Result<NativeAmount> {
+        Ok(NativeAmount {
+            mandatory_mantissa: Some(100),
+            mandatory_scale: Some(0),
+        })
+    }
+
+    fn div_rem_native_amount_wasmv1(
+        &self,
+        _dividend: &NativeAmount,
+        _divisor: u64,
+    ) -> Result<(NativeAmount, NativeAmount)> {
+        Ok((
+            NativeAmount {
+                mandatory_mantissa: Some(100),
+                mandatory_scale: Some(0),
+            },
+            NativeAmount {
+                mandatory_mantissa: Some(0),
+                mandatory_scale: Some(0),
+            },
+        ))
+    }
+
+    fn div_rem_native_amounts_wasmv1(
+        &self,
+        _dividend: &NativeAmount,
+        _divisor: &NativeAmount,
+    ) -> Result<(u64, NativeAmount)> {
+        Ok((
+            1,
+            NativeAmount {
+                mandatory_mantissa: Some(0),
+                mandatory_scale: Some(0),
+            },
+        ))
     }
 }
 
