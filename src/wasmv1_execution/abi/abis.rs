@@ -658,7 +658,7 @@ fn abi_unsafe_random(
             let mut rng = rand::thread_rng();
             let mut bytes: Vec<u8> = vec![0; req.num_bytes as usize];
             rng.fill_bytes(&mut bytes);
-            resp_ok!(UnsafeRandomResult, {})
+            resp_ok!(UnsafeRandomResult, { random_bytes: bytes })
         },
     )
 }
@@ -703,6 +703,55 @@ fn abi_get_native_time(
                 }
                 Ok(time) => {
                     resp_ok!(GetNativeTimeResult, { time: Some(NativeTime { milliseconds: time }) })
+                }
+            }
+        },
+    )
+}
+
+fn abi_send_async_message(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_send_async_message",
+        store_env,
+        arg_offset,
+        |handler,
+         req: SendAsyncMessageRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(start) = req.validity_start else {
+                return resp_err!("Validity start slot is required");
+            };
+            let Some(end) = req.validity_end else {
+                return resp_err!("Validity end slot is required");
+            };
+
+            let filter: Option<(&str, Option<&[u8]>)> = req.filter.map(
+                |SendAsyncMessageFilter {
+                     target_address,
+                     target_key,
+                 }| {
+                    (target_address.as_str(), target_key.map(|k| k.as_slice()))
+                },
+            );
+
+            match handler.interface.send_message(
+                &req.target_address,
+                &req.target_handler,
+                (start.period, start.thread as u8),
+                (end.period, end.thread as u8),
+                req.execution_gas,
+                req.raw_fee,
+                req.raw_coins,
+                &req.data,
+                filter,
+            ) {
+                Err(e) => {
+                    resp_err!(format!("Failed to send the message: {}", e))
+                }
+                Ok(message_id) => {
+                    resp_ok!(SendAsyncMessageResult, {})
                 }
             }
         },
