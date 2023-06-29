@@ -213,4 +213,9 @@ impl<'a, 'b> ABIHandler<'a, 'b> {
             .get(abi_name)
             .unwrap_or(&0)
     }
+
+    /// Get the memory maximum size in bytes
+    pub fn get_max_mem_size(&mut self) -> u64 {
+        self.exec_env.get_max_mem_size(self.store_env)
+    }
 }

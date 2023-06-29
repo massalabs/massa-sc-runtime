@@ -8,6 +8,7 @@ use massa_proto_rs::massa::{
     model::v1::*,
 };
 
+use rand::RngCore;
 use wasmer::{
     imports, AsStoreMut, Function, FunctionEnv, FunctionEnvMut, Imports,
 };
@@ -649,7 +650,14 @@ fn abi_unsafe_random(
         |handler,
          req: UnsafeRandomRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            // TODO
+            if req.num_bytes as u64 > handler.get_max_mem_size() {
+                return resp_err!(
+                    "Requested random bytes exceed the maximum memory size"
+                );
+            }
+            let mut rng = rand::thread_rng();
+            let mut bytes: Vec<u8> = vec![0; req.num_bytes as usize];
+            rng.fill_bytes(&mut bytes);
             resp_ok!(UnsafeRandomResult, {})
         },
     )

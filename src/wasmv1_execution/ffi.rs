@@ -38,6 +38,11 @@ impl Ffi {
         })
     }
 
+    /// Get the memory maximum size in bytes
+    pub fn get_max_mem_size(&self, store: &impl AsStoreRef) -> u64 {
+        self.guest_memory.view(store).data_size()
+    }
+
     /// Assumes memory layout is: [len: i32 little-endian][data: u8*]
     pub fn read_buffer(
         &self,
