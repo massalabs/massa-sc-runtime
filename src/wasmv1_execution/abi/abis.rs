@@ -52,6 +52,7 @@ pub fn register_abis(
             "abi_unsafe_random" => Function::new_typed_with_env(store, &fn_env, abi_unsafe_random),
             "abi_get_call_coins" => Function::new_typed_with_env(store, &fn_env, abi_get_call_coins),
             "abi_get_native_time" => Function::new_typed_with_env(store, &fn_env, abi_get_native_time),
+            "abi_local_execution" => Function::new_typed_with_env(store, &fn_env, abi_local_execution),
             "abi_caller_has_write_access" => Function::new_typed_with_env(store, &fn_env, abi_caller_has_write_access),
             "abi_verify_evm_signature" => Function::new_typed_with_env(store, &fn_env, abi_verify_evm_signature),
             "abi_set_data" => Function::new_typed_with_env(store, &fn_env, abi_set_data),
@@ -696,6 +697,40 @@ fn abi_get_native_time(
                     resp_ok!(GetNativeTimeResult, { time: Some(NativeTime { milliseconds: time }) })
                 }
             }
+        },
+    )
+}
+
+fn abi_local_execution(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "local_call",
+        store_env,
+        arg_offset,
+        |handler, req: LocalExecutionRequest| {
+            let remaining_gas = handler.get_remaining_gas();
+            let module =
+                helper_get_module(handler, req.bytecode, remaining_gas)?;
+
+            let response = crate::execution::run_function(
+                handler.interface,
+                module,
+                &req.target_function_name,
+                &req.function_arg,
+                remaining_gas,
+                handler.get_gas_costs().clone(),
+            )
+            .map_err(|err| {
+                WasmV1Error::RuntimeError(format!(
+                    "Could not run function: {}",
+                    err
+                ))
+            })?;
+            handler.set_remaining_gas(response.remaining_gas);
+
+            Ok(LocalExecutionResponse { data: response.ret })
         },
     )
 }
