@@ -30,6 +30,23 @@ fn test_datastore_abis() {
 
 #[test]
 #[serial]
+/// Test ledger and op keys ABI calls
+fn test_ledger_op_keys_abis() {
+    let interface = TestInterface;
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/test_ledger_op_keys.wasm_add"
+    ));
+    let gas_costs = GasCosts::default();
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP)
+            .unwrap();
+    run_main(&interface, runtime_module, 100_000_000, gas_costs).unwrap();
+}
+
+#[test]
+#[serial]
 /// Test that overriding the metering globals is not possible
 fn test_metering_safety() {
     let interface = TestInterface;

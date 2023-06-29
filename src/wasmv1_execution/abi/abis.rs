@@ -117,6 +117,41 @@ pub fn register_abis(
                 &fn_env,
                 abi_hash_keccak256,
             ),
+            "abi_get_balance" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_balance,
+            ),
+            "abi_get_bytecode" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_bytecode,
+            ),
+            "abi_set_bytecode" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_set_bytecode,
+            ),
+            "abi_get_op_keys" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_op_keys,
+            ),
+            "abi_get_keys" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_keys,
+            ),
+            "abi_has_op_key" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_has_op_key,
+            ),
+            "abi_get_op_data" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_op_data,
+            ),
         },
     }
 }
@@ -516,6 +551,137 @@ fn abi_has_data(
                 return resp_err!("Failed to check if data exists");
             };
             resp_ok!(HasDataResult, { has_data: res })
+        },
+    )
+}
+
+
+fn abi_get_balance(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_balance",
+        store_env,
+        arg_offset,
+        |handler, req: GetBalanceRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.get_balance_wasmv1(req.optional_address) else
+            {
+                return resp_err!("Failed to get balance");
+            };
+            resp_ok!(GetBalanceResult, { balance: Some(res) })
+        },
+    )
+}
+
+fn abi_get_bytecode(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_bytecode",
+        store_env,
+        arg_offset,
+        |handler,
+         req: GetBytecodeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.raw_get_bytecode_wasmv1(req.optional_address) else
+            {
+                return resp_err!("Failed to get bytecode");
+            };
+            resp_ok!(GetBytecodeResult, { bytecode: res })
+        },
+    )
+}
+
+fn abi_set_bytecode(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_set_bytecode",
+        store_env,
+        arg_offset,
+        |handler,
+         req: SetBytecodeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.raw_set_bytecode_wasmv1(&req.bytecode, req.optional_address) else
+            {
+                return resp_err!("Failed to set bytecode");
+            };
+            resp_ok!(SetBytecodeResult, {})
+        },
+    )
+}
+
+fn abi_get_keys(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_keys",
+        store_env,
+        arg_offset,
+        |handler, req: GetKeysRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.get_keys_wasmv1(&req.prefix, req.optional_address) else
+            {
+                return resp_err!("Failed to get keys");
+            };
+            resp_ok!(GetKeysResult, { keys: res.into_iter().collect()})
+        },
+    )
+}
+
+fn abi_get_op_keys(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_op_keys",
+        store_env,
+        arg_offset,
+        |handler, req: GetOpKeysRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.get_op_keys_wasmv1(&req.prefix) else
+            {
+                return resp_err!("Failed to get op keys");
+            };
+            resp_ok!(GetOpKeysResult, { keys: res})
+        },
+    )
+}
+
+fn abi_has_op_key(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_has_op_key",
+        store_env,
+        arg_offset,
+        |handler, req: HasOpKeyRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.has_op_key(&req.key) else
+            {
+                return resp_err!("Failed to check if key exists");
+            };
+            resp_ok!(HasOpKeyResult, { has_key: res})
+        },
+    )
+}
+
+fn abi_get_op_data(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_op_data",
+        store_env,
+        arg_offset,
+        |handler, req: GetOpDataRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.get_op_data(&req.key) else
+            {
+                return resp_err!("Failed to get op data");
+            };
+            resp_ok!(GetOpDataResult, { value: res})
         },
     )
 }
