@@ -772,7 +772,7 @@ fn abi_local_execution(
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
     handle_abi(
-        "local_call",
+        "abi_local_execution",
         store_env,
         arg_offset,
         |handler, req: LocalExecutionRequest| {
@@ -780,23 +780,19 @@ fn abi_local_execution(
             let module =
                 helper_get_module(handler, req.bytecode, remaining_gas)?;
 
-            let response = crate::execution::run_function(
+            let Ok(response) = crate::execution::run_function(
                 handler.interface,
                 module,
                 &req.target_function_name,
                 &req.function_arg,
                 remaining_gas,
                 handler.get_gas_costs().clone(),
-            )
-            .map_err(|err| {
-                WasmV1Error::RuntimeError(format!(
-                    "Could not run function: {}",
-                    err
-                ))
-            })?;
+            ) else {
+                return resp_err!("Failed to execute the function locally");
+            };
             handler.set_remaining_gas(response.remaining_gas);
 
-            Ok(LocalExecutionResponse { data: response.ret })
+            resp_ok!(LocalExecutionResponse, { data: response.ret })
         },
     )
 }
