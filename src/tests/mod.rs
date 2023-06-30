@@ -6,7 +6,7 @@ use anyhow::Result;
 use massa_proto_rs::massa::model::v1::*;
 use sha2::{Digest, Sha256};
 use sha3::Keccak256;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone)]
 struct TestInterface;
@@ -144,6 +144,30 @@ impl Interface for TestInterface {
     fn hash(&self, data: &[u8]) -> Result<[u8; 32]> {
         println!("Hash with data {:?}", data);
         Ok([0; 32])
+    }
+
+    fn raw_get_bytecode_wasmv1(
+        &self,
+        address: Option<String>,
+    ) -> Result<Vec<u8>> {
+        println!("Raw get bytecode called on address {:?}", address);
+        Ok(vec![])
+    }
+    
+    fn get_keys_wasmv1(
+        &self,
+        prefix: &[u8],
+        address: Option<String>,
+    ) -> Result<BTreeSet<Vec<u8>>> {
+        match address {
+            Some(address) => {
+                println!("Get keys called on address {:?} with prefix {:?}", address, prefix);
+            }
+            None => {
+                println!("Get keys called on current address with prefix {:?}", prefix);
+            }
+        }
+        Ok(BTreeSet::new())
     }
 
     fn raw_append_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
@@ -398,6 +422,15 @@ impl Interface for TestInterface {
 
     fn get_op_keys(&self) -> Result<Vec<Vec<u8>>> {
         println!("Get op keys");
+        Ok(vec![
+            vec![0, 1, 2, 3, 4, 5, 6, 11],
+            vec![127, 128],
+            vec![254, 255],
+        ])
+    }
+
+    fn get_op_keys_wasmv1(&self, prefix: &[u8]) -> Result<Vec<Vec<u8>>> {
+        println!("Get op keys wasmv1 called with prefix {:?}", prefix);
         Ok(vec![
             vec![0, 1, 2, 3, 4, 5, 6, 11],
             vec![127, 128],

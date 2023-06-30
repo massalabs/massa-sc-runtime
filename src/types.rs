@@ -268,6 +268,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("get_op_keys_for")
     }
 
+    fn get_keys_wasmv1(
+        &self,
+        prefix: &[u8],
+        address: Option<String>,
+    ) -> Result<BTreeSet<Vec<u8>>> {
+        unimplemented!("get_keys_wasmv1")
+    }
+
     /// Return the datastore value of the corresponding key
     fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("raw_get_data")
@@ -395,6 +403,10 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Return operation datastore keys
     fn get_op_keys(&self) -> Result<Vec<Vec<u8>>> {
         unimplemented!("get_op_keys")
+    }
+
+    fn get_op_keys_wasmv1(&self, prefix: &[u8]) -> Result<Vec<Vec<u8>>> {
+        unimplemented!("get_op_keys_wasmv1")
     }
 
     /// Check if key is in operation datastore

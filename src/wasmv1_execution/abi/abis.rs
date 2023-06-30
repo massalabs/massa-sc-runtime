@@ -128,6 +128,41 @@ pub fn register_abis(
                 &fn_env,
                 abi_hash_keccak256,
             ),
+            "abi_get_balance" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_balance,
+            ),
+            "abi_get_bytecode" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_bytecode,
+            ),
+            "abi_set_bytecode" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_set_bytecode,
+            ),
+            "abi_get_op_keys" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_op_keys,
+            ),
+            "abi_get_keys" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_keys,
+            ),
+            "abi_has_op_key" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_has_op_key,
+            ),
+            "abi_get_op_data" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_op_data,
+            ),
         },
     }
 }
@@ -146,9 +181,17 @@ pub(crate) fn abi_call(
                 WasmV1Error::RuntimeError("No coins provided".into())
             })?;
 
+            let Some(mantissa) = amount.mandatory_mantissa else {
+                return resp_err!("Mandatory mantissa not provided");
+            };
+
+            let Some(scale) = amount.mandatory_scale else {
+                return resp_err!("Manadatory scale not provided");
+            };
+
             let amount = handler
                 .interface
-                .amount_from_mantissa_scale(amount.mantissa, amount.scale)
+                .amount_from_mantissa_scale(mantissa, scale)
                 .map_err(|err| WasmV1Error::RuntimeError(err.to_string()))?;
 
             let bytecode = handler
@@ -531,6 +574,136 @@ fn abi_has_data(
     )
 }
 
+fn abi_get_balance(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_balance",
+        store_env,
+        arg_offset,
+        |handler, req: GetBalanceRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.get_balance_wasmv1(req.optional_address) else
+            {
+                return resp_err!("Failed to get balance");
+            };
+            resp_ok!(GetBalanceResult, { balance: Some(res) })
+        },
+    )
+}
+
+fn abi_get_bytecode(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_bytecode",
+        store_env,
+        arg_offset,
+        |handler,
+         req: GetBytecodeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.raw_get_bytecode_wasmv1(req.optional_address) else
+            {
+                return resp_err!("Failed to get bytecode");
+            };
+            resp_ok!(GetBytecodeResult, { bytecode: res })
+        },
+    )
+}
+
+fn abi_set_bytecode(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_set_bytecode",
+        store_env,
+        arg_offset,
+        |handler,
+         req: SetBytecodeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.raw_set_bytecode_wasmv1(&req.bytecode, req.optional_address) else
+            {
+                return resp_err!("Failed to set bytecode");
+            };
+            resp_ok!(SetBytecodeResult, {})
+        },
+    )
+}
+
+fn abi_get_keys(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_keys",
+        store_env,
+        arg_offset,
+        |handler, req: GetKeysRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.get_keys_wasmv1(&req.prefix, req.optional_address) else
+            {
+                return resp_err!("Failed to get keys");
+            };
+            resp_ok!(GetKeysResult, { keys: res.into_iter().collect()})
+        },
+    )
+}
+
+fn abi_get_op_keys(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_op_keys",
+        store_env,
+        arg_offset,
+        |handler, req: GetOpKeysRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.get_op_keys_wasmv1(&req.prefix) else
+            {
+                return resp_err!("Failed to get op keys");
+            };
+            resp_ok!(GetOpKeysResult, { keys: res})
+        },
+    )
+}
+
+fn abi_has_op_key(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_has_op_key",
+        store_env,
+        arg_offset,
+        |handler, req: HasOpKeyRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.has_op_key(&req.key) else
+            {
+                return resp_err!("Failed to check if key exists");
+            };
+            resp_ok!(HasOpKeyResult, { has_key: res})
+        },
+    )
+}
+
+fn abi_get_op_data(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_op_data",
+        store_env,
+        arg_offset,
+        |handler, req: GetOpDataRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(res) = handler.interface.get_op_data(&req.key) else
+            {
+                return resp_err!("Failed to get op data");
+            };
+            resp_ok!(GetOpDataResult, { value: res})
+        },
+    )
+}
+
 fn abi_verify_evm_signature(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
@@ -562,10 +735,8 @@ fn abi_get_remaining_gas(
         |handler,
          _req: GetRemainingGasRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let Ok(gas) = handler.get_remaining_gas().try_into() else {
-                return resp_err!("Remaining gas is too large to fit into a i64");
-            };
-            resp_ok!(GetRemainingGasResult, { remaining_gas: gas })
+            let gas = handler.get_remaining_gas();
+            resp_ok!(GetRemainingGasResult, { mandatory_remaining_gas: Some(gas) })
         },
     )
 }
@@ -651,13 +822,16 @@ fn abi_unsafe_random(
         |handler,
          req: UnsafeRandomRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            if req.num_bytes as u64 > handler.get_max_mem_size() {
+            let Some(num_bytes) = req.mandatory_num_bytes else {
+                return resp_err!("Mandatory number of bytes is not provided");
+            };
+            if num_bytes as u64 > handler.get_max_mem_size() {
                 return resp_err!(
                     "Requested random bytes exceed the maximum memory size"
                 );
             }
             let mut rng = rand::thread_rng();
-            let mut bytes: Vec<u8> = vec![0; req.num_bytes as usize];
+            let mut bytes: Vec<u8> = vec![0; num_bytes as usize];
             rng.fill_bytes(&mut bytes);
             resp_ok!(UnsafeRandomResult, { random_bytes: bytes })
         },
@@ -680,7 +854,7 @@ fn abi_get_call_coins(
                     resp_err!(format!("Failed to get the call coins: {}", e))
                 }
                 Ok(coins) => {
-                    resp_ok!(GetCallCoinsResult, { coins: Some(NativeAmount { mantissa: coins, scale: 0 }) })
+                    resp_ok!(GetCallCoinsResult, { coins: Some(NativeAmount { mandatory_mantissa: Some(coins), mandatory_scale: Some(0) }) })
                 }
             }
         },
@@ -952,7 +1126,7 @@ pub fn abi_div_rem_native_amount(
         store_env,
         arg_offset,
         |_handler,
-         req: DivRemNativeAmountRequest|
+         req: DivRemNativeAmountsRequest|
          -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
@@ -965,7 +1139,7 @@ pub fn abi_div_rem_native_amounts(
         store_env,
         arg_offset,
         |_handler,
-         req: DivRemNativeAmountRequest|
+         req: DivRemNativeAmountsRequest|
          -> Result<AbiResponse, WasmV1Error> { todo!() },
     )
 }
