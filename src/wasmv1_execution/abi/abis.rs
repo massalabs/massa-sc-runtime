@@ -7,7 +7,7 @@ use super::{
 
 use massa_proto_rs::massa::{
     abi::v1::{self as proto, *},
-    model::v1::*,
+    model::v1::{NativeAmount, NativeTime},
 };
 
 use rand::RngCore;
@@ -182,27 +182,23 @@ pub(crate) fn abi_call(
             let amount = req.call_coins.ok_or_else(|| {
                 WasmV1Error::RuntimeError("No coins provided".into())
             })?;
-            let Some(mantissa) = amount.mandatory_mantissa else {
+            let Some(_mantissa) = amount.mandatory_mantissa else {
                 return Err(WasmV1Error::RuntimeError("Mandatory mantissa not provided".to_string()));
             };
-            let Some(scale) = amount.mandatory_scale else {
+            let Some(_scale) = amount.mandatory_scale else {
                 return Err(WasmV1Error::RuntimeError("Mandatory scale not provided".to_string()))
             };
 
-            let amount = handler
-                .interface
-                .amount_from_mantissa_scale(mantissa, scale)
-                .map_err(|err| WasmV1Error::RuntimeError(err.to_string()))?;
-
             let bytecode = handler
                 .interface
-                .init_call(&req.target_sc_address, amount)
+                .init_call_wasmv1(&req.target_sc_address, amount)
                 .map_err(|err| {
                     WasmV1Error::RuntimeError(format!(
                         "Could not init call: {}",
                         err
                     ))
                 })?;
+
             let remaining_gas = handler.get_remaining_gas();
             let module = helper_get_module(handler, bytecode, remaining_gas)?;
             let response = crate::execution::run_function(
@@ -623,7 +619,9 @@ fn abi_set_bytecode(
         |handler,
          req: SetBytecodeRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.raw_set_bytecode_wasmv1(&req.bytecode, req.optional_address) else
+            let Ok(_) = handler
+                .interface
+                .raw_set_bytecode_wasmv1(&req.bytecode, req.optional_address) else
             {
                 return resp_err!("Failed to set bytecode");
             };
@@ -1073,9 +1071,22 @@ pub fn abi_check_native_amount(
         "check_native_amount",
         store_env,
         arg_offset,
-        |_handler,
+        |handler,
          req: CheckNativeAmountRequest|
-         -> Result<AbiResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(amount) = req.to_check else {
+                return resp_err!("No amount to check");
+            };
+
+            match handler.interface.check_native_amount_wasmv1(&amount) {
+                Ok(res) => {
+                    return resp_ok!(CheckNativeAmountResult, { is_valid: res})
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
     )
 }
 pub fn abi_add_native_amounts(
@@ -1086,9 +1097,28 @@ pub fn abi_add_native_amounts(
         "add_native_amounts",
         store_env,
         arg_offset,
-        |_handler,
+        |handler,
          req: AddNativeAmountsRequest|
-         -> Result<AbiResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(amount1) = req.amount1 else {
+                return resp_err!("No amount1");
+            };
+            let Some(amount2) = req.amount2 else {
+                return resp_err!("No amount2");
+            };
+
+            match handler
+                .interface
+                .add_native_amounts_wasmv1(&amount1, &amount2)
+            {
+                Ok(res) => {
+                    return resp_ok!(AddNativeAmountsResult, { sum: Some(res)});
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
     )
 }
 pub fn abi_sub_native_amounts(
@@ -1099,9 +1129,25 @@ pub fn abi_sub_native_amounts(
         "sub_native_amounts",
         store_env,
         arg_offset,
-        |_handler,
+        |handler,
          req: SubNativeAmountsRequest|
-         -> Result<AbiResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(left) = req.left else {
+                return resp_err!("No left amount");
+            };
+            let Some(right) = req.right else {
+                return resp_err!("No right amount");
+            };
+
+            match handler.interface.sub_native_amounts_wasmv1(&left, &right) {
+                Ok(res) => {
+                    return resp_ok!(SubNativeAmountsResult, { difference: Some(res)});
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
     )
 }
 pub fn abi_mul_native_amount(
@@ -1112,9 +1158,25 @@ pub fn abi_mul_native_amount(
         "mul_native_amount",
         store_env,
         arg_offset,
-        |_handler,
+        |handler,
          req: MulNativeAmountRequest|
-         -> Result<AbiResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(amount) = req.amount else {
+                return resp_err!("No amount");
+            };
+            let Some(factor) = req.mandatory_coefficient else {
+                return resp_err!("No mandatory_coefficient");
+            };
+
+            match handler.interface.mul_native_amount_wasmv1(&amount, factor) {
+                Ok(res) => {
+                    return resp_ok!(MulNativeAmountResult, { product: Some(res)});
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
     )
 }
 pub fn abi_div_rem_native_amount(
@@ -1125,9 +1187,29 @@ pub fn abi_div_rem_native_amount(
         "div_rem_native_amount",
         store_env,
         arg_offset,
-        |_handler,
-         req: DivRemNativeAmountsRequest|
-         -> Result<AbiResponse, WasmV1Error> { todo!() },
+        |handler,
+         req: ScalarDivRemNativeAmountRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(dividend) = req.dividend else {
+                return resp_err!("No dividend");
+            };
+            let Some(divisor) = req.mandatory_divisor else {
+                return resp_err!("No mandatory_divisor");
+            };
+
+            match handler
+                .interface
+                .div_rem_native_amount_wasmv1(&dividend, divisor)
+            {
+                Ok(res) => {
+                    return resp_ok!(ScalarDivRemNativeAmountResult,
+                            { quotient: Some(res.0), remainder: Some(res.1)});
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
     )
 }
 pub fn abi_div_rem_native_amounts(
@@ -1138,9 +1220,29 @@ pub fn abi_div_rem_native_amounts(
         "div_rem_native_amounts",
         store_env,
         arg_offset,
-        |_handler,
+        |handler,
          req: DivRemNativeAmountsRequest|
-         -> Result<AbiResponse, WasmV1Error> { todo!() },
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(dividend) = req.dividend else {
+                return resp_err!("No dividend");
+            };
+            let Some(divisor) = req.divisor else {
+                return resp_err!("No divisor");
+            };
+
+            match handler
+                .interface
+                .div_rem_native_amounts_wasmv1(&dividend, &divisor)
+            {
+                Ok(res) => {
+                    return resp_ok!(DivRemNativeAmountsResult,
+                            { mandatory_quotient: Some(res.0), remainder: Some(res.1)});
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
     )
 }
 pub fn abi_native_amount_to_string(
@@ -1157,22 +1259,15 @@ pub fn abi_native_amount_to_string(
             let Some(amount) = req.to_convert else {
                 return resp_err!("No amount to convert");
             };
-            let Some(mantissa) = amount.mandatory_mantissa else {
+            let Some(_mantissa) = amount.mandatory_mantissa else {
                 return resp_err!("Mandatory mantissa not provided");
             };
-            let Some(scale) = amount.mandatory_scale else {
+            let Some(_scale) = amount.mandatory_scale else {
                 return resp_err!("Manadatory scale not provided");
             };
 
-            let Ok(amount) =
-                handler.interface.amount_from_mantissa_scale(
-                    mantissa,
-                    scale,
-                ) else {
-                    return resp_err!("Invalid amount");
-                };
-
-            match handler.interface.amount_to_string(amount) {
+            // match handler.interface.amount_to_string(amount) {
+            match handler.interface.native_amount_to_string_wasmv1(&amount) {
                 Ok(amount) => {
                     resp_ok!(NativeAmountToStringResult, { converted_amount: amount })
                 }
@@ -1194,14 +1289,17 @@ pub fn abi_native_amount_from_string(
          req: NativeAmountFromStringRequest|
          -> Result<AbiResponse, WasmV1Error> {
             let Ok(amount) =
-                handler.interface.amount_from_str(&req.to_convert) else {
+                handler
+                .interface
+                .native_amount_from_str_wasmv1(&req.to_convert) else {
                     return resp_err!("Invalid amount");
                 };
-            let Ok((mantissa, scale))=
-                handler.interface.amount_to_mantissa_scale(amount) else {
-                    return resp_err!("Invalid amount");
-                };
-            let amount = NativeAmount { mandatory_mantissa: Some(mantissa), mandatory_scale: Some(scale) };
+            // let Ok((mantissa, scale))=
+            // handler.interface.amount_to_mantissa_scale(amount) else {
+            // return resp_err!("Invalid amount");
+            // };
+            // let amount = NativeAmount { mandatory_mantissa: Some(mantissa),
+            // mandatory_scale: Some(scale) };
 
             resp_ok!(NativeAmountFromStringResult, { converted_amount: Some(amount) })
         },
