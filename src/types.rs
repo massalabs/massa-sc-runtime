@@ -170,7 +170,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         address: &str,
         raw_coins: NativeAmount,
     ) -> Result<Vec<u8>> {
-        unimplemented!("init_call")
+        unimplemented!("init_call_wasmv1")
     }
 
     /// Finish a call

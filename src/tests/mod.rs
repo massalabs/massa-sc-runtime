@@ -23,6 +23,15 @@ impl Interface for TestInterface {
         Ok(vec![])
     }
 
+    fn init_call_wasmv1(
+            &self,
+            address: &str,
+            raw_coins: NativeAmount,
+        ) -> Result<Vec<u8>> {
+            println!("Init call wasmv1 to {}, with {:?} coins", address, raw_coins);
+            Ok(vec![])
+        }
+
     fn finish_call(&self) -> Result<()> {
         println!("Finish call");
         Ok(())
@@ -406,7 +415,15 @@ impl Interface for TestInterface {
     }
 
     fn create_module(&self, module: &[u8]) -> Result<String> {
-        println!("Create module with module {:?}", module);
+        if module.len() > 32 {
+            let mut bytes = Vec::new();
+            for i in 0..32 {
+                bytes.push(module[i]);
+            }
+            println!("Create module with module (cut) {:?}", bytes.as_slice());
+        } else {
+            println!("Create module with module {:?}", module);
+        }
         Ok("".to_string())
     }
 
