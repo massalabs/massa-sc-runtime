@@ -53,6 +53,7 @@ pub fn register_abis(
             "abi_unsafe_random" => Function::new_typed_with_env(store, &fn_env, abi_unsafe_random),
             "abi_get_call_coins" => Function::new_typed_with_env(store, &fn_env, abi_get_call_coins),
             "abi_get_native_time" => Function::new_typed_with_env(store, &fn_env, abi_get_native_time),
+            "abi_send_async_message" => Function::new_typed_with_env(store, &fn_env, abi_send_async_message),
             "abi_local_execution" => Function::new_typed_with_env(store, &fn_env, abi_local_execution),
             "abi_caller_has_write_access" => Function::new_typed_with_env(store, &fn_env, abi_caller_has_write_access),
             "abi_verify_evm_signature" => Function::new_typed_with_env(store, &fn_env, abi_verify_evm_signature),
@@ -726,21 +727,29 @@ fn abi_send_async_message(
             let Some(end) = req.validity_end else {
                 return resp_err!("Validity end slot is required");
             };
+            let Ok(start_thread): Result<u8, _> = start.thread.try_into() else {
+                return resp_err!("Invalid start thread");
+            };
+            let Ok(end_thread): Result<u8, _> = end.thread.try_into() else {
+                return resp_err!("Invalid end thread");
+            };
 
-            let filter: Option<(&str, Option<&[u8]>)> = req.filter.map(
-                |SendAsyncMessageFilter {
-                     target_address,
-                     target_key,
-                 }| {
-                    (target_address.as_str(), target_key.map(|k| k.as_slice()))
-                },
-            );
+            // can't use map here borrowed data needs to outlive the closure
+            let filter: Option<(&str, Option<&[u8]>)> =
+                if let Some(filter_) = req.filter.as_ref() {
+                    Some((
+                        filter_.target_address.as_str(),
+                        filter_.target_key.as_ref().map(|k| k.as_slice()),
+                    ))
+                } else {
+                    None
+                };
 
             match handler.interface.send_message(
                 &req.target_address,
                 &req.target_handler,
-                (start.period, start.thread as u8),
-                (end.period, end.thread as u8),
+                (start.period, start_thread),
+                (end.period, end_thread),
                 req.execution_gas,
                 req.raw_fee,
                 req.raw_coins,
@@ -750,7 +759,7 @@ fn abi_send_async_message(
                 Err(e) => {
                     resp_err!(format!("Failed to send the message: {}", e))
                 }
-                Ok(message_id) => {
+                Ok(_) => {
                     resp_ok!(SendAsyncMessageResult, {})
                 }
             }
