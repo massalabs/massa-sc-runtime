@@ -1,3 +1,5 @@
+use std::vec;
+
 use super::{
     super::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
@@ -180,13 +182,11 @@ pub(crate) fn abi_call(
             let amount = req.call_coins.ok_or_else(|| {
                 WasmV1Error::RuntimeError("No coins provided".into())
             })?;
-
             let Some(mantissa) = amount.mandatory_mantissa else {
-                return resp_err!("Mandatory mantissa not provided");
+                return Err(WasmV1Error::RuntimeError("Mandatory mantissa not provided".to_string()));
             };
-
             let Some(scale) = amount.mandatory_scale else {
-                return resp_err!("Manadatory scale not provided");
+                return Err(WasmV1Error::RuntimeError("Mandatory scale not provided".to_string()))
             };
 
             let amount = handler
@@ -1157,11 +1157,17 @@ pub fn abi_native_amount_to_string(
             let Some(amount) = req.to_convert else {
                 return resp_err!("No amount to convert");
             };
+            let Some(mantissa) = amount.mandatory_mantissa else {
+                return resp_err!("Mandatory mantissa not provided");
+            };
+            let Some(scale) = amount.mandatory_scale else {
+                return resp_err!("Manadatory scale not provided");
+            };
 
             let Ok(amount) =
                 handler.interface.amount_from_mantissa_scale(
-                    amount.mantissa,
-                    amount.scale,
+                    mantissa,
+                    scale,
                 ) else {
                     return resp_err!("Invalid amount");
                 };
@@ -1195,7 +1201,7 @@ pub fn abi_native_amount_from_string(
                 handler.interface.amount_to_mantissa_scale(amount) else {
                     return resp_err!("Invalid amount");
                 };
-            let amount = NativeAmount { mantissa, scale };
+            let amount = NativeAmount { mandatory_mantissa: Some(mantissa), mandatory_scale: Some(scale) };
 
             resp_ok!(NativeAmountFromStringResult, { converted_amount: Some(amount) })
         },
