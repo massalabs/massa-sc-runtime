@@ -190,4 +190,9 @@ impl ExecutionEnv {
     pub fn get_gas_costs(&self) -> &GasCosts {
         &self.gas_costs
     }
+
+    /// Get the memory maximum size in bytes
+    pub fn get_max_mem_size(&self, store: &mut impl AsStoreMut) -> u64 {
+        self.ffi.get_max_mem_size(&store)
+    }
 }
