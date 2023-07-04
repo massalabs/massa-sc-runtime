@@ -635,6 +635,14 @@ impl Interface for TestInterface {
             },
         ))
     }
+
+    fn base58_check_to_bytes_wasmv1(&self, s: &str) -> Result<Vec<u8>> {
+        Ok(s.to_string().into_bytes())
+    }
+
+    fn bytes_to_base58_check_wasmv1(&self, _bytes: &[u8]) -> String {
+        "bs58checked".to_string()
+    }
 }
 
 #[cfg(feature = "gas_calibration")]

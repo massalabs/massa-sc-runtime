@@ -338,6 +338,32 @@ fn test_transfer_coins_wasmv1_as() {
 
 #[test]
 #[serial]
+/// This test call the main function of a SC that calls transfer_coins abi
+fn test_bs58_to_from_wasmv1_as() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> = Box::new(TestInterface);
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/test_bs58_to_from.wasm_add"
+    ));
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP)
+            .unwrap();
+
+    match runtime_module.clone() {
+        RuntimeModule::ASModule(_) => {
+            panic!("Must be WasmV1Module");
+        }
+        RuntimeModule::WasmV1Module(_) => {
+            println!("Module type WasmV1Module");
+        }
+    }
+    run_main(&*interface, runtime_module, 100_000_000, gas_costs).unwrap();
+}
+
+#[test]
+#[serial]
 /// Test basic function-only SC execution
 fn test_run_function() {
     let gas_costs = GasCosts::default();
