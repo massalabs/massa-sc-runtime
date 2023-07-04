@@ -165,6 +165,66 @@ pub fn register_abis(
                 &fn_env,
                 abi_get_op_data,
             ),
+            "abi_check_address" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_check_address,
+            ),
+            "abi_check_pubkey" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_check_pubkey,
+            ),
+            "abi_check_signature" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_check_signature,
+            ),
+            "abi_get_address_category" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_address_category,
+            ),
+            "abi_get_address_version" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_address_version,
+            ),
+            "abi_get_pubkey_version" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_pubkey_version,
+            ),
+            "abi_get_signature_version" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_get_signature_version,
+            ),
+            "abi_checked_add_native_time" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_checked_add_native_time,
+            ),
+            "abi_checked_sub_native_time" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_checked_sub_native_time,
+            ),
+            "abi_checked_mul_native_time" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_checked_mul_native_time,
+            ),
+            "abi_checked_scalar_div_native_time" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_checked_scalar_div_native_time,
+            ),
+            "abi_checked_div_native_time" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_checked_div_native_time,
+            )
         },
     }
 }
@@ -1230,6 +1290,7 @@ pub fn abi_div_rem_native_amounts(
         },
     )
 }
+
 pub fn abi_native_amount_to_string(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
@@ -1300,4 +1361,324 @@ fn check_category(cat: Category) -> Result<(), ()> {
         // any invalid value
         _ => Err(()),
     }
+}
+
+
+pub fn abi_check_address(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "check_address",
+        store_env,
+        arg_offset,
+        |handler,
+         req: CheckAddressRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+
+            match handler.interface.check_address_wasmv1(&req.to_check) {
+                Ok(res) => {
+                    return resp_ok!(CheckAddressResult, { is_valid: res})
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
+    )
+}
+
+pub fn abi_check_pubkey(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "check_pubkey",
+        store_env,
+        arg_offset,
+        |handler,
+         req: CheckPubKeyRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+
+            match handler.interface.check_pubkey_wasmv1(&req.to_check) {
+                Ok(res) => {
+                    return resp_ok!(CheckPubKeyResult, { is_valid: res})
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
+    )
+}
+
+pub fn abi_check_signature(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "check_signature",
+        store_env,
+        arg_offset,
+        |handler,
+         req: CheckSigRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+
+            match handler.interface.check_signature_wasmv1(&req.to_check) {
+                Ok(res) => {
+                    return resp_ok!(CheckSigResult, { is_valid: res})
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
+    )
+}
+
+pub fn abi_get_address_category(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "get_address_category",
+        store_env,
+        arg_offset,
+        |handler,
+         req: GetAddressCategoryRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+
+            match handler.interface.get_address_category_wasmv1(&req.address) {
+                Ok(res) => {
+                    return resp_ok!(GetAddressCategoryResult, { category: res.into()})
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
+    )
+}
+
+pub fn abi_get_address_version(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "get_address_version",
+        store_env,
+        arg_offset,
+        |handler,
+         req: GetAddressVersionRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+
+            match handler.interface.get_address_version_wasmv1(&req.address) {
+                Ok(res) => {
+                    return resp_ok!(GetAddressVersionResult, { version: res})
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
+    )
+}
+
+pub fn abi_get_pubkey_version(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "get_pubkey_version",
+        store_env,
+        arg_offset,
+        |handler,
+         req: GetPubKeyVersionRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+
+            match handler.interface.get_pubkey_version_wasmv1(&req.pub_key) {
+                Ok(res) => {
+                    return resp_ok!(GetPubKeyVersionResult, { version: res})
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
+    )
+}
+
+pub fn abi_get_signature_version(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "get_signature_version",
+        store_env,
+        arg_offset,
+        |handler,
+         req: GetSignatureVersionRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+
+            match handler.interface.get_signature_version_wasmv1(&req.signature) {
+                Ok(res) => {
+                    return resp_ok!(GetSignatureVersionResult, { version: res})
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
+    )
+}
+
+pub fn abi_checked_add_native_time(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "checked_add_native_time",
+        store_env,
+        arg_offset,
+        |handler,
+         req: CheckedAddNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(time1) = req.left else {
+                return resp_err!("No time1");
+            };
+            let Some(time2) = req.right else {
+                return resp_err!("No time2");
+            };
+
+            match handler
+                .interface
+                .checked_add_native_time_wasmv1(&time1, &time2)
+            {
+                Ok(res) => {
+                    return resp_ok!(CheckedAddNativeTimeResult, { sum: Some(res)});
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
+    )
+}
+pub fn abi_checked_sub_native_time(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "checked_sub_native_time",
+        store_env,
+        arg_offset,
+        |handler,
+         req: CheckedSubNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(left) = req.left else {
+                return resp_err!("No left time");
+            };
+            let Some(right) = req.right else {
+                return resp_err!("No right time");
+            };
+
+            match handler.interface.checked_sub_native_time_wasmv1(&left, &right) {
+                Ok(res) => {
+                    return resp_ok!(CheckedSubNativeTimeResult, { difference: Some(res)});
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
+    )
+}
+pub fn abi_checked_mul_native_time(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "checked_mul_native_time",
+        store_env,
+        arg_offset,
+        |handler,
+         req: CheckedMulNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(time) = req.time else {
+                return resp_err!("No time");
+            };
+
+            match handler.interface.checked_mul_native_time_wasmv1(&time, req.coefficient) {
+                Ok(res) => {
+                    return resp_ok!(CheckedMulNativeTimeResult, { product: Some(res)});
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
+    )
+}
+pub fn abi_checked_scalar_div_native_time(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "checked_scalar_div_native_time",
+        store_env,
+        arg_offset,
+        |handler,
+         req: CheckedScalarDivRemNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(dividend) = req.dividend else {
+                return resp_err!("No dividend");
+            };
+
+            match handler
+                .interface
+                .checked_scalar_div_native_time_wasmv1(&dividend, req.divisor)
+            {
+                Ok(res) => {
+                    return resp_ok!(CheckedScalarDivRemNativeTimeResult,
+                            { quotient: Some(res.0), remainder: Some(res.1)});
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
+    )
+}
+pub fn abi_checked_div_native_time(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "checked_div_native_time",
+        store_env,
+        arg_offset,
+        |handler,
+         req: CheckedDivRemNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Some(dividend) = req.dividend else {
+                return resp_err!("No dividend");
+            };
+            let Some(divisor) = req.divisor else {
+                return resp_err!("No divisor");
+            };
+
+            match handler
+                .interface
+                .checked_div_native_time_wasmv1(&dividend, &divisor)
+            {
+                Ok(res) => {
+                    return resp_ok!(CheckedDivRemNativeTimeResult,
+                            { quotient: res.0, remainder: Some(res.1)});
+                }
+                Err(err) => {
+                    return resp_err!(err);
+                }
+            };
+        },
+    )
 }

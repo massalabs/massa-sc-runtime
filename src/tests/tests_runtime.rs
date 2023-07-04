@@ -13,6 +13,40 @@ use wasmer::WasmPtr;
 
 #[test]
 #[serial]
+/// Test native time arithmetic ABI calls
+fn test_native_time_arithmetic_abis() {
+    let interface = TestInterface;
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "../../as_abi_protobuf/build/test_native_time_arithmetic.wasm_add"
+    ));
+    let gas_costs = GasCosts::default();
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP)
+            .unwrap();
+    run_main(&interface, runtime_module, 100_000_000, gas_costs).unwrap();
+}
+
+#[test]
+#[serial]
+/// Test structs check and version ABI calls
+fn test_structs_check_and_version_abis() {
+    let interface = TestInterface;
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "../../as_abi_protobuf/build/test_structs_check_and_version.wasm_add"
+    ));
+    let gas_costs = GasCosts::default();
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP)
+            .unwrap();
+    run_main(&interface, runtime_module, 100_000_000, gas_costs).unwrap();
+}
+
+#[test]
+#[serial]
 /// Test datastore ABI calls
 fn test_datastore_abis() {
     let interface = TestInterface;
