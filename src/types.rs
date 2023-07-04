@@ -228,6 +228,10 @@ pub trait Interface: Send + Sync + InterfaceClone {
         bail!("unimplemented function get_call_coins_for in interface")
     }
 
+    /// Get the native amount of coins that have been made available for use by the
+    /// caller of the currently executing code.
+    fn get_call_coins_wasmv1(&self) -> Result<NativeAmount>;
+
     /// Sets the executable bytecode at a current address.
     fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
         unimplemented!("raw_set_bytecode")
