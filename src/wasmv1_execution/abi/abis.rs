@@ -182,12 +182,6 @@ pub(crate) fn abi_call(
             let amount = req.call_coins.ok_or_else(|| {
                 WasmV1Error::RuntimeError("No coins provided".into())
             })?;
-            let Some(_mantissa) = amount.mandatory_mantissa else {
-                return Err(WasmV1Error::RuntimeError("Mandatory mantissa not provided".to_string()));
-            };
-            let Some(_scale) = amount.mandatory_scale else {
-                return Err(WasmV1Error::RuntimeError("Mandatory scale not provided".to_string()))
-            };
 
             let bytecode = handler
                 .interface
@@ -411,7 +405,7 @@ pub fn abi_transfer_coins(
             let transfer_coins = handler.interface.transfer_coins_wasmv1(
                 req.target_address,
                 amount,
-                req.optional_sender_address,
+                req.sender_address,
             );
             match transfer_coins {
                 Ok(_) => resp_ok!(TransferCoinsResult, {}),
@@ -502,7 +496,7 @@ fn abi_get_data(
             let Ok(data) =
                 handler
                 .interface
-                .raw_get_data_wasmv1(&req.key, req.optional_address) else {
+                .raw_get_data_wasmv1(&req.key, req.address) else {
                     return resp_err!("Failed to get data");
                 };
             resp_ok!(GetDataResult, { value: data })
@@ -521,7 +515,7 @@ fn abi_delete_data(
         |handler, req: DeleteDataRequest| -> Result<AbiResponse, WasmV1Error> {
             if let Err(e) = handler
                 .interface
-                .raw_delete_data_wasmv1(&req.key, req.optional_address)
+                .raw_delete_data_wasmv1(&req.key, req.address)
             {
                 return resp_err!(format!("Failed to delete data: {}", e));
             }
@@ -542,7 +536,7 @@ fn abi_append_data(
             if let Err(e) = handler.interface.raw_append_data_wasmv1(
                 &req.key,
                 &req.value,
-                req.optional_address,
+                req.address,
             ) {
                 return resp_err!(format!("Failed to append data: {}", e));
             }
@@ -562,7 +556,7 @@ fn abi_has_data(
         |handler, req: HasDataRequest| -> Result<AbiResponse, WasmV1Error> {
             let Ok(res) = handler
                 .interface
-                .has_data_wasmv1(&req.key, req.optional_address) else {
+                .has_data_wasmv1(&req.key, req.address) else {
                 return resp_err!("Failed to check if data exists");
             };
             resp_ok!(HasDataResult, { has_data: res })
@@ -579,7 +573,7 @@ fn abi_get_balance(
         store_env,
         arg_offset,
         |handler, req: GetBalanceRequest| -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.get_balance_wasmv1(req.optional_address) else
+            let Ok(res) = handler.interface.get_balance_wasmv1(req.address) else
             {
                 return resp_err!("Failed to get balance");
             };
@@ -599,7 +593,7 @@ fn abi_get_bytecode(
         |handler,
          req: GetBytecodeRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.raw_get_bytecode_wasmv1(req.optional_address) else
+            let Ok(res) = handler.interface.raw_get_bytecode_wasmv1(req.address) else
             {
                 return resp_err!("Failed to get bytecode");
             };
@@ -621,7 +615,7 @@ fn abi_set_bytecode(
          -> Result<AbiResponse, WasmV1Error> {
             let Ok(_) = handler
                 .interface
-                .raw_set_bytecode_wasmv1(&req.bytecode, req.optional_address) else
+                .raw_set_bytecode_wasmv1(&req.bytecode, req.address) else
             {
                 return resp_err!("Failed to set bytecode");
             };
@@ -639,7 +633,7 @@ fn abi_get_keys(
         store_env,
         arg_offset,
         |handler, req: GetKeysRequest| -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.get_keys_wasmv1(&req.prefix, req.optional_address) else
+            let Ok(res) = handler.interface.get_keys_wasmv1(&req.prefix, req.address) else
             {
                 return resp_err!("Failed to get keys");
             };
@@ -734,7 +728,7 @@ fn abi_get_remaining_gas(
          _req: GetRemainingGasRequest|
          -> Result<AbiResponse, WasmV1Error> {
             let gas = handler.get_remaining_gas();
-            resp_ok!(GetRemainingGasResult, { mandatory_remaining_gas: Some(gas) })
+            resp_ok!(GetRemainingGasResult, { remaining_gas: gas })
         },
     )
 }
@@ -820,16 +814,13 @@ fn abi_unsafe_random(
         |handler,
          req: UnsafeRandomRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let Some(num_bytes) = req.mandatory_num_bytes else {
-                return resp_err!("Mandatory number of bytes is not provided");
-            };
-            if num_bytes as u64 > handler.get_max_mem_size() {
+            if req.num_bytes as u64 > handler.get_max_mem_size() {
                 return resp_err!(
                     "Requested random bytes exceed the maximum memory size"
                 );
             }
             let mut rng = rand::thread_rng();
-            let mut bytes: Vec<u8> = vec![0; num_bytes as usize];
+            let mut bytes: Vec<u8> = vec![0; req.num_bytes as usize];
             rng.fill_bytes(&mut bytes);
             resp_ok!(UnsafeRandomResult, { random_bytes: bytes })
         },
@@ -847,12 +838,12 @@ fn abi_get_call_coins(
         |handler,
          _req: GetCallCoinsRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            match handler.interface.get_call_coins() {
+            match handler.interface.get_call_coins_wasmv1() {
                 Err(e) => {
                     resp_err!(format!("Failed to get the call coins: {}", e))
                 }
                 Ok(coins) => {
-                    resp_ok!(GetCallCoinsResult, { coins: Some(NativeAmount { mandatory_mantissa: Some(coins), mandatory_scale: Some(0) }) })
+                    resp_ok!(GetCallCoinsResult, { coins: Some(coins) })
                 }
             }
         },
@@ -1164,11 +1155,8 @@ pub fn abi_mul_native_amount(
             let Some(amount) = req.amount else {
                 return resp_err!("No amount");
             };
-            let Some(factor) = req.mandatory_coefficient else {
-                return resp_err!("No mandatory_coefficient");
-            };
 
-            match handler.interface.mul_native_amount_wasmv1(&amount, factor) {
+            match handler.interface.mul_native_amount_wasmv1(&amount, req.coefficient) {
                 Ok(res) => {
                     return resp_ok!(MulNativeAmountResult, { product: Some(res)});
                 }
@@ -1193,13 +1181,10 @@ pub fn abi_div_rem_native_amount(
             let Some(dividend) = req.dividend else {
                 return resp_err!("No dividend");
             };
-            let Some(divisor) = req.mandatory_divisor else {
-                return resp_err!("No mandatory_divisor");
-            };
 
             match handler
                 .interface
-                .div_rem_native_amount_wasmv1(&dividend, divisor)
+                .div_rem_native_amount_wasmv1(&dividend, req.divisor)
             {
                 Ok(res) => {
                     return resp_ok!(ScalarDivRemNativeAmountResult,
@@ -1236,7 +1221,7 @@ pub fn abi_div_rem_native_amounts(
             {
                 Ok(res) => {
                     return resp_ok!(DivRemNativeAmountsResult,
-                            { mandatory_quotient: Some(res.0), remainder: Some(res.1)});
+                            { quotient: res.0, remainder: Some(res.1)});
                 }
                 Err(err) => {
                     return resp_err!(err);
@@ -1258,12 +1243,6 @@ pub fn abi_native_amount_to_string(
          -> Result<AbiResponse, WasmV1Error> {
             let Some(amount) = req.to_convert else {
                 return resp_err!("No amount to convert");
-            };
-            let Some(_mantissa) = amount.mandatory_mantissa else {
-                return resp_err!("Mandatory mantissa not provided");
-            };
-            let Some(_scale) = amount.mandatory_scale else {
-                return resp_err!("Manadatory scale not provided");
             };
 
             // match handler.interface.amount_to_string(amount) {
@@ -1298,8 +1277,8 @@ pub fn abi_native_amount_from_string(
             // handler.interface.amount_to_mantissa_scale(amount) else {
             // return resp_err!("Invalid amount");
             // };
-            // let amount = NativeAmount { mandatory_mantissa: Some(mantissa),
-            // mandatory_scale: Some(scale) };
+            // let amount = NativeAmount { mantissa: Some(mantissa),
+            // scale: Some(scale) };
 
             resp_ok!(NativeAmountFromStringResult, { converted_amount: Some(amount) })
         },

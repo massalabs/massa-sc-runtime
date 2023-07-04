@@ -24,13 +24,16 @@ impl Interface for TestInterface {
     }
 
     fn init_call_wasmv1(
-            &self,
-            address: &str,
-            raw_coins: NativeAmount,
-        ) -> Result<Vec<u8>> {
-            println!("Init call wasmv1 to {}, with {:?} coins", address, raw_coins);
-            Ok(vec![])
-        }
+        &self,
+        address: &str,
+        raw_coins: NativeAmount,
+    ) -> Result<Vec<u8>> {
+        println!(
+            "Init call wasmv1 to {}, with {:?} coins",
+            address, raw_coins
+        );
+        Ok(vec![])
+    }
 
     fn finish_call(&self) -> Result<()> {
         println!("Finish call");
@@ -357,8 +360,8 @@ impl Interface for TestInterface {
             }
         }
         Ok(NativeAmount {
-            mandatory_mantissa: Some(0),
-            mandatory_scale: Some(1),
+            mantissa: 0,
+            scale: 1,
         })
     }
 
@@ -412,6 +415,14 @@ impl Interface for TestInterface {
     fn get_call_coins(&self) -> Result<u64> {
         println!("Get call coins");
         Ok(0)
+    }
+
+    fn get_call_coins_wasmv1(&self) -> Result<NativeAmount> {
+        println!("Get call coins");
+        Ok(NativeAmount {
+            mantissa: 0,
+            scale: 0,
+        })
     }
 
     fn create_module(&self, module: &[u8]) -> Result<String> {
@@ -541,8 +552,8 @@ impl Interface for TestInterface {
         _amount: &str,
     ) -> Result<NativeAmount> {
         Ok(NativeAmount {
-            mandatory_mantissa: Some(100),
-            mandatory_scale: Some(0),
+            mantissa: 100,
+            scale: 0,
         })
     }
 
@@ -567,8 +578,8 @@ impl Interface for TestInterface {
         _amount2: &NativeAmount,
     ) -> Result<NativeAmount> {
         Ok(NativeAmount {
-            mandatory_mantissa: Some(100),
-            mandatory_scale: Some(0),
+            mantissa: 100,
+            scale: 0,
         })
     }
 
@@ -578,8 +589,8 @@ impl Interface for TestInterface {
         _amount2: &NativeAmount,
     ) -> Result<NativeAmount> {
         Ok(NativeAmount {
-            mandatory_mantissa: Some(100),
-            mandatory_scale: Some(0),
+            mantissa: 100,
+            scale: 0,
         })
     }
 
@@ -589,8 +600,8 @@ impl Interface for TestInterface {
         _factor: u64,
     ) -> Result<NativeAmount> {
         Ok(NativeAmount {
-            mandatory_mantissa: Some(100),
-            mandatory_scale: Some(0),
+            mantissa: 100,
+            scale: 0,
         })
     }
 
@@ -601,12 +612,12 @@ impl Interface for TestInterface {
     ) -> Result<(NativeAmount, NativeAmount)> {
         Ok((
             NativeAmount {
-                mandatory_mantissa: Some(100),
-                mandatory_scale: Some(0),
+                mantissa: 100,
+                scale: 0,
             },
             NativeAmount {
-                mandatory_mantissa: Some(0),
-                mandatory_scale: Some(0),
+                mantissa: 0,
+                scale: 0,
             },
         ))
     }
@@ -619,8 +630,8 @@ impl Interface for TestInterface {
         Ok((
             1,
             NativeAmount {
-                mandatory_mantissa: Some(0),
-                mandatory_scale: Some(0),
+                mantissa: 0,
+                scale: 0,
             },
         ))
     }
