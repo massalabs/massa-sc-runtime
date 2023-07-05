@@ -435,7 +435,7 @@ impl Interface for TestInterface {
         } else {
             println!("Create module with module {:?}", module);
         }
-        Ok("".to_string())
+        Ok("sc_address".to_string())
     }
 
     /// Print function for examples
@@ -736,7 +736,7 @@ impl Interface for TestInterface {
             },
         ))
     }
-    
+
     fn base58_check_to_bytes_wasmv1(&self, s: &str) -> Result<Vec<u8>> {
         Ok(s.to_string().into_bytes())
     }

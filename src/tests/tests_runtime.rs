@@ -13,6 +13,23 @@ use wasmer::WasmPtr;
 
 #[test]
 #[serial]
+/// Test exhaustive smart contract
+fn test_exhaustive_smart_contract() {
+    let interface = TestInterface;
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "../../as_abi_protobuf/build/test_exhaustive_smart_contract.wasm_add"
+    ));
+    let gas_costs = GasCosts::default();
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP)
+            .unwrap();
+    run_main(&interface, runtime_module, 100_000_000, gas_costs).unwrap();
+}
+
+#[test]
+#[serial]
 /// Test native time arithmetic ABI calls
 fn test_native_time_arithmetic_abis() {
     let interface = TestInterface;
