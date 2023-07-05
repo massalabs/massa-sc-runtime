@@ -792,6 +792,17 @@ pub(crate) fn assembly_script_send_message(
     Ok(())
 }
 
+/// converts a public key to an address
+#[named]
+pub(crate) fn assembly_script_get_origin_operation_id(
+    mut ctx: FunctionEnvMut<ASEnv>,
+) -> ABIResult<i32> {
+    let env = get_env(&ctx)?;
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let operation_id = env.get_interface().get_origin_operation_id()?.unwrap_or_default();
+    Ok(pointer_from_string(&env, &mut ctx, &operation_id)?.offset() as i32)
+}
+
 /// gets the period of the current execution slot
 #[named]
 pub(crate) fn assembly_script_get_current_period(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
