@@ -735,6 +735,8 @@ impl Interface for TestInterface {
                 milliseconds: 0,
             },
         ))
+    }
+    
     fn base58_check_to_bytes_wasmv1(&self, s: &str) -> Result<Vec<u8>> {
         Ok(s.to_string().into_bytes())
     }
