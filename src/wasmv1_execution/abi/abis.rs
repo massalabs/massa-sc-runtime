@@ -235,6 +235,29 @@ pub fn register_abis(
                 &fn_env,
                 abi_bytes_to_base58_check,
             ),
+            "abi_compare_address" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_compare_address,
+            ),
+            "abi_compare_native_amount" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_compare_native_amount,
+            ),
+            "abi_compare_native_time" => Function::new_typed_with_env(
+                store,
+                &fn_env,abi_compare_native_time,),
+            "abi_compare_pub_key" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_compare_pub_key,
+            ),
+            "abi_compare_sig" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_compare_sig,
+            ),
         },
     }
 }
@@ -1396,23 +1419,133 @@ pub fn abi_bytes_to_base58_check(
     )
 }
 
-enum Category {
-    Unspecified,
-    User,
-    SC,
+pub fn abi_compare_address(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_compare_address",
+        store_env,
+        arg_offset,
+        |handler,
+         req: CompareAddressRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler
+                .interface
+                .compare_address_wasmv1(&req.left, &req.right)
+            {
+                Ok(result) => {
+                    resp_ok!(CompareAddressResult, { result : result.into() })
+                }
+                Err(err) => {
+                    resp_err!(err)
+                }
+            }
+        },
+    )
 }
 
-fn check_category(cat: Category) -> Result<(), ()> {
-    match cat {
-        // match know values
-        Category::User => Ok(()),
-        Category::SC => Ok(()),
-
-        // any invalid value
-        _ => Err(()),
-    }
+pub fn abi_compare_native_amount(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_compare_native_amount",
+        store_env,
+        arg_offset,
+        |handler,
+         req: CompareNativeAmountRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let (Some(left), Some(right)) = (req.left, req.right) else {
+                return resp_err!("Either left or right argument is none")
+            };
+            match handler
+                .interface
+                .compare_native_amount_wasmv1(&left, &right)
+            {
+                Ok(result) => {
+                    resp_ok!(CompareNativeAmountResult, { result : result.into() })
+                }
+                Err(err) => {
+                    resp_err!(err)
+                }
+            }
+        },
+    )
 }
 
+pub fn abi_compare_native_time(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_compare_native_time",
+        store_env,
+        arg_offset,
+        |handler,
+         req: CompareNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let (Some(left), Some(right)) = (req.left, req.right) else {
+                return resp_err!("Either left or right argument is none")
+            };
+            match handler.interface.compare_native_time_wasmv1(&left, &right) {
+                Ok(result) => {
+                    resp_ok!(CompareNativeTimeResult, { result : result.into() })
+                }
+                Err(err) => {
+                    resp_err!(err)
+                }
+            }
+        },
+    )
+}
+
+pub fn abi_compare_pub_key(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_compare_pub_key",
+        store_env,
+        arg_offset,
+        |handler,
+         req: ComparePubKeyRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler
+                .interface
+                .compare_pub_key_wasmv1(&req.left, &req.right)
+            {
+                Ok(result) => {
+                    resp_ok!(ComparePubKeyResult, { result : result.into() })
+                }
+                Err(err) => {
+                    resp_err!(err)
+                }
+            }
+        },
+    )
+}
+
+pub fn abi_compare_sig(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_compare_sig",
+        store_env,
+        arg_offset,
+        |handler, req: CompareSigRequest| -> Result<AbiResponse, WasmV1Error> {
+            match handler.interface.compare_sig_wasmv1(&req.left, &req.right) {
+                Ok(result) => {
+                    resp_ok!(CompareSigResult, { result : result.into() })
+                }
+                Err(err) => {
+                    resp_err!(err)
+                }
+            }
+        },
+    )
+}
 
 pub fn abi_check_address(
     store_env: FunctionEnvMut<ABIEnv>,
@@ -1425,7 +1558,6 @@ pub fn abi_check_address(
         |handler,
          req: CheckAddressRequest|
          -> Result<AbiResponse, WasmV1Error> {
-
             match handler.interface.check_address_wasmv1(&req.to_check) {
                 Ok(res) => {
                     return resp_ok!(CheckAddressResult, { is_valid: res})
@@ -1449,11 +1581,8 @@ pub fn abi_check_pubkey(
         |handler,
          req: CheckPubKeyRequest|
          -> Result<AbiResponse, WasmV1Error> {
-
             match handler.interface.check_pubkey_wasmv1(&req.to_check) {
-                Ok(res) => {
-                    return resp_ok!(CheckPubKeyResult, { is_valid: res})
-                }
+                Ok(res) => return resp_ok!(CheckPubKeyResult, { is_valid: res}),
                 Err(err) => {
                     return resp_err!(err);
                 }
@@ -1470,14 +1599,9 @@ pub fn abi_check_signature(
         "check_signature",
         store_env,
         arg_offset,
-        |handler,
-         req: CheckSigRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-
+        |handler, req: CheckSigRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.check_signature_wasmv1(&req.to_check) {
-                Ok(res) => {
-                    return resp_ok!(CheckSigResult, { is_valid: res})
-                }
+                Ok(res) => return resp_ok!(CheckSigResult, { is_valid: res}),
                 Err(err) => {
                     return resp_err!(err);
                 }
@@ -1497,7 +1621,6 @@ pub fn abi_get_address_category(
         |handler,
          req: GetAddressCategoryRequest|
          -> Result<AbiResponse, WasmV1Error> {
-
             match handler.interface.get_address_category_wasmv1(&req.address) {
                 Ok(res) => {
                     return resp_ok!(GetAddressCategoryResult, { category: res.into()})
@@ -1521,7 +1644,6 @@ pub fn abi_get_address_version(
         |handler,
          req: GetAddressVersionRequest|
          -> Result<AbiResponse, WasmV1Error> {
-
             match handler.interface.get_address_version_wasmv1(&req.address) {
                 Ok(res) => {
                     return resp_ok!(GetAddressVersionResult, { version: res})
@@ -1545,7 +1667,6 @@ pub fn abi_get_pubkey_version(
         |handler,
          req: GetPubKeyVersionRequest|
          -> Result<AbiResponse, WasmV1Error> {
-
             match handler.interface.get_pubkey_version_wasmv1(&req.pub_key) {
                 Ok(res) => {
                     return resp_ok!(GetPubKeyVersionResult, { version: res})
@@ -1569,8 +1690,10 @@ pub fn abi_get_signature_version(
         |handler,
          req: GetSignatureVersionRequest|
          -> Result<AbiResponse, WasmV1Error> {
-
-            match handler.interface.get_signature_version_wasmv1(&req.signature) {
+            match handler
+                .interface
+                .get_signature_version_wasmv1(&req.signature)
+            {
                 Ok(res) => {
                     return resp_ok!(GetSignatureVersionResult, { version: res})
                 }
@@ -1632,7 +1755,10 @@ pub fn abi_checked_sub_native_time(
                 return resp_err!("No right time");
             };
 
-            match handler.interface.checked_sub_native_time_wasmv1(&left, &right) {
+            match handler
+                .interface
+                .checked_sub_native_time_wasmv1(&left, &right)
+            {
                 Ok(res) => {
                     return resp_ok!(CheckedSubNativeTimeResult, { difference: Some(res)});
                 }
@@ -1658,7 +1784,10 @@ pub fn abi_checked_mul_native_time(
                 return resp_err!("No time");
             };
 
-            match handler.interface.checked_mul_native_time_wasmv1(&time, req.coefficient) {
+            match handler
+                .interface
+                .checked_mul_native_time_wasmv1(&time, req.coefficient)
+            {
                 Ok(res) => {
                     return resp_ok!(CheckedMulNativeTimeResult, { product: Some(res)});
                 }

@@ -18,7 +18,7 @@ fn test_exhaustive_smart_contract() {
     let interface = TestInterface;
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "../../as_abi_protobuf/build/test_exhaustive_smart_contract.wasm_add"
+        "/wasm/test_exhaustive_smart_contract.wasm_add"
     ));
     let gas_costs = GasCosts::default();
 
@@ -35,7 +35,7 @@ fn test_native_time_arithmetic_abis() {
     let interface = TestInterface;
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "../../as_abi_protobuf/build/test_native_time_arithmetic.wasm_add"
+        "/wasm/test_native_time_arithmetic.wasm_add"
     ));
     let gas_costs = GasCosts::default();
 
@@ -52,7 +52,7 @@ fn test_structs_check_and_version_abis() {
     let interface = TestInterface;
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "../../as_abi_protobuf/build/test_structs_check_and_version.wasm_add"
+        "/wasm/test_structs_check_and_version.wasm_add"
     ));
     let gas_costs = GasCosts::default();
 
@@ -389,13 +389,39 @@ fn test_transfer_coins_wasmv1_as() {
 
 #[test]
 #[serial]
-/// This test call the main function of a SC that calls transfer_coins abi
+/// This test call the main function of a SC that calls bs58 encode/decode abi
 fn test_bs58_to_from_wasmv1_as() {
     let gas_costs = GasCosts::default();
     let interface: Box<dyn Interface> = Box::new(TestInterface);
     let module = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/wasm/test_bs58_to_from.wasm_add"
+    ));
+
+    let runtime_module =
+        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP)
+            .unwrap();
+
+    match runtime_module.clone() {
+        RuntimeModule::ASModule(_) => {
+            panic!("Must be WasmV1Module");
+        }
+        RuntimeModule::WasmV1Module(_) => {
+            println!("Module type WasmV1Module");
+        }
+    }
+    run_main(&*interface, runtime_module, 100_000_000, gas_costs).unwrap();
+}
+
+#[test]
+#[serial]
+/// This test call the main function of a SC that calls comparisons abis
+fn test_compare_wasmv1_as() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> = Box::new(TestInterface);
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/test_compare.wasm_add"
     ));
 
     let runtime_module =
@@ -541,12 +567,8 @@ fn test_run_main_rust_wasmv1() {
     //     runtime_module.clone(),
     //     10_000_000,
     //     gas_costs.clone(),
-    // ) {
-    //     Ok(a) => a,
-    //     Err(e) => {
-    //         println!("e: {}", e);
-    //         panic!("Failed to run main")
-    //     }
+    // ) { Ok(a) => a, Err(e) => { println!("e: {}", e); panic!("Failed to run
+    //   main") }
     // };
 
     // // Here we avoid hard-coding a value (that can change in future wasmer

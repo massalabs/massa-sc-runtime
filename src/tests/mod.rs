@@ -549,12 +549,10 @@ impl Interface for TestInterface {
 
     fn native_amount_from_str_wasmv1(
         &self,
-        _amount: &str,
+        amount: &str,
     ) -> Result<NativeAmount> {
-        Ok(NativeAmount {
-            mantissa: 100,
-            scale: 0,
-        })
+        let mantissa = amount.parse::<u64>().unwrap();
+        Ok(NativeAmount { mantissa, scale: 0 })
     }
 
     fn native_amount_to_string_wasmv1(
@@ -636,52 +634,34 @@ impl Interface for TestInterface {
         ))
     }
 
-    fn check_address_wasmv1(
-        &self,
-        to_check: &String,
-    ) -> Result<bool> {
+    fn check_address_wasmv1(&self, _to_check: &String) -> Result<bool> {
         Ok(true)
     }
 
-    fn check_pubkey_wasmv1(
-        &self,
-        to_check: &String,
-    ) -> Result<bool> {
+    fn check_pubkey_wasmv1(&self, _to_check: &String) -> Result<bool> {
         Ok(true)
     }
 
-    fn check_signature_wasmv1(
-        &self,
-        to_check: &String,
-    ) -> Result<bool> {
+    fn check_signature_wasmv1(&self, _to_check: &String) -> Result<bool> {
         Ok(true)
     }
 
     fn get_address_category_wasmv1(
         &self,
-        to_check: &String,
+        _to_check: &String,
     ) -> Result<AddressCategory> {
         Ok(AddressCategory::ScAddress)
     }
 
-    fn get_address_version_wasmv1(
-        &self,
-        address: &String,
-    ) -> Result<u64> {
+    fn get_address_version_wasmv1(&self, _address: &String) -> Result<u64> {
         Ok(1)
     }
 
-    fn get_pubkey_version_wasmv1(
-        &self,
-        pubkey: &String,
-    ) -> Result<u64> {
+    fn get_pubkey_version_wasmv1(&self, _pubkey: &String) -> Result<u64> {
         Ok(1)
     }
 
-    fn get_signature_version_wasmv1(
-        &self,
-        signature: &String,
-    ) -> Result<u64> {
+    fn get_signature_version_wasmv1(&self, _signature: &String) -> Result<u64> {
         Ok(1)
     }
 
@@ -690,51 +670,44 @@ impl Interface for TestInterface {
         time1: &NativeTime,
         time2: &NativeTime,
     ) -> Result<NativeTime> {
-        Ok(NativeTime { milliseconds: 0} )
+        Ok(NativeTime {
+            milliseconds: time1.milliseconds + time2.milliseconds,
+        })
     }
 
     fn checked_sub_native_time_wasmv1(
         &self,
-        time1: &NativeTime,
-        time2: &NativeTime,
+        _time1: &NativeTime,
+        _time2: &NativeTime,
     ) -> Result<NativeTime> {
-        Ok(NativeTime { milliseconds: 0} )
+        Ok(NativeTime { milliseconds: 0 })
     }
 
     fn checked_mul_native_time_wasmv1(
         &self,
-        time: &NativeTime,
-        factor: u64,
+        _time: &NativeTime,
+        _factor: u64,
     ) -> Result<NativeTime> {
-        Ok(NativeTime { milliseconds: 0} )
+        Ok(NativeTime { milliseconds: 0 })
     }
 
     fn checked_scalar_div_native_time_wasmv1(
         &self,
-        dividend: &NativeTime,
-        divisor: u64,
+        _dividend: &NativeTime,
+        _divisor: u64,
     ) -> Result<(NativeTime, NativeTime)> {
         Ok((
-            NativeTime {
-                milliseconds: 0,
-            },
-            NativeTime {
-                milliseconds: 0,
-            }
+            NativeTime { milliseconds: 0 },
+            NativeTime { milliseconds: 0 },
         ))
     }
 
     fn checked_div_native_time_wasmv1(
         &self,
-        dividend: &NativeTime,
-        divisor: &NativeTime,
+        _dividend: &NativeTime,
+        _divisor: &NativeTime,
     ) -> Result<(u64, NativeTime)> {
-        Ok((
-            1,
-            NativeTime {
-                milliseconds: 0,
-            },
-        ))
+        Ok((1, NativeTime { milliseconds: 0 }))
     }
 
     fn base58_check_to_bytes_wasmv1(&self, s: &str) -> Result<Vec<u8>> {
@@ -743,6 +716,75 @@ impl Interface for TestInterface {
 
     fn bytes_to_base58_check_wasmv1(&self, _bytes: &[u8]) -> String {
         "bs58checked".to_string()
+    }
+
+    fn compare_address_wasmv1(
+        &self,
+        left: &str,
+        right: &str,
+    ) -> Result<ComparisonResult> {
+        let res = match left.cmp(right) {
+            std::cmp::Ordering::Less => ComparisonResult::Lower,
+            std::cmp::Ordering::Equal => ComparisonResult::Equal,
+            std::cmp::Ordering::Greater => ComparisonResult::Greater,
+        };
+        Ok(res)
+    }
+
+    fn compare_native_amount_wasmv1(
+        &self,
+        left: &NativeAmount,
+        right: &NativeAmount,
+    ) -> Result<ComparisonResult> {
+        println!(
+            "compare_native_amount_wasmv1 {} {}",
+            left.mantissa, right.mantissa
+        );
+        let res = match left.mantissa.cmp(&right.mantissa) {
+            std::cmp::Ordering::Less => ComparisonResult::Lower,
+            std::cmp::Ordering::Equal => ComparisonResult::Equal,
+            std::cmp::Ordering::Greater => ComparisonResult::Greater,
+        };
+        Ok(res)
+    }
+
+    fn compare_native_time_wasmv1(
+        &self,
+        left: &NativeTime,
+        right: &NativeTime,
+    ) -> Result<ComparisonResult> {
+        let res = match left.milliseconds.cmp(&right.milliseconds) {
+            std::cmp::Ordering::Less => ComparisonResult::Lower,
+            std::cmp::Ordering::Equal => ComparisonResult::Equal,
+            std::cmp::Ordering::Greater => ComparisonResult::Greater,
+        };
+        Ok(res)
+    }
+
+    fn compare_pub_key_wasmv1(
+        &self,
+        left: &str,
+        right: &str,
+    ) -> Result<ComparisonResult> {
+        let res = match left.cmp(right) {
+            std::cmp::Ordering::Less => ComparisonResult::Lower,
+            std::cmp::Ordering::Equal => ComparisonResult::Equal,
+            std::cmp::Ordering::Greater => ComparisonResult::Greater,
+        };
+        Ok(res)
+    }
+
+    fn compare_sig_wasmv1(
+        &self,
+        left: &str,
+        right: &str,
+    ) -> Result<ComparisonResult> {
+        let res = match left.cmp(right) {
+            std::cmp::Ordering::Less => ComparisonResult::Lower,
+            std::cmp::Ordering::Equal => ComparisonResult::Equal,
+            std::cmp::Ordering::Greater => ComparisonResult::Greater,
+        };
+        Ok(res)
     }
 }
 

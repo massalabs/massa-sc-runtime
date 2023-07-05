@@ -1,5 +1,7 @@
 use anyhow::{anyhow, bail, Result};
-use massa_proto_rs::massa::model::v1::{NativeAmount, Slot, NativeTime, AddressCategory};
+use massa_proto_rs::massa::model::v1::{
+    AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
+};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -642,25 +644,15 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ) -> Result<(u64, NativeAmount)> {
         unimplemented!("div_rem_native_amounts_wasmv1");
     }
-
-    fn check_address_wasmv1(
-        &self,
-        to_check: &String,
-    ) -> Result<bool> {
+    fn check_address_wasmv1(&self, to_check: &String) -> Result<bool> {
         unimplemented!("check_address_wasmv1");
     }
 
-    fn check_pubkey_wasmv1(
-        &self,
-        to_check: &String,
-    ) -> Result<bool> {
+    fn check_pubkey_wasmv1(&self, to_check: &String) -> Result<bool> {
         unimplemented!("check_pubkey_wasmv1");
     }
 
-    fn check_signature_wasmv1(
-        &self,
-        to_check: &String,
-    ) -> Result<bool> {
+    fn check_signature_wasmv1(&self, to_check: &String) -> Result<bool> {
         unimplemented!("check_signature_wasmv1");
     }
 
@@ -671,24 +663,15 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("get_address_category_wasmv1");
     }
 
-    fn get_address_version_wasmv1(
-        &self,
-        address: &String,
-    ) -> Result<u64> {
+    fn get_address_version_wasmv1(&self, address: &String) -> Result<u64> {
         unimplemented!("get_address_version_wasmv1");
     }
 
-    fn get_pubkey_version_wasmv1(
-        &self,
-        pubkey: &String,
-    ) -> Result<u64> {
+    fn get_pubkey_version_wasmv1(&self, pubkey: &String) -> Result<u64> {
         unimplemented!("get_pubkey_version_wasmv1");
     }
 
-    fn get_signature_version_wasmv1(
-        &self,
-        signature: &String,
-    ) -> Result<u64> {
+    fn get_signature_version_wasmv1(&self, signature: &String) -> Result<u64> {
         unimplemented!("get_signature_version_wasmv1");
     }
 
@@ -731,9 +714,40 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ) -> Result<(u64, NativeTime)> {
         unimplemented!("checked_div_native_time_wasmv1");
     }
-    
+
     fn base58_check_to_bytes_wasmv1(&self, s: &str) -> Result<Vec<u8>>;
+
     fn bytes_to_base58_check_wasmv1(&self, bytes: &[u8]) -> String;
+
+    fn compare_address_wasmv1(
+        &self,
+        left: &str,
+        right: &str,
+    ) -> Result<ComparisonResult>;
+
+    fn compare_native_amount_wasmv1(
+        &self,
+        left: &NativeAmount,
+        right: &NativeAmount,
+    ) -> Result<ComparisonResult>;
+
+    fn compare_native_time_wasmv1(
+        &self,
+        left: &NativeTime,
+        right: &NativeTime,
+    ) -> Result<ComparisonResult>;
+
+    fn compare_pub_key_wasmv1(
+        &self,
+        left: &str,
+        right: &str,
+    ) -> Result<ComparisonResult>;
+
+    fn compare_sig_wasmv1(
+        &self,
+        left: &str,
+        right: &str,
+    ) -> Result<ComparisonResult>;
 }
 
 impl dyn Interface {
