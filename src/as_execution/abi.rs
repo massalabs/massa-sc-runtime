@@ -799,7 +799,10 @@ pub(crate) fn assembly_script_get_origin_operation_id(
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    let operation_id = env.get_interface().get_origin_operation_id()?.unwrap_or_default();
+    let operation_id = env
+        .get_interface()
+        .get_origin_operation_id()?
+        .unwrap_or_default();
     Ok(pointer_from_string(&env, &mut ctx, &operation_id)?.offset() as i32)
 }
 
