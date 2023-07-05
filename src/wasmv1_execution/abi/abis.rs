@@ -7,7 +7,7 @@ use super::{
 
 use massa_proto_rs::massa::{
     abi::v1::{self as proto, *},
-    model::v1::{NativeAmount, NativeTime},
+    model::v1::NativeTime,
 };
 
 use rand::RngCore;
@@ -224,7 +224,17 @@ pub fn register_abis(
                 store,
                 &fn_env,
                 abi_checked_div_native_time,
-            )
+            ),
+            "abi_base58_check_to_bytes" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_base58_check_to_bytes,
+            ),
+            "abi_bytes_to_base58_check" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_bytes_to_base58_check,
+            ),
         },
     }
 }
@@ -1216,7 +1226,10 @@ pub fn abi_mul_native_amount(
                 return resp_err!("No amount");
             };
 
-            match handler.interface.mul_native_amount_wasmv1(&amount, req.coefficient) {
+            match handler
+                .interface
+                .mul_native_amount_wasmv1(&amount, req.coefficient)
+            {
                 Ok(res) => {
                     return resp_ok!(MulNativeAmountResult, { product: Some(res)});
                 }
@@ -1334,14 +1347,51 @@ pub fn abi_native_amount_from_string(
                 .native_amount_from_str_wasmv1(&req.to_convert) else {
                     return resp_err!("Invalid amount");
                 };
-            // let Ok((mantissa, scale))=
-            // handler.interface.amount_to_mantissa_scale(amount) else {
-            // return resp_err!("Invalid amount");
-            // };
-            // let amount = NativeAmount { mantissa: Some(mantissa),
-            // scale: Some(scale) };
 
             resp_ok!(NativeAmountFromStringResult, { converted_amount: Some(amount) })
+        },
+    )
+}
+
+pub fn abi_base58_check_to_bytes(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "base58_check_to_bytes",
+        store_env,
+        arg_offset,
+        |handler,
+         req: Base58CheckToBytesRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler
+                .interface
+                .base58_check_to_bytes_wasmv1(&req.base58_check)
+            {
+                Ok(bytes) => {
+                    resp_ok!(Base58CheckToBytesResult, { bytes: bytes })
+                }
+                Err(err) => {
+                    resp_err!(err)
+                }
+            }
+        },
+    )
+}
+
+pub fn abi_bytes_to_base58_check(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "bytes_to_base58_check",
+        store_env,
+        arg_offset,
+        |handler,
+         req: BytesToBase58CheckRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let s = handler.interface.bytes_to_base58_check_wasmv1(&req.bytes);
+            resp_ok!(BytesToBase58CheckResult, { base58_check : s })
         },
     )
 }

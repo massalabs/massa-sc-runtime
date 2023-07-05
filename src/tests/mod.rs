@@ -636,9 +636,6 @@ impl Interface for TestInterface {
         ))
     }
 
-
-
-
     fn check_address_wasmv1(
         &self,
         to_check: &String,
@@ -738,6 +735,12 @@ impl Interface for TestInterface {
                 milliseconds: 0,
             },
         ))
+    fn base58_check_to_bytes_wasmv1(&self, s: &str) -> Result<Vec<u8>> {
+        Ok(s.to_string().into_bytes())
+    }
+
+    fn bytes_to_base58_check_wasmv1(&self, _bytes: &[u8]) -> String {
+        "bs58checked".to_string()
     }
 }
 

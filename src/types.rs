@@ -228,8 +228,8 @@ pub trait Interface: Send + Sync + InterfaceClone {
         bail!("unimplemented function get_call_coins_for in interface")
     }
 
-    /// Get the native amount of coins that have been made available for use by the
-    /// caller of the currently executing code.
+    /// Get the native amount of coins that have been made available for use by
+    /// the caller of the currently executing code.
     fn get_call_coins_wasmv1(&self) -> Result<NativeAmount>;
 
     /// Sets the executable bytecode at a current address.
@@ -643,9 +643,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("div_rem_native_amounts_wasmv1");
     }
 
-    
-
-
     fn check_address_wasmv1(
         &self,
         to_check: &String,
@@ -734,6 +731,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ) -> Result<(u64, NativeTime)> {
         unimplemented!("checked_div_native_time_wasmv1");
     }
+    
+    fn base58_check_to_bytes_wasmv1(&self, s: &str) -> Result<Vec<u8>>;
+    fn bytes_to_base58_check_wasmv1(&self, bytes: &[u8]) -> String;
 }
 
 impl dyn Interface {
