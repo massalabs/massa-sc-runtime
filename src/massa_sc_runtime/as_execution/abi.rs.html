@@ -1299,6 +1299,7 @@
 <a href="#1299" id="1299">1299</a>
 <a href="#1300" id="1300">1300</a>
 <a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -2100,10 +2101,11 @@
 ) -&gt; ABIResult&lt;i32&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
-    <span class="kw">let </span>operation_id = env
-        .get_interface()
-        .get_origin_operation_id()<span class="question-mark">?
-        </span>.unwrap_or_default();
+    <span class="comment">// let operation_id = env
+    //     .get_interface()
+    //     .get_origin_operation_id()?
+    //     .unwrap_or_default();
+    </span><span class="kw">let </span>operation_id = <span class="string">&quot;&quot;</span>.to_string();
     <span class="prelude-val">Ok</span>(pointer_from_string(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>operation_id)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32)
 }
 
