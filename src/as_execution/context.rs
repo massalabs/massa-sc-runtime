@@ -253,6 +253,7 @@ impl ASContext {
                 "assembly_script_get_call_coins" => Function::new_typed_with_env(store, &fenv, assembly_script_get_call_coins),
                 "assembly_script_get_time" => Function::new_typed_with_env(store, &fenv, assembly_script_get_time),
                 "assembly_script_send_message" => Function::new_typed_with_env(store, &fenv, assembly_script_send_message),
+                "assembly_script_get_origin_operation_id" => Function::new_typed_with_env(store, &fenv, assembly_script_get_origin_operation_id),
                 "assembly_script_get_current_period" => Function::new_typed_with_env(store, &fenv, assembly_script_get_current_period),
                 "assembly_script_get_current_thread" => Function::new_typed_with_env(store, &fenv, assembly_script_get_current_thread),
                 "assembly_script_set_bytecode" => Function::new_typed_with_env(store, &fenv, assembly_script_set_bytecode),
