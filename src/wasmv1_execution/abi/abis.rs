@@ -1867,11 +1867,14 @@ pub fn abi_date_now(
         |handler,
          _req: DateNowRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let Ok(date) = handler.interface.date_now() else
-            {
-                return resp_err!("Signature verification failed");
-            };
-            resp_ok!(DateNowResult, { date_now: date })
+            match handler.interface.date_now() {
+                Ok(date) => {
+                    resp_ok!(DateNowResult, { date_now: date })
+                }
+                Err(err) => {
+                    resp_err!(err)
+                }
+            }
         },
     )
 }
@@ -1894,14 +1897,7 @@ pub fn abi_process_exit(
             );
             dbg!(&msg);
 
-            match &req.code {
-                0 => {
-                    return resp_ok!(ProcessExitResult, { });
-                },
-                _ => {
-                    return resp_err!(WasmV1Error::RuntimeError(msg));
-                }
-            }
+            Err(WasmV1Error::RuntimeError(req.code.to_string()))
         },
     )
 }
@@ -1939,11 +1935,14 @@ pub fn abi_verify_signature(
         |handler,
          req: VerifySigRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let Ok(is_verified) = handler.interface.signature_verify(&req.message, &req.sig, &req.pub_key) else
-            {
-                return resp_err!("Signature verification failed");
-            };
-            resp_ok!(VerifySigResult, { is_verified: is_verified })
+            match handler.interface.signature_verify(&req.message, &req.sig, &req.pub_key) {
+                Ok(is_verified) => {
+                    resp_ok!(VerifySigResult, { is_verified: is_verified })
+                },
+                Err(err) => {
+                    resp_err!(err)
+                }
+            }
         },
     )
 }
