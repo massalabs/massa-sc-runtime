@@ -25,7 +25,21 @@ fn test_exhaustive_smart_contract() {
     let runtime_module =
         RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP)
             .unwrap();
-    run_main(&interface, runtime_module, 100_000_000, gas_costs).unwrap();
+    let res = run_main(&interface, runtime_module, 100_000_000, gas_costs);
+
+    match res {
+        Err(e) if e.to_string().contains("process exited with code: 0") => {
+            println!("Ok exit(0): {:?}", e);
+            return;
+        }
+        Err(e) => {
+            println!("Test failed: {:?}", e);
+            panic!("Expected exit(0");
+        }
+        Ok(_) => {
+            panic!("Err expected");
+        }
+    }
 }
 
 #[test]

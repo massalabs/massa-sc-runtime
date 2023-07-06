@@ -752,7 +752,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("seed")
     }
 
-    fn date_now(&self) -> Result<f64> {
+    fn date_now(&self) -> Result<u64> {
         unimplemented!("date_now")
     }
 }

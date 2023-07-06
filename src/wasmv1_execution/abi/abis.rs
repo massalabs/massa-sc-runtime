@@ -566,7 +566,6 @@ fn abi_abort(
                 "Guest program abort: {}",
                 String::from_utf8_lossy(&req)
             );
-            dbg!(&msg);
 
             Err(WasmV1Error::RuntimeError(msg))
         },
@@ -1917,14 +1916,13 @@ pub fn abi_process_exit(
         |_handler,
          req: ProcessExitRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            
+
             let msg = format!(
                 "Guest process exited with code: {}",
                 &req.code
             );
-            dbg!(&msg);
 
-            Err(WasmV1Error::RuntimeError(req.code.to_string()))
+            Err(WasmV1Error::RuntimeError(msg))
         },
     )
 }
