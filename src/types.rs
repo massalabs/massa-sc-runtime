@@ -742,12 +742,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
         left: &str,
         right: &str,
     ) -> Result<ComparisonResult>;
-
-    fn compare_sig_wasmv1(
-        &self,
-        left: &str,
-        right: &str,
-    ) -> Result<ComparisonResult>;
 }
 
 impl dyn Interface {

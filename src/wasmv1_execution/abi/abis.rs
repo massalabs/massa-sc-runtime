@@ -253,11 +253,6 @@ pub fn register_abis(
                 &fn_env,
                 abi_compare_pub_key,
             ),
-            "abi_compare_sig" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_compare_sig,
-            ),
         },
     }
 }
@@ -1517,27 +1512,6 @@ pub fn abi_compare_pub_key(
             {
                 Ok(result) => {
                     resp_ok!(ComparePubKeyResult, { result : result.into() })
-                }
-                Err(err) => {
-                    resp_err!(err)
-                }
-            }
-        },
-    )
-}
-
-pub fn abi_compare_sig(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "abi_compare_sig",
-        store_env,
-        arg_offset,
-        |handler, req: CompareSigRequest| -> Result<AbiResponse, WasmV1Error> {
-            match handler.interface.compare_sig_wasmv1(&req.left, &req.right) {
-                Ok(result) => {
-                    resp_ok!(CompareSigResult, { result : result.into() })
                 }
                 Err(err) => {
                     resp_err!(err)

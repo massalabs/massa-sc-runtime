@@ -773,19 +773,6 @@ impl Interface for TestInterface {
         };
         Ok(res)
     }
-
-    fn compare_sig_wasmv1(
-        &self,
-        left: &str,
-        right: &str,
-    ) -> Result<ComparisonResult> {
-        let res = match left.cmp(right) {
-            std::cmp::Ordering::Less => ComparisonResult::Lower,
-            std::cmp::Ordering::Equal => ComparisonResult::Equal,
-            std::cmp::Ordering::Greater => ComparisonResult::Greater,
-        };
-        Ok(res)
-    }
 }
 
 #[cfg(feature = "gas_calibration")]
