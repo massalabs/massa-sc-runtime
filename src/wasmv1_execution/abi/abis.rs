@@ -56,6 +56,7 @@ pub fn register_abis(
             "abi_get_call_coins" => Function::new_typed_with_env(store, &fn_env, abi_get_call_coins),
             "abi_get_native_time" => Function::new_typed_with_env(store, &fn_env, abi_get_native_time),
             "abi_send_async_message" => Function::new_typed_with_env(store, &fn_env, abi_send_async_message),
+            "abi_get_origin_operation_id" => Function::new_typed_with_env(store, &fn_env, abi_get_origin_operation_id),
             "abi_local_execution" => Function::new_typed_with_env(store, &fn_env, abi_local_execution),
             "abi_caller_has_write_access" => Function::new_typed_with_env(store, &fn_env, abi_caller_has_write_access),
             "abi_verify_evm_signature" => Function::new_typed_with_env(store, &fn_env, abi_verify_evm_signature),
@@ -1012,6 +1013,32 @@ fn abi_send_async_message(
                 }
                 Ok(_) => {
                     resp_ok!(SendAsyncMessageResult, {})
+                }
+            }
+        },
+    )
+}
+
+fn abi_get_origin_operation_id(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "abi_get_origin_operation_id",
+        store_env,
+        arg_offset,
+        |handler,
+         _req: GetOriginOperationIdRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler.interface.get_origin_operation_id() {
+                Err(e) => {
+                    resp_err!(format!(
+                        "Failed to get the origin operation id: {}",
+                        e
+                    ))
+                }
+                Ok(id) => {
+                    resp_ok!(GetOriginOperationIdResult, { operation_id: id })
                 }
             }
         },

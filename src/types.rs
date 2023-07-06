@@ -574,6 +574,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("send_message")
     }
 
+    // Returns the operation id that originated the current execution if there is one
+    fn get_origin_operation_id(&self) -> Result<Option<String>> {
+        unimplemented!("get_origin_operation_id")
+    }
+
     // Sha256 hash bytes
     fn hash_sha256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
         unimplemented!("hash_sha256")
