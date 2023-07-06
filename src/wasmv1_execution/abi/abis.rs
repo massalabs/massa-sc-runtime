@@ -253,6 +253,26 @@ pub fn register_abis(
                 &fn_env,
                 abi_compare_pub_key,
             ),
+            "abi_date_now" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_date_now,
+            ),
+            "abi_process_exit" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_process_exit,
+            ),
+            "abi_seed" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_seed,
+            ),
+            "abi_verify_signature" => Function::new_typed_with_env(
+                store,
+                &fn_env,
+                abi_verify_signature,
+            ),
         },
     }
 }
@@ -1832,6 +1852,98 @@ pub fn abi_checked_div_native_time(
                     return resp_err!(err);
                 }
             };
+        },
+    )
+}
+
+pub fn abi_date_now(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "date_now",
+        store_env,
+        arg_offset,
+        |handler,
+         _req: DateNowRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Ok(date) = handler.interface.date_now() else
+            {
+                return resp_err!("Signature verification failed");
+            };
+            resp_ok!(DateNowResult, { date_now: date })
+        },
+    )
+}
+
+pub fn abi_process_exit(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "process_exit",
+        store_env,
+        arg_offset,
+        |_handler,
+         req: ProcessExitRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            
+            let msg = format!(
+                "Guest process exited with code: {}",
+                &req.code
+            );
+            dbg!(&msg);
+
+            match &req.code {
+                0 => {
+                    return resp_ok!(ProcessExitResult, { });
+                },
+                _ => {
+                    return resp_err!(WasmV1Error::RuntimeError(msg));
+                }
+            }
+        },
+    )
+}
+
+pub fn abi_seed(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "seed",
+        store_env,
+        arg_offset,
+        |handler,
+         _req: SeedRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler.interface.seed() {
+                Ok(seed) => {
+                    resp_ok!(SeedResult, { seed: seed })
+                }
+                Err(err) => {
+                    resp_err!(err)
+                }
+            }
+        },
+    )
+}
+pub fn abi_verify_signature(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        "verify_signature",
+        store_env,
+        arg_offset,
+        |handler,
+         req: VerifySigRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            let Ok(is_verified) = handler.interface.signature_verify(&req.message, &req.sig, &req.pub_key) else
+            {
+                return resp_err!("Signature verification failed");
+            };
+            resp_ok!(VerifySigResult, { is_verified: is_verified })
         },
     )
 }

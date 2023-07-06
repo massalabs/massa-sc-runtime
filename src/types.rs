@@ -742,6 +742,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
         left: &str,
         right: &str,
     ) -> Result<ComparisonResult>;
+
+    fn seed(&self) -> Result<f64> {
+        unimplemented!("seed")
+    }
+
+    fn date_now(&self) -> Result<f64> {
+        unimplemented!("date_now")
+    }
 }
 
 impl dyn Interface {

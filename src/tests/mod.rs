@@ -773,6 +773,16 @@ impl Interface for TestInterface {
         };
         Ok(res)
     }
+    
+    fn seed(&self) -> Result<f64> {
+        println!("seed called");
+        Ok(1.)
+    }
+
+    fn date_now(&self) -> Result<f64> {
+        println!("date_now called");
+        Ok(1.)
+    }
 }
 
 #[cfg(feature = "gas_calibration")]
