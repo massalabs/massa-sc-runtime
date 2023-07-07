@@ -137,7 +137,7 @@ impl Interface for TestInterface {
         Ok(false)
     }
 
-    fn has_data_wasmv1(
+    fn ds_entry_exists_wasmv1(
         &self,
         key: &[u8],
         address: Option<String>,
@@ -206,7 +206,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn raw_append_data_wasmv1(
+    fn append_ds_value_wasmv1(
         &self,
         key: &[u8],
         value: &[u8],
@@ -236,7 +236,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn raw_delete_data_wasmv1(
+    fn delete_ds_entry_wasmv1(
         &self,
         key: &[u8],
         address: Option<String>,
@@ -262,7 +262,7 @@ impl Interface for TestInterface {
         Ok(vec![])
     }
 
-    fn raw_get_data_wasmv1(
+    fn get_ds_value_wasmv1(
         &self,
         key: &[u8],
         address: Option<String>,
@@ -296,7 +296,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn raw_set_data_wasmv1(
+    fn set_ds_value_wasmv1(
         &self,
         key: &[u8],
         value: &[u8],
