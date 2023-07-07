@@ -337,6 +337,11 @@ impl Interface for TestInterface {
         Ok(0)
     }
 
+    fn unsafe_random_wasmv1(&self, num_bytes: u64) -> Result<Vec<u8>> {
+        let bytes = vec![0; num_bytes as usize];
+        Ok(bytes)
+    }
+
     fn get_balance(&self) -> Result<u64> {
         println!("Get balance");
         Ok(0)

@@ -495,6 +495,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("unsafe_random_f64")
     }
 
+    /// Returns a random number (unsafe: can be predicted and manipulated)
+    fn unsafe_random_wasmv1(&self, num_bytes: u64) -> Result<Vec<u8>> {
+        unimplemented!("unsafe_random_wasmv1")
+    }
+
     /// Returns the period of the current execution slot
     fn get_current_period(&self) -> Result<u64> {
         unimplemented!("get_current_period")
