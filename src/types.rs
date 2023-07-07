@@ -1,4 +1,5 @@
 use anyhow::{anyhow, bail, Result};
+use function_name::named;
 use massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
 };
@@ -302,12 +303,13 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("raw_get_data_for")
     }
 
-    fn raw_get_data_wasmv1(
+    #[named]
+    fn get_ds_value_wasmv1(
         &self,
         key: &[u8],
         address: Option<String>,
     ) -> Result<Vec<u8>> {
-        unimplemented!("raw_get_data_wasmv1")
+        unimplemented!(function_name!())
     }
 
     /// Set the datastore value for the corresponding key
@@ -325,13 +327,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("raw_set_data_for")
     }
 
-    fn raw_set_data_wasmv1(
+    #[named]
+    fn set_ds_value_wasmv1(
         &self,
         key: &[u8],
         value: &[u8],
         address: Option<String>,
     ) -> Result<()> {
-        unimplemented!("raw_set_data_wasmv1")
+        unimplemented!(function_name!())
     }
 
     /// Append a value to the current datastore value for the corresponding key
@@ -350,13 +353,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("raw_append_data_for")
     }
 
-    fn raw_append_data_wasmv1(
+    #[named]
+    fn append_ds_value_wasmv1(
         &self,
         key: &[u8],
         value: &[u8],
         address: Option<String>,
     ) -> Result<()> {
-        unimplemented!("raw_append_data_wasmv1")
+        unimplemented!(function_name!())
     }
 
     /// Delete a datastore entry
@@ -369,12 +373,13 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("raw_delete_data_for")
     }
 
-    fn raw_delete_data_wasmv1(
+    #[named]
+    fn delete_ds_entry_wasmv1(
         &self,
         key: &[u8],
         address: Option<String>,
     ) -> Result<()> {
-        unimplemented!("raw_delete_data_wasmv1")
+        unimplemented!(function_name!())
     }
 
     /// Requires to replace the data in the current address
@@ -391,12 +396,13 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("has_data_for")
     }
 
-    fn has_data_wasmv1(
+    #[named]
+    fn ds_entry_exists_wasmv1(
         &self,
         key: &[u8],
         address: Option<String>,
     ) -> Result<bool> {
-        unimplemented!("has_data_wasmv1")
+        unimplemented!(function_name!())
     }
 
     /// Returns bytecode of the current address
@@ -772,18 +778,6 @@ impl dyn Interface {
         )?)?)
     }
 
-    pub fn get_data_wasmv1<T: DeserializeOwned>(
-        &self,
-        key: &[u8],
-        address: Option<String>,
-    ) -> Result<T> {
-        // TODO: Avoid using this many conversions, protobuf serialization
-        // should be enough
-        Ok(serde_json::from_str::<T>(std::str::from_utf8(
-            &self.raw_get_data_wasmv1(key, address)?,
-        )?)?)
-    }
-
     pub fn set_data<T: Serialize>(&self, key: &[u8], value: &T) -> Result<()> {
         // TODO: Avoid using this many conversions, protobuf serialization
         // should be enough
@@ -800,19 +794,6 @@ impl dyn Interface {
             address,
             key,
             serde_json::to_string::<T>(value)?.as_bytes(),
-        )
-    }
-
-    pub fn set_data_wasmv1<T: Serialize>(
-        &self,
-        key: &[u8],
-        value: &T,
-        address: Option<String>,
-    ) -> Result<()> {
-        self.raw_set_data_wasmv1(
-            key,
-            serde_json::to_string::<T>(value)?.as_bytes(),
-            address,
         )
     }
 }

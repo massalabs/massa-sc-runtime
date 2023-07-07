@@ -563,7 +563,7 @@ fn abi_set_data(
         |handler, req: SetDataRequest| -> Result<AbiResponse, WasmV1Error> {
             if let Err(e) = handler
                 .interface
-                .raw_set_data_wasmv1(&req.key, &req.value, None)
+                .set_ds_value_wasmv1(&req.key, &req.value, None)
             {
                 return resp_err!(format!("Failed to set data: {}", e));
             }
@@ -584,7 +584,7 @@ fn abi_get_data(
             let Ok(data) =
                 handler
                 .interface
-                .raw_get_data_wasmv1(&req.key, req.address) else {
+                .get_ds_value_wasmv1(&req.key, req.address) else {
                     return resp_err!("Failed to get data");
                 };
             resp_ok!(GetDataResult, { value: data })
@@ -603,7 +603,7 @@ fn abi_delete_data(
         |handler, req: DeleteDataRequest| -> Result<AbiResponse, WasmV1Error> {
             if let Err(e) = handler
                 .interface
-                .raw_delete_data_wasmv1(&req.key, req.address)
+                .delete_ds_entry_wasmv1(&req.key, req.address)
             {
                 return resp_err!(format!("Failed to delete data: {}", e));
             }
@@ -621,7 +621,7 @@ fn abi_append_data(
         store_env,
         arg_offset,
         |handler, req: AppendDataRequest| -> Result<AbiResponse, WasmV1Error> {
-            if let Err(e) = handler.interface.raw_append_data_wasmv1(
+            if let Err(e) = handler.interface.append_ds_value_wasmv1(
                 &req.key,
                 &req.value,
                 req.address,
@@ -644,7 +644,7 @@ fn abi_has_data(
         |handler, req: HasDataRequest| -> Result<AbiResponse, WasmV1Error> {
             let Ok(res) = handler
                 .interface
-                .has_data_wasmv1(&req.key, req.address) else {
+                .ds_entry_exists_wasmv1(&req.key, req.address) else {
                 return resp_err!("Failed to check if data exists");
             };
             resp_ok!(HasDataResult, { has_data: res })
