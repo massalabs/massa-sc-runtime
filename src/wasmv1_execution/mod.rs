@@ -6,6 +6,9 @@ mod ffi;
 use self::env::{ABIEnv, ExecutionEnv};
 use crate::error::VMResult;
 use crate::execution::Compiler;
+use crate::middlewares::gas_calibration::{
+    get_gas_calibration_result, GasCalibration, GasCalibrationResult,
+};
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::{GasCosts, Interface, Response, VMError};
@@ -142,11 +145,18 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     // Canonicalize NaN
     compiler_config.canonicalize_nans(true);
 
-    // Add metering middleware
-    let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
-        gas_costs.operator_cost
-    }));
-    compiler_config.push_middleware(metering);
+    if cfg!(feature = "gas_calibration") {
+        // Add gas calibration middleware
+        let gas_calibration = Arc::new(GasCalibration::new());
+        compiler_config.push_middleware(gas_calibration);
+    } else {
+        // Add metering middleware
+        let metering =
+            Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
+                gas_costs.operator_cost
+            }));
+        compiler_config.push_middleware(metering);
+    }
 
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
@@ -170,11 +180,18 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     // Canonicalize NaN
     compiler_config.canonicalize_nans(true);
 
-    // Add metering middleware
-    let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
-        gas_costs.operator_cost
-    }));
-    compiler_config.push_middleware(metering);
+    if cfg!(feature = "gas_calibration") {
+        // Add gas calibration middleware
+        let gas_calibration = Arc::new(GasCalibration::new());
+        compiler_config.push_middleware(gas_calibration);
+    } else {
+        // Add metering middleware
+        let metering =
+            Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
+                gas_costs.operator_cost
+            }));
+        compiler_config.push_middleware(metering);
+    }
 
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
@@ -195,7 +212,7 @@ pub(crate) fn exec_wasmv1_module(
     param: &[u8],
     gas_limit: u64,
     gas_costs: GasCosts,
-) -> VMResult<Response> {
+) -> VMResult<(Response, Option<GasCalibrationResult>)> {
     // Init store
     let engine = match module.compiler {
         Compiler::CL => init_cl_engine(gas_limit, gas_costs.clone()),
@@ -303,10 +320,22 @@ pub(crate) fn exec_wasmv1_module(
     // Get remaining gas
     let remaining_gas = execution_env.get_remaining_gas(&mut store);
 
+    let gc_result = if cfg!(feature = "gas_calibration") {
+        Some(get_gas_calibration_result(
+            &execution_env.instance,
+            &mut store,
+        ))
+    } else {
+        None
+    };
+
     // Return response
-    Ok(Response {
-        ret,
-        remaining_gas,
-        init_gas_cost,
-    })
+    Ok((
+        Response {
+            ret,
+            remaining_gas,
+            init_gas_cost,
+        },
+        gc_result,
+    ))
 }
