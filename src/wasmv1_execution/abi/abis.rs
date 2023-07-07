@@ -249,21 +249,6 @@ pub fn register_abis(
                 &fn_env,
                 abi_compare_pub_key,
             ),
-            "abi_date_now" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_date_now,
-            ),
-            "abi_process_exit" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_process_exit,
-            ),
-            "abi_seed" => Function::new_typed_with_env(
-                store,
-                &fn_env,
-                abi_seed,
-            ),
             "abi_verify_signature" => Function::new_typed_with_env(
                 store,
                 &fn_env,
@@ -419,7 +404,7 @@ pub(crate) fn abi_blake3_hash(
         "native_hash",
         store_env,
         arg_offset,
-        |handler, req: Blake3HashRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: HashBlake3Request| -> Result<AbiResponse, WasmV1Error> {
             // Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
@@ -428,7 +413,7 @@ pub(crate) fn abi_blake3_hash(
 
             match handler.interface.blake3_hash(&req.data) {
                 Ok(hash) => {
-                    resp_ok!(Blake3HashResult, { hash: hash.to_vec() })
+                    resp_ok!(HashBlake3Result, { hash: hash.to_vec() })
                 }
                 Err(err) => resp_err!(err),
             }
@@ -1882,73 +1867,6 @@ pub fn abi_checked_div_native_time(
     )
 }
 
-pub fn abi_date_now(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "date_now",
-        store_env,
-        arg_offset,
-        |handler,
-         _req: DateNowRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            match handler.interface.date_now() {
-                Ok(date) => {
-                    resp_ok!(DateNowResult, { date_now: date })
-                }
-                Err(err) => {
-                    resp_err!(err)
-                }
-            }
-        },
-    )
-}
-
-pub fn abi_process_exit(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "process_exit",
-        store_env,
-        arg_offset,
-        |_handler,
-         req: ProcessExitRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-
-            let msg = format!(
-                "Guest process exited with code: {}",
-                &req.code
-            );
-
-            Err(WasmV1Error::RuntimeError(msg))
-        },
-    )
-}
-
-pub fn abi_seed(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        "seed",
-        store_env,
-        arg_offset,
-        |handler,
-         _req: SeedRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            match handler.interface.seed() {
-                Ok(seed) => {
-                    resp_ok!(SeedResult, { seed: seed })
-                }
-                Err(err) => {
-                    resp_err!(err)
-                }
-            }
-        },
-    )
-}
 pub fn abi_verify_signature(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
@@ -1957,13 +1875,15 @@ pub fn abi_verify_signature(
         "verify_signature",
         store_env,
         arg_offset,
-        |handler,
-         req: VerifySigRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            match handler.interface.signature_verify(&req.message, &req.sig, &req.pub_key) {
+        |handler, req: VerifySigRequest| -> Result<AbiResponse, WasmV1Error> {
+            match handler.interface.signature_verify(
+                &req.message,
+                &req.sig,
+                &req.pub_key,
+            ) {
                 Ok(is_verified) => {
                     resp_ok!(VerifySigResult, { is_verified: is_verified })
-                },
+                }
                 Err(err) => {
                     resp_err!(err)
                 }

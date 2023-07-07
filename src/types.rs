@@ -579,7 +579,8 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("send_message")
     }
 
-    // Returns the operation id that originated the current execution if there is one
+    // Returns the operation id that originated the current execution if there
+    // is one
     fn get_origin_operation_id(&self) -> Result<Option<String>> {
         unimplemented!("get_origin_operation_id")
     }
@@ -752,14 +753,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
         left: &str,
         right: &str,
     ) -> Result<ComparisonResult>;
-
-    fn seed(&self) -> Result<f64> {
-        unimplemented!("seed")
-    }
-
-    fn date_now(&self) -> Result<u64> {
-        unimplemented!("date_now")
-    }
 }
 
 impl dyn Interface {
