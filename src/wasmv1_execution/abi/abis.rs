@@ -1,16 +1,11 @@
-use std::vec;
-
 use super::{
     super::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
 };
-
 use massa_proto_rs::massa::{
     abi::v1::{self as proto, *},
     model::v1::NativeTime,
 };
-
-use rand::RngCore;
 use wasmer::{
     imports, AsStoreMut, Function, FunctionEnv, FunctionEnvMut, Imports,
 };
@@ -927,10 +922,15 @@ fn abi_unsafe_random(
                     "Requested random bytes exceed the maximum memory size"
                 );
             }
-            let mut rng = rand::thread_rng();
-            let mut bytes: Vec<u8> = vec![0; req.num_bytes as usize];
-            rng.fill_bytes(&mut bytes);
-            resp_ok!(UnsafeRandomResult, { random_bytes: bytes })
+
+            match handler.interface.unsafe_random_wasmv1(req.num_bytes as u64) {
+                Err(e) => {
+                    resp_err!(format!("Failed to get random bytes: {}", e))
+                }
+                Ok(bytes) => {
+                    resp_ok!(UnsafeRandomResult, { random_bytes: bytes })
+                }
+            }
         },
     )
 }
