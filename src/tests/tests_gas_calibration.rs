@@ -206,6 +206,45 @@ fn test_basic_abi_call_loop() -> Result<()> {
 
 #[test]
 #[serial]
+fn test_basic_abi_call_loop_wasmv1() -> Result<()> {
+    let interface = TestInterface;
+    let bytecode = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/test_gc_abi_call_for.wasm_add"
+    ));
+
+    let gas_costs = GasCosts::default();
+    let runtime_module =
+        RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
+    let gas_calibration_result = run_main_gc(
+        &interface,
+        runtime_module,
+        b"",
+        100_000,
+        gas_costs.clone(),
+    )?;
+    assert_eq!(
+        gas_calibration_result.counters.len(),
+        2 + 2 + OPERATOR_CARDINALITY
+    );
+    assert_eq!(
+        gas_calibration_result
+            .counters
+            .get("Abi:call:massa.abi_generate_event"),
+        Some(&11)
+    );
+    assert_eq!(
+        gas_calibration_result
+            .counters
+            .get("Abi:call:massa.abi_abort"),
+        Some(&0)
+    );
+
+    Ok(())
+}
+
+#[test]
+#[serial]
 fn test_basic_op() -> Result<()> {
     let interface = TestInterface;
     let bytecode = include_bytes!(concat!(
@@ -268,11 +307,77 @@ fn test_basic_op() -> Result<()> {
 
 #[test]
 #[serial]
+fn test_basic_op_wasmv1() -> Result<()> {
+    let interface = TestInterface;
+    let bytecode = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/test_gc_basic_op.wasm_add"
+    ));
+
+    let gas_costs = GasCosts::default();
+    let runtime_module =
+        RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
+    let gas_calibration_result = run_main_gc(
+        &interface,
+        runtime_module,
+        b"",
+        100_000,
+        gas_costs.clone(),
+    )?;
+    // 1 for env.abort + 1 env.abort parameters
+    assert_eq!(
+        gas_calibration_result.counters.len(),
+        1 + 1 + OPERATOR_CARDINALITY
+    );
+    // Abi call issued
+    assert_eq!(
+        gas_calibration_result
+            .counters
+            .get("Abi:call:massa.abi_abort"),
+        Some(&0)
+    );
+
+    // check op count
+    // Use wat file to view op (https://webassembly.github.io/wabt/demo/wasm2wat/)
+    let op_executed = HashSet::from([
+        "Wasm:I32Add",
+        "Wasm:I32GtU",
+        "Wasm:End",
+        "Wasm:I32Sub",
+        "Wasm:I32Store",
+        "Wasm:LocalTee",
+        "Wasm:LocalGet",
+        "Wasm:I32Const",
+    ]);
+
+    for op_exec in &op_executed {
+        ma::assert_gt!(
+            gas_calibration_result.counters.get(*op_exec).unwrap(),
+            &0
+        );
+    }
+
+    // Note: op_executed is not exhaustive and the SC has a lot of code included
+    //       so for now the following check is disabled
+
+    // for (k, v) in gas_calibration_result.counters.iter() {
+    // if (*k).starts_with("Wasm:") && !op_executed.contains(&((*k).as_str()))
+    // {
+    // println!("Wasm op: {:?}", k);
+    // assert_eq!(*v, 0);
+    // }
+    // }
+
+    Ok(())
+}
+
+#[test]
+#[serial]
 fn test_basic_abi_call_param_size() -> Result<()> {
     let interface = TestInterface;
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/gc_abi_call_param_size.wasm"
+        "/wasm/test_gc_abi_call_param_size.wasm_add"
     ));
 
     let gas_costs = GasCosts::default();
