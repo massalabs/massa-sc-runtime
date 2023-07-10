@@ -546,7 +546,7 @@ impl Interface for TestInterface {
     }
 
     /// Returns the blake3 hash of the given bytes
-    fn blake3_hash(&self, bytes: &[u8]) -> Result<[u8; 32]> {
+    fn hash_blake3(&self, bytes: &[u8]) -> Result<[u8; 32]> {
         println!("Blake3 hash with bytes {:?}", bytes);
 
         Ok([0u8; 32])

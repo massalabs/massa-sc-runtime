@@ -411,7 +411,7 @@ pub(crate) fn abi_blake3_hash(
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
             // true); }
 
-            match handler.interface.blake3_hash(&req.data) {
+            match handler.interface.hash_blake3(&req.data) {
                 Ok(hash) => {
                     resp_ok!(HashBlake3Result, { hash: hash.to_vec() })
                 }
