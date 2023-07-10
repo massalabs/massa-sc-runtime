@@ -22,7 +22,7 @@ pub struct ExecutionEnv {
     /// Gas costs of different execution operations.
     gas_costs: GasCosts,
     /// Instance to execute
-    instance: Instance,
+    pub(crate) instance: Instance,
     /// Memory interface
     ffi: Ffi,
     /// Gas cost of instance creation
@@ -73,19 +73,22 @@ impl ExecutionEnv {
         })?;
 
         // Infer the gas cost of instance creation (_start function call)
-        let init_gas_cost = match metering::get_remaining_points(store, &instance) {
-            MeteringPoints::Remaining(remaining_points) => module
-                .gas_limit_at_compilation
-                .checked_sub(remaining_points)
-                .expect(
-                    "Remaining gas after instance creation is higher than the gas limit at compilation",
-                ),
-            MeteringPoints::Exhausted => {
-                return Err(WasmV1Error::InstanciationError(
-                    "Not enough gas, gas exhausted after instance creation".to_string(),
-                ));
-            }
-        };
+        let mut init_gas_cost = 0;
+        if cfg!(not(feature = "gas_calibration")) {
+            init_gas_cost = match metering::get_remaining_points(store, &instance) {
+                MeteringPoints::Remaining(remaining_points) => module
+                    .gas_limit_at_compilation
+                    .checked_sub(remaining_points)
+                    .expect(
+                        "Remaining gas after instance creation is higher than the gas limit at compilation",
+                    ),
+                MeteringPoints::Exhausted => {
+                    return Err(WasmV1Error::InstanciationError(
+                        "Not enough gas, gas exhausted after instance creation".to_string(),
+                    ));
+                }
+            };
+        }
 
         // Return the environment
         Ok(Self {
