@@ -452,8 +452,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     /// Returns the blake3 hash of the given bytes
-    fn blake3_hash(&self, bytes: &[u8]) -> Result<[u8; 32]> {
-        unimplemented!("blake3_hash")
+    #[named]
+    fn hash_blake3(&self, bytes: &[u8]) -> Result<[u8; 32]> {
+        unimplemented!(function_name!())
     }
 
     // Verify signature
