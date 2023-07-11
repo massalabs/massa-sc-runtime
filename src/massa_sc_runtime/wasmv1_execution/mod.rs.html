@@ -286,6 +286,7 @@
 <a href="#286" id="286">286</a>
 <a href="#287" id="287">287</a>
 <a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>env;
 <span class="kw">mod </span>error;
@@ -306,6 +307,7 @@
 <span class="kw">use </span>wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
 <span class="kw">use </span>wasmer_compiler_singlepass::Singlepass;
 <span class="kw">use </span>wasmer_middlewares::Metering;
+<span class="kw">use </span>wasmer::NativeEngineExt;
 
 <span class="doccomment">/// An executable runtime module compiled from an AssemblyScript SC
 </span><span class="attr">#[derive(Clone)]

@@ -233,23 +233,7 @@
 <a href="#233" id="233">233</a>
 <a href="#234" id="234">234</a>
 <a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
-<a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a>
-<a href="#245" id="245">245</a>
-<a href="#246" id="246">246</a>
-<a href="#247" id="247">247</a>
-<a href="#248" id="248">248</a>
-<a href="#249" id="249">249</a>
-<a href="#250" id="250">250</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::as_execution::{exec_as_module, ASModule};
-<span class="kw">use </span><span class="kw">crate</span>::error::VMResult;
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::error::VMResult;
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::GasCalibrationResult;
 <span class="kw">use </span><span class="kw">crate</span>::settings;
 <span class="kw">use </span><span class="kw">crate</span>::types::{Interface, Response};
@@ -267,7 +251,6 @@
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub enum </span>RuntimeModule {
-    ASModule(ASModule),
     WasmV1Module(WasmV1Module),
 }
 
@@ -275,7 +258,6 @@
 #[derive(IntoPrimitive, Debug, Eq, PartialEq, TryFromPrimitive)]
 
 </span><span class="kw">enum </span>RuntimeModuleId {
-    ASModuleId = <span class="number">0</span>,
     WasmV1ModuleId = <span class="number">1</span>,
 }
 
@@ -303,9 +285,6 @@
             </span>.unwrap(); <span class="comment">// Safe to unwrap as we checked the bytecode length and for conversion errors
 
         </span><span class="kw">match </span>module_id {
-            RuntimeModuleId::ASModuleId =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ASModule(ASModule::new(
-                bytecode, limit, gas_costs, compiler,
-            )<span class="question-mark">?</span>)),
             RuntimeModuleId::WasmV1ModuleId =&gt; {
                 <span class="comment">// Safe to use [1..] as we checked the bytecode length
                 </span><span class="kw">let </span>res = WasmV1Module::compile(<span class="kw-2">&amp;</span>bytecode[<span class="number">1</span>..], limit, gas_costs, compiler)
@@ -318,7 +297,6 @@
     <span class="doccomment">/// Used compiler for the current module
     </span><span class="kw">pub fn </span>compiler(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Compiler {
         <span class="kw">match </span><span class="self">self </span>{
-            RuntimeModule::ASModule(module) =&gt; module.compiler.clone(),
             RuntimeModule::WasmV1Module(module) =&gt; module.compiler.clone(),
         }
     }
@@ -326,7 +304,6 @@
     <span class="doccomment">/// Serialize a RuntimeModule, prepending its byte id
     </span><span class="kw">pub fn </span>serialize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
         <span class="kw">let </span>(<span class="kw-2">mut </span>ser, id) = <span class="kw">match </span><span class="self">self </span>{
-            RuntimeModule::ASModule(module) =&gt; (module.serialize()<span class="question-mark">?</span>, RuntimeModuleId::ASModuleId),
             RuntimeModule::WasmV1Module(module) =&gt; {
                 (module.serialize(), RuntimeModuleId::WasmV1ModuleId)
             }
@@ -347,9 +324,6 @@
             .transpose()<span class="question-mark">?</span>;
 
         <span class="kw">match </span>module_id {
-            <span class="prelude-val">Some</span>(RuntimeModuleId::ASModuleId) =&gt; <span class="prelude-val">Ok</span>(RuntimeModule::ASModule(
-                ASModule::deserialize(<span class="kw-2">&amp;</span>ser_module[<span class="number">1</span>..], limit, gas_costs)<span class="question-mark">?</span>,
-            )),
             <span class="prelude-val">Some</span>(RuntimeModuleId::WasmV1ModuleId) =&gt; <span class="prelude-val">Ok</span>(RuntimeModule::WasmV1Module(
                 WasmV1Module::deserialize(<span class="kw-2">&amp;</span>ser_module[<span class="number">1</span>..], limit, gas_costs)<span class="question-mark">?</span>,
             )),
@@ -360,7 +334,6 @@
     <span class="doccomment">/// Check the exports of a compiled module to see if it contains the given function
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>function_exists(<span class="kw-2">&amp;</span><span class="self">self</span>, function: <span class="kw-2">&amp;</span>str) -&gt; bool {
         <span class="kw">match </span><span class="self">self </span>{
-            RuntimeModule::ASModule(module) =&gt; module.function_exists(function),
             RuntimeModule::WasmV1Module(module) =&gt; module.function_exists(function),
         }
     }
@@ -376,9 +349,6 @@
     gas_costs: GasCosts,
 ) -&gt; VMResult&lt;(Response, <span class="prelude-ty">Option</span>&lt;GasCalibrationResult&gt;)&gt; {
     <span class="kw">let </span>response = <span class="kw">match </span>rt_module {
-        RuntimeModule::ASModule(module) =&gt; {
-            exec_as_module(interface, module, function, param, limit, gas_costs)<span class="question-mark">?
-        </span>}
         RuntimeModule::WasmV1Module(module) =&gt; {
             <span class="kw">let </span>res = exec_wasmv1_module(interface, module, function, param, limit, gas_costs)
                 .map_err(|err| <span class="macro">anyhow!</span>(<span class="string">&quot;Failed to execute WasmV1 module: {}&quot;</span>, err.to_string()))<span class="question-mark">?</span>;
