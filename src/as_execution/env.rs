@@ -93,6 +93,8 @@ pub(crate) fn get_remaining_points(
         match env.get_exhausted_points().as_ref() {
             Some(exhausted_points) => {
                 match exhausted_points.get(store).try_into() {
+                    // Using i32 here because it's the type used internally by
+                    // wasmer for exhausted.
                     Ok::<i32, _>(exhausted) if exhausted > 0 => return Ok(0),
                     Ok::<i32, _>(_) => (),
                     Err(_) => abi_bail!("exhausted_points has wrong type"),

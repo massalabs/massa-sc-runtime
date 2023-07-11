@@ -15,6 +15,7 @@ use crate::tunable_memory::LimitingTunables;
 use crate::{GasCosts, Interface, Response};
 use anyhow::Result;
 use std::sync::Arc;
+use wasmer::NativeEngineExt;
 use wasmer::{
     wasmparser::Operator, BaseTunables, Engine, EngineBuilder, Pages, Target,
 };
