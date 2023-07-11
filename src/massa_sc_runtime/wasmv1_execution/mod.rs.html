@@ -303,11 +303,11 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>error::<span class="kw-2">*</span>;
 <span class="kw">use </span>parking_lot::Mutex;
 <span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>wasmer::NativeEngineExt;
 <span class="kw">use </span>wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
 <span class="kw">use </span>wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
 <span class="kw">use </span>wasmer_compiler_singlepass::Singlepass;
 <span class="kw">use </span>wasmer_middlewares::Metering;
-<span class="kw">use </span>wasmer::NativeEngineExt;
 
 <span class="doccomment">/// An executable runtime module compiled from an AssemblyScript SC
 </span><span class="attr">#[derive(Clone)]
