@@ -258,7 +258,8 @@ impl ASContext {
                 "assembly_script_get_balance" => Function::new_typed_with_env(store, &fenv, assembly_script_get_balance),
                 "assembly_script_get_balance_for" => Function::new_typed_with_env(store, &fenv, assembly_script_get_balance_for),
                 "assembly_script_hash" => Function::new_typed_with_env(store, &fenv, assembly_script_hash),
-                "assembly_script_keccak256_hash" => Function::new_typed_with_env(store, &fenv, assembly_script_keccak256_hash),
+                "assembly_script_hash_sha256" =>  Function::new_typed_with_env(store, &fenv, assembly_script_hash_sha256),
+                "assembly_script_keccak256_hash" =>  Function::new_typed_with_env(store, &fenv, assembly_script_keccak256_hash),
                 "assembly_script_signature_verify" => Function::new_typed_with_env(store, &fenv, assembly_script_signature_verify),
                 "assembly_script_evm_signature_verify" => Function::new_typed_with_env(store, &fenv, assembly_script_evm_signature_verify),
                 "assembly_script_address_from_public_key" => Function::new_typed_with_env(store, &fenv, assembly_script_address_from_public_key),
@@ -267,6 +268,7 @@ impl ASContext {
                 "assembly_script_get_call_coins" => Function::new_typed_with_env(store, &fenv, assembly_script_get_call_coins),
                 "assembly_script_get_time" => Function::new_typed_with_env(store, &fenv, assembly_script_get_time),
                 "assembly_script_send_message" => Function::new_typed_with_env(store, &fenv, assembly_script_send_message),
+                "assembly_script_get_origin_operation_id" => Function::new_typed_with_env(store, &fenv, assembly_script_get_origin_operation_id),
                 "assembly_script_get_current_period" => Function::new_typed_with_env(store, &fenv, assembly_script_get_current_period),
                 "assembly_script_get_current_thread" => Function::new_typed_with_env(store, &fenv, assembly_script_get_current_thread),
                 "assembly_script_set_bytecode" => Function::new_typed_with_env(store, &fenv, assembly_script_set_bytecode),
@@ -282,7 +284,6 @@ impl ASContext {
                 "assembly_script_local_execution" => Function::new_typed_with_env(store, &fenv, assembly_script_local_execution),
                 "assembly_script_caller_has_write_access" => Function::new_typed_with_env(store, &fenv, assembly_script_caller_has_write_access),
                 "assembly_script_function_exists" => Function::new_typed_with_env(store, &fenv, assembly_script_function_exists),
-                "assembly_script_hash_sha256" =>  Function::new_typed_with_env(store, &fenv, assembly_script_hash_sha256),
             },
         };
 
