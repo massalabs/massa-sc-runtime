@@ -14,6 +14,7 @@ use anyhow::Result;
 pub(crate) use error::*;
 use parking_lot::Mutex;
 use std::sync::Arc;
+use wasmer::NativeEngineExt;
 use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
 use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
