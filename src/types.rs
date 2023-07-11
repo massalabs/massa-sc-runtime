@@ -251,12 +251,13 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("raw_set_bytecode_for")
     }
 
-    fn raw_set_bytecode_wasmv1(
+    #[named]
+    fn set_bytecode_wasmv1(
         &self,
         bytecode: &[u8],
         address: Option<String>,
     ) -> Result<()> {
-        unimplemented!("raw_set_bytecode_wasmv1")
+        unimplemented!(function_name!())
     }
 
     /// Requires a new address that contains the sent &[u8]
@@ -285,12 +286,13 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("get_op_keys_for")
     }
 
-    fn get_keys_wasmv1(
+    #[named]
+    fn get_ds_keys_wasmv1(
         &self,
         prefix: &[u8],
         address: Option<String>,
     ) -> Result<BTreeSet<Vec<u8>>> {
-        unimplemented!("get_keys_wasmv1")
+        unimplemented!(function_name!())
     }
 
     /// Return the datastore value of the corresponding key
@@ -415,11 +417,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("raw_get_bytecode_for")
     }
 
-    fn raw_get_bytecode_wasmv1(
-        &self,
-        address: Option<String>,
-    ) -> Result<Vec<u8>> {
-        unimplemented!("raw_get_bytecode_wasmv1")
+    #[named]
+    fn get_bytecode_wasmv1(&self, address: Option<String>) -> Result<Vec<u8>> {
+        unimplemented!(function_name!())
     }
 
     /// Return operation datastore keys
@@ -452,8 +452,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     /// Returns the blake3 hash of the given bytes
-    fn blake3_hash(&self, bytes: &[u8]) -> Result<[u8; 32]> {
-        unimplemented!("blake3_hash")
+    #[named]
+    fn hash_blake3(&self, bytes: &[u8]) -> Result<[u8; 32]> {
+        unimplemented!(function_name!())
     }
 
     // Verify signature

@@ -158,15 +158,12 @@ impl Interface for TestInterface {
         Ok([0; 32])
     }
 
-    fn raw_get_bytecode_wasmv1(
-        &self,
-        address: Option<String>,
-    ) -> Result<Vec<u8>> {
+    fn get_bytecode_wasmv1(&self, address: Option<String>) -> Result<Vec<u8>> {
         println!("Raw get bytecode called on address {:?}", address);
         Ok(vec![])
     }
 
-    fn get_keys_wasmv1(
+    fn get_ds_keys_wasmv1(
         &self,
         prefix: &[u8],
         address: Option<String>,
@@ -387,7 +384,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn raw_set_bytecode_wasmv1(
+    fn set_bytecode_wasmv1(
         &self,
         bytecode: &[u8],
         address: Option<String>,
@@ -546,7 +543,7 @@ impl Interface for TestInterface {
     }
 
     /// Returns the blake3 hash of the given bytes
-    fn blake3_hash(&self, bytes: &[u8]) -> Result<[u8; 32]> {
+    fn hash_blake3(&self, bytes: &[u8]) -> Result<[u8; 32]> {
         println!("Blake3 hash with bytes {:?}", bytes);
 
         Ok([0u8; 32])

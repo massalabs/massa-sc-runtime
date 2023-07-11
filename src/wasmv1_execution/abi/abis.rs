@@ -411,7 +411,7 @@ pub(crate) fn abi_blake3_hash(
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
             // true); }
 
-            match handler.interface.blake3_hash(&req.data) {
+            match handler.interface.hash_blake3(&req.data) {
                 Ok(hash) => {
                     resp_ok!(HashBlake3Result, { hash: hash.to_vec() })
                 }
@@ -681,7 +681,7 @@ fn abi_get_bytecode(
         |handler,
          req: GetBytecodeRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.raw_get_bytecode_wasmv1(req.address) else
+            let Ok(res) = handler.interface.get_bytecode_wasmv1(req.address) else
             {
                 return resp_err!("Failed to get bytecode");
             };
@@ -703,7 +703,7 @@ fn abi_set_bytecode(
          -> Result<AbiResponse, WasmV1Error> {
             let Ok(_) = handler
                 .interface
-                .raw_set_bytecode_wasmv1(&req.bytecode, req.address) else
+                .set_bytecode_wasmv1(&req.bytecode, req.address) else
             {
                 return resp_err!("Failed to set bytecode");
             };
@@ -721,7 +721,7 @@ fn abi_get_keys(
         store_env,
         arg_offset,
         |handler, req: GetKeysRequest| -> Result<AbiResponse, WasmV1Error> {
-            let Ok(res) = handler.interface.get_keys_wasmv1(&req.prefix, req.address) else
+            let Ok(res) = handler.interface.get_ds_keys_wasmv1(&req.prefix, req.address) else
             {
                 return resp_err!("Failed to get keys");
             };
