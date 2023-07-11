@@ -16,14 +16,3 @@ impl From<anyhow::Error> for VMError {
         Self::InstanceError(value.to_string())
     }
 }
-
-macro_rules! exec_bail {
-    ($err:expr, $init_gas_cost:expr) => {
-        return Err(crate::VMError::ExecutionError {
-            error: $err.to_string(),
-            init_gas_cost: $init_gas_cost,
-        })
-    };
-}
-
-pub(crate) use exec_bail;

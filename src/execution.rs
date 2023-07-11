@@ -1,4 +1,3 @@
-use crate::as_execution::{exec_as_module, ASModule};
 use crate::error::VMResult;
 use crate::middlewares::gas_calibration::GasCalibrationResult;
 use crate::settings;
@@ -17,7 +16,6 @@ pub enum Compiler {
 
 #[derive(Clone)]
 pub enum RuntimeModule {
-    ASModule(ASModule),
     WasmV1Module(WasmV1Module),
 }
 
@@ -25,7 +23,6 @@ pub enum RuntimeModule {
 #[derive(IntoPrimitive, Debug, Eq, PartialEq, TryFromPrimitive)]
 
 enum RuntimeModuleId {
-    ASModuleId = 0,
     WasmV1ModuleId = 1,
 }
 
@@ -53,9 +50,6 @@ impl RuntimeModule {
             .unwrap(); // Safe to unwrap as we checked the bytecode length and for conversion errors
 
         match module_id {
-            RuntimeModuleId::ASModuleId => Ok(Self::ASModule(ASModule::new(
-                bytecode, limit, gas_costs, compiler,
-            )?)),
             RuntimeModuleId::WasmV1ModuleId => {
                 // Safe to use [1..] as we checked the bytecode length
                 let res = WasmV1Module::compile(&bytecode[1..], limit, gas_costs, compiler)
@@ -68,7 +62,6 @@ impl RuntimeModule {
     /// Used compiler for the current module
     pub fn compiler(&self) -> Compiler {
         match self {
-            RuntimeModule::ASModule(module) => module.compiler.clone(),
             RuntimeModule::WasmV1Module(module) => module.compiler.clone(),
         }
     }
@@ -76,7 +69,6 @@ impl RuntimeModule {
     /// Serialize a RuntimeModule, prepending its byte id
     pub fn serialize(&self) -> Result<Vec<u8>> {
         let (mut ser, id) = match self {
-            RuntimeModule::ASModule(module) => (module.serialize()?, RuntimeModuleId::ASModuleId),
             RuntimeModule::WasmV1Module(module) => {
                 (module.serialize(), RuntimeModuleId::WasmV1ModuleId)
             }
@@ -97,9 +89,6 @@ impl RuntimeModule {
             .transpose()?;
 
         match module_id {
-            Some(RuntimeModuleId::ASModuleId) => Ok(RuntimeModule::ASModule(
-                ASModule::deserialize(&ser_module[1..], limit, gas_costs)?,
-            )),
             Some(RuntimeModuleId::WasmV1ModuleId) => Ok(RuntimeModule::WasmV1Module(
                 WasmV1Module::deserialize(&ser_module[1..], limit, gas_costs)?,
             )),
@@ -110,7 +99,6 @@ impl RuntimeModule {
     /// Check the exports of a compiled module to see if it contains the given function
     pub(crate) fn function_exists(&self, function: &str) -> bool {
         match self {
-            RuntimeModule::ASModule(module) => module.function_exists(function),
             RuntimeModule::WasmV1Module(module) => module.function_exists(function),
         }
     }
@@ -126,9 +114,6 @@ pub(crate) fn exec(
     gas_costs: GasCosts,
 ) -> VMResult<(Response, Option<GasCalibrationResult>)> {
     let response = match rt_module {
-        RuntimeModule::ASModule(module) => {
-            exec_as_module(interface, module, function, param, limit, gas_costs)?
-        }
         RuntimeModule::WasmV1Module(module) => {
             let res = exec_wasmv1_module(interface, module, function, param, limit, gas_costs)
                 .map_err(|err| anyhow!("Failed to execute WasmV1 module: {}", err.to_string()))?;

@@ -18,6 +18,7 @@ use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
 use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
+use wasmer::NativeEngineExt;
 
 /// An executable runtime module compiled from an AssemblyScript SC
 #[derive(Clone)]
