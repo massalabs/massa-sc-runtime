@@ -483,7 +483,7 @@ impl Interface for TestInterface {
         ])
     }
 
-    fn has_op_key(&self, key: &[u8]) -> Result<bool> {
+    fn op_entry_exists(&self, key: &[u8]) -> Result<bool> {
         println!("Has op key at {:?}", key);
         let ds: BTreeMap<Vec<u8>, Vec<u8>> = BTreeMap::from([
             (vec![0, 1, 2, 3, 4, 5, 6, 11], vec![65]),
@@ -572,7 +572,7 @@ impl Interface for TestInterface {
         Ok(true)
     }
 
-    fn add_native_amounts_wasmv1(
+    fn add_native_amount_wasmv1(
         &self,
         _amount1: &NativeAmount,
         _amount2: &NativeAmount,
@@ -583,7 +583,7 @@ impl Interface for TestInterface {
         })
     }
 
-    fn sub_native_amounts_wasmv1(
+    fn sub_native_amount_wasmv1(
         &self,
         _amount1: &NativeAmount,
         _amount2: &NativeAmount,
@@ -594,7 +594,7 @@ impl Interface for TestInterface {
         })
     }
 
-    fn mul_native_amount_wasmv1(
+    fn scalar_mul_native_amount_wasmv1(
         &self,
         _amount: &NativeAmount,
         _factor: u64,
@@ -605,7 +605,7 @@ impl Interface for TestInterface {
         })
     }
 
-    fn div_rem_native_amount_wasmv1(
+    fn scalar_div_rem_native_amount_wasmv1(
         &self,
         _dividend: &NativeAmount,
         _divisor: u64,
@@ -622,7 +622,7 @@ impl Interface for TestInterface {
         ))
     }
 
-    fn div_rem_native_amounts_wasmv1(
+    fn div_rem_native_amount_wasmv1(
         &self,
         _dividend: &NativeAmount,
         _divisor: &NativeAmount,
@@ -636,34 +636,34 @@ impl Interface for TestInterface {
         ))
     }
 
-    fn check_address_wasmv1(&self, _to_check: &String) -> Result<bool> {
+    fn check_address_wasmv1(&self, _to_check: &str) -> Result<bool> {
         Ok(true)
     }
 
-    fn check_pubkey_wasmv1(&self, _to_check: &String) -> Result<bool> {
+    fn check_pubkey_wasmv1(&self, _to_check: &str) -> Result<bool> {
         Ok(true)
     }
 
-    fn check_signature_wasmv1(&self, _to_check: &String) -> Result<bool> {
+    fn check_signature_wasmv1(&self, _to_check: &str) -> Result<bool> {
         Ok(true)
     }
 
     fn get_address_category_wasmv1(
         &self,
-        _to_check: &String,
+        _to_check: &str,
     ) -> Result<AddressCategory> {
         Ok(AddressCategory::ScAddress)
     }
 
-    fn get_address_version_wasmv1(&self, _address: &String) -> Result<u64> {
+    fn get_address_version_wasmv1(&self, _address: &str) -> Result<u64> {
         Ok(1)
     }
 
-    fn get_pubkey_version_wasmv1(&self, _pubkey: &String) -> Result<u64> {
+    fn get_pubkey_version_wasmv1(&self, _pubkey: &str) -> Result<u64> {
         Ok(1)
     }
 
-    fn get_signature_version_wasmv1(&self, _signature: &String) -> Result<u64> {
+    fn get_signature_version_wasmv1(&self, _signature: &str) -> Result<u64> {
         Ok(1)
     }
 
@@ -774,6 +774,47 @@ impl Interface for TestInterface {
             std::cmp::Ordering::Greater => ComparisonResult::Greater,
         };
         Ok(res)
+    }
+
+    fn get_keys(&self, _prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {
+        todo!()
+    }
+
+    fn get_keys_for(
+        &self,
+        _address: &str,
+        _prefix: Option<&[u8]>,
+    ) -> Result<BTreeSet<Vec<u8>>> {
+        todo!()
+    }
+
+    fn raw_get_bytecode(&self) -> Result<Vec<u8>> {
+        todo!()
+    }
+
+    fn raw_get_bytecode_for(&self, _address: &str) -> Result<Vec<u8>> {
+        todo!()
+    }
+
+    fn caller_has_write_access(&self) -> Result<bool> {
+        todo!()
+    }
+
+    fn verify_evm_signature(
+        &self,
+        _message: &[u8],
+        _signature: &[u8],
+        _public_key: &[u8],
+    ) -> Result<bool> {
+        todo!()
+    }
+
+    fn validate_address(&self, _address: &str) -> Result<bool> {
+        todo!()
+    }
+
+    fn get_origin_operation_id(&self) -> Result<Option<String>> {
+        todo!()
     }
 }
 

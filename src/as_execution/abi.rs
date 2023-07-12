@@ -241,7 +241,7 @@ pub(crate) fn assembly_script_has_op_key(
     //     param_size_update(&env, &mut ctx, &fname, key_bytes.len(), true);
     // }
 
-    match env.get_interface().has_op_key(&key_bytes) {
+    match env.get_interface().op_entry_exists(&key_bytes) {
         Err(err) => abi_bail!(err),
         Ok(b) => {
             // https://doc.rust-lang.org/reference/types/boolean.html

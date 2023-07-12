@@ -1,5 +1,4 @@
 use anyhow::{anyhow, bail, Result};
-use function_name::named;
 use massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
 };
@@ -30,12 +29,6 @@ impl Clone for Box<dyn Interface> {
     fn clone(&self) -> Box<dyn Interface> {
         self.clone_box()
     }
-}
-
-macro_rules! unimplemented {
-    ($fn: expr) => {
-        bail!(format!("unimplemented function {} in interface", $fn))
-    };
 }
 
 #[derive(Clone, Debug)]
@@ -166,49 +159,36 @@ impl Default for GasCosts {
 pub trait Interface: Send + Sync + InterfaceClone {
     /// Prepare the execution of a module at the given address and transfer a
     /// given amount of coins
-    fn init_call(&self, address: &str, raw_coins: u64) -> Result<Vec<u8>> {
-        unimplemented!("init_call")
-    }
+    fn init_call(&self, address: &str, raw_coins: u64) -> Result<Vec<u8>>;
 
     /// Prepare the execution of a module at the given address and transfer a
     /// given amount of coins
+
     fn init_call_wasmv1(
         &self,
         address: &str,
         raw_coins: NativeAmount,
-    ) -> Result<Vec<u8>> {
-        unimplemented!("init_call_wasmv1")
-    }
+    ) -> Result<Vec<u8>>;
 
     /// Finish a call
-    fn finish_call(&self) -> Result<()> {
-        unimplemented!("finish_call")
-    }
+    fn finish_call(&self) -> Result<()>;
 
     /// Get the SCE ledger balance for the current address.
     /// Defaults to zero if the address is not found.
-    fn get_balance(&self) -> Result<u64> {
-        unimplemented!("get_balance")
-    }
+    fn get_balance(&self) -> Result<u64>;
 
     /// Get the SCE ledger balance for an address.
     /// Defaults to zero if the address is not found.
-    fn get_balance_for(&self, address: &str) -> Result<u64> {
-        unimplemented!("get_balance_for")
-    }
+    fn get_balance_for(&self, address: &str) -> Result<u64>;
 
     fn get_balance_wasmv1(
         &self,
         address: Option<String>,
-    ) -> Result<NativeAmount> {
-        unimplemented!("get_balance_wasmv1")
-    }
+    ) -> Result<NativeAmount>;
 
     /// Transfer an amount from the address on the current call stack to a
     /// target address.
-    fn transfer_coins(&self, to_address: &str, raw_amount: u64) -> Result<()> {
-        unimplemented!("transfer_coins")
-    }
+    fn transfer_coins(&self, to_address: &str, raw_amount: u64) -> Result<()>;
 
     /// Transfer an amount from the specified address to a target address.
     fn transfer_coins_for(
@@ -216,18 +196,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
         from_address: &str,
         to_address: &str,
         raw_amount: u64,
-    ) -> Result<()> {
-        unimplemented!("transfer_coins_for")
-    }
+    ) -> Result<()>;
 
     fn transfer_coins_wasmv1(
         &self,
         to_address: String,
         raw_amount: NativeAmount,
         from_address: Option<String>,
-    ) -> Result<()> {
-        unimplemented!("transfer_coins_wasmv1")
-    }
+    ) -> Result<()>;
 
     /// Get the amount of coins that have been made available for use by the
     /// caller of the currently executing code.
@@ -240,9 +216,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn get_call_coins_wasmv1(&self) -> Result<NativeAmount>;
 
     /// Sets the executable bytecode at a current address.
-    fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
-        unimplemented!("raw_set_bytecode")
-    }
+    fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()>;
 
     /// Sets the executable bytecode at a target address.
     /// The target address must exist and the current context must have access
@@ -251,34 +225,23 @@ pub trait Interface: Send + Sync + InterfaceClone {
         &self,
         address: &str,
         bytecode: &[u8],
-    ) -> Result<()> {
-        unimplemented!("raw_set_bytecode_for")
-    }
+    ) -> Result<()>;
 
-    #[named]
     fn set_bytecode_wasmv1(
         &self,
         bytecode: &[u8],
         address: Option<String>,
-    ) -> Result<()> {
-        unimplemented!(function_name!())
-    }
+    ) -> Result<()>;
 
     /// Requires a new address that contains the sent &[u8]
-    fn create_module(&self, module: &[u8]) -> Result<String> {
-        unimplemented!("create_module")
-    }
+    fn create_module(&self, module: &[u8]) -> Result<String>;
 
     /// Print function for examples
-    fn print(&self, message: &str) -> Result<()> {
-        unimplemented!("print")
-    }
+    fn print(&self, message: &str) -> Result<()>;
 
     /// Return datastore keys
     /// Will only return keys with a given prefix if provided in args
-    fn get_keys(&self, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {
-        unimplemented!("get_op_keys")
-    }
+    fn get_keys(&self, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>>;
 
     /// Return datastore keys
     /// Will only return keys with a given prefix if provided in args
@@ -286,42 +249,28 @@ pub trait Interface: Send + Sync + InterfaceClone {
         &self,
         address: &str,
         prefix: Option<&[u8]>,
-    ) -> Result<BTreeSet<Vec<u8>>> {
-        unimplemented!("get_op_keys_for")
-    }
+    ) -> Result<BTreeSet<Vec<u8>>>;
 
-    #[named]
     fn get_ds_keys_wasmv1(
         &self,
         prefix: &[u8],
         address: Option<String>,
-    ) -> Result<BTreeSet<Vec<u8>>> {
-        unimplemented!(function_name!())
-    }
+    ) -> Result<BTreeSet<Vec<u8>>>;
 
     /// Return the datastore value of the corresponding key
-    fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>> {
-        unimplemented!("raw_get_data")
-    }
+    fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>>;
 
     /// Requires the data at the address
-    fn raw_get_data_for(&self, address: &str, key: &[u8]) -> Result<Vec<u8>> {
-        unimplemented!("raw_get_data_for")
-    }
+    fn raw_get_data_for(&self, address: &str, key: &[u8]) -> Result<Vec<u8>>;
 
-    #[named]
     fn get_ds_value_wasmv1(
         &self,
         key: &[u8],
         address: Option<String>,
-    ) -> Result<Vec<u8>> {
-        unimplemented!(function_name!())
-    }
+    ) -> Result<Vec<u8>>;
 
     /// Set the datastore value for the corresponding key
-    fn raw_set_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
-        unimplemented!("raw_set_data")
-    }
+    fn raw_set_data(&self, key: &[u8], value: &[u8]) -> Result<()>;
 
     /// Set the datastore value for the corresponding key of the given address
     fn raw_set_data_for(
@@ -329,24 +278,17 @@ pub trait Interface: Send + Sync + InterfaceClone {
         address: &str,
         key: &[u8],
         value: &[u8],
-    ) -> Result<()> {
-        unimplemented!("raw_set_data_for")
-    }
+    ) -> Result<()>;
 
-    #[named]
     fn set_ds_value_wasmv1(
         &self,
         key: &[u8],
         value: &[u8],
         address: Option<String>,
-    ) -> Result<()> {
-        unimplemented!(function_name!())
-    }
+    ) -> Result<()>;
 
     /// Append a value to the current datastore value for the corresponding key
-    fn raw_append_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
-        unimplemented!("raw_append_data")
-    }
+    fn raw_append_data(&self, key: &[u8], value: &[u8]) -> Result<()>;
 
     /// Append a value to the current datastore value for the corresponding key
     /// and the given address
@@ -355,111 +297,71 @@ pub trait Interface: Send + Sync + InterfaceClone {
         address: &str,
         key: &[u8],
         value: &[u8],
-    ) -> Result<()> {
-        unimplemented!("raw_append_data_for")
-    }
+    ) -> Result<()>;
 
-    #[named]
     fn append_ds_value_wasmv1(
         &self,
         key: &[u8],
         value: &[u8],
         address: Option<String>,
-    ) -> Result<()> {
-        unimplemented!(function_name!())
-    }
+    ) -> Result<()>;
 
     /// Delete a datastore entry
-    fn raw_delete_data(&self, key: &[u8]) -> Result<()> {
-        unimplemented!("raw_delete_data")
-    }
+    fn raw_delete_data(&self, key: &[u8]) -> Result<()>;
 
     /// Delete a datastore entry at of the given address
-    fn raw_delete_data_for(&self, address: &str, key: &[u8]) -> Result<()> {
-        unimplemented!("raw_delete_data_for")
-    }
+    fn raw_delete_data_for(&self, address: &str, key: &[u8]) -> Result<()>;
 
-    #[named]
     fn delete_ds_entry_wasmv1(
         &self,
         key: &[u8],
         address: Option<String>,
-    ) -> Result<()> {
-        unimplemented!(function_name!())
-    }
+    ) -> Result<()>;
 
     /// Requires to replace the data in the current address
     ///
     /// Note:
     /// The execution lib will always use the current context address for the
     /// update
-    fn has_data(&self, key: &[u8]) -> Result<bool> {
-        unimplemented!("has_data")
-    }
+    fn has_data(&self, key: &[u8]) -> Result<bool>;
 
     /// Check if a datastore entry exists
-    fn has_data_for(&self, address: &str, key: &[u8]) -> Result<bool> {
-        unimplemented!("has_data_for")
-    }
+    fn has_data_for(&self, address: &str, key: &[u8]) -> Result<bool>;
 
-    #[named]
     fn ds_entry_exists_wasmv1(
         &self,
         key: &[u8],
         address: Option<String>,
-    ) -> Result<bool> {
-        unimplemented!(function_name!())
-    }
+    ) -> Result<bool>;
 
     /// Returns bytecode of the current address
-    fn raw_get_bytecode(&self) -> Result<Vec<u8>> {
-        unimplemented!("raw_get_bytecode")
-    }
+    fn raw_get_bytecode(&self) -> Result<Vec<u8>>;
 
     /// Returns bytecode of the target address
-    fn raw_get_bytecode_for(&self, address: &str) -> Result<Vec<u8>> {
-        unimplemented!("raw_get_bytecode_for")
-    }
+    fn raw_get_bytecode_for(&self, address: &str) -> Result<Vec<u8>>;
 
-    #[named]
-    fn get_bytecode_wasmv1(&self, address: Option<String>) -> Result<Vec<u8>> {
-        unimplemented!(function_name!())
-    }
+    fn get_bytecode_wasmv1(&self, address: Option<String>) -> Result<Vec<u8>>;
 
     /// Return operation datastore keys
-    fn get_op_keys(&self) -> Result<Vec<Vec<u8>>> {
-        unimplemented!("get_op_keys")
-    }
+    fn get_op_keys(&self) -> Result<Vec<Vec<u8>>>;
 
-    fn get_op_keys_wasmv1(&self, prefix: &[u8]) -> Result<Vec<Vec<u8>>> {
-        unimplemented!("get_op_keys_wasmv1")
-    }
+    fn get_op_keys_wasmv1(&self, prefix: &[u8]) -> Result<Vec<Vec<u8>>>;
 
-    /// Check if key is in operation datastore
-    fn has_op_key(&self, key: &[u8]) -> Result<bool> {
-        unimplemented!("has_op_data")
-    }
+    /// Check if operation in datastore exists
+    fn op_entry_exists(&self, key: &[u8]) -> Result<bool>;
 
     /// Return operation datastore data for a given key
-    fn get_op_data(&self, key: &[u8]) -> Result<Vec<u8>> {
-        unimplemented!("get_op_data")
-    }
+    fn get_op_data(&self, key: &[u8]) -> Result<Vec<u8>>;
 
     /// Check whether or not the caller has write access in the current context
-    fn caller_has_write_access(&self) -> Result<bool> {
-        unimplemented!("caller_has_write_access")
-    }
+    fn caller_has_write_access(&self) -> Result<bool>;
 
     // Hash data
-    fn hash(&self, data: &[u8]) -> Result<[u8; 32]> {
-        unimplemented!("hash")
-    }
+    fn hash(&self, data: &[u8]) -> Result<[u8; 32]>;
 
     /// Returns the blake3 hash of the given bytes
-    #[named]
-    fn hash_blake3(&self, bytes: &[u8]) -> Result<[u8; 32]> {
-        unimplemented!(function_name!())
-    }
+
+    fn hash_blake3(&self, bytes: &[u8]) -> Result<[u8; 32]>;
 
     // Verify signature
     fn signature_verify(
@@ -467,9 +369,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         data: &[u8],
         signature: &str,
         public_key: &str,
-    ) -> Result<bool> {
-        unimplemented!("signature_verify")
-    }
+    ) -> Result<bool>;
 
     // Verify EVM signature
     fn verify_evm_signature(
@@ -477,88 +377,58 @@ pub trait Interface: Send + Sync + InterfaceClone {
         message: &[u8],
         signature: &[u8],
         public_key: &[u8],
-    ) -> Result<bool> {
-        unimplemented!("verify_evm_signature")
-    }
+    ) -> Result<bool>;
 
     // Convert a public key to an address
-    fn address_from_public_key(&self, public_key: &str) -> Result<String> {
-        unimplemented!("address_from_public_key")
-    }
+    fn address_from_public_key(&self, public_key: &str) -> Result<String>;
 
     // Validate an address
-    fn validate_address(&self, address: &str) -> Result<bool> {
-        unimplemented!("validate_address")
-    }
+    fn validate_address(&self, address: &str) -> Result<bool>;
 
     /// Returns the current time (millisecond unix timestamp)
-    fn get_time(&self) -> Result<u64> {
-        unimplemented!("get_time")
-    }
+    fn get_time(&self) -> Result<u64>;
 
     /// Returns a random number (unsafe: can be predicted and manipulated)
-    fn unsafe_random(&self) -> Result<i64> {
-        unimplemented!("unsafe_random")
-    }
+    fn unsafe_random(&self) -> Result<i64>;
 
     /// Returns a random number (unsafe: can be predicted and manipulated)
-    fn unsafe_random_f64(&self) -> Result<f64> {
-        unimplemented!("unsafe_random_f64")
-    }
+    fn unsafe_random_f64(&self) -> Result<f64>;
 
     /// Returns a random number (unsafe: can be predicted and manipulated)
-    fn unsafe_random_wasmv1(&self, num_bytes: u64) -> Result<Vec<u8>> {
-        unimplemented!("unsafe_random_wasmv1")
-    }
+    fn unsafe_random_wasmv1(&self, num_bytes: u64) -> Result<Vec<u8>>;
 
     /// Returns the period of the current execution slot
-    fn get_current_period(&self) -> Result<u64> {
-        unimplemented!("get_current_period")
-    }
+    fn get_current_period(&self) -> Result<u64>;
 
     /// Returns the thread of the current execution slot
-    fn get_current_thread(&self) -> Result<u8> {
-        unimplemented!("get_current_thread")
-    }
+    fn get_current_thread(&self) -> Result<u8>;
 
     /// Returns the current execution slot
-    fn get_current_slot(&self) -> Result<Slot> {
-        unimplemented!("get_current_slot")
-    }
+    fn get_current_slot(&self) -> Result<Slot>;
 
     /// Expect to return a list of owned addresses
     ///
     /// Required on smart-contract execute the imported function
     /// `assembly_script_get_owned_addresses`
-    fn get_owned_addresses(&self) -> Result<Vec<String>> {
-        unimplemented!("get_owned_addresses")
-    }
+    fn get_owned_addresses(&self) -> Result<Vec<String>>;
 
     /// Expect to return a list of addresses in the call stack
     ///
     /// Required on smart-contract execute the imported function
     /// `assembly_script_get_call_stack`
-    fn get_call_stack(&self) -> Result<Vec<String>> {
-        unimplemented!("get_call_stack")
-    }
+    fn get_call_stack(&self) -> Result<Vec<String>>;
 
     /// Generate a smart contract event
-    fn generate_event(&self, _event: String) -> Result<()> {
-        unimplemented!("generate_event")
-    }
+    fn generate_event(&self, _event: String) -> Result<()>;
 
     /// Generate a smart contract event
-    fn generate_event_wasmv1(&self, _event: Vec<u8>) -> Result<()> {
-        unimplemented!("generate_event_wasmv1")
-    }
+    fn generate_event_wasmv1(&self, _event: Vec<u8>) -> Result<()>;
 
     /// For the given bytecode:
     ///
     /// * Get the corresponding runtime module if it already exists
     /// * Compile it if not
-    fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule> {
-        unimplemented!("get_module")
-    }
+    fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule>;
 
     /// Sends an async message
     ///
@@ -586,156 +456,107 @@ pub trait Interface: Send + Sync + InterfaceClone {
         raw_coins: u64,
         data: &[u8],
         filter: Option<(&str, Option<&[u8]>)>,
-    ) -> Result<()> {
-        unimplemented!("send_message")
-    }
+    ) -> Result<()>;
 
     // Returns the operation id that originated the current execution if there
     // is one
-    fn get_origin_operation_id(&self) -> Result<Option<String>> {
-        unimplemented!("get_origin_operation_id")
-    }
+    fn get_origin_operation_id(&self) -> Result<Option<String>>;
 
     // Sha256 hash bytes
-    fn hash_sha256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
-        unimplemented!("hash_sha256")
-    }
+    fn hash_sha256(&self, bytes: &[u8]) -> Result<[u8; 32]>;
 
     // Keccak256 hash bytes
-    fn hash_keccak256(&self, bytes: &[u8]) -> Result<[u8; 32]> {
-        unimplemented!("hash_keccak256")
-    }
+    fn hash_keccak256(&self, bytes: &[u8]) -> Result<[u8; 32]>;
 
     fn native_amount_from_str_wasmv1(
         &self,
         amount: &str,
-    ) -> Result<NativeAmount> {
-        unimplemented!("native_amount_from_str_wasmv1");
-    }
+    ) -> Result<NativeAmount>;
 
     fn native_amount_to_string_wasmv1(
         &self,
         amount: &NativeAmount,
-    ) -> Result<String> {
-        unimplemented!("native_amount_to_string_wasmv1");
-    }
+    ) -> Result<String>;
 
-    fn check_native_amount_wasmv1(
-        &self,
-        amount: &NativeAmount,
-    ) -> Result<bool> {
-        unimplemented!("check_native_amount_wasmv1");
-    }
+    fn check_native_amount_wasmv1(&self, amount: &NativeAmount)
+        -> Result<bool>;
 
-    fn add_native_amounts_wasmv1(
+    fn add_native_amount_wasmv1(
         &self,
         amount1: &NativeAmount,
         amount2: &NativeAmount,
-    ) -> Result<NativeAmount> {
-        unimplemented!("add_native_amounts_wasmv1");
-    }
+    ) -> Result<NativeAmount>;
 
-    fn sub_native_amounts_wasmv1(
+    fn sub_native_amount_wasmv1(
         &self,
         amount1: &NativeAmount,
         amount2: &NativeAmount,
-    ) -> Result<NativeAmount> {
-        unimplemented!("sub_native_amounts_wasmv1");
-    }
+    ) -> Result<NativeAmount>;
 
-    fn mul_native_amount_wasmv1(
+    fn scalar_mul_native_amount_wasmv1(
         &self,
         amount: &NativeAmount,
         factor: u64,
-    ) -> Result<NativeAmount> {
-        unimplemented!("mul_native_amount_wasmv1");
-    }
+    ) -> Result<NativeAmount>;
+
+    fn scalar_div_rem_native_amount_wasmv1(
+        &self,
+        dividend: &NativeAmount,
+        divisor: u64,
+    ) -> Result<(NativeAmount, NativeAmount)>;
 
     fn div_rem_native_amount_wasmv1(
         &self,
         dividend: &NativeAmount,
-        divisor: u64,
-    ) -> Result<(NativeAmount, NativeAmount)> {
-        unimplemented!("div_rem_native_amount_wasmv1");
-    }
-
-    fn div_rem_native_amounts_wasmv1(
-        &self,
-        dividend: &NativeAmount,
         divisor: &NativeAmount,
-    ) -> Result<(u64, NativeAmount)> {
-        unimplemented!("div_rem_native_amounts_wasmv1");
-    }
-    fn check_address_wasmv1(&self, to_check: &String) -> Result<bool> {
-        unimplemented!("check_address_wasmv1");
-    }
+    ) -> Result<(u64, NativeAmount)>;
 
-    fn check_pubkey_wasmv1(&self, to_check: &String) -> Result<bool> {
-        unimplemented!("check_pubkey_wasmv1");
-    }
+    fn check_address_wasmv1(&self, to_check: &str) -> Result<bool>;
 
-    fn check_signature_wasmv1(&self, to_check: &String) -> Result<bool> {
-        unimplemented!("check_signature_wasmv1");
-    }
+    fn check_pubkey_wasmv1(&self, to_check: &str) -> Result<bool>;
+
+    fn check_signature_wasmv1(&self, to_check: &str) -> Result<bool>;
 
     fn get_address_category_wasmv1(
         &self,
-        to_check: &String,
-    ) -> Result<AddressCategory> {
-        unimplemented!("get_address_category_wasmv1");
-    }
+        to_check: &str,
+    ) -> Result<AddressCategory>;
 
-    fn get_address_version_wasmv1(&self, address: &String) -> Result<u64> {
-        unimplemented!("get_address_version_wasmv1");
-    }
+    fn get_address_version_wasmv1(&self, address: &str) -> Result<u64>;
 
-    fn get_pubkey_version_wasmv1(&self, pubkey: &String) -> Result<u64> {
-        unimplemented!("get_pubkey_version_wasmv1");
-    }
+    fn get_pubkey_version_wasmv1(&self, pubkey: &str) -> Result<u64>;
 
-    fn get_signature_version_wasmv1(&self, signature: &String) -> Result<u64> {
-        unimplemented!("get_signature_version_wasmv1");
-    }
+    fn get_signature_version_wasmv1(&self, signature: &str) -> Result<u64>;
 
     fn checked_add_native_time_wasmv1(
         &self,
         time1: &NativeTime,
         time2: &NativeTime,
-    ) -> Result<NativeTime> {
-        unimplemented!("checked_add_native_time_wasmv1");
-    }
+    ) -> Result<NativeTime>;
 
     fn checked_sub_native_time_wasmv1(
         &self,
         time1: &NativeTime,
         time2: &NativeTime,
-    ) -> Result<NativeTime> {
-        unimplemented!("checked_sub_native_time_wasmv1");
-    }
+    ) -> Result<NativeTime>;
 
     fn checked_mul_native_time_wasmv1(
         &self,
         time: &NativeTime,
         factor: u64,
-    ) -> Result<NativeTime> {
-        unimplemented!("checked_mul_native_time_wasmv1");
-    }
+    ) -> Result<NativeTime>;
 
     fn checked_scalar_div_native_time_wasmv1(
         &self,
         dividend: &NativeTime,
         divisor: u64,
-    ) -> Result<(NativeTime, NativeTime)> {
-        unimplemented!("checked_scalar_div_native_time_wasmv1");
-    }
+    ) -> Result<(NativeTime, NativeTime)>;
 
     fn checked_div_native_time_wasmv1(
         &self,
         dividend: &NativeTime,
         divisor: &NativeTime,
-    ) -> Result<(u64, NativeTime)> {
-        unimplemented!("checked_div_native_time_wasmv1");
-    }
+    ) -> Result<(u64, NativeTime)>;
 
     fn base58_check_to_bytes_wasmv1(&self, s: &str) -> Result<Vec<u8>>;
 
