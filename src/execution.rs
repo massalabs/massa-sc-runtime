@@ -53,12 +53,12 @@ impl RuntimeModule {
             .unwrap(); // Safe to unwrap as we checked the bytecode length and for conversion
                        // errors
 
+        // Safe to use [1..] as we checked the bytecode length
         match module_id {
             RuntimeModuleId::ASModuleId => Ok(Self::ASModule(ASModule::new(
-                bytecode, limit, gas_costs, compiler,
+                &bytecode[1..], limit, gas_costs, compiler,
             )?)),
             RuntimeModuleId::WasmV1ModuleId => {
-                // Safe to use [1..] as we checked the bytecode length
                 let res = WasmV1Module::compile(
                     &bytecode[1..],
                     limit,
