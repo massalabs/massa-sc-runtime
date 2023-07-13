@@ -4,7 +4,7 @@ use super::{
 };
 use massa_proto_rs::massa::{
     abi::v1::{self as proto, *},
-    model::v1::{NativeTime, NativeAmount},
+    model::v1::NativeTime,
 };
 use wasmer::{
     imports, AsStoreMut, Function, FunctionEnv, FunctionEnvMut, Imports,
@@ -481,16 +481,8 @@ pub fn abi_transfer_coins(
         |handler,
          req: TransferCoinsRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            dbg!(&req);
-            /*let Some(amount) = req.amount_to_transfer else {
+            let Some(amount) = req.amount_to_transfer else {
                 return resp_err!("No coins provided");
-            };*/
-            let amount = match req.amount_to_transfer {
-                Some(amount) => amount,
-                None => {
-                    println!("No coins provided");
-                    handler.interface.native_amount_from_str_wasmv1("0").unwrap()
-                }
             };
 
             // Do not remove this. It could be used for gas_calibration in
