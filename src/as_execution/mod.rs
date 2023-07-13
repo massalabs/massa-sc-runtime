@@ -77,7 +77,6 @@ impl ASModule {
         // That's not an issue because we only deserialize modules we have
         // serialized by ourselves before
         let module = unsafe { Module::deserialize(&store, ser_module)? };
-
         Ok(ASModule {
             binary_module: module,
             initial_limit: limit,

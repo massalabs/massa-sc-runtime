@@ -55,7 +55,7 @@ impl RuntimeModule {
 
         match module_id {
             RuntimeModuleId::ASModuleId => Ok(Self::ASModule(ASModule::new(
-                &bytecode[1..], limit, gas_costs, compiler,
+                bytecode, limit, gas_costs, compiler,
             )?)),
             RuntimeModuleId::WasmV1ModuleId => {
                 // Safe to use [1..] as we checked the bytecode length
