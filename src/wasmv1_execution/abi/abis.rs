@@ -1719,12 +1719,13 @@ fn abi_checked_div_native_time(
     )
 }
 
+#[named]
 pub fn abi_verify_signature(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
     handle_abi(
-        "verify_signature",
+        function_name!(),
         store_env,
         arg_offset,
         |handler, req: VerifySigRequest| -> Result<AbiResponse, WasmV1Error> {
