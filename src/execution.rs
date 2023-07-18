@@ -157,7 +157,7 @@ pub(crate) fn exec(
             .map_err(|err| {
                 anyhow!("Failed to execute WasmV1 module: {}", err.to_string())
             })?;
-            (res, None) // TODO add gas calibration
+            res
         }
     };
     Ok(response)

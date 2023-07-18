@@ -22,7 +22,7 @@ pub struct ExecutionEnv {
     /// Gas costs of different execution operations.
     gas_costs: GasCosts,
     /// Instance to execute
-    instance: Instance,
+    pub(crate) instance: Instance,
     /// Memory interface
     ffi: Ffi,
     /// Gas cost of instance creation
@@ -73,19 +73,22 @@ impl ExecutionEnv {
         })?;
 
         // Infer the gas cost of instance creation (_start function call)
-        let init_gas_cost = match metering::get_remaining_points(store, &instance) {
-            MeteringPoints::Remaining(remaining_points) => module
-                .gas_limit_at_compilation
-                .checked_sub(remaining_points)
-                .expect(
-                    "Remaining gas after instance creation is higher than the gas limit at compilation",
-                ),
-            MeteringPoints::Exhausted => {
-                return Err(WasmV1Error::InstanciationError(
-                    "Not enough gas, gas exhausted after instance creation".to_string(),
-                ));
-            }
-        };
+        let mut init_gas_cost = 0;
+        if cfg!(not(feature = "gas_calibration")) {
+            init_gas_cost = match metering::get_remaining_points(store, &instance) {
+                MeteringPoints::Remaining(remaining_points) => module
+                    .gas_limit_at_compilation
+                    .checked_sub(remaining_points)
+                    .expect(
+                        "Remaining gas after instance creation is higher than the gas limit at compilation",
+                    ),
+                MeteringPoints::Exhausted => {
+                    return Err(WasmV1Error::InstanciationError(
+                        "Not enough gas, gas exhausted after instance creation".to_string(),
+                    ));
+                }
+            };
+        }
 
         // Return the environment
         Ok(Self {
@@ -130,6 +133,10 @@ impl ExecutionEnv {
         store: &mut impl AsStoreMut,
         gas: u64,
     ) -> Result<(), WasmV1Error> {
+        if cfg!(feature = "gas_calibration") {
+            return Ok(());
+        }
+
         let remaining =
             match metering::get_remaining_points(store, &self.instance) {
                 metering::MeteringPoints::Remaining(remaining) => remaining,
@@ -153,6 +160,10 @@ impl ExecutionEnv {
 
     /// Get remaining gas.
     pub fn get_remaining_gas(&self, store: &mut impl AsStoreMut) -> u64 {
+        if cfg!(feature = "gas_calibration") {
+            return u64::MAX;
+        }
+
         match metering::get_remaining_points(store, &self.instance) {
             metering::MeteringPoints::Remaining(remaining) => remaining,
             metering::MeteringPoints::Exhausted => 0,
@@ -165,7 +176,13 @@ impl ExecutionEnv {
         store: &mut impl AsStoreMut,
         remaining_gas: u64,
     ) {
-        metering::set_remaining_points(store, &self.instance, remaining_gas);
+        if cfg!(not(feature = "gas_calibration")) {
+            metering::set_remaining_points(
+                store,
+                &self.instance,
+                remaining_gas,
+            );
+        }
     }
 
     /// Read buffer from memory.
