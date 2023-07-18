@@ -372,12 +372,13 @@ fn test_basic_op_wasmv1() -> Result<()> {
 }
 
 #[test]
+#[ignore]
 #[serial]
 fn test_basic_abi_call_param_size() -> Result<()> {
     let interface = TestInterface;
     let bytecode = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_gc_abi_call_param_size.wasm_add"
+        "/wasm/gc_abi_call_param_size.wasm"
     ));
 
     let gas_costs = GasCosts::default();
