@@ -144,19 +144,7 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
 
     // Canonicalize NaN
     compiler_config.canonicalize_nans(true);
-
-    if cfg!(feature = "gas_calibration") {
-        // Add gas calibration middleware
-        let gas_calibration = Arc::new(GasCalibration::new());
-        compiler_config.push_middleware(gas_calibration);
-    } else {
-        // Add metering middleware
-        let metering =
-            Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
-                gas_costs.operator_cost
-            }));
-        compiler_config.push_middleware(metering);
-    }
+    add_middleware(&mut compiler_config, limit, gas_costs);
 
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
@@ -179,7 +167,24 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
 
     // Canonicalize NaN
     compiler_config.canonicalize_nans(true);
+    add_middleware(&mut compiler_config, limit, gas_costs);
 
+    let base = BaseTunables::for_target(&Target::default());
+    let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
+
+    let mut engine = Engine::from(
+        EngineBuilder::new(compiler_config)
+            .set_features(Some(FEATURES))
+            .engine(),
+    );
+    engine.set_tunables(tunables);
+    engine
+}
+
+fn add_middleware<T>(compiler_config: &mut T, limit: u64, gas_costs: GasCosts)
+where
+    T: CompilerConfig,
+{
     if cfg!(feature = "gas_calibration") {
         // Add gas calibration middleware
         let gas_calibration = Arc::new(GasCalibration::new());
@@ -192,17 +197,6 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
             }));
         compiler_config.push_middleware(metering);
     }
-
-    let base = BaseTunables::for_target(&Target::default());
-    let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
-
-    let mut engine = Engine::from(
-        EngineBuilder::new(compiler_config)
-            .set_features(Some(FEATURES))
-            .engine(),
-    );
-    engine.set_tunables(tunables);
-    engine
 }
 
 pub(crate) fn exec_wasmv1_module(
