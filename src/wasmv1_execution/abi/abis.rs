@@ -174,6 +174,7 @@ fn abi_call(
 }
 
 /// Alternative to `call_module` to execute bytecode in a local context
+/// Reuse the protobuf CallRequest message, the call_coins field is just ignored
 #[named]
 fn abi_local_call(
     store_env: FunctionEnvMut<ABIEnv>,
