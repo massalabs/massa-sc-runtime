@@ -725,12 +725,22 @@ impl Interface for TestInterface {
         left: &str,
         right: &str,
     ) -> Result<ComparisonResult> {
-        let res = match left.cmp(right) {
-            std::cmp::Ordering::Less => ComparisonResult::Lower,
-            std::cmp::Ordering::Equal => ComparisonResult::Equal,
-            std::cmp::Ordering::Greater => ComparisonResult::Greater,
-        };
-        Ok(res)
+        let left: String = left.chars().skip(1).collect();
+        let right: String = right.chars().skip(1).collect();
+        let left = bs58::decode(left).with_check(None).into_vec();
+        let right = bs58::decode(right).with_check(None).into_vec();
+
+        match (left, right) {
+            (Ok(left), Ok(right)) => {
+                let res = match left.cmp(&right) {
+                    std::cmp::Ordering::Less => ComparisonResult::Lower,
+                    std::cmp::Ordering::Equal => ComparisonResult::Equal,
+                    std::cmp::Ordering::Greater => ComparisonResult::Greater,
+                };
+                Ok(res)
+            }
+            _ => Ok(ComparisonResult::Equal),
+        }
     }
 
     fn compare_native_amount_wasmv1(
@@ -768,12 +778,22 @@ impl Interface for TestInterface {
         left: &str,
         right: &str,
     ) -> Result<ComparisonResult> {
-        let res = match left.cmp(right) {
-            std::cmp::Ordering::Less => ComparisonResult::Lower,
-            std::cmp::Ordering::Equal => ComparisonResult::Equal,
-            std::cmp::Ordering::Greater => ComparisonResult::Greater,
-        };
-        Ok(res)
+        let left: String = left.chars().skip(1).collect();
+        let right: String = right.chars().skip(1).collect();
+        let left = bs58::decode(left).with_check(None).into_vec();
+        let right = bs58::decode(right).with_check(None).into_vec();
+
+        match (left, right) {
+            (Ok(left), Ok(right)) => {
+                let res = match left.cmp(&right) {
+                    std::cmp::Ordering::Less => ComparisonResult::Lower,
+                    std::cmp::Ordering::Equal => ComparisonResult::Equal,
+                    std::cmp::Ordering::Greater => ComparisonResult::Greater,
+                };
+                Ok(res)
+            }
+            _ => Ok(ComparisonResult::Equal),
+        }
     }
 
     fn get_keys(&self, _prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {
@@ -797,7 +817,8 @@ impl Interface for TestInterface {
     }
 
     fn caller_has_write_access(&self) -> Result<bool> {
-        todo!()
+        println!("caller_has_write_access");
+        Ok(true)
     }
 
     fn verify_evm_signature(
@@ -806,15 +827,18 @@ impl Interface for TestInterface {
         _signature: &[u8],
         _public_key: &[u8],
     ) -> Result<bool> {
-        todo!()
+        println!("verify_evm_signature: , _message: {:?}, _signature: {:?}, _public_key: {:?}", _message, _signature, _public_key);
+        Ok(true)
     }
 
     fn validate_address(&self, _address: &str) -> Result<bool> {
-        todo!()
+        println!("validate_address: {}", _address);
+        Ok(true)
     }
 
     fn get_origin_operation_id(&self) -> Result<Option<String>> {
-        todo!()
+        println!("get_origin_operation_id");
+        Ok(Some(String::new()))
     }
 }
 

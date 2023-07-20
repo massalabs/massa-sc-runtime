@@ -35,6 +35,9 @@ wasmer-compiler-singlepass = "=4.0.0"
 wasmer-middlewares = "=4.0.0"
 wasmer-types = "=4.0.0"
 
+[dev-dependencies]
+bs58 = { version = "=0.4", features = ["check"] }
+
 [build-dependencies]
 serde = "=1.0"
 serde_json = "=1.0"
