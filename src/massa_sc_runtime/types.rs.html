@@ -465,6 +465,15 @@
 <a href="#465" id="465">465</a>
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>serde::{de::DeserializeOwned, Serialize};
 <span class="kw">use </span>std::{
@@ -579,6 +588,15 @@
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_set_data_for&quot;</span>), <span class="number">165</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_signature_verify&quot;</span>), <span class="number">98</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_evm_signature_verify&quot;</span>), <span class="number">264</span>);
+        abi_costs.insert(
+            String::from(<span class="string">&quot;assembly_script_evm_get_address_from_pubkey&quot;</span>),
+            <span class="number">11</span>,
+        );
+        abi_costs.insert(
+            String::from(<span class="string">&quot;assembly_script_evm_get_pubkey_from_signature&quot;</span>),
+            <span class="number">11</span>,
+        );
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_is_address_eoa&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_transfer_coins&quot;</span>), <span class="number">62</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_transfer_coins_for&quot;</span>), <span class="number">102</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_unsafe_random&quot;</span>), <span class="number">11</span>);
@@ -767,17 +785,17 @@
         <span class="macro">unimplemented!</span>(<span class="string">&quot;caller_has_write_access&quot;</span>)
     }
 
-    <span class="comment">// Hash data
+    <span class="doccomment">/// Hash data
     </span><span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;[u8; <span class="number">32</span>]&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;hash&quot;</span>)
     }
 
-    <span class="comment">// Verify signature
+    <span class="doccomment">/// Verify signature
     </span><span class="kw">fn </span>signature_verify(<span class="kw-2">&amp;</span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8], signature: <span class="kw-2">&amp;</span>str, public_key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;signature_verify&quot;</span>)
     }
 
-    <span class="comment">// Verify signature (EVM)
+    <span class="doccomment">/// Verify signature (EVM)
     </span><span class="kw">fn </span>evm_signature_verify(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         message: <span class="kw-2">&amp;</span>[u8],
@@ -787,27 +805,27 @@
         <span class="macro">unimplemented!</span>(<span class="string">&quot;evm_signature_verify&quot;</span>)
     }
 
-    <span class="comment">// Get address from public key (EVM)
+    <span class="doccomment">/// Get address from public key (EVM)
     </span><span class="kw">fn </span>evm_get_address_from_pubkey(<span class="kw-2">&amp;</span><span class="self">self</span>, public_key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;evm_get_address_from_pubkey&quot;</span>)
     }
 
-    <span class="comment">// Get public key from signature (EVM)
+    <span class="doccomment">/// Get public key from signature (EVM)
     </span><span class="kw">fn </span>evm_get_pubkey_from_signature(<span class="kw-2">&amp;</span><span class="self">self</span>, hash: <span class="kw-2">&amp;</span>[u8], signature: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;evm_get_pubkey_from_signature&quot;</span>)
     }
 
-    <span class="comment">// Return true if the address is an User address, otherwise false if it is an SC address
+    <span class="doccomment">/// Return true if the address is a User address, false if it is an SC address
     </span><span class="kw">fn </span>is_address_eoa(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;is_address_eoa&quot;</span>)
     }
 
-    <span class="comment">// Convert a public key to an address
+    <span class="doccomment">/// Convert a public key to an address
     </span><span class="kw">fn </span>address_from_public_key(<span class="kw-2">&amp;</span><span class="self">self</span>, public_key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;address_from_public_key&quot;</span>)
     }
 
-    <span class="comment">// Validate an address
+    <span class="doccomment">/// Validate an address
     </span><span class="kw">fn </span>validate_address(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
         <span class="macro">unimplemented!</span>(<span class="string">&quot;validate_address&quot;</span>)
     }

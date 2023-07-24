@@ -275,6 +275,9 @@
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
 <a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">super</span>::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 <span class="kw">use </span><span class="kw">crate</span>::types::Response;
@@ -524,6 +527,9 @@
                 <span class="string">&quot;assembly_script_keccak256_hash&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_keccak256_hash),
                 <span class="string">&quot;assembly_script_signature_verify&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_signature_verify),
                 <span class="string">&quot;assembly_script_evm_signature_verify&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_evm_signature_verify),
+                <span class="string">&quot;assembly_script_evm_get_address_from_pubkey&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_evm_get_address_from_pubkey),
+                <span class="string">&quot;assembly_script_evm_get_pubkey_from_signature&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_evm_get_pubkey_from_signature),
+                <span class="string">&quot;assembly_script_is_address_eoa&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_is_address_eoa),
                 <span class="string">&quot;assembly_script_address_from_public_key&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_address_from_public_key),
                 <span class="string">&quot;assembly_script_validate_address&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_validate_address),
                 <span class="string">&quot;assembly_script_unsafe_random&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_unsafe_random),
