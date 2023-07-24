@@ -664,6 +664,55 @@ pub(crate) fn assembly_script_evm_signature_verify(
         .evm_signature_verify(&data, &signature, &public_key)? as i32)
 }
 
+/// Get address from public key (EVM)
+#[named]
+pub(crate) fn assembly_script_evm_get_address_from_pubkey(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    public_key: i32,
+) -> ABIResult<i32> {
+    let env = get_env(&ctx)?;
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let memory = get_memory!(env);
+    let public_key = read_buffer(memory, &ctx, public_key)?;
+    let address = env
+        .get_interface()
+        .evm_get_address_from_pubkey(&public_key)?;
+    let ptr = pointer_from_bytearray(&env, &mut ctx, &address)?.offset();
+    Ok(ptr as i32)
+}
+
+/// Get public key from signature (EVM)
+#[named]
+pub(crate) fn assembly_script_evm_get_pubkey_from_signature(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    data: i32,
+    signature: i32,
+) -> ABIResult<i32> {
+    let env = get_env(&ctx)?;
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let memory = get_memory!(env);
+    let data = read_buffer(memory, &ctx, data)?;
+    let signature = read_buffer(memory, &ctx, signature)?;
+    let public_key = env
+        .get_interface()
+        .evm_get_pubkey_from_signature(&data, &signature)?;
+    let ptr = pointer_from_bytearray(&env, &mut ctx, &public_key)?.offset();
+    Ok(ptr as i32)
+}
+
+#[named]
+/// Return Ok(1) if the address is a User address, Ok(0) if it is an SC address
+pub(crate) fn assembly_script_is_address_eoa(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    address: i32,
+) -> ABIResult<i32> {
+    let env = get_env(&ctx)?;
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let memory = get_memory!(env);
+    let address = read_string(memory, &ctx, address)?;
+    Ok(env.get_interface().is_address_eoa(&address)? as i32)
+}
+
 /// converts a public key to an address
 #[named]
 pub(crate) fn assembly_script_address_from_public_key(

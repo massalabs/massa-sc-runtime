@@ -112,6 +112,15 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_set_data_for"), 165);
         abi_costs.insert(String::from("assembly_script_signature_verify"), 98);
         abi_costs.insert(String::from("assembly_script_evm_signature_verify"), 264);
+        abi_costs.insert(
+            String::from("assembly_script_evm_get_address_from_pubkey"),
+            11,
+        );
+        abi_costs.insert(
+            String::from("assembly_script_evm_get_pubkey_from_signature"),
+            11,
+        );
+        abi_costs.insert(String::from("assembly_script_is_address_eoa"), 11);
         abi_costs.insert(String::from("assembly_script_transfer_coins"), 62);
         abi_costs.insert(String::from("assembly_script_transfer_coins_for"), 102);
         abi_costs.insert(String::from("assembly_script_unsafe_random"), 11);
@@ -300,17 +309,17 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("caller_has_write_access")
     }
 
-    // Hash data
+    /// Hash data
     fn hash(&self, data: &[u8]) -> Result<[u8; 32]> {
         unimplemented!("hash")
     }
 
-    // Verify signature
+    /// Verify signature
     fn signature_verify(&self, data: &[u8], signature: &str, public_key: &str) -> Result<bool> {
         unimplemented!("signature_verify")
     }
 
-    // Verify signature (EVM)
+    /// Verify signature (EVM)
     fn evm_signature_verify(
         &self,
         message: &[u8],
@@ -320,27 +329,27 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("evm_signature_verify")
     }
 
-    // Get address from public key (EVM)
+    /// Get address from public key (EVM)
     fn evm_get_address_from_pubkey(&self, public_key: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("evm_get_address_from_pubkey")
     }
 
-    // Get public key from signature (EVM)
+    /// Get public key from signature (EVM)
     fn evm_get_pubkey_from_signature(&self, hash: &[u8], signature: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("evm_get_pubkey_from_signature")
     }
 
-    // Return true if the address is an User address, otherwise false if it is an SC address
+    /// Return true if the address is a User address, false if it is an SC address
     fn is_address_eoa(&self, address: &str) -> Result<bool> {
         unimplemented!("is_address_eoa")
     }
 
-    // Convert a public key to an address
+    /// Convert a public key to an address
     fn address_from_public_key(&self, public_key: &str) -> Result<String> {
         unimplemented!("address_from_public_key")
     }
 
-    // Validate an address
+    /// Validate an address
     fn validate_address(&self, address: &str) -> Result<bool> {
         unimplemented!("validate_address")
     }
