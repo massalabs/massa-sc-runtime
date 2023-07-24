@@ -310,7 +310,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         unimplemented!("signature_verify")
     }
 
-    // Verify EVM signature
+    // Verify signature (EVM)
     fn evm_signature_verify(
         &self,
         message: &[u8],
@@ -326,7 +326,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     // Get public key from signature (EVM)
-    fn evm_get_pubkey_from_signature(&self, signature: &[u8]) -> Result<Vec<u8>> {
+    fn evm_get_pubkey_from_signature(&self, hash: &[u8], signature: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("evm_get_pubkey_from_signature")
     }
 
