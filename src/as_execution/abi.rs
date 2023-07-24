@@ -661,7 +661,7 @@ pub(crate) fn assembly_script_evm_signature_verify(
     let public_key = read_buffer(memory, &ctx, public_key)?;
     Ok(env
         .get_interface()
-        .verify_evm_signature(&data, &signature, &public_key)? as i32)
+        .evm_signature_verify(&data, &signature, &public_key)? as i32)
 }
 
 /// converts a public key to an address

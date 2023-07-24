@@ -310,13 +310,28 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     // Verify EVM signature
-    fn verify_evm_signature(
+    fn evm_signature_verify(
         &self,
         message: &[u8],
         signature: &[u8],
         public_key: &[u8],
     ) -> Result<bool> {
-        unimplemented!("verify_evm_signature")
+        unimplemented!("evm_signature_verify")
+    }
+
+    // Get address from public key (EVM)
+    fn evm_get_address_from_pubkey(public_key: &[u8]) -> Result<Vec<u8>> {
+        unimplemented!("evm_get_address_from_pubkey")
+    }
+
+    // Get public key from signature (EVM)
+    fn evm_get_pubkey_from_signature(signature: &[u8]) -> Result<Vec<u8>> {
+        unimplemented!("evm_get_pubkey_from_signature")
+    }
+
+    // Return true if the address is an User address, otherwise false if it is an SC address
+    fn is_address_eoa(&self, address: &str) -> Result<bool> {
+        unimplemented!("is_address_eoa")
     }
 
     // Convert a public key to an address
