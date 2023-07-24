@@ -320,12 +320,12 @@ pub trait Interface: Send + Sync + InterfaceClone {
     }
 
     // Get address from public key (EVM)
-    fn evm_get_address_from_pubkey(public_key: &[u8]) -> Result<Vec<u8>> {
+    fn evm_get_address_from_pubkey(&self, public_key: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("evm_get_address_from_pubkey")
     }
 
     // Get public key from signature (EVM)
-    fn evm_get_pubkey_from_signature(signature: &[u8]) -> Result<Vec<u8>> {
+    fn evm_get_pubkey_from_signature(&self, signature: &[u8]) -> Result<Vec<u8>> {
         unimplemented!("evm_get_pubkey_from_signature")
     }
 
