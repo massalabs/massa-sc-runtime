@@ -105,6 +105,7 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_keccak256_hash"), 83);
         abi_costs.insert(String::from("assembly_script_print"), 35);
         abi_costs.insert(String::from("assembly_script_send_message"), 316);
+        abi_costs.insert(String::from("assembly_script_get_origin_operation_id"), 200);
         abi_costs.insert(String::from("assembly_script_set_bytecode"), 74);
         abi_costs.insert(String::from("assembly_script_set_bytecode_for"), 129);
         abi_costs.insert(String::from("assembly_script_set_data"), 158);
@@ -425,6 +426,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
         filter: Option<(&str, Option<&[u8]>)>,
     ) -> Result<()> {
         unimplemented!("send_message")
+    }
+
+    // Returns the operation id that originated the current execution if there is one
+    fn get_origin_operation_id(&self) -> Result<Option<String>> {
+        unimplemented!("get_origin_operation_id")
     }
 
     // Sha256 hash bytes
