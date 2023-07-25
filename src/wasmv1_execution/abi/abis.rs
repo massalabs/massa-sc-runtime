@@ -115,8 +115,11 @@ pub fn register_abis(
         "abi_sub_native_amount" => abi_sub_native_amount,
         "abi_transfer_coins" => abi_transfer_coins,
         "abi_unsafe_random" => abi_unsafe_random,
-        "abi_verify_evm_signature" => abi_verify_evm_signature,
-        "abi_verify_signature" => abi_verify_signature
+        "abi_verify_signature" => abi_verify_signature,
+        "abi_evm_verify_signature" => abi_evm_verify_signature,
+        "abi_evm_get_address_from_pubkey" => abi_evm_get_address_from_pubkey,
+        "abi_evm_get_pubkey_from_signature" => abi_evm_get_pubkey_from_signature,
+        "abi_is_address_eoa" => abi_is_address_eoa
     )
 }
 
@@ -669,7 +672,7 @@ fn abi_get_op_data(
 }
 
 #[named]
-fn abi_verify_evm_signature(
+fn abi_evm_verify_signature(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
@@ -678,19 +681,86 @@ fn abi_verify_evm_signature(
         store_env,
         arg_offset,
         |handler,
-         req: VerifyEvmSigRequest|
+         req: EvmVerifySigRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            match handler.interface.verify_evm_signature(
+            match handler.interface.evm_signature_verify(
                 &req.message,
                 &req.sig,
                 &req.pub_key,
             ) {
                 Ok(is_verified) => {
-                    resp_ok!(VerifyEvmSigResult, { is_verified })
+                    resp_ok!(EvmVerifySigResult, { is_verified })
                 }
                 _ => {
                     resp_err!("EVM signature verification failed")
                 }
+            }
+        },
+    )
+}
+
+#[named]
+fn abi_evm_get_address_from_pubkey(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        function_name!(),
+        store_env,
+        arg_offset,
+        |handler,
+         req: EvmGetAddressFromPubkeyRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler.interface.evm_get_address_from_pubkey(&req.pub_key) {
+                Ok(address) => {
+                    resp_ok!(EvmGetAddressFromPubkeyResult, { address })
+                }
+                Err(e) => resp_err!(e),
+            }
+        },
+    )
+}
+
+#[named]
+fn abi_evm_get_pubkey_from_signature(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        function_name!(),
+        store_env,
+        arg_offset,
+        |handler,
+         req: EvmGetPubkeyFromSignatureRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler
+                .interface
+                .evm_get_pubkey_from_signature(&req.hash, &req.sig)
+            {
+                Ok(pub_key) => {
+                    resp_ok!(EvmGetPubkeyFromSignatureResult, { pub_key })
+                }
+                Err(e) => resp_err!(e),
+            }
+        },
+    )
+}
+
+#[named]
+fn abi_is_address_eoa(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        function_name!(),
+        store_env,
+        arg_offset,
+        |handler,
+         req: IsAddressEoaRequest|
+         -> Result<AbiResponse, WasmV1Error> {
+            match handler.interface.is_address_eoa(&req.address) {
+                Ok(is_eoa) => resp_ok!(IsAddressEoaResult, { is_eoa }),
+                Err(e) => resp_err!(e),
             }
         },
     )
