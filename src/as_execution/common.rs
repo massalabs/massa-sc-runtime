@@ -92,7 +92,7 @@ pub(crate) fn function_exists(
 ) -> ABIResult<bool> {
     let env = get_env(ctx)?;
     let interface = env.get_interface();
-    let bytecode = interface.raw_get_bytecode_for(address)?;
+    let bytecode = interface.get_bytecode(address)?;
 
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         u64::MAX

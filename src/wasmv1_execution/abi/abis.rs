@@ -14,7 +14,7 @@ pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imp
             "abi_call" => Function::new_typed_with_env(store, &fn_env, abi_call),
             "abi_local_call" => Function::new_typed_with_env(store, &fn_env, abi_local_call),
             "abi_create_sc" => Function::new_typed_with_env(store, &fn_env, abi_create_sc),
-            "abi_transfer_coins" => Function::new_typed_with_env(store, &fn_env, abi_transfer_coins),
+            //"abi_transfer_coins" => Function::new_typed_with_env(store, &fn_env, abi_transfer_coins),
             "abi_generate_event" => Function::new_typed_with_env(store, &fn_env, abi_generate_event),
             "abi_function_exists" => Function::new_typed_with_env(store, &fn_env, abi_function_exists),
         },
@@ -128,6 +128,7 @@ pub(crate) fn abi_create_sc(
 }
 
 /// Function designed to abort execution.
+/*
 pub fn abi_transfer_coins(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
@@ -162,6 +163,7 @@ pub fn abi_transfer_coins(
         },
     )
 }
+*/
 
 pub fn abi_generate_event(
     store_env: FunctionEnvMut<ABIEnv>,
@@ -235,15 +237,12 @@ fn helper_get_bytecode(
     handler: &mut super::handler::ABIHandler,
     address: String,
 ) -> Result<Vec<u8>, WasmV1Error> {
-    let bytecode = handler
-        .interface
-        .raw_get_bytecode_for(&address)
-        .map_err(|err| {
-            WasmV1Error::RuntimeError(format!(
-                "Could not get bytecode for address: {}: {}",
-                address, err
-            ))
-        })?;
+    let bytecode = handler.interface.get_bytecode(&address).map_err(|err| {
+        WasmV1Error::RuntimeError(format!(
+            "Could not get bytecode for address: {}: {}",
+            address, err
+        ))
+    })?;
     Ok(bytecode)
 }
 
