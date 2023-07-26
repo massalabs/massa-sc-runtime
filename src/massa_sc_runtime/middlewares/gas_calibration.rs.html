@@ -398,6 +398,28 @@
 <a href="#398" id="398">398</a>
 <a href="#399" id="399">399</a>
 <a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::middlewares::operator::{operator_field_str, OPERATOR_VARIANTS};
 <span class="kw">use </span>regex::{Regex, RegexSet};
 <span class="kw">use </span>std::collections::HashMap;
@@ -405,11 +427,13 @@
 <span class="kw">use </span>std::sync::Mutex;
 <span class="kw">use </span>std::time::Instant;
 <span class="kw">use </span>wasmer::{
-    wasmparser::Operator, AsStoreMut, Extern, FunctionMiddleware, Instance, LocalFunctionIndex,
-    MiddlewareError, MiddlewareReaderState, ModuleMiddleware,
+    wasmparser::Operator, AsStoreMut, Extern, FunctionMiddleware, Instance,
+    LocalFunctionIndex, MiddlewareError, MiddlewareReaderState,
+    ModuleMiddleware,
 };
 <span class="kw">use </span>wasmer_types::{
-    ExportIndex, GlobalIndex, GlobalInit, GlobalType, ImportIndex, ModuleInfo, Mutability, Type,
+    ExportIndex, GlobalIndex, GlobalInit, GlobalType, ImportIndex, ModuleInfo,
+    Mutability, Type,
 };
 
 <span class="attr">#[derive(Debug, Clone)]
@@ -450,7 +474,12 @@
         _local_function_index: LocalFunctionIndex,
     ) -&gt; Box&lt;<span class="kw">dyn </span>FunctionMiddleware&gt; {
         Box::new(FunctionGasCalibration {
-            global_indexes: <span class="self">self</span>.global_indexes.lock().unwrap().clone().unwrap(),
+            global_indexes: <span class="self">self
+                </span>.global_indexes
+                .lock()
+                .unwrap()
+                .clone()
+                .unwrap(),
         })
     }
 
@@ -477,9 +506,11 @@
             <span class="kw">let </span>index = import_key.import_idx;
 
             <span class="comment">// -&gt; env.abort OR massa.assembly_script_print
-            </span><span class="kw">let </span>function_fullname = <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, module_name, function_name);
+            </span><span class="kw">let </span>function_fullname =
+                <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, module_name, function_name);
 
-            <span class="comment">// Append a global for this &#39;imports&#39; (== abi call) and initialize it.
+            <span class="comment">// Append a global for this &#39;imports&#39; (== abi call) and initialize
+            // it.
             </span><span class="kw">let </span>global_index = module_info
                 .globals
                 .push(GlobalType::new(Type::I64, Mutability::Var));
@@ -498,12 +529,16 @@
             <span class="comment">// Append a global per param size per &#39;imports&#39; (== abi call)
             </span><span class="kw">let </span>function_sig = <span class="kw">if let </span>ImportIndex::Function(f) = import_index {
                 module_info.functions.get(<span class="kw-2">*</span>f).unwrap_or_else(|| {
-                    <span class="macro">panic!</span>(<span class="string">&quot;Cannot get function signature for {}&quot;</span>, function_name)
+                    <span class="macro">panic!</span>(
+                        <span class="string">&quot;Cannot get function signature for {}&quot;</span>,
+                        function_name
+                    )
                 })
             } <span class="kw">else </span>{
                 <span class="macro">panic!</span>(<span class="string">&quot;ImportIndex is not a function??&quot;</span>);
             };
-            <span class="kw">let </span>function_type = module_info.signatures.get(<span class="kw-2">*</span>function_sig).unwrap();
+            <span class="kw">let </span>function_type =
+                module_info.signatures.get(<span class="kw-2">*</span>function_sig).unwrap();
             <span class="kw">let </span>param_count = function_type.params().len();
 
             <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..param_count {
@@ -541,18 +576,20 @@
                 .insert((<span class="kw-2">*</span>op_name).to_string(), global_index);
         }
 
-        <span class="comment">// println!(&quot;module info function names: {:?}&quot;, module_info.function_names);
-        // println!(&quot;module info exports: {:?}&quot;, module_info.exports);
-        // println!(&quot;module info imports: {:?}&quot;, module_info.imports);
-        // println!(&quot;module info functions: {:?}&quot;, module_info.functions);
-        // println!(&quot;module info num imported functions: {:?}&quot;, module_info.num_imported_functions);
-        // println!(&quot;module info start function: {:?}&quot;, module_info.start_function);
-        // println!(&quot;module info passive elements: {:?}&quot;, module_info.passive_elements);
+        <span class="comment">// println!(&quot;module info function names: {:?}&quot;,
+        // module_info.function_names); println!(&quot;module info exports:
+        // {:?}&quot;, module_info.exports); println!(&quot;module info imports:
+        // {:?}&quot;, module_info.imports); println!(&quot;module info functions:
+        // {:?}&quot;, module_info.functions); println!(&quot;module info num
+        // imported functions: {:?}&quot;, module_info.num_imported_functions);
+        // println!(&quot;module info start function: {:?}&quot;,
+        // module_info.start_function); println!(&quot;module info passive
+        // elements: {:?}&quot;, module_info.passive_elements);
         // println!(&quot;module info signatures: {:?}&quot;, module_info.signatures);
 
         // Append a global variable for time elapsed of this function.
-        // Note: transform_module_info can take quite some time and thus we need this timing
-        // for accurate gas calibration
+        // Note: transform_module_info can take quite some time and thus we need
+        // this timing for accurate gas calibration
         </span><span class="kw">let </span>global_index = module_info
             .globals
             .push(GlobalType::new(Type::F64, Mutability::Var));
@@ -565,7 +602,8 @@
         );
 
         <span class="comment">// indexes.transform_module_info_ms += duration.as_millis() as f64;
-        // println!(&quot;Time elapsed in {}() is: {:?}&quot;, &quot;transform_module_info&quot;, duration);
+        // println!(&quot;Time elapsed in {}() is: {:?}&quot;, &quot;transform_module_info&quot;,
+        // duration);
 
         </span><span class="kw-2">*</span>global_indexes = <span class="prelude-val">Some</span>(indexes)
     }
@@ -583,12 +621,15 @@
         </span>state.push_operator(operator.clone());
 
         <span class="kw">if let </span>Operator::Call { function_index } = operator {
-            <span class="comment">// let f = self.global_indexes.imports_call_map.get(&amp;function_index).unwrap();
-            // println!(&quot;Operator::Call {:?}&quot;, f);
+            <span class="comment">// let f = self.global_indexes.imports_call_map.get(&amp;
+            // function_index).unwrap(); println!(&quot;Operator::Call
+            // {:?}&quot;, f);
 
-            //state.push_operator(operator);
+            // state.push_operator(operator);
 
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(index) = <span class="self">self</span>.global_indexes.imports_call_map.get(<span class="kw-2">&amp;</span>function_index) {
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(index) =
+                <span class="self">self</span>.global_indexes.imports_call_map.get(<span class="kw-2">&amp;</span>function_index)
+            {
                 <span class="comment">// println!(&quot;Found function index: {}&quot;, function_index);
                 </span>state.extend(<span class="kw-2">&amp;</span>[
                     <span class="comment">// incr function call counter
@@ -603,27 +644,30 @@
                 ]);
             } <span class="kw">else </span>{
                 <span class="comment">// Note: here we are skipping call to &#39;local function&#39;
-                // For instance, getOpKeys() use derOpKeys() (local) + get_op_keys() (abi)
-                // Uncomment the line &#39;println!(&quot;...&quot;, module_info.functions);&#39; to view the list of
+                // For instance, getOpKeys() use derOpKeys() (local) +
+                // get_op_keys() (abi) Uncomment the line
+                // &#39;println!(&quot;...&quot;, module_info.functions);&#39; to view the list of
                 // all functions (import + local)
-                // Note2: Signature of function (e.g. arguments types + return type) can be seen with:
-                // println!(&quot;...&quot;, module_info.signatures);
+                // Note2: Signature of function (e.g. arguments types + return
+                // type) can be seen with: println!(&quot;...&quot;,
+                // module_info.signatures);
 
-                // println!(&quot;Skipping unknown function index: {}&quot;, function_index);
+                // println!(&quot;Skipping unknown function index: {}&quot;,
+                // function_index);
             </span>}
         }
 
         <span class="kw">let </span>op_name = operator_field_str(<span class="kw-2">&amp;</span>operator);
-        <span class="kw">let </span>index = <span class="self">self
-            </span>.global_indexes
-            .op_call_map
-            .get(op_name)
-            .ok_or_else(|| {
-                MiddlewareError::new(
-                    <span class="string">&quot;GasCalibration&quot;</span>,
-                    <span class="macro">format!</span>(<span class="string">&quot;Unable to get index for op: {}&quot;</span>, op_name),
-                )
-            })<span class="question-mark">?</span>;
+        <span class="kw">let </span>index =
+            <span class="self">self</span>.global_indexes
+                .op_call_map
+                .get(op_name)
+                .ok_or_else(|| {
+                    MiddlewareError::new(
+                        <span class="string">&quot;GasCalibration&quot;</span>,
+                        <span class="macro">format!</span>(<span class="string">&quot;Unable to get index for op: {}&quot;</span>, op_name),
+                    )
+                })<span class="question-mark">?</span>;
 
         state.extend(<span class="kw-2">&amp;</span>[
             Operator::GlobalGet {
@@ -747,9 +791,10 @@
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(cap) = rgx_iter.next() {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(fn_name) = cap.get(<span class="number">1</span>) {
-                        result
-                            .timers
-                            .insert(<span class="macro">format!</span>(<span class="string">&quot;Time:{}&quot;</span>, fn_name.as_str()), timer_value.unwrap());
+                        result.timers.insert(
+                            <span class="macro">format!</span>(<span class="string">&quot;Time:{}&quot;</span>, fn_name.as_str()),
+                            timer_value.unwrap(),
+                        );
                     }
                 }
             }
@@ -765,37 +810,36 @@
         duration.as_secs_f64(),
     );
 
-    <span class="comment">// println!(&quot;Time elapsed in {}() is: {:?}&quot;, &quot;gas_calibration_result&quot;, duration);
+    <span class="comment">// println!(&quot;Time elapsed in {}() is: {:?}&quot;, &quot;gas_calibration_result&quot;,
+    // duration);
 
     </span>result
 }
 
-<span class="comment">/*
-pub(crate) fn _param_size_update(
-    env: &amp;ASEnv,
-    store: &amp;mut impl AsStoreMut,
-    function_name: &amp;str,
-    param_len: usize,
-    is_str: bool,
-) {
-    // println!(&quot;Calling param_size_update: {} {}&quot;, function_name, param_len);
-    let function_full_name = format!(&quot;wgc_ps_{}&quot;, function_name);
-    let global_ref = env
-        .get_gc_param(&amp;function_full_name)
-        .unwrap_or_else(|| panic!(&quot;Unable to find counter for {}&quot;, function_full_name));
-    // Cannot fail as the middleware define it as i64
-    let v: i64 = global_ref
-        .get(store)
-        .try_into()
-        .expect(&quot;Unable to convert global ref to i64&quot;);
-
-    // AssemblyScript use utf-16 string so we need to mult by 2
-    let s = v + match is_str {
-        true =&gt; (param_len * 2) as i64,
-        false =&gt; param_len as i64,
-    };
-    let error_msg = format!(&quot;Unable to set global {:?} with value: {}&quot;, global_ref, s);
-    global_ref.set(store, s.into()).expect(&amp;error_msg);
-}
-*/
+<span class="comment">// pub(crate) fn _param_size_update(
+// env: &amp;ASEnv,
+// store: &amp;mut impl AsStoreMut,
+// function_name: &amp;str,
+// param_len: usize,
+// is_str: bool,
+// ) {
+// println!(&quot;Calling param_size_update: {} {}&quot;, function_name, param_len);
+// let function_full_name = format!(&quot;wgc_ps_{}&quot;, function_name);
+// let global_ref = env
+// .get_gc_param(&amp;function_full_name)
+// .unwrap_or_else(|| panic!(&quot;Unable to find counter for {}&quot;,
+// function_full_name)); Cannot fail as the middleware define it as i64
+// let v: i64 = global_ref
+// .get(store)
+// .try_into()
+// .expect(&quot;Unable to convert global ref to i64&quot;);
+//
+// AssemblyScript use utf-16 string so we need to mult by 2
+// let s = v + match is_str {
+// true =&gt; (param_len * 2) as i64,
+// false =&gt; param_len as i64,
+// };
+// let error_msg = format!(&quot;Unable to set global {:?} with value: {}&quot;,
+// global_ref, s); global_ref.set(store, s.into()).expect(&amp;error_msg);
+// }
 </span></code></pre></div></section></main></body></html>

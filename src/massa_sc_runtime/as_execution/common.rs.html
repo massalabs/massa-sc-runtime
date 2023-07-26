@@ -104,9 +104,15 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Execution functions used by the ABIs.
 //!
-//! IMPORTANT: these were designed for, and should not be called outside of ABIs.
+//! IMPORTANT: these were designed for, and should not be called outside of
+//! ABIs.
 
 </span><span class="kw">use </span>wasmer::FunctionEnvMut;
 
@@ -185,12 +191,16 @@
 }
 
 <span class="doccomment">/// Create a smart contract with the given `bytecode`
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_sc(ctx: <span class="kw-2">&amp;mut </span>FunctionEnvMut&lt;ASEnv&gt;, bytecode: <span class="kw-2">&amp;</span>[u8]) -&gt; ABIResult&lt;String&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_sc(
+    ctx: <span class="kw-2">&amp;mut </span>FunctionEnvMut&lt;ASEnv&gt;,
+    bytecode: <span class="kw-2">&amp;</span>[u8],
+) -&gt; ABIResult&lt;String&gt; {
     <span class="kw">let </span>env = ctx.data();
     <span class="prelude-val">Ok</span>(env.get_interface().create_module(bytecode)<span class="question-mark">?</span>)
 }
 
-<span class="doccomment">/// Check the exports of a compiled module to see if it contains the given function
+<span class="doccomment">/// Check the exports of a compiled module to see if it contains the given
+/// function
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>function_exists(
     ctx: <span class="kw-2">&amp;mut </span>FunctionEnvMut&lt;ASEnv&gt;,
     address: <span class="kw-2">&amp;</span>str,

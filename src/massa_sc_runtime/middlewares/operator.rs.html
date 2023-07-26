@@ -2455,6 +2455,8 @@
 <a href="#2455" id="2455">2455</a>
 <a href="#2456" id="2456">2456</a>
 <a href="#2457" id="2457">2457</a>
+<a href="#2458" id="2458">2458</a>
+<a href="#2459" id="2459">2459</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>wasmer::wasmparser::Operator;
 
 <span class="kw">pub fn </span>operator_field_str&lt;<span class="lifetime">&#39;a</span>&gt;(op: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Operator) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str {
@@ -4029,7 +4031,9 @@
         Operator::I16x8RelaxedQ15mulrS =&gt; <span class="macro">stringify!</span>(I16x8RelaxedQ15mulrS),
         Operator::I16x8DotI8x16I7x16S =&gt; <span class="macro">stringify!</span>(I16x8DotI8x16I7x16S),
         Operator::I32x4DotI8x16I7x16AddS =&gt; <span class="macro">stringify!</span>(I32x4DotI8x16I7x16AddS),
-        Operator::F32x4RelaxedDotBf16x8AddF32x4 =&gt; <span class="macro">stringify!</span>(F32x4RelaxedDotBf16x8AddF32x4),
+        Operator::F32x4RelaxedDotBf16x8AddF32x4 =&gt; {
+            <span class="macro">stringify!</span>(F32x4RelaxedDotBf16x8AddF32x4)
+        }
     }
 }
 
@@ -4642,8 +4646,8 @@
 ];
 
 <span class="comment">// From https://webassembly.github.io/spec/core/_download/WebAssembly.pdf
-// Section 7.6 Change History -&gt; 7.6.1 Release 2.0 -&gt; Non-trapping float-to-int conversions
-// https://github.com/WebAssembly/spec/blob/main/proposals/nontrapping-float-to-int-conversion/Overview.md
+// Section 7.6 Change History -&gt; 7.6.1 Release 2.0 -&gt; Non-trapping float-to-int
+// conversions https://github.com/WebAssembly/spec/blob/main/proposals/nontrapping-float-to-int-conversion/Overview.md
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;gas_calibration&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>_OPERATOR_NON_TRAPPING_FLOAT_TO_INT: [<span class="kw-2">&amp;</span>str; <span class="number">8</span>] = [
     <span class="string">&quot;I32TruncSatF32S&quot;</span>,

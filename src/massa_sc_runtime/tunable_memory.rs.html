@@ -121,9 +121,24 @@
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ptr::NonNull;
 <span class="kw">use </span>wasmer::{
-    vm::{<span class="self">self</span>, MemoryError, MemoryStyle, TableStyle, VMMemoryDefinition, VMTableDefinition},
+    vm::{
+        <span class="self">self</span>, MemoryError, MemoryStyle, TableStyle, VMMemoryDefinition,
+        VMTableDefinition,
+    },
     MemoryType, Pages, TableType, Tunables,
 };
 
@@ -133,9 +148,9 @@
 /// After adjusting the memory limits, it delegates all other logic
 /// to the base tunables.
 </span><span class="kw">pub struct </span>LimitingTunables&lt;T: Tunables&gt; {
-    <span class="doccomment">/// The maximum a linear memory is allowed to be (in Wasm pages, 64 KiB each).
-    /// Since Wasmer ensures there is only none or one memory, this is practically
-    /// an upper limit for the guest memory.
+    <span class="doccomment">/// The maximum a linear memory is allowed to be (in Wasm pages, 64 KiB
+    /// each). Since Wasmer ensures there is only none or one memory, this
+    /// is practically an upper limit for the guest memory.
     </span>limit: Pages,
     <span class="doccomment">/// The base implementation we delegate all the logic to
     </span>base: T,
@@ -197,9 +212,11 @@
         <span class="self">self</span>.base.table_style(table)
     }
 
-    <span class="doccomment">/// Create a memory owned by the host given a [`MemoryType`] and a [`MemoryStyle`].
+    <span class="doccomment">/// Create a memory owned by the host given a [`MemoryType`] and a
+    /// [`MemoryStyle`].
     ///
-    /// The requested memory type is validated, adjusted to the limited and then passed to base.
+    /// The requested memory type is validated, adjusted to the limited and then
+    /// passed to base.
     </span><span class="kw">fn </span>create_host_memory(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ty: <span class="kw-2">&amp;</span>MemoryType,
@@ -210,7 +227,8 @@
         <span class="self">self</span>.base.create_host_memory(<span class="kw-2">&amp;</span>adjusted, style)
     }
 
-    <span class="doccomment">/// Create a memory owned by the VM given a [`MemoryType`] and a [`MemoryStyle`].
+    <span class="doccomment">/// Create a memory owned by the VM given a [`MemoryType`] and a
+    /// [`MemoryStyle`].
     ///
     /// Delegated to base.
     </span><span class="kw">unsafe fn </span>create_vm_memory(
@@ -225,14 +243,20 @@
             .create_vm_memory(<span class="kw-2">&amp;</span>adjusted, style, vm_definition_location)
     }
 
-    <span class="doccomment">/// Create a table owned by the host given a [`TableType`] and a [`TableStyle`].
+    <span class="doccomment">/// Create a table owned by the host given a [`TableType`] and a
+    /// [`TableStyle`].
     ///
     /// Delegated to base.
-    </span><span class="kw">fn </span>create_host_table(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>TableType, style: <span class="kw-2">&amp;</span>TableStyle) -&gt; <span class="prelude-ty">Result</span>&lt;vm::VMTable, String&gt; {
+    </span><span class="kw">fn </span>create_host_table(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        ty: <span class="kw-2">&amp;</span>TableType,
+        style: <span class="kw-2">&amp;</span>TableStyle,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;vm::VMTable, String&gt; {
         <span class="self">self</span>.base.create_host_table(ty, style)
     }
 
-    <span class="doccomment">/// Create a table owned by the VM given a [`TableType`] and a [`TableStyle`].
+    <span class="doccomment">/// Create a table owned by the VM given a [`TableType`] and a
+    /// [`TableStyle`].
     ///
     /// Delegated to base.
     </span><span class="kw">unsafe fn </span>create_vm_table(

@@ -278,6 +278,21 @@
 <a href="#278" id="278">278</a>
 <a href="#279" id="279">279</a>
 <a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">super</span>::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 <span class="kw">use </span><span class="kw">crate</span>::types::Response;
@@ -285,7 +300,8 @@
 <span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>as_ffi_bindings::{BufferPtr, Read <span class="kw">as </span>ASRead, Write <span class="kw">as </span>ASWrite};
 <span class="kw">use </span>wasmer::{
-    imports, Function, FunctionEnv, Imports, Instance, InstantiationError, Module, Store, Value,
+    imports, Function, FunctionEnv, Imports, Instance, InstantiationError,
+    Module, Store, Value,
 };
 <span class="kw">use </span>wasmer_middlewares::metering::{<span class="self">self</span>, MeteringPoints};
 <span class="kw">use </span>wasmer_types::TrapCode;
@@ -336,10 +352,13 @@
                 <span class="prelude-val">Ok</span>((instance, post_init_points))
             }
             <span class="prelude-val">Err</span>(err) =&gt; {
-                <span class="comment">// Filter the error created by the metering middleware when there is not enough gas at initialization
+                <span class="comment">// Filter the error created by the metering middleware when
+                // there is not enough gas at initialization
                 </span><span class="kw">if let </span>InstantiationError::Start(<span class="kw-2">ref </span>e) = err {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = e.clone().to_trap() {
-                        <span class="kw">if </span>trap == TrapCode::UnreachableCodeReached &amp;&amp; e.trace().is_empty() {
+                        <span class="kw">if </span>trap == TrapCode::UnreachableCodeReached
+                            &amp;&amp; e.trace().is_empty()
+                        {
                             <span class="macro">bail!</span>(<span class="string">&quot;Not enough gas, limit reached at initialization&quot;</span>);
                         }
                     }
@@ -363,7 +382,11 @@
             <span class="kw">if </span>metering_initial_cost &gt; remaining_gas {
                 <span class="macro">bail!</span>(<span class="string">&quot;Not enough gas to launch the virtual machine&quot;</span>)
             }
-            set_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env, store, remaining_gas - metering_initial_cost)<span class="question-mark">?</span>;
+            set_remaining_points(
+                <span class="kw-2">&amp;</span><span class="self">self</span>.env,
+                store,
+                remaining_gas - metering_initial_cost,
+            )<span class="question-mark">?</span>;
         }
 
         <span class="comment">// Now can exec
@@ -372,7 +395,11 @@
         <span class="kw">let </span>res = <span class="kw">if </span>argc == <span class="number">0 </span>{
             wasm_func.call(store, <span class="kw-2">&amp;</span>[])
         } <span class="kw">else if </span>argc == <span class="number">1 </span>{
-            <span class="kw">let </span>param_ptr = <span class="kw-2">*</span>BufferPtr::alloc(<span class="kw-2">&amp;</span>param.to_vec(), <span class="self">self</span>.env.get_ffi_env(), store)<span class="question-mark">?</span>;
+            <span class="kw">let </span>param_ptr = <span class="kw-2">*</span>BufferPtr::alloc(
+                <span class="kw-2">&amp;</span>param.to_vec(),
+                <span class="self">self</span>.env.get_ffi_env(),
+                store,
+            )<span class="question-mark">?</span>;
             wasm_func.call(store, <span class="kw-2">&amp;</span>[Value::I32(param_ptr.offset() <span class="kw">as </span>i32)])
         } <span class="kw">else </span>{
             <span class="macro">bail!</span>(<span class="string">&quot;Unexpected number of parameters in the function called&quot;</span>)
@@ -427,8 +454,8 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>memory = instance.exports.get_memory(<span class="string">&quot;memory&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// NOTE: only add functions (__new, ...) if these exists in wasm/wat files
-        //       so we can still exec some very basic wat files
+        <span class="comment">// NOTE: only add functions (__new, ...) if these exists in wasm/wat
+        // files       so we can still exec some very basic wat files
         </span><span class="kw">let </span>fn_new = instance
             .exports
             .get_typed_function::&lt;(i32, i32), i32&gt;(<span class="kw-2">&amp;</span>store, <span class="string">&quot;__new&quot;</span>)
@@ -483,7 +510,10 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resolver(<span class="kw-2">&amp;</span><span class="self">self</span>, store: <span class="kw-2">&amp;mut </span>Store) -&gt; (Imports, FunctionEnv&lt;ASEnv&gt;) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resolver(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        store: <span class="kw-2">&amp;mut </span>Store,
+    ) -&gt; (Imports, FunctionEnv&lt;ASEnv&gt;) {
         <span class="kw">let </span>fenv = FunctionEnv::new(store, <span class="self">self</span>.env.clone());
 
         <span class="kw">let </span>imports = <span class="macro">imports! </span>{

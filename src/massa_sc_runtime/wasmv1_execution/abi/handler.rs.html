@@ -183,12 +183,49 @@
 <a href="#183" id="183">183</a>
 <a href="#184" id="184">184</a>
 <a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::env::{ABIEnv, ExecutionEnv};
 <span class="kw">use crate</span>::{wasmv1_execution::WasmV1Error, GasCosts, Interface};
 <span class="kw">use </span>std::io::Cursor;
 <span class="kw">use </span>wasmer::FunctionEnvMut;
 
-<span class="doccomment">/// Handle an ABI call by providing helpers to read arguments, return values, and so on
+<span class="doccomment">/// Handle an ABI call by providing helpers to read arguments, return values,
+/// and so on
 </span><span class="kw">pub fn </span>handle_abi&lt;F, Req, Resp&gt;(
     abi_name: <span class="kw-2">&amp;</span>str,
     <span class="kw-2">mut </span>store_env: FunctionEnvMut&lt;ABIEnv&gt;,
@@ -204,7 +241,9 @@
     </span><span class="kw">let </span>env_mutex = store_env.data().clone();
     <span class="kw">let </span>env_lock = env_mutex.lock();
     <span class="kw">let </span>exec_env = env_lock.as_ref().ok_or_else(|| {
-        WasmV1Error::InstanciationError(<span class="string">&quot;ABIs cannot be called at initialization time.&quot;</span>.into())
+        WasmV1Error::InstanciationError(
+            <span class="string">&quot;ABIs cannot be called at initialization time.&quot;</span>.into(),
+        )
     })<span class="question-mark">?</span>;
     <span class="kw">let </span>interface = exec_env.get_interface();
 
@@ -232,8 +271,8 @@
 }
 
 <span class="doccomment">/// Handle an ABI call that cannot rely on encoding
-/// its providing helpers to read arguments, return values, and so on in the form
-/// of Vec&lt;u8&gt;
+/// its providing helpers to read arguments, return values, and so on in the
+/// form of Vec&lt;u8&gt;
 </span><span class="kw">pub fn </span>handle_abi_raw&lt;F&gt;(
     abi_name: <span class="kw-2">&amp;</span>str,
     <span class="kw-2">mut </span>store_env: FunctionEnvMut&lt;ABIEnv&gt;,
@@ -247,7 +286,9 @@
     </span><span class="kw">let </span>env_mutex = store_env.data().clone();
     <span class="kw">let </span>env_lock = env_mutex.lock();
     <span class="kw">let </span>exec_env = env_lock.as_ref().ok_or_else(|| {
-        WasmV1Error::InstanciationError(<span class="string">&quot;ABIs cannot be called at initialization time.&quot;</span>.into())
+        WasmV1Error::InstanciationError(
+            <span class="string">&quot;ABIs cannot be called at initialization time.&quot;</span>.into(),
+        )
     })<span class="question-mark">?</span>;
     <span class="kw">let </span>interface = exec_env.get_interface();
 
@@ -291,22 +332,34 @@
             </span>.exec_env
             .read_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>.store_env, arg_offset)
             .map_err(|err| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not read ABI argument: {}&quot;</span>, err))
-            })<span class="question-mark">?</span>;
+            WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                <span class="string">&quot;Could not read ABI argument: {}&quot;</span>,
+                err
+            ))
+        })<span class="question-mark">?</span>;
         M::decode(<span class="kw-2">&amp;mut </span>Cursor::new(<span class="kw-2">&amp;</span>byte_vec)).map_err(|err| {
-            WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not deserialize ABI argument: {}&quot;</span>, err))
+            WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                <span class="string">&quot;Could not deserialize ABI argument: {}&quot;</span>,
+                err
+            ))
         })
     }
 
     <span class="doccomment">/// Read argument raw
     /// For use with abort and other function that cannot use protobuf
-    </span><span class="kw">pub fn </span>read_arg_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, WasmV1Error&gt; {
+    </span><span class="kw">pub fn </span>read_arg_raw(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        arg_offset: i32,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, WasmV1Error&gt; {
         <span class="kw">let </span>byte_vec = <span class="self">self
             </span>.exec_env
             .read_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>.store_env, arg_offset)
             .map_err(|err| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not read ABI argument: {}&quot;</span>, err))
-            })<span class="question-mark">?</span>;
+            WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                <span class="string">&quot;Could not read ABI argument: {}&quot;</span>,
+                err
+            ))
+        })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(byte_vec)
     }
@@ -318,21 +371,33 @@
     {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::with_capacity(value.encoded_len());
         value.encode(<span class="kw-2">&amp;mut </span>buf).map_err(|err| {
-            WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not serialize ABI return value: {}&quot;</span>, err))
+            WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                <span class="string">&quot;Could not serialize ABI return value: {}&quot;</span>,
+                err
+            ))
         })<span class="question-mark">?</span>;
         <span class="self">self</span>.exec_env
             .write_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>.store_env, <span class="kw-2">&amp;</span>buf)
             .map_err(|err| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not write ABI return value: {}&quot;</span>, err))
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                    <span class="string">&quot;Could not write ABI return value: {}&quot;</span>,
+                    err
+                ))
             })
     }
 
     <span class="doccomment">/// Return a raw value aka a Vec&lt;u8&gt; any encoding is up to the caller
-    </span><span class="kw">pub fn </span>return_value_raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
+    </span><span class="kw">pub fn </span>return_value_raw(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        value: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
         <span class="self">self</span>.exec_env
             .write_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>.store_env, value)
             .map_err(|err| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not write ABI return value: {}&quot;</span>, err))
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                    <span class="string">&quot;Could not write ABI return value: {}&quot;</span>,
+                    err
+                ))
             })
     }
 
@@ -340,7 +405,9 @@
     </span><span class="kw">pub fn </span>try_subtract_gas(<span class="kw-2">&amp;mut </span><span class="self">self</span>, gas: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(), WasmV1Error&gt; {
         <span class="self">self</span>.exec_env
             .try_subtract_gas(<span class="kw-2">&amp;mut </span><span class="self">self</span>.store_env, gas)
-            .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;ABI gas error: {}&quot;</span>, err)))
+            .map_err(|err| {
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;ABI gas error: {}&quot;</span>, err))
+            })
     }
 
     <span class="doccomment">/// Get remaining gas
@@ -366,6 +433,11 @@
             .abi_costs
             .get(abi_name)
             .unwrap_or(<span class="kw-2">&amp;</span><span class="number">0</span>)
+    }
+
+    <span class="doccomment">/// Get the memory maximum size in bytes
+    </span><span class="kw">pub fn </span>get_max_mem_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.exec_env.get_max_mem_size(<span class="self">self</span>.store_env)
     }
 }
 </code></pre></div></section></main></body></html>

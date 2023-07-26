@@ -248,6 +248,41 @@
 <a href="#248" id="248">248</a>
 <a href="#249" id="249">249</a>
 <a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::as_execution::{exec_as_module, ASModule};
 <span class="kw">use </span><span class="kw">crate</span>::error::VMResult;
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::GasCalibrationResult;
@@ -300,7 +335,8 @@
             .map(|<span class="kw-2">&amp;</span>id| RuntimeModuleId::try_from(id))
             .transpose()
             .map_err(|err| <span class="macro">anyhow!</span>(<span class="string">&quot;Unsupported file format for SC({})&quot;</span>, err))<span class="question-mark">?
-            </span>.unwrap(); <span class="comment">// Safe to unwrap as we checked the bytecode length and for conversion errors
+            </span>.unwrap(); <span class="comment">// Safe to unwrap as we checked the bytecode length and for conversion
+                       // errors
 
         </span><span class="kw">match </span>module_id {
             RuntimeModuleId::ASModuleId =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ASModule(ASModule::new(
@@ -308,8 +344,15 @@
             )<span class="question-mark">?</span>)),
             RuntimeModuleId::WasmV1ModuleId =&gt; {
                 <span class="comment">// Safe to use [1..] as we checked the bytecode length
-                </span><span class="kw">let </span>res = WasmV1Module::compile(<span class="kw-2">&amp;</span>bytecode[<span class="number">1</span>..], limit, gas_costs, compiler)
-                    .map_err(|err| <span class="macro">anyhow!</span>(<span class="string">&quot;Failed to compile WasmV1 module: {}&quot;</span>, err))<span class="question-mark">?</span>;
+                </span><span class="kw">let </span>res = WasmV1Module::compile(
+                    <span class="kw-2">&amp;</span>bytecode[<span class="number">1</span>..],
+                    limit,
+                    gas_costs,
+                    compiler,
+                )
+                .map_err(|err| {
+                    <span class="macro">anyhow!</span>(<span class="string">&quot;Failed to compile WasmV1 module: {}&quot;</span>, err)
+                })<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="self">Self</span>::WasmV1Module(res))
             }
         }
@@ -326,21 +369,27 @@
     <span class="doccomment">/// Serialize a RuntimeModule, prepending its byte id
     </span><span class="kw">pub fn </span>serialize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
         <span class="kw">let </span>(<span class="kw-2">mut </span>ser, id) = <span class="kw">match </span><span class="self">self </span>{
-            RuntimeModule::ASModule(module) =&gt; (module.serialize()<span class="question-mark">?</span>, RuntimeModuleId::ASModuleId),
+            RuntimeModule::ASModule(module) =&gt; {
+                (module.serialize()<span class="question-mark">?</span>, RuntimeModuleId::ASModuleId)
+            }
             RuntimeModule::WasmV1Module(module) =&gt; {
                 (module.serialize(), RuntimeModuleId::WasmV1ModuleId)
             }
         };
 
-        <span class="comment">// CHECK: as we know the size before hand, maybe we can put the id at the end of the
-        // vector, this would prevent a memmove
+        <span class="comment">// CHECK: as we know the size before hand, maybe we can put the id at
+        // the end of the vector, this would prevent a memmove
         </span>ser.insert(<span class="number">0</span>, id <span class="kw">as </span>u8);
 
         <span class="prelude-val">Ok</span>(ser)
     }
 
     <span class="doccomment">/// Deserialize a RuntimeModule
-    </span><span class="kw">pub fn </span>deserialize(ser_module: <span class="kw-2">&amp;</span>[u8], limit: u64, gas_costs: GasCosts) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>deserialize(
+        ser_module: <span class="kw-2">&amp;</span>[u8],
+        limit: u64,
+        gas_costs: GasCosts,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>module_id = ser_module
             .first()
             .map(|<span class="kw-2">&amp;</span>id| RuntimeModuleId::try_from(id))
@@ -350,18 +399,25 @@
             <span class="prelude-val">Some</span>(RuntimeModuleId::ASModuleId) =&gt; <span class="prelude-val">Ok</span>(RuntimeModule::ASModule(
                 ASModule::deserialize(<span class="kw-2">&amp;</span>ser_module[<span class="number">1</span>..], limit, gas_costs)<span class="question-mark">?</span>,
             )),
-            <span class="prelude-val">Some</span>(RuntimeModuleId::WasmV1ModuleId) =&gt; <span class="prelude-val">Ok</span>(RuntimeModule::WasmV1Module(
-                WasmV1Module::deserialize(<span class="kw-2">&amp;</span>ser_module[<span class="number">1</span>..], limit, gas_costs)<span class="question-mark">?</span>,
-            )),
+            <span class="prelude-val">Some</span>(RuntimeModuleId::WasmV1ModuleId) =&gt; {
+                <span class="prelude-val">Ok</span>(RuntimeModule::WasmV1Module(WasmV1Module::deserialize(
+                    <span class="kw-2">&amp;</span>ser_module[<span class="number">1</span>..],
+                    limit,
+                    gas_costs,
+                )<span class="question-mark">?</span>))
+            }
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;Empty bytecode&quot;</span>)),
         }
     }
 
-    <span class="doccomment">/// Check the exports of a compiled module to see if it contains the given function
+    <span class="doccomment">/// Check the exports of a compiled module to see if it contains the given
+    /// function
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>function_exists(<span class="kw-2">&amp;</span><span class="self">self</span>, function: <span class="kw-2">&amp;</span>str) -&gt; bool {
         <span class="kw">match </span><span class="self">self </span>{
             RuntimeModule::ASModule(module) =&gt; module.function_exists(function),
-            RuntimeModule::WasmV1Module(module) =&gt; module.function_exists(function),
+            RuntimeModule::WasmV1Module(module) =&gt; {
+                module.function_exists(function)
+            }
         }
     }
 }
@@ -376,14 +432,18 @@
     gas_costs: GasCosts,
 ) -&gt; VMResult&lt;(Response, <span class="prelude-ty">Option</span>&lt;GasCalibrationResult&gt;)&gt; {
     <span class="kw">let </span>response = <span class="kw">match </span>rt_module {
-        RuntimeModule::ASModule(module) =&gt; {
-            exec_as_module(interface, module, function, param, limit, gas_costs)<span class="question-mark">?
-        </span>}
+        RuntimeModule::ASModule(module) =&gt; exec_as_module(
+            interface, module, function, param, limit, gas_costs,
+        )<span class="question-mark">?</span>,
         RuntimeModule::WasmV1Module(module) =&gt; {
-            <span class="kw">let </span>res = exec_wasmv1_module(interface, module, function, param, limit, gas_costs)
-                .map_err(|err| <span class="macro">anyhow!</span>(<span class="string">&quot;Failed to execute WasmV1 module: {}&quot;</span>, err.to_string()))<span class="question-mark">?</span>;
-            (res, <span class="prelude-val">None</span>) <span class="comment">// TODO add gas calibration
-        </span>}
+            <span class="kw">let </span>res = exec_wasmv1_module(
+                interface, module, function, param, limit, gas_costs,
+            )
+            .map_err(|err| {
+                <span class="macro">anyhow!</span>(<span class="string">&quot;Failed to execute WasmV1 module: {}&quot;</span>, err.to_string())
+            })<span class="question-mark">?</span>;
+            res
+        }
     };
     <span class="prelude-val">Ok</span>(response)
 }
@@ -456,12 +516,14 @@
 <span class="comment">// tests for serialize and deserialize
 </span><span class="attr">#[test]
 </span><span class="kw">fn </span>test_serialize_deserialize() {
-    <span class="kw">let </span>bytecode = <span class="macro">include_bytes!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">&quot;CARGO_MANIFEST_DIR&quot;</span>), <span class="string">&quot;/wasm/dummy.wat&quot;</span>));
+    <span class="kw">let </span>bytecode =
+        <span class="macro">include_bytes!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">&quot;CARGO_MANIFEST_DIR&quot;</span>), <span class="string">&quot;/wasm/dummy.wat&quot;</span>));
 
     <span class="comment">// ASModule
     </span>{
         <span class="kw">let </span>module = RuntimeModule::ASModule(
-            ASModule::new(bytecode, <span class="number">0</span>, GasCosts::default(), Compiler::CL).unwrap(),
+            ASModule::new(bytecode, <span class="number">0</span>, GasCosts::default(), Compiler::CL)
+                .unwrap(),
         );
 
         <span class="kw">let </span>serialized = module.serialize().unwrap();
@@ -470,10 +532,11 @@
             RuntimeModuleId::ASModuleId <span class="kw">as </span>u8
         );
 
-        <span class="kw">let </span>serialized2 = RuntimeModule::deserialize(<span class="kw-2">&amp;</span>serialized, <span class="number">0</span>, GasCosts::default())
-            .unwrap()
-            .serialize()
-            .unwrap();
+        <span class="kw">let </span>serialized2 =
+            RuntimeModule::deserialize(<span class="kw-2">&amp;</span>serialized, <span class="number">0</span>, GasCosts::default())
+                .unwrap()
+                .serialize()
+                .unwrap();
 
         <span class="macro">assert_eq!</span>(serialized, serialized2);
     }
@@ -481,7 +544,13 @@
     <span class="comment">// WasmV1Module
     </span>{
         <span class="kw">let </span>module = RuntimeModule::WasmV1Module(
-            WasmV1Module::compile(bytecode, <span class="number">0</span>, GasCosts::default(), Compiler::CL).unwrap(),
+            WasmV1Module::compile(
+                bytecode,
+                <span class="number">0</span>,
+                GasCosts::default(),
+                Compiler::CL,
+            )
+            .unwrap(),
         );
 
         <span class="kw">let </span>serialized = module.serialize().unwrap();
@@ -490,10 +559,11 @@
             RuntimeModuleId::WasmV1ModuleId <span class="kw">as </span>u8
         );
 
-        <span class="kw">let </span>serialized2 = RuntimeModule::deserialize(<span class="kw-2">&amp;</span>serialized, <span class="number">0</span>, GasCosts::default())
-            .unwrap()
-            .serialize()
-            .unwrap();
+        <span class="kw">let </span>serialized2 =
+            RuntimeModule::deserialize(<span class="kw-2">&amp;</span>serialized, <span class="number">0</span>, GasCosts::default())
+                .unwrap()
+                .serialize()
+                .unwrap();
 
         <span class="macro">assert_eq!</span>(serialized, serialized2);
     }
