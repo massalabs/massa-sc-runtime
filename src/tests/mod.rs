@@ -821,13 +821,32 @@ impl Interface for TestInterface {
         Ok(true)
     }
 
-    fn verify_evm_signature(
+    fn evm_signature_verify(
         &self,
         _message: &[u8],
         _signature: &[u8],
         _public_key: &[u8],
     ) -> Result<bool> {
         println!("verify_evm_signature: , _message: {:?}, _signature: {:?}, _public_key: {:?}", _message, _signature, _public_key);
+        Ok(true)
+    }
+
+    fn evm_get_address_from_pubkey(
+        &self,
+        _public_key: &[u8],
+    ) -> Result<Vec<u8>> {
+        Ok(vec![])
+    }
+
+    fn evm_get_pubkey_from_signature(
+        &self,
+        _hash: &[u8],
+        _signature: &[u8],
+    ) -> Result<Vec<u8>> {
+        Ok(vec![])
+    }
+
+    fn is_address_eoa(&self, _address: &str) -> Result<bool> {
         Ok(true)
     }
 
