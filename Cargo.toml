@@ -11,9 +11,7 @@ chrono = { version = "=0.4", features = ["clock"], default-features = false }
 displaydoc = "0.2"
 function_name = "0.3"
 loupe = "0.1"
-massa-proto-rs = { path = "../massa-proto-rs", features = [
-    "tonic-build",
-] }
+massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", rev = "df9f5b24955bd76030add0945338226309531261" }
 more-asserts = "0.3"
 num_enum = "0.6.1"
 parking_lot = "0.12"
