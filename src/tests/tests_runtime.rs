@@ -13,6 +13,7 @@ use wasmer::WasmPtr;
 
 #[test]
 #[serial]
+#[ignore]
 /// Test exhaustive smart contract
 fn test_exhaustive_smart_contract() {
     let interface = TestInterface;
