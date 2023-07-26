@@ -1,6 +1,7 @@
 //! Execution functions used by the ABIs.
 //!
-//! IMPORTANT: these were designed for, and should not be called outside of ABIs.
+//! IMPORTANT: these were designed for, and should not be called outside of
+//! ABIs.
 
 use wasmer::FunctionEnvMut;
 
@@ -79,12 +80,16 @@ pub(crate) fn local_call(
 }
 
 /// Create a smart contract with the given `bytecode`
-pub(crate) fn create_sc(ctx: &mut FunctionEnvMut<ASEnv>, bytecode: &[u8]) -> ABIResult<String> {
+pub(crate) fn create_sc(
+    ctx: &mut FunctionEnvMut<ASEnv>,
+    bytecode: &[u8],
+) -> ABIResult<String> {
     let env = ctx.data();
     Ok(env.get_interface().create_module(bytecode)?)
 }
 
-/// Check the exports of a compiled module to see if it contains the given function
+/// Check the exports of a compiled module to see if it contains the given
+/// function
 pub(crate) fn function_exists(
     ctx: &mut FunctionEnvMut<ASEnv>,
     address: &str,

@@ -4,7 +4,10 @@ use super::{ffi::Ffi, WasmV1Error};
 use crate::types::Interface;
 use crate::GasCosts;
 use parking_lot::Mutex;
-use wasmer::{AsStoreMut, AsStoreRef, Imports, Instance, InstantiationError, TypedFunction};
+use wasmer::{
+    AsStoreMut, AsStoreRef, Imports, Instance, InstantiationError,
+    TypedFunction,
+};
 use wasmer_middlewares::metering::{self, MeteringPoints};
 use wasmer_types::TrapCode;
 
@@ -13,13 +16,13 @@ pub type ABIEnv = Arc<Mutex<Option<ExecutionEnv>>>;
 /// Execution environment for ABIs.
 #[derive(Clone)]
 pub struct ExecutionEnv {
-    /// Exposed interface functions used by the ABIs and implemented externally.
-    /// In `massa/massa-execution-worker` for example.
+    /// Exposed interface functions used by the ABIs and implemented
+    /// externally. In `massa/massa-execution-worker` for example.
     interface: Box<dyn Interface>,
     /// Gas costs of different execution operations.
     gas_costs: GasCosts,
     /// Instance to execute
-    instance: Instance,
+    pub(crate) instance: Instance,
     /// Memory interface
     ffi: Ffi,
     /// Gas cost of instance creation
@@ -37,13 +40,20 @@ impl ExecutionEnv {
         import_object: &Imports,
     ) -> Result<Self, WasmV1Error> {
         // Create the instance
-        let instance = match Instance::new(store, &module.binary_module, import_object) {
+        let instance = match Instance::new(
+            store,
+            &module.binary_module,
+            import_object,
+        ) {
             Ok(instance) => instance,
             Err(err) => {
-                // Filter the error created by the metering middleware when there is not enough gas at initialization
+                // Filter the error created by the metering middleware when
+                // there is not enough gas at initialization
                 if let InstantiationError::Start(ref e) = err {
                     if let Some(trap) = e.clone().to_trap() {
-                        if trap == TrapCode::UnreachableCodeReached && e.trace().is_empty() {
+                        if trap == TrapCode::UnreachableCodeReached
+                            && e.trace().is_empty()
+                        {
                             return Err(WasmV1Error::InstanciationError(
                                 "Not enough gas, limit reached at instance creation".to_string(),
                             ));
@@ -58,23 +68,27 @@ impl ExecutionEnv {
         };
 
         // Create FFI for memory access
-        let ffi = Ffi::try_new(&instance, store)
-            .map_err(|err| WasmV1Error::RuntimeError(format!("Could not create FFI: {}", err)))?;
+        let ffi = Ffi::try_new(&instance, store).map_err(|err| {
+            WasmV1Error::RuntimeError(format!("Could not create FFI: {}", err))
+        })?;
 
         // Infer the gas cost of instance creation (_start function call)
-        let init_gas_cost = match metering::get_remaining_points(store, &instance) {
-            MeteringPoints::Remaining(remaining_points) => module
-                .gas_limit_at_compilation
-                .checked_sub(remaining_points)
-                .expect(
-                    "Remaining gas after instance creation is higher than the gas limit at compilation",
-                ),
-            MeteringPoints::Exhausted => {
-                return Err(WasmV1Error::InstanciationError(
-                    "Not enough gas, gas exhausted after instance creation".to_string(),
-                ));
-            }
-        };
+        let mut init_gas_cost = 0;
+        if cfg!(not(feature = "gas_calibration")) {
+            init_gas_cost = match metering::get_remaining_points(store, &instance) {
+                MeteringPoints::Remaining(remaining_points) => module
+                    .gas_limit_at_compilation
+                    .checked_sub(remaining_points)
+                    .expect(
+                        "Remaining gas after instance creation is higher than the gas limit at compilation",
+                    ),
+                MeteringPoints::Exhausted => {
+                    return Err(WasmV1Error::InstanciationError(
+                        "Not enough gas, gas exhausted after instance creation".to_string(),
+                    ));
+                }
+            };
+        }
 
         // Return the environment
         Ok(Self {
@@ -119,14 +133,19 @@ impl ExecutionEnv {
         store: &mut impl AsStoreMut,
         gas: u64,
     ) -> Result<(), WasmV1Error> {
-        let remaining = match metering::get_remaining_points(store, &self.instance) {
-            metering::MeteringPoints::Remaining(remaining) => remaining,
-            metering::MeteringPoints::Exhausted => {
-                return Err(WasmV1Error::RuntimeError(
-                    "Gas exhausted before ABI call".into(),
-                ))
-            }
-        };
+        if cfg!(feature = "gas_calibration") {
+            return Ok(());
+        }
+
+        let remaining =
+            match metering::get_remaining_points(store, &self.instance) {
+                metering::MeteringPoints::Remaining(remaining) => remaining,
+                metering::MeteringPoints::Exhausted => {
+                    return Err(WasmV1Error::RuntimeError(
+                        "Gas exhausted before ABI call".into(),
+                    ))
+                }
+            };
         let new_remaining = match remaining.checked_sub(gas) {
             Some(v) => v,
             None => {
@@ -141,6 +160,10 @@ impl ExecutionEnv {
 
     /// Get remaining gas.
     pub fn get_remaining_gas(&self, store: &mut impl AsStoreMut) -> u64 {
+        if cfg!(feature = "gas_calibration") {
+            return u64::MAX;
+        }
+
         match metering::get_remaining_points(store, &self.instance) {
             metering::MeteringPoints::Remaining(remaining) => remaining,
             metering::MeteringPoints::Exhausted => 0,
@@ -148,8 +171,18 @@ impl ExecutionEnv {
     }
 
     /// Set remaining gas.
-    pub fn set_remaining_gas(&self, store: &mut impl AsStoreMut, remaining_gas: u64) {
-        metering::set_remaining_points(store, &self.instance, remaining_gas);
+    pub fn set_remaining_gas(
+        &self,
+        store: &mut impl AsStoreMut,
+        remaining_gas: u64,
+    ) {
+        if cfg!(not(feature = "gas_calibration")) {
+            metering::set_remaining_points(
+                store,
+                &self.instance,
+                remaining_gas,
+            );
+        }
     }
 
     /// Read buffer from memory.
@@ -173,5 +206,10 @@ impl ExecutionEnv {
     /// Get gas costs.
     pub fn get_gas_costs(&self) -> &GasCosts {
         &self.gas_costs
+    }
+
+    /// Get the memory maximum size in bytes
+    pub fn get_max_mem_size(&self, store: &mut impl AsStoreMut) -> u64 {
+        self.ffi.get_max_mem_size(&store)
     }
 }

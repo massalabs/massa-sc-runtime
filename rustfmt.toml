@@ -1,0 +1,7 @@
+# max line length
+max_width = 80
+normalize_comments = true
+# madatory for comment_width to take effect
+wrap_comments = true
+# same as max_width
+comment_width = 80

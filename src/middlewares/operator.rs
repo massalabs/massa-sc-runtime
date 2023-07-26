@@ -1572,7 +1572,9 @@ pub fn operator_field_str<'a>(op: &'a Operator) -> &'a str {
         Operator::I16x8RelaxedQ15mulrS => stringify!(I16x8RelaxedQ15mulrS),
         Operator::I16x8DotI8x16I7x16S => stringify!(I16x8DotI8x16I7x16S),
         Operator::I32x4DotI8x16I7x16AddS => stringify!(I32x4DotI8x16I7x16AddS),
-        Operator::F32x4RelaxedDotBf16x8AddF32x4 => stringify!(F32x4RelaxedDotBf16x8AddF32x4),
+        Operator::F32x4RelaxedDotBf16x8AddF32x4 => {
+            stringify!(F32x4RelaxedDotBf16x8AddF32x4)
+        }
     }
 }
 
@@ -2185,8 +2187,8 @@ pub(crate) const _OPERATOR_THREAD: [&str; 67] = [
 ];
 
 // From https://webassembly.github.io/spec/core/_download/WebAssembly.pdf
-// Section 7.6 Change History -> 7.6.1 Release 2.0 -> Non-trapping float-to-int conversions
-// https://github.com/WebAssembly/spec/blob/main/proposals/nontrapping-float-to-int-conversion/Overview.md
+// Section 7.6 Change History -> 7.6.1 Release 2.0 -> Non-trapping float-to-int
+// conversions https://github.com/WebAssembly/spec/blob/main/proposals/nontrapping-float-to-int-conversion/Overview.md
 #[cfg(feature = "gas_calibration")]
 pub(crate) const _OPERATOR_NON_TRAPPING_FLOAT_TO_INT: [&str; 8] = [
     "I32TruncSatF32S",

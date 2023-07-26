@@ -19,8 +19,8 @@ pub struct ASEnv {
     /// ABIs should be disabled in the AssemblyScript `start` function.
     /// It prevents non-deterministic behaviour in the intances creation.
     pub abi_enabled: Arc<AtomicBool>,
-    /// Exposed interface functions used by the ABIs and implemented externally.
-    /// In `massa/massa-execution-worker` for example.
+    /// Exposed interface functions used by the ABIs and implemented
+    /// externally. In `massa/massa-execution-worker` for example.
     pub interface: Box<dyn Interface>,
     /// Remaining metering points in the current execution context.
     pub remaining_points: Option<Global>,
@@ -91,19 +91,24 @@ pub(crate) fn get_remaining_points(
         Ok(u64::MAX)
     } else {
         match env.get_exhausted_points().as_ref() {
-            Some(exhausted_points) => match exhausted_points.get(store).try_into() {
-                // Using i32 here because it's the type used internally by wasmer for exhausted.
-                Ok::<i32, _>(exhausted) if exhausted > 0 => return Ok(0),
-                Ok::<i32, _>(_) => (),
-                Err(_) => abi_bail!("exhausted_points has wrong type"),
-            },
+            Some(exhausted_points) => {
+                match exhausted_points.get(store).try_into() {
+                    // Using i32 here because it's the type used internally by
+                    // wasmer for exhausted.
+                    Ok::<i32, _>(exhausted) if exhausted > 0 => return Ok(0),
+                    Ok::<i32, _>(_) => (),
+                    Err(_) => abi_bail!("exhausted_points has wrong type"),
+                }
+            }
             None => abi_bail!("Lost reference to exhausted_points"),
         };
         match env.get_remaining_points().as_ref() {
-            Some(remaining_points) => match remaining_points.get(store).try_into() {
-                Ok::<u64, _>(remaining) => Ok(remaining),
-                Err(_) => abi_bail!("remaining_points has wrong type"),
-            },
+            Some(remaining_points) => {
+                match remaining_points.get(store).try_into() {
+                    Ok::<u64, _>(remaining) => Ok(remaining),
+                    Err(_) => abi_bail!("remaining_points has wrong type"),
+                }
+            }
             None => abi_bail!("Lost reference to remaining_points"),
         }
     }
@@ -164,7 +169,10 @@ pub(crate) fn sub_remaining_gas_abi(
         env,
         store,
         *env.get_gas_costs().abi_costs.get(abi_name).ok_or_else(|| {
-            wasmer::RuntimeError::new(format!("Failed to get gas for {} ABI", abi_name))
+            wasmer::RuntimeError::new(format!(
+                "Failed to get gas for {} ABI",
+                abi_name
+            ))
         })?,
     )
 }

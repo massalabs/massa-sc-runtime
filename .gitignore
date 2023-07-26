@@ -7,3 +7,4 @@ wasm/*.wasm.map
 # IDE
 .idea
 .vscode
+as_abi_protobuf

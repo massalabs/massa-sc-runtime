@@ -1,80 +1,135 @@
-// Copyright (c) 2023 MASSA LABS <info@massa.net>
+#[cfg(feature = "build-wasm")]
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    #[cfg(feature = "prost-build")]
-    tonic::build()?;
+// needed for windows compatibility
+#[cfg(feature = "build-wasm")]
+use which::which;
 
-    Ok(())
+#[cfg(feature = "build-wasm")]
+const GIT_REPOSITORY: &str = "https://github.com/massalabs/as_abi_protobuf.git";
+#[cfg(feature = "build-wasm")]
+const GIT_BRANCH: &str = "feature/Improve_ABI_types_in_wasmv1";
+
+#[cfg(feature = "build-wasm")]
+fn main() {
+    let manifest_dir =
+        env::var("CARGO_MANIFEST_DIR").expect("Failed to get Cargo dir");
+    let cargo_dir = &Path::new(&manifest_dir);
+    let target_path = cargo_dir.join("as_abi_protobuf");
+    let target_path_exists = target_path.exists();
+
+    if target_path_exists {
+        let target_path = target_path
+            .canonicalize()
+            .expect("as_abi_protobuf does not exist");
+
+        let is_symlink = target_path
+            .symlink_metadata()
+            .map(|metadata| metadata.file_type().is_symlink())
+            .unwrap_or(false);
+
+        if !is_symlink && target_path.join(".git").exists() {
+            env::set_current_dir(&target_path).expect("cd failed");
+
+            Command::new("git")
+                .arg("pull")
+                .output()
+                .expect("git pull failed");
+        }
+    } else {
+        git_clone(&target_path);
+    }
+
+    npm_install(&target_path);
+
+    build_wasm();
+
+    copy_wasm(target_path, cargo_dir);
 }
 
-#[cfg(feature = "prost-build")]
-mod tonic {
-    use glob::glob;
-    use std::{path::PathBuf, process::Command};
+#[cfg(feature = "build-wasm")]
+fn git_clone(target_path: &PathBuf) {
+    Command::new("git")
+        .arg("clone")
+        .arg(GIT_REPOSITORY)
+        .arg(target_path.display().to_string())
+        .output()
+        .expect("Failed to execute git clone command");
 
-    /// This function is responsible for building the Massa protobuf abi and generating documentation
-    pub fn build() -> Result<(), Box<dyn std::error::Error>> {
-        // Find all protobuf files in the 'proto/massa/' directory
-        let protos = find_protos("proto/massa/")?;
+    env::set_current_dir(target_path)
+        .expect("Failed to change directory to the destination folder");
 
-        // Configure and compile the protobuf ABI
-        prost_build::Config::new()
-            .include_file("_includes.rs")
-            .out_dir("src/wasmv1_execution/abi/proto")
-            .compile_protos(&protos, &["proto/massa/abi/v1/"])
-            .map_err(|e| format!("protobuf compilation error: {:?}", e))?;
+    Command::new("git")
+        .arg("checkout")
+        .arg(GIT_BRANCH)
+        .output()
+        .expect("Failed to execute git checkout command");
+}
 
-        // Generate documentation for the protobuf abi
-        // generate_doc(&protos).map_err(|e| format!("protobuf documentation error: {:?}", e))?;
+#[cfg(feature = "build-wasm")]
+fn npm_install(target_path: &PathBuf) {
+    env::set_current_dir(target_path)
+        .expect(&format!("Failed to cd to {}", target_path.display()));
 
-        // Return Ok if the build and documentation generation were successful
-        Ok(())
+    let npm_path = which("npm").expect("npm not found in PATH");
+
+    Command::new(npm_path)
+        .arg("install")
+        .output()
+        .expect("npm install failed");
+}
+
+#[cfg(feature = "build-wasm")]
+fn build_wasm() {
+    let package_json = fs::read_to_string("package.json")
+        .expect("Failed to read package.json file");
+    let package_data: serde_json::Value = serde_json::from_str(&package_json)
+        .expect("Failed to parse package.json file");
+
+    let Some(scripts) = package_data["scripts"].as_object() else { return };
+    let rules: Vec<String> = scripts
+        .into_iter()
+        .filter(|(s, _)| s.starts_with("all:"))
+        .map(|(s, _)| s.clone())
+        .collect();
+
+    for rule in rules.iter() {
+        let npm_path = which("npm").expect("npm not found in PATH");
+
+        Command::new(npm_path)
+            .arg("run")
+            .arg(rule)
+            .output()
+            .expect(&format!("Failed to execute npm run {} script", rule));
     }
+}
 
-    /// Find all .proto files in the specified directory and its subdirectories
-    fn find_protos(dir_path: &str) -> Result<Vec<PathBuf>, Box<dyn std::error::Error>> {
-        let glob_pattern = format!("{dir_path}/**/*.proto", dir_path = dir_path);
-        let paths = glob(&glob_pattern)?.flatten().collect();
-
-        Ok(paths)
-    }
-
-    /// Generate markdown and HTML documentation for the given protocol buffer files
-    fn generate_doc(protos: &Vec<PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
-        // Generate markdown documentation using protoc.
-        let protoc_md_cmd_output = Command::new("protoc")
-            .args(protos)
-            .arg("--proto_path=./proto/massa/abi/v1")
-            .arg("--doc_out=./doc")
-            .arg("--doc_opt=markdown,abi.md")
-            .output()?;
-
-        // If protoc failed to generate markdown documentation, return an error.
-        if !protoc_md_cmd_output.status.success() {
-            return Err(format!(
-                "protoc generate MARKDOWN documentation failed: {}",
-                String::from_utf8_lossy(&protoc_md_cmd_output.stderr)
-            )
-            .into());
+#[cfg(feature = "build-wasm")]
+fn copy_wasm(target_path: PathBuf, cargo_dir: &&Path) {
+    let build_dir = target_path.join("build");
+    let wasm_dir = cargo_dir.join("wasm");
+    if let Ok(entries) = fs::read_dir(&build_dir) {
+        for entry in entries {
+            if let Ok(entry) = entry {
+                let path = entry.path();
+                if path.is_file()
+                    && path.extension().unwrap_or_default() == "wasm_add"
+                {
+                    let file_name = path.file_name().unwrap();
+                    let destination_path = wasm_dir.join(file_name);
+                    fs::copy(&path, &destination_path)
+                        .expect("Failed to copy the WASM file");
+                }
+            }
         }
-
-        // Generate HTML documentation using protoc.
-        let protoc_html_cmd_output = Command::new("protoc")
-            .args(protos)
-            .arg("--proto_path=./proto/massa/abi/v1")
-            .arg("--doc_out=./doc")
-            .arg("--doc_opt=html,index.html")
-            .output()?;
-
-        // If protoc failed to generate HTML documentation, return an error.
-        if !protoc_html_cmd_output.status.success() {
-            return Err(format!(
-                "protoc generate HTML documentation failed: {}",
-                String::from_utf8_lossy(&protoc_md_cmd_output.stderr)
-            )
-            .into());
-        }
-
-        Ok(())
     }
+}
+
+#[cfg(not(feature = "build-wasm"))]
+fn main() {
+    // Do nothing if the "build-wasm" feature is not defined
 }
