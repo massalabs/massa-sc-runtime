@@ -960,7 +960,7 @@ dependencies = [
 [[package]]
 name = "massa-proto-rs"
 version = "0.1.0"
-source = "git+https://github.com/massalabs/massa-proto-rs.git?rev=df9f5b24955bd76030add0945338226309531261#df9f5b24955bd76030add0945338226309531261"
+source = "git+https://github.com/massalabs/massa-proto-rs.git?rev=32179e2#32179e291bb1ad521d362390318d7dad80c04026"
 dependencies = [
  "glob",
  "prost",
