@@ -44,10 +44,14 @@ impl ASContext {
             Ok(instance) => {
                 self.init_with_instance(store, &instance, &mut fenv)?;
                 let post_init_points = if cfg!(not(feature = "gas_calibration"))
-                    && let MeteringPoints::Remaining(points) =
-                    metering::get_remaining_points(store, &instance)
                 {
-                    points
+                    if let MeteringPoints::Remaining(points) =
+                        metering::get_remaining_points(store, &instance)
+                    {
+                        points
+                    } else {
+                        0
+                    }
                 } else {
                     0
                 };
