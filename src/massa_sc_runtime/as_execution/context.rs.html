@@ -293,6 +293,10 @@
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
 <a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">super</span>::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 <span class="kw">use </span><span class="kw">crate</span>::types::Response;
@@ -339,10 +343,14 @@
             <span class="prelude-val">Ok</span>(instance) =&gt; {
                 <span class="self">self</span>.init_with_instance(store, <span class="kw-2">&amp;</span>instance, <span class="kw-2">&amp;mut </span>fenv)<span class="question-mark">?</span>;
                 <span class="kw">let </span>post_init_points = <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>))
-                    &amp;&amp; <span class="kw">let </span>MeteringPoints::Remaining(points) =
-                    metering::get_remaining_points(store, <span class="kw-2">&amp;</span>instance)
                 {
-                    points
+                    <span class="kw">if let </span>MeteringPoints::Remaining(points) =
+                        metering::get_remaining_points(store, <span class="kw-2">&amp;</span>instance)
+                    {
+                        points
+                    } <span class="kw">else </span>{
+                        <span class="number">0
+                    </span>}
                 } <span class="kw">else </span>{
                     <span class="number">0
                 </span>};
