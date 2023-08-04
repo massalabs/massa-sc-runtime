@@ -150,15 +150,12 @@ pub(crate) fn exec(
         RuntimeModule::ASModule(module) => exec_as_module(
             interface, module, function, param, limit, gas_costs,
         )?,
-        RuntimeModule::WasmV1Module(module) => {
-            let res = exec_wasmv1_module(
-                interface, module, function, param, limit, gas_costs,
-            )
-            .map_err(|err| {
-                anyhow!("Failed to execute WasmV1 module: {}", err.to_string())
-            })?;
-            res
-        }
+        RuntimeModule::WasmV1Module(module) => exec_wasmv1_module(
+            interface, module, function, param, limit, gas_costs,
+        )
+        .map_err(|err| {
+            anyhow!("Failed to execute WasmV1 module: {}", err.to_string())
+        })?,
     };
     Ok(response)
 }
