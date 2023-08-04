@@ -282,7 +282,6 @@
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::as_execution::{exec_as_module, ASModule};
 <span class="kw">use </span><span class="kw">crate</span>::error::VMResult;
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::GasCalibrationResult;
@@ -436,14 +435,13 @@
             interface, module, function, param, limit, gas_costs,
         )<span class="question-mark">?</span>,
         RuntimeModule::WasmV1Module(module) =&gt; {
-            <span class="kw">let </span>res = exec_wasmv1_module(
+            exec_wasmv1_module(
                 interface, module, function, param, limit, gas_costs,
             )
             .map_err(|err| {
                 <span class="macro">anyhow!</span>(<span class="string">&quot;Failed to execute WasmV1 module: {}&quot;</span>, err.to_string())
-            })<span class="question-mark">?</span>;
-            res
-        }
+            })<span class="question-mark">?
+        </span>}
     };
     <span class="prelude-val">Ok</span>(response)
 }
