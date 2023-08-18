@@ -324,19 +324,19 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; ABIHandler&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
     <span class="doccomment">/// Read argument
-    </span><span class="kw">pub fn </span>read_arg&lt;M&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;M, WasmV1Error&gt;
+    </span><span class="kw">pub fn </span>read_arg&lt;M&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;M, WasmV1Error&gt;
     <span class="kw">where
         </span>M: prost::Message + Default,
     {
         <span class="kw">let </span>byte_vec = <span class="self">self
             </span>.exec_env
-            .read_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>.store_env, arg_offset)
+            .take_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>.store_env, arg_offset)
             .map_err(|err| {
-            WasmV1Error::RuntimeError(<span class="macro">format!</span>(
-                <span class="string">&quot;Could not read ABI argument: {}&quot;</span>,
-                err
-            ))
-        })<span class="question-mark">?</span>;
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                    <span class="string">&quot;Could not read ABI argument: {}&quot;</span>,
+                    err
+                ))
+            })<span class="question-mark">?</span>;
         M::decode(<span class="kw-2">&amp;mut </span>Cursor::new(<span class="kw-2">&amp;</span>byte_vec)).map_err(|err| {
             WasmV1Error::RuntimeError(<span class="macro">format!</span>(
                 <span class="string">&quot;Could not deserialize ABI argument: {}&quot;</span>,
@@ -348,18 +348,18 @@
     <span class="doccomment">/// Read argument raw
     /// For use with abort and other function that cannot use protobuf
     </span><span class="kw">pub fn </span>read_arg_raw(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         arg_offset: i32,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, WasmV1Error&gt; {
         <span class="kw">let </span>byte_vec = <span class="self">self
             </span>.exec_env
-            .read_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>.store_env, arg_offset)
+            .take_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>.store_env, arg_offset)
             .map_err(|err| {
-            WasmV1Error::RuntimeError(<span class="macro">format!</span>(
-                <span class="string">&quot;Could not read ABI argument: {}&quot;</span>,
-                err
-            ))
-        })<span class="question-mark">?</span>;
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                    <span class="string">&quot;Could not read ABI argument: {}&quot;</span>,
+                    err
+                ))
+            })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(byte_vec)
     }
@@ -377,7 +377,7 @@
             ))
         })<span class="question-mark">?</span>;
         <span class="self">self</span>.exec_env
-            .write_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>.store_env, <span class="kw-2">&amp;</span>buf)
+            .create_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>.store_env, <span class="kw-2">&amp;</span>buf)
             .map_err(|err| {
                 WasmV1Error::RuntimeError(<span class="macro">format!</span>(
                     <span class="string">&quot;Could not write ABI return value: {}&quot;</span>,
@@ -392,7 +392,7 @@
         value: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
         <span class="self">self</span>.exec_env
-            .write_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>.store_env, value)
+            .create_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>.store_env, value)
             .map_err(|err| {
                 WasmV1Error::RuntimeError(<span class="macro">format!</span>(
                     <span class="string">&quot;Could not write ABI return value: {}&quot;</span>,

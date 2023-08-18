@@ -127,6 +127,34 @@
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>wasmer::{AsStoreMut, AsStoreRef, Instance, Memory, TypedFunction};
 
 <span class="kw">use </span><span class="kw">super</span>::WasmV1Error;
@@ -134,6 +162,7 @@
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>Ffi {
     guest_alloc_func: TypedFunction&lt;i32, i32&gt;,
+    guest_dealloc_func: <span class="prelude-ty">Option</span>&lt;TypedFunction&lt;i32, ()&gt;&gt;,
     guest_memory: Memory,
 }
 
@@ -151,6 +180,22 @@
                     err
                 ))
             })<span class="question-mark">?</span>;
+        <span class="kw">let </span>guest_dealloc_func = <span class="kw">match </span>instance
+            .exports
+            .get_typed_function::&lt;i32, ()&gt;(store, <span class="string">&quot;__dealloc&quot;</span>)
+        {
+            <span class="comment">// deallocator was successfully loaded
+            </span><span class="prelude-val">Ok</span>(func) =&gt; <span class="prelude-val">Some</span>(func),
+            <span class="comment">// deallocator is absent
+            </span><span class="prelude-val">Err</span>(wasmer::ExportError::Missing(<span class="kw">_</span>)) =&gt; <span class="prelude-val">None</span>,
+            <span class="comment">// deallocator is present but has the wrong signature
+            </span><span class="prelude-val">Err</span>(err) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                    <span class="string">&quot;Invalid __dealloc function signature exported by guest instance: {}&quot;</span>,
+                    err
+                )));
+            }
+        };
         <span class="kw">let </span>guest_memory = instance
             .exports
             .get_memory(<span class="string">&quot;memory&quot;</span>)
@@ -163,6 +208,7 @@
             </span>.clone();
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             guest_alloc_func,
+            guest_dealloc_func,
             guest_memory,
         })
     }
@@ -172,19 +218,20 @@
         <span class="self">self</span>.guest_memory.view(store).data_size()
     }
 
-    <span class="doccomment">/// Assumes memory layout is: [len: i32 little-endian][data: u8*]
-    </span><span class="kw">pub fn </span>read_buffer(
+    <span class="doccomment">/// Reads a buffer and tries to deallocate it guest-side.
+    /// Assumes memory layout is: [len: i32 little-endian][data: u8*]
+    </span><span class="kw">pub fn </span>take_buffer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        store: <span class="kw-2">&amp;</span><span class="kw">impl </span>AsStoreRef,
+        store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
         offset: i32,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, WasmV1Error&gt; {
-        <span class="kw">let </span><span class="prelude-val">Ok</span>(offset): <span class="prelude-ty">Result</span>&lt;u64, <span class="kw">_</span>&gt; = offset.try_into() <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(offset_u64): <span class="prelude-ty">Result</span>&lt;u64, <span class="kw">_</span>&gt; = offset.try_into() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Invalid memory read offset: {}&quot;</span>, offset)));
         };
         <span class="kw">let </span>view = <span class="self">self</span>.guest_memory.view(store);
 
         <span class="kw">let </span><span class="kw-2">mut </span>len_buffer = [<span class="number">0u8</span>; <span class="number">4</span>];
-        view.read(offset, <span class="kw-2">&amp;mut </span>len_buffer).map_err(|err| {
+        view.read(offset_u64, <span class="kw-2">&amp;mut </span>len_buffer).map_err(|err| {
             WasmV1Error::RuntimeError(<span class="macro">format!</span>(
                 <span class="string">&quot;Could not read length prefix from guest memory: {}&quot;</span>,
                 err
@@ -208,21 +255,30 @@
                 <span class="string">&quot;Buffer too large to be addressed on this system using usize&quot;
             </span>)
         ];
-        <span class="kw">let </span><span class="prelude-val">Some</span>(offset) = offset.checked_add(len_buffer.len() <span class="kw">as </span>u64) <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(data_offset) = offset_u64.checked_add(len_buffer.len() <span class="kw">as </span>u64) <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(<span class="string">&quot;Offset overflow&quot;</span>.into()));
         };
-        view.read(offset, <span class="kw-2">&amp;mut </span>buffer).map_err(|err| {
+        view.read(data_offset, <span class="kw-2">&amp;mut </span>buffer).map_err(|err| {
             WasmV1Error::RuntimeError(<span class="macro">format!</span>(
                 <span class="string">&quot;Could not read guest memory: {}&quot;</span>,
                 err
             ))
         })<span class="question-mark">?</span>;
+
+        <span class="comment">// Deallocate the buffer if there is a dealloc guest function
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(guest_dealloc_func) = <span class="kw-2">&amp;</span><span class="self">self</span>.guest_dealloc_func {
+            guest_dealloc_func.call(store, offset).map_err(|err| {
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                    <span class="string">&quot;__dealloc function call failed: {}&quot;</span>,
+                    err
+                ))
+            })<span class="question-mark">?</span>;
+        }
         <span class="prelude-val">Ok</span>(buffer)
     }
 
-    <span class="doccomment">/// Does not assume anything on memory layout (managed by the guest on
-    /// allocation)
-    </span><span class="kw">pub fn </span>write_buffer(
+    <span class="doccomment">/// Allocates and creates a buffer.
+    </span><span class="kw">pub fn </span>create_buffer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
         buffer: <span class="kw-2">&amp;</span>[u8],
