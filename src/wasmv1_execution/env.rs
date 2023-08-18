@@ -185,22 +185,24 @@ impl ExecutionEnv {
         }
     }
 
-    /// Read buffer from memory.
-    pub fn read_buffer(
+    /// Read buffer from guest memory,
+    /// try to deallocate it.
+    pub fn take_buffer(
         &self,
-        store: &impl AsStoreRef,
+        store: &mut impl AsStoreMut,
         offset: i32,
     ) -> Result<Vec<u8>, WasmV1Error> {
-        self.ffi.read_buffer(store, offset)
+        self.ffi.take_buffer(store, offset)
     }
 
-    /// Write buffer to memory.
-    pub fn write_buffer(
+    /// Allocate a buffer into guest memory,
+    /// write data into it.
+    pub fn create_buffer(
         &self,
         store: &mut impl AsStoreMut,
         data: &[u8],
     ) -> Result<i32, WasmV1Error> {
-        self.ffi.write_buffer(store, data)
+        self.ffi.create_buffer(store, data)
     }
 
     /// Get gas costs.

@@ -5,6 +5,7 @@ use super::WasmV1Error;
 #[derive(Clone)]
 pub struct Ffi {
     guest_alloc_func: TypedFunction<i32, i32>,
+    guest_dealloc_func: Option<TypedFunction<i32, ()>>,
     guest_memory: Memory,
 }
 
@@ -22,6 +23,22 @@ impl Ffi {
                     err
                 ))
             })?;
+        let guest_dealloc_func = match instance
+            .exports
+            .get_typed_function::<i32, ()>(store, "__dealloc")
+        {
+            // deallocator was successfully loaded
+            Ok(func) => Some(func),
+            // deallocator is absent
+            Err(wasmer::ExportError::Missing(_)) => None,
+            // deallocator is present but has the wrong signature
+            Err(err) => {
+                return Err(WasmV1Error::RuntimeError(format!(
+                    "Invalid __dealloc function signature exported by guest instance: {}",
+                    err
+                )));
+            }
+        };
         let guest_memory = instance
             .exports
             .get_memory("memory")
@@ -34,6 +51,7 @@ impl Ffi {
             .clone();
         Ok(Self {
             guest_alloc_func,
+            guest_dealloc_func,
             guest_memory,
         })
     }
@@ -43,19 +61,20 @@ impl Ffi {
         self.guest_memory.view(store).data_size()
     }
 
+    /// Reads a buffer and tries to deallocate it guest-side.
     /// Assumes memory layout is: [len: i32 little-endian][data: u8*]
-    pub fn read_buffer(
+    pub fn take_buffer(
         &self,
-        store: &impl AsStoreRef,
+        store: &mut impl AsStoreMut,
         offset: i32,
     ) -> Result<Vec<u8>, WasmV1Error> {
-        let Ok(offset): Result<u64, _> = offset.try_into() else {
+        let Ok(offset_u64): Result<u64, _> = offset.try_into() else {
             return Err(WasmV1Error::RuntimeError(format!("Invalid memory read offset: {}", offset)));
         };
         let view = self.guest_memory.view(store);
 
         let mut len_buffer = [0u8; 4];
-        view.read(offset, &mut len_buffer).map_err(|err| {
+        view.read(offset_u64, &mut len_buffer).map_err(|err| {
             WasmV1Error::RuntimeError(format!(
                 "Could not read length prefix from guest memory: {}",
                 err
@@ -79,21 +98,30 @@ impl Ffi {
                 "Buffer too large to be addressed on this system using usize"
             )
         ];
-        let Some(offset) = offset.checked_add(len_buffer.len() as u64) else {
+        let Some(data_offset) = offset_u64.checked_add(len_buffer.len() as u64) else {
             return Err(WasmV1Error::RuntimeError("Offset overflow".into()));
         };
-        view.read(offset, &mut buffer).map_err(|err| {
+        view.read(data_offset, &mut buffer).map_err(|err| {
             WasmV1Error::RuntimeError(format!(
                 "Could not read guest memory: {}",
                 err
             ))
         })?;
+
+        // Deallocate the buffer if there is a dealloc guest function
+        if let Some(guest_dealloc_func) = &self.guest_dealloc_func {
+            guest_dealloc_func.call(store, offset).map_err(|err| {
+                WasmV1Error::RuntimeError(format!(
+                    "__dealloc function call failed: {}",
+                    err
+                ))
+            })?;
+        }
         Ok(buffer)
     }
 
-    /// Does not assume anything on memory layout (managed by the guest on
-    /// allocation)
-    pub fn write_buffer(
+    /// Allocates and creates a buffer.
+    pub fn create_buffer(
         &self,
         store: &mut impl AsStoreMut,
         buffer: &[u8],

@@ -263,10 +263,10 @@ pub(crate) fn exec_wasmv1_module(
             }
         })?;
 
-    // Write function argument to guest memory
+    // Allocate and write function argument to guest memory
     let param_offset =
         execution_env
-            .write_buffer(&mut store, param)
+            .create_buffer(&mut store, param)
             .map_err(|err| VMError::ExecutionError {
                 error: format!(
                     "Could not write argument for guest call {}: {}",
@@ -299,17 +299,16 @@ pub(crate) fn exec_wasmv1_module(
         .take()
         .expect("Execution environment unavailable after execution");
 
-    // Read returned value
-    let ret =
-        execution_env
-            .read_buffer(&store, returned_offset)
-            .map_err(|err| VMError::ExecutionError {
-                error: format!(
-                    "Could not read return value from guest call {}: {}",
-                    function, err
-                ),
-                init_gas_cost,
-            })?;
+    // Read returned value from guest memory and deallocate it
+    let ret = execution_env
+        .take_buffer(&mut store, returned_offset)
+        .map_err(|err| VMError::ExecutionError {
+            error: format!(
+                "Could not read return value from guest call {}: {}",
+                function, err
+            ),
+            init_gas_cost,
+        })?;
 
     // Get remaining gas
     let remaining_gas = execution_env.get_remaining_gas(&mut store);
