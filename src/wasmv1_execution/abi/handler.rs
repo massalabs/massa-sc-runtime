@@ -103,19 +103,19 @@ pub struct ABIHandler<'a, 'b> {
 
 impl<'a, 'b> ABIHandler<'a, 'b> {
     /// Read argument
-    pub fn read_arg<M>(&self, arg_offset: i32) -> Result<M, WasmV1Error>
+    pub fn read_arg<M>(&mut self, arg_offset: i32) -> Result<M, WasmV1Error>
     where
         M: prost::Message + Default,
     {
         let byte_vec = self
             .exec_env
-            .read_buffer(&self.store_env, arg_offset)
+            .take_buffer(&mut self.store_env, arg_offset)
             .map_err(|err| {
-            WasmV1Error::RuntimeError(format!(
-                "Could not read ABI argument: {}",
-                err
-            ))
-        })?;
+                WasmV1Error::RuntimeError(format!(
+                    "Could not read ABI argument: {}",
+                    err
+                ))
+            })?;
         M::decode(&mut Cursor::new(&byte_vec)).map_err(|err| {
             WasmV1Error::RuntimeError(format!(
                 "Could not deserialize ABI argument: {}",
@@ -127,18 +127,18 @@ impl<'a, 'b> ABIHandler<'a, 'b> {
     /// Read argument raw
     /// For use with abort and other function that cannot use protobuf
     pub fn read_arg_raw(
-        &self,
+        &mut self,
         arg_offset: i32,
     ) -> Result<Vec<u8>, WasmV1Error> {
         let byte_vec = self
             .exec_env
-            .read_buffer(&self.store_env, arg_offset)
+            .take_buffer(&mut self.store_env, arg_offset)
             .map_err(|err| {
-            WasmV1Error::RuntimeError(format!(
-                "Could not read ABI argument: {}",
-                err
-            ))
-        })?;
+                WasmV1Error::RuntimeError(format!(
+                    "Could not read ABI argument: {}",
+                    err
+                ))
+            })?;
 
         Ok(byte_vec)
     }
@@ -156,7 +156,7 @@ impl<'a, 'b> ABIHandler<'a, 'b> {
             ))
         })?;
         self.exec_env
-            .write_buffer(&mut self.store_env, &buf)
+            .create_buffer(&mut self.store_env, &buf)
             .map_err(|err| {
                 WasmV1Error::RuntimeError(format!(
                     "Could not write ABI return value: {}",
@@ -171,7 +171,7 @@ impl<'a, 'b> ABIHandler<'a, 'b> {
         value: &[u8],
     ) -> Result<i32, WasmV1Error> {
         self.exec_env
-            .write_buffer(&mut self.store_env, value)
+            .create_buffer(&mut self.store_env, value)
             .map_err(|err| {
                 WasmV1Error::RuntimeError(format!(
                     "Could not write ABI return value: {}",
