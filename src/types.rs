@@ -356,10 +356,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Return operation datastore keys
     fn get_op_keys(&self, prefix: Option<&[u8]>) -> Result<Vec<Vec<u8>>>;
 
-    /// Return operation datastore keys filtered by a prefix
-    fn get_op_keys_prefix(&self, prefix: Option<&[u8]>)
-        -> Result<Vec<Vec<u8>>>;
-
     fn get_op_keys_wasmv1(&self, prefix: &[u8]) -> Result<Vec<Vec<u8>>>;
 
     /// Check if operation in datastore exists

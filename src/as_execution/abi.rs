@@ -239,7 +239,7 @@ pub(crate) fn assembly_script_get_op_keys_prefix(
     } else {
         None
     };
-    match env.get_interface().get_op_keys_prefix(prefix_opt) {
+    match env.get_interface().get_op_keys(prefix_opt) {
         Err(err) => abi_bail!(err),
         Ok(keys) => {
             let fmt_keys = ser_bytearray_vec(
@@ -1108,6 +1108,7 @@ pub fn assembly_script_function_exists(
     let memory = get_memory!(env);
     let address = &read_string(memory, &ctx, address)?;
     let function = &read_string(memory, &ctx, function)?;
+
     Ok(function_exists(&mut ctx, address, function)? as i32)
 }
 
