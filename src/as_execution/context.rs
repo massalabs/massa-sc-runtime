@@ -281,6 +281,7 @@ impl ASContext {
                 "assembly_script_set_bytecode" => Function::new_typed_with_env(store, &fenv, assembly_script_set_bytecode),
                 "assembly_script_set_bytecode_for" => Function::new_typed_with_env(store, &fenv, assembly_script_set_bytecode_for),
                 "assembly_script_get_op_keys" => Function::new_typed_with_env(store, &fenv, assembly_script_get_op_keys),
+                "assembly_script_get_op_keys_prefix" => Function::new_typed_with_env(store, &fenv, assembly_script_get_op_keys_prefix),
                 "assembly_script_get_keys" => Function::new_typed_with_env(store, &fenv, assembly_script_get_keys),
                 "assembly_script_get_keys_for" => Function::new_typed_with_env(store, &fenv, assembly_script_get_keys_for),
                 "assembly_script_has_op_key" => Function::new_typed_with_env(store, &fenv, assembly_script_has_op_key),

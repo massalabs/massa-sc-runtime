@@ -465,7 +465,19 @@ impl Interface for TestInterface {
         Ok(())
     }
 
+    #[allow(unused_variables)]
     fn get_op_keys(&self, prefix: Option<&[u8]>) -> Result<Vec<Vec<u8>>> {
+        Ok(vec![
+            vec![0, 1, 2, 3, 4, 5, 6, 11],
+            vec![127, 128],
+            vec![254, 255],
+        ])
+    }
+
+    fn get_op_keys_prefix(
+        &self,
+        prefix: Option<&[u8]>,
+    ) -> Result<Vec<Vec<u8>>> {
         let data = vec![
             vec![0, 1, 2, 3, 4, 5, 6, 11],
             vec![127, 128],

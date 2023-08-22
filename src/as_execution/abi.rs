@@ -206,6 +206,28 @@ pub(crate) fn assembly_script_print(
 #[named]
 pub(crate) fn assembly_script_get_op_keys(
     mut ctx: FunctionEnvMut<ASEnv>,
+) -> ABIResult<i32> {
+    let env = get_env(&ctx)?;
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    match env.get_interface().get_op_keys(None) {
+        Err(err) => abi_bail!(err),
+        Ok(keys) => {
+            let fmt_keys = ser_bytearray_vec(
+                &keys,
+                keys.len(),
+                settings::max_op_datastore_entry_count(),
+            )?;
+            let ptr =
+                pointer_from_bytearray(&env, &mut ctx, &fmt_keys)?.offset();
+            Ok(ptr as i32)
+        }
+    }
+}
+
+/// Get the operation datastore keys (aka entries)
+#[named]
+pub(crate) fn assembly_script_get_op_keys_prefix(
+    mut ctx: FunctionEnvMut<ASEnv>,
     prefix: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
@@ -217,7 +239,7 @@ pub(crate) fn assembly_script_get_op_keys(
     } else {
         None
     };
-    match env.get_interface().get_op_keys(prefix_opt) {
+    match env.get_interface().get_op_keys_prefix(prefix_opt) {
         Err(err) => abi_bail!(err),
         Ok(keys) => {
             let fmt_keys = ser_bytearray_vec(
