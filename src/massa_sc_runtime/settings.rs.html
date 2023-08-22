@@ -11,6 +11,12 @@
 <a href="#11" id="11">11</a>
 <a href="#12" id="12">12</a>
 <a href="#13" id="13">13</a>
+<a href="#14" id="14">14</a>
+<a href="#15" id="15">15</a>
+<a href="#16" id="16">16</a>
+<a href="#17" id="17">17</a>
+<a href="#18" id="18">18</a>
+<a href="#19" id="19">19</a>
 </pre></div><pre class="rust"><code><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAIN: <span class="kw-2">&amp;</span>str = <span class="string">&quot;main&quot;</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>max_number_of_pages() -&gt; u32 {
@@ -24,4 +30,10 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>max_op_datastore_entry_count() -&gt; usize {
     <span class="number">128
 </span>}
+
+<span class="comment">// Same value as in Massa repo (MAX_FUNCTION_NAME_LENGTH)
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAX_FUNCTION_NAME_LENGTH: u16 = u16::MAX;
+
+<span class="comment">// Same value as in Massa repo (MAX_PARAMETERS_SIZE)
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAX_PARAMETERS_SIZE: u32 = <span class="number">10_000_000</span>;
 </code></pre></div></section></main></body></html>

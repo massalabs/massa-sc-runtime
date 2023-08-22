@@ -646,12 +646,6 @@
 <a href="#646" id="646">646</a>
 <a href="#647" id="647">647</a>
 <a href="#648" id="648">648</a>
-<a href="#649" id="649">649</a>
-<a href="#650" id="650">650</a>
-<a href="#651" id="651">651</a>
-<a href="#652" id="652">652</a>
-<a href="#653" id="653">653</a>
-<a href="#654" id="654">654</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
@@ -754,8 +748,6 @@
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_keys_for&quot;</span>), <span class="number">48</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_op_data&quot;</span>), <span class="number">71</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_op_keys&quot;</span>), <span class="number">138</span>);
-        abi_costs
-            .insert(String::from(<span class="string">&quot;assembly_script_get_op_keys_prefix&quot;</span>), <span class="number">138</span>);
         abi_costs
             .insert(String::from(<span class="string">&quot;assembly_script_get_owned_addresses&quot;</span>), <span class="number">52</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_remaining_gas&quot;</span>), <span class="number">7</span>);
@@ -1008,11 +1000,7 @@
     <span class="kw">fn </span>get_bytecode_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
 
     <span class="doccomment">/// Return operation datastore keys
-    </span><span class="kw">fn </span>get_op_keys(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Vec&lt;u8&gt;&gt;&gt;;
-
-    <span class="doccomment">/// Return operation datastore keys filtered by a prefix
-    </span><span class="kw">fn </span>get_op_keys_prefix(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;)
-        -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Vec&lt;u8&gt;&gt;&gt;;
+    </span><span class="kw">fn </span>get_op_keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Vec&lt;u8&gt;&gt;&gt;;
 
     <span class="kw">fn </span>get_op_keys_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Vec&lt;u8&gt;&gt;&gt;;
 
