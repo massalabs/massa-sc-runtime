@@ -1438,6 +1438,14 @@
 <a href="#1438" id="1438">1438</a>
 <a href="#1439" id="1439">1439</a>
 <a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -1646,10 +1654,18 @@
 </span><span class="attr">#[named]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_op_keys(
     <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
+    prefix: i32,
 ) -&gt; ABIResult&lt;i32&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
-    <span class="kw">match </span>env.get_interface().get_op_keys() {
+    <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
+    <span class="kw">let </span>prefix = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, prefix)<span class="question-mark">?</span>;
+    <span class="kw">let </span>prefix_opt = <span class="kw">if </span>!prefix.is_empty() {
+        <span class="prelude-val">Some</span>(prefix.as_ref())
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>};
+    <span class="kw">match </span>env.get_interface().get_op_keys(prefix_opt) {
         <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
         <span class="prelude-val">Ok</span>(keys) =&gt; {
             <span class="kw">let </span>fmt_keys = ser_bytearray_vec(

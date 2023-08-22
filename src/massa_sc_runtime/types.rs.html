@@ -1000,7 +1000,7 @@
     <span class="kw">fn </span>get_bytecode_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
 
     <span class="doccomment">/// Return operation datastore keys
-    </span><span class="kw">fn </span>get_op_keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Vec&lt;u8&gt;&gt;&gt;;
+    </span><span class="kw">fn </span>get_op_keys(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Vec&lt;u8&gt;&gt;&gt;;
 
     <span class="kw">fn </span>get_op_keys_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Vec&lt;u8&gt;&gt;&gt;;
 
