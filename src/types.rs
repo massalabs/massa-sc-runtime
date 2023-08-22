@@ -352,7 +352,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn get_bytecode_wasmv1(&self, address: Option<String>) -> Result<Vec<u8>>;
 
     /// Return operation datastore keys
-    fn get_op_keys(&self) -> Result<Vec<Vec<u8>>>;
+    fn get_op_keys(&self, prefix: Option<&[u8]>) -> Result<Vec<Vec<u8>>>;
 
     fn get_op_keys_wasmv1(&self, prefix: &[u8]) -> Result<Vec<Vec<u8>>>;
 

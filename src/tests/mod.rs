@@ -465,13 +465,25 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn get_op_keys(&self) -> Result<Vec<Vec<u8>>> {
-        println!("Get op keys");
-        Ok(vec![
+    fn get_op_keys(&self, prefix: Option<&[u8]>) -> Result<Vec<Vec<u8>>> {
+        let data = vec![
             vec![0, 1, 2, 3, 4, 5, 6, 11],
             vec![127, 128],
             vec![254, 255],
-        ])
+        ];
+
+        match prefix {
+            Some(prefix) => {
+                // dummy implementation
+                let filtered = data
+                    .iter()
+                    .filter(|k| k[0] == prefix[0])
+                    .cloned()
+                    .collect();
+                Ok(filtered)
+            }
+            None => Ok(data),
+        }
     }
 
     fn get_op_keys_wasmv1(&self, prefix: &[u8]) -> Result<Vec<Vec<u8>>> {

@@ -206,10 +206,18 @@ pub(crate) fn assembly_script_print(
 #[named]
 pub(crate) fn assembly_script_get_op_keys(
     mut ctx: FunctionEnvMut<ASEnv>,
+    prefix: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    match env.get_interface().get_op_keys() {
+    let memory = get_memory!(env);
+    let prefix = read_buffer(memory, &ctx, prefix)?;
+    let prefix_opt = if !prefix.is_empty() {
+        Some(prefix.as_ref())
+    } else {
+        None
+    };
+    match env.get_interface().get_op_keys(prefix_opt) {
         Err(err) => abi_bail!(err),
         Ok(keys) => {
             let fmt_keys = ser_bytearray_vec(
