@@ -12,6 +12,7 @@ use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
 use super::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
 use crate::settings;
+use crate::settings::MAX_FUNCTION_NAME_LENGTH;
 
 use super::common::{call_module, create_sc, function_exists, local_call};
 use super::error::{abi_bail, ABIResult};
@@ -1078,6 +1079,9 @@ pub fn assembly_script_function_exists(
     let memory = get_memory!(env);
     let address = &read_string(memory, &ctx, address)?;
     let function = &read_string(memory, &ctx, function)?;
+    if function.len() > usize::from(MAX_FUNCTION_NAME_LENGTH) {
+        abi_bail!("Function name length too high");
+    }
     Ok(function_exists(&mut ctx, address, function)? as i32)
 }
 

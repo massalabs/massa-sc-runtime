@@ -8,6 +8,7 @@ use wasmer::FunctionEnvMut;
 use super::abi::get_env;
 use super::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 use super::error::{abi_bail, ABIResult};
+use crate::settings::{MAX_FUNCTION_NAME_LENGTH, MAX_PARAMETERS_SIZE};
 use crate::Response;
 
 /// Calls an exported function in a WASM module at a given address
@@ -22,6 +23,17 @@ pub(crate) fn call_module(
         Ok(v) => v,
         Err(_) => abi_bail!("negative amount of coins in Call"),
     };
+    if function.len() > usize::from(MAX_FUNCTION_NAME_LENGTH) {
+        abi_bail!("Function name length too high");
+    }
+    // safe to unwrap as MAX_PARAMETERS_SIZE is const value manually defined
+    if param.len()
+        > usize::try_from(MAX_PARAMETERS_SIZE)
+            .expect("Cannot convert MAX_PARAMETERS_SIZE to usize")
+    {
+        abi_bail!("Parameters length too high");
+    }
+
     let env = get_env(ctx)?;
     let bytecode = env.get_interface().init_call(address, raw_coins)?;
     let interface = env.get_interface();
@@ -55,6 +67,16 @@ pub(crate) fn local_call(
     function: &str,
     param: &[u8],
 ) -> ABIResult<Response> {
+    if function.len() > usize::from(MAX_FUNCTION_NAME_LENGTH) {
+        abi_bail!("Function name length too high");
+    }
+    if param.len()
+        > usize::try_from(MAX_PARAMETERS_SIZE)
+            .expect("Cannot convert MAX_PARAMETERS_SIZE to usize")
+    {
+        abi_bail!("Parameters length too high");
+    }
+
     let env = get_env(ctx)?;
     let interface = env.get_interface();
 
