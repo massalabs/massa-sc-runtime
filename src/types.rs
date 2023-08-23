@@ -101,6 +101,8 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_get_op_data"), 71);
         abi_costs.insert(String::from("assembly_script_get_op_keys"), 138);
         abi_costs
+            .insert(String::from("assembly_script_get_op_keys_prefix"), 138);
+        abi_costs
             .insert(String::from("assembly_script_get_owned_addresses"), 52);
         abi_costs.insert(String::from("assembly_script_get_remaining_gas"), 7);
         abi_costs.insert(String::from("assembly_script_get_time"), 4);
@@ -352,7 +354,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn get_bytecode_wasmv1(&self, address: Option<String>) -> Result<Vec<u8>>;
 
     /// Return operation datastore keys
-    fn get_op_keys(&self) -> Result<Vec<Vec<u8>>>;
+    fn get_op_keys(&self, prefix: Option<&[u8]>) -> Result<Vec<Vec<u8>>>;
 
     fn get_op_keys_wasmv1(&self, prefix: &[u8]) -> Result<Vec<Vec<u8>>>;
 
