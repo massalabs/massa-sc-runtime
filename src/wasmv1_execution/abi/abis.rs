@@ -7,9 +7,7 @@ use massa_proto_rs::massa::{
     abi::v1::{self as proto, *},
     model::v1::NativeTime,
 };
-use wasmer::{
-    imports, AsStoreMut, Function, FunctionEnv, FunctionEnvMut, Imports,
-};
+use wasmer::{imports, AsStoreMut, Function, FunctionEnv, FunctionEnvMut, Imports};
 
 // This macro ease the construction of the Error variant of the response to an
 // ABI call.
@@ -37,10 +35,7 @@ macro_rules! resp_ok {
 }
 
 /// Register all ABIs to a store
-pub fn register_abis(
-    store: &mut impl AsStoreMut,
-    shared_abi_env: ABIEnv,
-) -> Imports {
+pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imports {
     let fn_env = FunctionEnv::new(store, shared_abi_env);
 
     // helper macro to ease the construction of the imports
@@ -125,27 +120,21 @@ pub fn register_abis(
 
 /// Call another smart contract
 #[named]
-fn abi_call(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
+fn abi_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
     handle_abi(
         function_name!(),
         store_env,
         arg_offset,
         |handler, req: CallRequest| {
-            let amount = req.call_coins.ok_or_else(|| {
-                WasmV1Error::RuntimeError("No coins provided".into())
-            })?;
+            let amount = req
+                .call_coins
+                .ok_or_else(|| WasmV1Error::RuntimeError("No coins provided".into()))?;
 
             let bytecode = handler
                 .interface
                 .init_call_wasmv1(&req.target_sc_address, amount)
                 .map_err(|err| {
-                    WasmV1Error::RuntimeError(format!(
-                        "Could not init call: {}",
-                        err
-                    ))
+                    WasmV1Error::RuntimeError(format!("Could not init call: {}", err))
                 })?;
 
             let remaining_gas = handler.get_remaining_gas();
@@ -158,18 +147,10 @@ fn abi_call(
                 remaining_gas,
                 handler.get_gas_costs().clone(),
             )
-            .map_err(|err| {
-                WasmV1Error::RuntimeError(format!(
-                    "Could not run function: {}",
-                    err
-                ))
-            })?;
+            .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
             handler.set_remaining_gas(response.remaining_gas);
             handler.interface.finish_call().map_err(|err| {
-                WasmV1Error::RuntimeError(format!(
-                    "Could not finish call: {}",
-                    err
-                ))
+                WasmV1Error::RuntimeError(format!("Could not finish call: {}", err))
             })?;
             Ok(CallResponse { data: response.ret })
         },
@@ -179,10 +160,7 @@ fn abi_call(
 /// Alternative to `call_module` to execute bytecode in a local context
 /// Reuse the protobuf CallRequest message, the call_coins field is just ignored
 #[named]
-fn abi_local_call(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
+fn abi_local_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
     handle_abi(
         function_name!(),
         store_env,
@@ -200,12 +178,7 @@ fn abi_local_call(
                 remaining_gas,
                 handler.get_gas_costs().clone(),
             )
-            .map_err(|err| {
-                WasmV1Error::RuntimeError(format!(
-                    "Could not run function: {}",
-                    err
-                ))
-            })?;
+            .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
             handler.set_remaining_gas(response.remaining_gas);
 
             Ok(CallResponse { data: response.ret })
@@ -215,10 +188,7 @@ fn abi_local_call(
 
 /// Create a new smart contract.
 #[named]
-fn abi_create_sc(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
+fn abi_create_sc(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
     handle_abi(
         function_name!(),
         store_env,
@@ -244,9 +214,7 @@ fn abi_get_current_slot(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         _req: GetCurrentSlotRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, _req: GetCurrentSlotRequest| -> Result<AbiResponse, WasmV1Error> {
             // Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
@@ -265,10 +233,7 @@ fn abi_get_current_slot(
 
 /// performs a hash on a bytearray and returns the native_hash
 #[named]
-fn abi_hash_blake3(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
+fn abi_hash_blake3(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
     handle_abi(
         function_name!(),
         store_env,
@@ -292,10 +257,7 @@ fn abi_hash_blake3(
 
 /// performs a sha256 hash on byte array and returns the hash as byte array
 #[named]
-fn abi_hash_sha256(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
+fn abi_hash_sha256(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
     handle_abi(
         function_name!(),
         store_env,
@@ -350,9 +312,7 @@ fn abi_transfer_coins(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: TransferCoinsRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: TransferCoinsRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(amount) = req.amount_to_transfer else {
                 return resp_err!("No coins provided");
             };
@@ -384,17 +344,13 @@ fn abi_generate_event(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: GenerateEventRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            handler.interface.generate_event_wasmv1(req.event).map_err(
-                |err| {
-                    WasmV1Error::RuntimeError(format!(
-                        "Failed to generate event: {}",
-                        err
-                    ))
-                },
-            )?;
+        |handler, req: GenerateEventRequest| -> Result<AbiResponse, WasmV1Error> {
+            handler
+                .interface
+                .generate_event_wasmv1(req.event)
+                .map_err(|err| {
+                    WasmV1Error::RuntimeError(format!("Failed to generate event: {}", err))
+                })?;
 
             resp_ok!(GenerateEventResult, {})
         },
@@ -403,19 +359,13 @@ fn abi_generate_event(
 
 /// Function designed to abort execution.
 #[named]
-fn abi_abort(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
+fn abi_abort(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
     handle_abi_raw(
         function_name!(),
         store_env,
         arg_offset,
         |_handler, req: Vec<u8>| -> Result<Vec<u8>, WasmV1Error> {
-            let msg = format!(
-                "Guest program abort: {}",
-                String::from_utf8_lossy(&req)
-            );
+            let msg = format!("Guest program abort: {}", String::from_utf8_lossy(&req));
 
             Err(WasmV1Error::RuntimeError(msg))
         },
@@ -470,9 +420,7 @@ fn abi_delete_ds_entry(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: DeleteDsEntryRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: DeleteDsEntryRequest| -> Result<AbiResponse, WasmV1Error> {
             if let Err(e) = handler
                 .interface
                 .delete_ds_entry_wasmv1(&req.key, req.address)
@@ -493,14 +441,12 @@ fn abi_append_ds_value(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: AppendDsValueRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            if let Err(e) = handler.interface.append_ds_value_wasmv1(
-                &req.key,
-                &req.value,
-                req.address,
-            ) {
+        |handler, req: AppendDsValueRequest| -> Result<AbiResponse, WasmV1Error> {
+            if let Err(e) =
+                handler
+                    .interface
+                    .append_ds_value_wasmv1(&req.key, &req.value, req.address)
+            {
                 return resp_err!(e);
             }
             resp_ok!(AppendDsValueResult, {})
@@ -517,9 +463,7 @@ fn abi_ds_entry_exists(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: DsEntryExistsRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: DsEntryExistsRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler
                 .interface
                 .ds_entry_exists_wasmv1(&req.key, req.address)
@@ -532,10 +476,7 @@ fn abi_ds_entry_exists(
 }
 
 #[named]
-fn abi_get_balance(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
+fn abi_get_balance(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
     handle_abi(
         function_name!(),
         store_env,
@@ -558,9 +499,7 @@ fn abi_get_bytecode(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: GetBytecodeRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: GetBytecodeRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.get_bytecode_wasmv1(req.address) {
                 Ok(bytecode) => resp_ok!(GetBytecodeResult, { bytecode }),
                 Err(e) => resp_err!(e),
@@ -578,9 +517,7 @@ fn abi_set_bytecode(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: SetBytecodeRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: SetBytecodeRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler
                 .interface
                 .set_bytecode_wasmv1(&req.bytecode, req.address)
@@ -593,10 +530,7 @@ fn abi_set_bytecode(
 }
 
 #[named]
-fn abi_get_ds_keys(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
+fn abi_get_ds_keys(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
     handle_abi(
         function_name!(),
         store_env,
@@ -616,10 +550,7 @@ fn abi_get_ds_keys(
 }
 
 #[named]
-fn abi_get_op_keys(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
+fn abi_get_op_keys(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
     handle_abi(
         function_name!(),
         store_env,
@@ -642,9 +573,7 @@ fn abi_op_entry_exists(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: OpEntryExistsRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: OpEntryExistsRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.op_entry_exists(&req.key) {
                 Ok(has_key) => resp_ok!(OpEntryExistsResult, { has_key }),
                 Err(e) => resp_err!(e),
@@ -654,10 +583,7 @@ fn abi_op_entry_exists(
 }
 
 #[named]
-fn abi_get_op_data(
-    store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-) -> Result<i32, WasmV1Error> {
+fn abi_get_op_data(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
     handle_abi(
         function_name!(),
         store_env,
@@ -680,14 +606,11 @@ fn abi_evm_verify_signature(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: EvmVerifySigRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            match handler.interface.evm_signature_verify(
-                &req.message,
-                &req.sig,
-                &req.pub_key,
-            ) {
+        |handler, req: EvmVerifySigRequest| -> Result<AbiResponse, WasmV1Error> {
+            match handler
+                .interface
+                .evm_signature_verify(&req.message, &req.sig, &req.pub_key)
+            {
                 Ok(is_verified) => {
                     resp_ok!(EvmVerifySigResult, { is_verified })
                 }
@@ -708,9 +631,7 @@ fn abi_evm_get_address_from_pubkey(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: EvmGetAddressFromPubkeyRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: EvmGetAddressFromPubkeyRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.evm_get_address_from_pubkey(&req.pub_key) {
                 Ok(address) => {
                     resp_ok!(EvmGetAddressFromPubkeyResult, { address })
@@ -730,9 +651,7 @@ fn abi_evm_get_pubkey_from_signature(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: EvmGetPubkeyFromSignatureRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: EvmGetPubkeyFromSignatureRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler
                 .interface
                 .evm_get_pubkey_from_signature(&req.hash, &req.sig)
@@ -755,9 +674,7 @@ fn abi_is_address_eoa(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: IsAddressEoaRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: IsAddressEoaRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.is_address_eoa(&req.address) {
                 Ok(is_eoa) => resp_ok!(IsAddressEoaResult, { is_eoa }),
                 Err(e) => resp_err!(e),
@@ -775,9 +692,7 @@ fn abi_get_remaining_gas(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         _req: GetRemainingGasRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, _req: GetRemainingGasRequest| -> Result<AbiResponse, WasmV1Error> {
             let remaining_gas = handler.get_remaining_gas();
             resp_ok!(GetRemainingGasResult, { remaining_gas })
         },
@@ -793,9 +708,7 @@ fn abi_get_owned_addresses(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         _req: GetOwnedAddressesRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, _req: GetOwnedAddressesRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.get_owned_addresses() {
                 Ok(addresses) => {
                     resp_ok!(GetOwnedAddressesResult, { addresses })
@@ -815,9 +728,7 @@ fn abi_get_call_stack(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         _req: GetCallStackRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, _req: GetCallStackRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.get_call_stack() {
                 Ok(calls) => {
                     resp_ok!(GetCallStackResult, { calls })
@@ -837,9 +748,7 @@ fn abi_address_from_public_key(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: AddressFromPubKeyRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: AddressFromPubKeyRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.address_from_public_key(&req.pub_key) {
                 Ok(address) => {
                     resp_ok!(AddressFromPubKeyResult, { address })
@@ -859,13 +768,9 @@ fn abi_unsafe_random(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: UnsafeRandomRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: UnsafeRandomRequest| -> Result<AbiResponse, WasmV1Error> {
             if req.num_bytes as u64 > handler.get_max_mem_size() {
-                return resp_err!(
-                    "Requested random bytes exceed the maximum memory size"
-                );
+                return resp_err!("Requested random bytes exceed the maximum memory size");
             }
 
             match handler.interface.unsafe_random_wasmv1(req.num_bytes as u64) {
@@ -887,9 +792,7 @@ fn abi_get_call_coins(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         _req: GetCallCoinsRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, _req: GetCallCoinsRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.get_call_coins_wasmv1() {
                 Ok(coins) => {
                     resp_ok!(GetCallCoinsResult, { coins: Some(coins) })
@@ -909,9 +812,7 @@ fn abi_get_native_time(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         _req: GetNativeTimeRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, _req: GetNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.get_time() {
                 Err(e) => resp_err!(e),
                 Ok(time) => {
@@ -931,9 +832,7 @@ fn abi_send_async_message(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: SendAsyncMessageRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: SendAsyncMessageRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(start) = req.validity_start else {
                 return resp_err!("Validity start slot is required");
             };
@@ -979,9 +878,7 @@ fn abi_get_origin_operation_id(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         _req: GetOriginOperationIdRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, _req: GetOriginOperationIdRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.get_origin_operation_id() {
                 Ok(operation_id) => {
                     resp_ok!(GetOriginOperationIdResult, { operation_id })
@@ -1003,8 +900,7 @@ fn abi_local_execution(
         arg_offset,
         |handler, req: LocalExecutionRequest| {
             let remaining_gas = handler.get_remaining_gas();
-            let module =
-                helper_get_module(handler, req.bytecode, remaining_gas)?;
+            let module = helper_get_module(handler, req.bytecode, remaining_gas)?;
 
             match crate::execution::run_function(
                 handler.interface,
@@ -1033,9 +929,7 @@ fn abi_caller_has_write_access(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         _req: CallerHasWriteAccessRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, _req: CallerHasWriteAccessRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.caller_has_write_access() {
                 Ok(has_write_access) => {
                     resp_ok!(CallerHasWriteAccessResult, { has_write_access })
@@ -1057,12 +951,9 @@ fn abi_function_exists(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: FunctionExistsRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            let Ok(bytecode) =
-                helper_get_bytecode(handler, req.target_sc_address) else {
-                    return resp_err!("No SC found at the given address");
+        |handler, req: FunctionExistsRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(bytecode) = helper_get_bytecode(handler, req.target_sc_address) else {
+                return resp_err!("No SC found at the given address");
             };
 
             let remaining_gas = if cfg!(feature = "gas_calibration") {
@@ -1075,7 +966,6 @@ fn abi_function_exists(
                 return resp_ok!(FunctionExistsResult, {
                     exists: false
                 });
-
             };
 
             resp_ok!(FunctionExistsResult, {
@@ -1088,16 +978,15 @@ fn helper_get_bytecode(
     handler: &mut super::handler::ABIHandler,
     address: String,
 ) -> Result<Vec<u8>, WasmV1Error> {
-    let bytecode =
-        handler
-            .interface
-            .raw_get_bytecode_for(&address)
-            .map_err(|err| {
-                WasmV1Error::RuntimeError(format!(
-                    "Could not get bytecode for address: {}: {}",
-                    address, err
-                ))
-            })?;
+    let bytecode = handler
+        .interface
+        .raw_get_bytecode_for(&address)
+        .map_err(|err| {
+            WasmV1Error::RuntimeError(format!(
+                "Could not get bytecode for address: {}: {}",
+                address, err
+            ))
+        })?;
     Ok(bytecode)
 }
 
@@ -1109,9 +998,7 @@ fn helper_get_module(
     let module = handler
         .interface
         .get_module(&bytecode, remaining_gas)
-        .map_err(|err| {
-            WasmV1Error::RuntimeError(format!("Could not get module: {}", err))
-        })?;
+        .map_err(|err| WasmV1Error::RuntimeError(format!("Could not get module: {}", err)))?;
     Ok(module)
 }
 
@@ -1124,9 +1011,7 @@ fn abi_check_native_amount(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: CheckNativeAmountRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: CheckNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(amount) = req.to_check else {
                 return resp_err!("No amount to check");
             };
@@ -1150,9 +1035,7 @@ fn abi_add_native_amount(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: AddNativeAmountRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: AddNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(amount1) = req.amount1 else {
                 return resp_err!("No amount1");
             };
@@ -1182,9 +1065,7 @@ fn abi_sub_native_amount(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: SubNativeAmountRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: SubNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(left) = req.left else {
                 return resp_err!("No left amount");
             };
@@ -1211,9 +1092,7 @@ fn abi_scalar_mul_native_amount(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: ScalarMulNativeAmountRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: ScalarMulNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(amount) = req.amount else {
                 return resp_err!("No amount");
             };
@@ -1240,9 +1119,7 @@ fn abi_scalar_div_rem_native_amount(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: ScalarDivRemNativeAmountRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: ScalarDivRemNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(dividend) = req.dividend else {
                 return resp_err!("No dividend");
             };
@@ -1270,9 +1147,7 @@ fn abi_div_rem_native_amount(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: DivRemNativeAmountRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: DivRemNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(dividend) = req.dividend else {
                 return resp_err!("No dividend");
             };
@@ -1303,9 +1178,7 @@ fn abi_native_amount_to_string(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: NativeAmountToStringRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: NativeAmountToStringRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(amount) = req.to_convert else {
                 return resp_err!("No amount to convert");
             };
@@ -1329,15 +1202,13 @@ fn abi_native_amount_from_string(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: NativeAmountFromStringRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            let Ok(amount) =
-                handler
+        |handler, req: NativeAmountFromStringRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Ok(amount) = handler
                 .interface
-                .native_amount_from_str_wasmv1(&req.to_convert) else {
-                    return resp_err!("Invalid amount");
-                };
+                .native_amount_from_str_wasmv1(&req.to_convert)
+            else {
+                return resp_err!("Invalid amount");
+            };
 
             resp_ok!(NativeAmountFromStringResult, { converted_amount: Some(amount) })
         },
@@ -1353,9 +1224,7 @@ fn abi_base58_check_to_bytes(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: Base58CheckToBytesRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: Base58CheckToBytesRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler
                 .interface
                 .base58_check_to_bytes_wasmv1(&req.base58_check)
@@ -1376,11 +1245,8 @@ fn abi_bytes_to_base58_check(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: BytesToBase58CheckRequest|
-         -> Result<AbiResponse, WasmV1Error> {
-            let base58_check =
-                handler.interface.bytes_to_base58_check_wasmv1(&req.bytes);
+        |handler, req: BytesToBase58CheckRequest| -> Result<AbiResponse, WasmV1Error> {
+            let base58_check = handler.interface.bytes_to_base58_check_wasmv1(&req.bytes);
             resp_ok!(BytesToBase58CheckResult, { base58_check })
         },
     )
@@ -1395,9 +1261,7 @@ fn abi_compare_address(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: CompareAddressRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: CompareAddressRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler
                 .interface
                 .compare_address_wasmv1(&req.left, &req.right)
@@ -1420,11 +1284,9 @@ fn abi_compare_native_amount(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: CompareNativeAmountRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: CompareNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
             let (Some(left), Some(right)) = (req.left, req.right) else {
-                return resp_err!("Either left or right argument is none")
+                return resp_err!("Either left or right argument is none");
             };
             match handler
                 .interface
@@ -1448,11 +1310,9 @@ fn abi_compare_native_time(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: CompareNativeTimeRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: CompareNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
             let (Some(left), Some(right)) = (req.left, req.right) else {
-                return resp_err!("Either left or right argument is none")
+                return resp_err!("Either left or right argument is none");
             };
             match handler.interface.compare_native_time_wasmv1(&left, &right) {
                 Ok(result) => {
@@ -1473,9 +1333,7 @@ fn abi_compare_pub_key(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: ComparePubKeyRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: ComparePubKeyRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler
                 .interface
                 .compare_pub_key_wasmv1(&req.left, &req.right)
@@ -1498,9 +1356,7 @@ fn abi_check_address(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: CheckAddressRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: CheckAddressRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.check_address_wasmv1(&req.to_check) {
                 Ok(is_valid) => {
                     resp_ok!(CheckAddressResult, { is_valid })
@@ -1520,9 +1376,7 @@ fn abi_check_pubkey(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: CheckPubKeyRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: CheckPubKeyRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.check_pubkey_wasmv1(&req.to_check) {
                 Ok(is_valid) => resp_ok!(CheckPubKeyResult, { is_valid }),
                 Err(e) => resp_err!(e),
@@ -1558,9 +1412,7 @@ fn abi_get_address_category(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: GetAddressCategoryRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: GetAddressCategoryRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.get_address_category_wasmv1(&req.address) {
                 Ok(res) => {
                     resp_ok!(GetAddressCategoryResult, { category: res.into()})
@@ -1580,9 +1432,7 @@ fn abi_get_address_version(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: GetAddressVersionRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: GetAddressVersionRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.get_address_version_wasmv1(&req.address) {
                 Ok(version) => resp_ok!(GetAddressVersionResult, { version }),
                 Err(e) => resp_err!(e),
@@ -1600,9 +1450,7 @@ fn abi_get_pubkey_version(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: GetPubKeyVersionRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: GetPubKeyVersionRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler.interface.get_pubkey_version_wasmv1(&req.pub_key) {
                 Ok(version) => resp_ok!(GetPubKeyVersionResult, { version }),
                 Err(e) => resp_err!(e),
@@ -1620,9 +1468,7 @@ fn abi_get_signature_version(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: GetSignatureVersionRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: GetSignatureVersionRequest| -> Result<AbiResponse, WasmV1Error> {
             match handler
                 .interface
                 .get_signature_version_wasmv1(&req.signature)
@@ -1643,9 +1489,7 @@ fn abi_checked_add_native_time(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: CheckedAddNativeTimeRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: CheckedAddNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(time1) = req.left else {
                 return resp_err!("No time1");
             };
@@ -1675,9 +1519,7 @@ fn abi_checked_sub_native_time(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: CheckedSubNativeTimeRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: CheckedSubNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(left) = req.left else {
                 return resp_err!("No left time");
             };
@@ -1707,9 +1549,7 @@ fn abi_checked_mul_native_time(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: CheckedScalarMulNativeTimeRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: CheckedScalarMulNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(time) = req.time else {
                 return resp_err!("No time");
             };
@@ -1736,9 +1576,7 @@ fn abi_checked_scalar_div_native_time(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: CheckedScalarDivRemNativeTimeRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: CheckedScalarDivRemNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(dividend) = req.dividend else {
                 return resp_err!("No dividend");
             };
@@ -1766,9 +1604,7 @@ fn abi_checked_div_native_time(
         function_name!(),
         store_env,
         arg_offset,
-        |handler,
-         req: CheckedDivRemNativeTimeRequest|
-         -> Result<AbiResponse, WasmV1Error> {
+        |handler, req: CheckedDivRemNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
             let Some(dividend) = req.dividend else {
                 return resp_err!("No dividend");
             };
@@ -1800,11 +1636,10 @@ pub fn abi_verify_signature(
         store_env,
         arg_offset,
         |handler, req: VerifySigRequest| -> Result<AbiResponse, WasmV1Error> {
-            match handler.interface.signature_verify(
-                &req.message,
-                &req.sig,
-                &req.pub_key,
-            ) {
+            match handler
+                .interface
+                .signature_verify(&req.message, &req.sig, &req.pub_key)
+            {
                 Ok(is_verified) => {
                     resp_ok!(VerifySigResult, { is_verified })
                 }

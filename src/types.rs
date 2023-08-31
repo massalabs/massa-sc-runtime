@@ -42,8 +42,7 @@ pub struct GasCosts {
 impl GasCosts {
     pub fn new(abi_cost_file: PathBuf, wasm_abi_file: PathBuf) -> Result<Self> {
         let abi_cost_file = std::fs::read_to_string(abi_cost_file)?;
-        let mut abi_costs: HashMap<String, u64> =
-            serde_json::from_str(&abi_cost_file)?;
+        let mut abi_costs: HashMap<String, u64> = serde_json::from_str(&abi_cost_file)?;
         abi_costs.iter_mut().for_each(|(_, v)| {
             let unit_digit = *v % 10;
             if unit_digit > 5 {
@@ -53,21 +52,15 @@ impl GasCosts {
             }
         });
         let wasm_abi_file = std::fs::read_to_string(wasm_abi_file)?;
-        let wasm_costs: HashMap<String, u64> =
-            serde_json::from_str(&wasm_abi_file)?;
+        let wasm_costs: HashMap<String, u64> = serde_json::from_str(&wasm_abi_file)?;
         Ok(Self {
-            operator_cost: wasm_costs.values().copied().sum::<u64>()
-                / wasm_costs.len() as u64,
-            launch_cost: *abi_costs.get("launch").ok_or_else(|| {
-                anyhow!("launch cost not found in ABI gas cost file.")
-            })?,
+            operator_cost: wasm_costs.values().copied().sum::<u64>() / wasm_costs.len() as u64,
+            launch_cost: *abi_costs
+                .get("launch")
+                .ok_or_else(|| anyhow!("launch cost not found in ABI gas cost file."))?,
             sp_compilation_cost: *abi_costs
                 .get("sp_compilation_cost")
-                .ok_or_else(|| {
-                    anyhow!(
-                        "sp_compilation_cost not found in ABI gas cost file."
-                    )
-                })?,
+                .ok_or_else(|| anyhow!("sp_compilation_cost not found in ABI gas cost file."))?,
             abi_costs,
         })
     }
@@ -77,10 +70,7 @@ impl GasCosts {
 impl Default for GasCosts {
     fn default() -> Self {
         let mut abi_costs = HashMap::new();
-        abi_costs.insert(
-            String::from("assembly_script_address_from_public_key"),
-            147,
-        );
+        abi_costs.insert(String::from("assembly_script_address_from_public_key"), 147);
         abi_costs.insert(String::from("assembly_script_validate_address"), 4);
         abi_costs.insert(String::from("assembly_script_append_data"), 162);
         abi_costs.insert(String::from("assembly_script_append_data_for"), 200);
@@ -100,10 +90,8 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_get_keys_for"), 48);
         abi_costs.insert(String::from("assembly_script_get_op_data"), 71);
         abi_costs.insert(String::from("assembly_script_get_op_keys"), 138);
-        abi_costs
-            .insert(String::from("assembly_script_get_op_keys_prefix"), 138);
-        abi_costs
-            .insert(String::from("assembly_script_get_owned_addresses"), 52);
+        abi_costs.insert(String::from("assembly_script_get_op_keys_prefix"), 138);
+        abi_costs.insert(String::from("assembly_script_get_owned_addresses"), 52);
         abi_costs.insert(String::from("assembly_script_get_remaining_gas"), 7);
         abi_costs.insert(String::from("assembly_script_get_time"), 4);
         abi_costs.insert(String::from("assembly_script_has_data"), 69);
@@ -114,17 +102,13 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_keccak256_hash"), 83);
         abi_costs.insert(String::from("assembly_script_print"), 35);
         abi_costs.insert(String::from("assembly_script_send_message"), 316);
-        abi_costs.insert(
-            String::from("assembly_script_get_origin_operation_id"),
-            200,
-        );
+        abi_costs.insert(String::from("assembly_script_get_origin_operation_id"), 200);
         abi_costs.insert(String::from("assembly_script_set_bytecode"), 74);
         abi_costs.insert(String::from("assembly_script_set_bytecode_for"), 129);
         abi_costs.insert(String::from("assembly_script_set_data"), 158);
         abi_costs.insert(String::from("assembly_script_set_data_for"), 165);
         abi_costs.insert(String::from("assembly_script_signature_verify"), 98);
-        abi_costs
-            .insert(String::from("assembly_script_evm_signature_verify"), 264);
+        abi_costs.insert(String::from("assembly_script_evm_signature_verify"), 264);
         abi_costs.insert(
             String::from("assembly_script_evm_get_address_from_pubkey"),
             11,
@@ -135,18 +119,14 @@ impl Default for GasCosts {
         );
         abi_costs.insert(String::from("assembly_script_is_address_eoa"), 11);
         abi_costs.insert(String::from("assembly_script_transfer_coins"), 62);
-        abi_costs
-            .insert(String::from("assembly_script_transfer_coins_for"), 102);
+        abi_costs.insert(String::from("assembly_script_transfer_coins_for"), 102);
         abi_costs.insert(String::from("assembly_script_unsafe_random"), 11);
         abi_costs.insert(String::from("assembly_script_call"), 11);
         abi_costs.insert(String::from("assembly_script_local_call"), 11);
         abi_costs.insert(String::from("assembly_script_local_execution"), 11);
         abi_costs.insert(String::from("assembly_script_get_bytecode"), 11);
         abi_costs.insert(String::from("assembly_script_get_bytecode_for"), 11);
-        abi_costs.insert(
-            String::from("assembly_script_caller_has_write_access"),
-            11,
-        );
+        abi_costs.insert(String::from("assembly_script_caller_has_write_access"), 11);
         abi_costs.insert(String::from("assembly_script_function_exists"), 11);
         abi_costs.insert(String::from("assembly_script_seed"), 11);
         abi_costs.insert(String::from("assembly_script_abort"), 11);
@@ -175,11 +155,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Prepare the execution of a module at the given address and transfer a
     /// given amount of coins
 
-    fn init_call_wasmv1(
-        &self,
-        address: &str,
-        raw_coins: NativeAmount,
-    ) -> Result<Vec<u8>>;
+    fn init_call_wasmv1(&self, address: &str, raw_coins: NativeAmount) -> Result<Vec<u8>>;
 
     /// Finish a call
     fn finish_call(&self) -> Result<()>;
@@ -192,10 +168,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Defaults to zero if the address is not found.
     fn get_balance_for(&self, address: &str) -> Result<u64>;
 
-    fn get_balance_wasmv1(
-        &self,
-        address: Option<String>,
-    ) -> Result<NativeAmount>;
+    fn get_balance_wasmv1(&self, address: Option<String>) -> Result<NativeAmount>;
 
     /// Transfer an amount from the address on the current call stack to a
     /// target address.
@@ -232,17 +205,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Sets the executable bytecode at a target address.
     /// The target address must exist and the current context must have access
     /// rights.
-    fn raw_set_bytecode_for(
-        &self,
-        address: &str,
-        bytecode: &[u8],
-    ) -> Result<()>;
+    fn raw_set_bytecode_for(&self, address: &str, bytecode: &[u8]) -> Result<()>;
 
-    fn set_bytecode_wasmv1(
-        &self,
-        bytecode: &[u8],
-        address: Option<String>,
-    ) -> Result<()>;
+    fn set_bytecode_wasmv1(&self, bytecode: &[u8], address: Option<String>) -> Result<()>;
 
     /// Requires a new address that contains the sent &[u8]
     fn create_module(&self, module: &[u8]) -> Result<String>;
@@ -256,11 +221,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     /// Return datastore keys
     /// Will only return keys with a given prefix if provided in args
-    fn get_keys_for(
-        &self,
-        address: &str,
-        prefix: Option<&[u8]>,
-    ) -> Result<BTreeSet<Vec<u8>>>;
+    fn get_keys_for(&self, address: &str, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>>;
 
     fn get_ds_keys_wasmv1(
         &self,
@@ -274,41 +235,22 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Requires the data at the address
     fn raw_get_data_for(&self, address: &str, key: &[u8]) -> Result<Vec<u8>>;
 
-    fn get_ds_value_wasmv1(
-        &self,
-        key: &[u8],
-        address: Option<String>,
-    ) -> Result<Vec<u8>>;
+    fn get_ds_value_wasmv1(&self, key: &[u8], address: Option<String>) -> Result<Vec<u8>>;
 
     /// Set the datastore value for the corresponding key
     fn raw_set_data(&self, key: &[u8], value: &[u8]) -> Result<()>;
 
     /// Set the datastore value for the corresponding key of the given address
-    fn raw_set_data_for(
-        &self,
-        address: &str,
-        key: &[u8],
-        value: &[u8],
-    ) -> Result<()>;
+    fn raw_set_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()>;
 
-    fn set_ds_value_wasmv1(
-        &self,
-        key: &[u8],
-        value: &[u8],
-        address: Option<String>,
-    ) -> Result<()>;
+    fn set_ds_value_wasmv1(&self, key: &[u8], value: &[u8], address: Option<String>) -> Result<()>;
 
     /// Append a value to the current datastore value for the corresponding key
     fn raw_append_data(&self, key: &[u8], value: &[u8]) -> Result<()>;
 
     /// Append a value to the current datastore value for the corresponding key
     /// and the given address
-    fn raw_append_data_for(
-        &self,
-        address: &str,
-        key: &[u8],
-        value: &[u8],
-    ) -> Result<()>;
+    fn raw_append_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()>;
 
     fn append_ds_value_wasmv1(
         &self,
@@ -323,11 +265,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Delete a datastore entry at of the given address
     fn raw_delete_data_for(&self, address: &str, key: &[u8]) -> Result<()>;
 
-    fn delete_ds_entry_wasmv1(
-        &self,
-        key: &[u8],
-        address: Option<String>,
-    ) -> Result<()>;
+    fn delete_ds_entry_wasmv1(&self, key: &[u8], address: Option<String>) -> Result<()>;
 
     /// Requires to replace the data in the current address
     ///
@@ -339,11 +277,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Check if a datastore entry exists
     fn has_data_for(&self, address: &str, key: &[u8]) -> Result<bool>;
 
-    fn ds_entry_exists_wasmv1(
-        &self,
-        key: &[u8],
-        address: Option<String>,
-    ) -> Result<bool>;
+    fn ds_entry_exists_wasmv1(&self, key: &[u8], address: Option<String>) -> Result<bool>;
 
     /// Returns bytecode of the current address
     fn raw_get_bytecode(&self) -> Result<Vec<u8>>;
@@ -374,12 +308,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn hash_blake3(&self, bytes: &[u8]) -> Result<[u8; 32]>;
 
     /// Verify signature
-    fn signature_verify(
-        &self,
-        data: &[u8],
-        signature: &str,
-        public_key: &str,
-    ) -> Result<bool>;
+    fn signature_verify(&self, data: &[u8], signature: &str, public_key: &str) -> Result<bool>;
 
     /// Verify signature (EVM)
     fn evm_signature_verify(
@@ -390,15 +319,10 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ) -> Result<bool>;
 
     /// Get address from public key (EVM)
-    fn evm_get_address_from_pubkey(&self, public_key: &[u8])
-        -> Result<Vec<u8>>;
+    fn evm_get_address_from_pubkey(&self, public_key: &[u8]) -> Result<Vec<u8>>;
 
     /// Get public key from signature (EVM)
-    fn evm_get_pubkey_from_signature(
-        &self,
-        hash: &[u8],
-        signature: &[u8],
-    ) -> Result<Vec<u8>>;
+    fn evm_get_pubkey_from_signature(&self, hash: &[u8], signature: &[u8]) -> Result<Vec<u8>>;
 
     /// Return true if the address is a User address, false if it is an SC
     /// address
@@ -493,18 +417,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     // Keccak256 hash bytes
     fn hash_keccak256(&self, bytes: &[u8]) -> Result<[u8; 32]>;
 
-    fn native_amount_from_str_wasmv1(
-        &self,
-        amount: &str,
-    ) -> Result<NativeAmount>;
+    fn native_amount_from_str_wasmv1(&self, amount: &str) -> Result<NativeAmount>;
 
-    fn native_amount_to_string_wasmv1(
-        &self,
-        amount: &NativeAmount,
-    ) -> Result<String>;
+    fn native_amount_to_string_wasmv1(&self, amount: &NativeAmount) -> Result<String>;
 
-    fn check_native_amount_wasmv1(&self, amount: &NativeAmount)
-        -> Result<bool>;
+    fn check_native_amount_wasmv1(&self, amount: &NativeAmount) -> Result<bool>;
 
     fn add_native_amount_wasmv1(
         &self,
@@ -542,10 +459,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     fn check_signature_wasmv1(&self, to_check: &str) -> Result<bool>;
 
-    fn get_address_category_wasmv1(
-        &self,
-        to_check: &str,
-    ) -> Result<AddressCategory>;
+    fn get_address_category_wasmv1(&self, to_check: &str) -> Result<AddressCategory>;
 
     fn get_address_version_wasmv1(&self, address: &str) -> Result<u64>;
 
@@ -565,11 +479,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         time2: &NativeTime,
     ) -> Result<NativeTime>;
 
-    fn checked_mul_native_time_wasmv1(
-        &self,
-        time: &NativeTime,
-        factor: u64,
-    ) -> Result<NativeTime>;
+    fn checked_mul_native_time_wasmv1(&self, time: &NativeTime, factor: u64) -> Result<NativeTime>;
 
     fn checked_scalar_div_native_time_wasmv1(
         &self,
@@ -587,11 +497,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     fn bytes_to_base58_check_wasmv1(&self, bytes: &[u8]) -> String;
 
-    fn compare_address_wasmv1(
-        &self,
-        left: &str,
-        right: &str,
-    ) -> Result<ComparisonResult>;
+    fn compare_address_wasmv1(&self, left: &str, right: &str) -> Result<ComparisonResult>;
 
     fn compare_native_amount_wasmv1(
         &self,
@@ -605,11 +511,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         right: &NativeTime,
     ) -> Result<ComparisonResult>;
 
-    fn compare_pub_key_wasmv1(
-        &self,
-        left: &str,
-        right: &str,
-    ) -> Result<ComparisonResult>;
+    fn compare_pub_key_wasmv1(&self, left: &str, right: &str) -> Result<ComparisonResult>;
 }
 
 impl dyn Interface {
@@ -619,11 +521,7 @@ impl dyn Interface {
         )?)?)
     }
 
-    pub fn get_data_for<T: DeserializeOwned>(
-        &self,
-        address: &str,
-        key: &[u8],
-    ) -> Result<T> {
+    pub fn get_data_for<T: DeserializeOwned>(&self, address: &str, key: &[u8]) -> Result<T> {
         Ok(serde_json::from_str::<T>(std::str::from_utf8(
             &self.raw_get_data_for(address, key)?,
         )?)?)
@@ -635,16 +533,7 @@ impl dyn Interface {
         self.raw_set_data(key, serde_json::to_string::<T>(value)?.as_bytes())
     }
 
-    pub fn set_data_for<T: Serialize>(
-        &self,
-        address: &str,
-        key: &[u8],
-        value: &T,
-    ) -> Result<()> {
-        self.raw_set_data_for(
-            address,
-            key,
-            serde_json::to_string::<T>(value)?.as_bytes(),
-        )
+    pub fn set_data_for<T: Serialize>(&self, address: &str, key: &[u8], value: &T) -> Result<()> {
+        self.raw_set_data_for(address, key, serde_json::to_string::<T>(value)?.as_bytes())
     }
 }

@@ -5,13 +5,11 @@ use std::fmt::{self, Debug};
 use std::sync::Mutex;
 use std::time::Instant;
 use wasmer::{
-    wasmparser::Operator, AsStoreMut, Extern, FunctionMiddleware, Instance,
-    LocalFunctionIndex, MiddlewareError, MiddlewareReaderState,
-    ModuleMiddleware,
+    wasmparser::Operator, AsStoreMut, Extern, FunctionMiddleware, Instance, LocalFunctionIndex,
+    MiddlewareError, MiddlewareReaderState, ModuleMiddleware,
 };
 use wasmer_types::{
-    ExportIndex, GlobalIndex, GlobalInit, GlobalType, ImportIndex, ModuleInfo,
-    Mutability, Type,
+    ExportIndex, GlobalIndex, GlobalInit, GlobalType, ImportIndex, ModuleInfo, Mutability, Type,
 };
 
 #[derive(Debug, Clone)]
@@ -52,12 +50,7 @@ impl ModuleMiddleware for GasCalibration {
         _local_function_index: LocalFunctionIndex,
     ) -> Box<dyn FunctionMiddleware> {
         Box::new(FunctionGasCalibration {
-            global_indexes: self
-                .global_indexes
-                .lock()
-                .unwrap()
-                .clone()
-                .unwrap(),
+            global_indexes: self.global_indexes.lock().unwrap().clone().unwrap(),
         })
     }
 
@@ -84,8 +77,7 @@ impl ModuleMiddleware for GasCalibration {
             let index = import_key.import_idx;
 
             // -> env.abort OR massa.assembly_script_print
-            let function_fullname =
-                format!("{}.{}", module_name, function_name);
+            let function_fullname = format!("{}.{}", module_name, function_name);
 
             // Append a global for this 'imports' (== abi call) and initialize
             // it.
@@ -107,16 +99,12 @@ impl ModuleMiddleware for GasCalibration {
             // Append a global per param size per 'imports' (== abi call)
             let function_sig = if let ImportIndex::Function(f) = import_index {
                 module_info.functions.get(*f).unwrap_or_else(|| {
-                    panic!(
-                        "Cannot get function signature for {}",
-                        function_name
-                    )
+                    panic!("Cannot get function signature for {}", function_name)
                 })
             } else {
                 panic!("ImportIndex is not a function??");
             };
-            let function_type =
-                module_info.signatures.get(*function_sig).unwrap();
+            let function_type = module_info.signatures.get(*function_sig).unwrap();
             let param_count = function_type.params().len();
 
             for i in 0..param_count {
@@ -205,9 +193,7 @@ impl FunctionMiddleware for FunctionGasCalibration {
 
             // state.push_operator(operator);
 
-            if let Some(index) =
-                self.global_indexes.imports_call_map.get(&function_index)
-            {
+            if let Some(index) = self.global_indexes.imports_call_map.get(&function_index) {
                 // println!("Found function index: {}", function_index);
                 state.extend(&[
                     // incr function call counter
@@ -236,16 +222,16 @@ impl FunctionMiddleware for FunctionGasCalibration {
         }
 
         let op_name = operator_field_str(&operator);
-        let index =
-            self.global_indexes
-                .op_call_map
-                .get(op_name)
-                .ok_or_else(|| {
-                    MiddlewareError::new(
-                        "GasCalibration",
-                        format!("Unable to get index for op: {}", op_name),
-                    )
-                })?;
+        let index = self
+            .global_indexes
+            .op_call_map
+            .get(op_name)
+            .ok_or_else(|| {
+                MiddlewareError::new(
+                    "GasCalibration",
+                    format!("Unable to get index for op: {}", op_name),
+                )
+            })?;
 
         state.extend(&[
             Operator::GlobalGet {
@@ -369,10 +355,9 @@ pub fn get_gas_calibration_result(
 
                 if let Some(cap) = rgx_iter.next() {
                     if let Some(fn_name) = cap.get(1) {
-                        result.timers.insert(
-                            format!("Time:{}", fn_name.as_str()),
-                            timer_value.unwrap(),
-                        );
+                        result
+                            .timers
+                            .insert(format!("Time:{}", fn_name.as_str()), timer_value.unwrap());
                     }
                 }
             }

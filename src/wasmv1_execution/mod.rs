@@ -18,9 +18,7 @@ pub(crate) use error::*;
 use parking_lot::Mutex;
 use std::sync::Arc;
 use wasmer::NativeEngineExt;
-use wasmer::{
-    wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target,
-};
+use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
 use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
@@ -78,11 +76,7 @@ impl WasmV1Module {
     }
 
     /// Deserialize a module
-    pub fn deserialize(
-        ser_module: &[u8],
-        limit: u64,
-        gas_costs: GasCosts,
-    ) -> Result<Self> {
+    pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
         // Deserialization is only meant for Cranelift modules
         let engine = init_cl_engine(limit, gas_costs);
         let store = Store::new(engine.clone());
@@ -191,10 +185,9 @@ where
         compiler_config.push_middleware(gas_calibration);
     } else {
         // Add metering middleware
-        let metering =
-            Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
-                gas_costs.operator_cost
-            }));
+        let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
+            gas_costs.operator_cost
+        }));
         compiler_config.push_middleware(metering);
     }
 }
@@ -219,19 +212,14 @@ pub(crate) fn exec_wasmv1_module(
     let import_object = register_abis(&mut store, shared_abi_env.clone());
 
     // Create an instance of the execution environment.
-    let execution_env = ExecutionEnv::create_instance(
-        &mut store,
-        &module,
-        interface,
-        gas_costs,
-        &import_object,
-    )
-    .map_err(|err| {
-        VMError::InstanceError(format!(
-            "Failed to create instance of execution environment: {}",
-            err
-        ))
-    })?;
+    let execution_env =
+        ExecutionEnv::create_instance(&mut store, &module, interface, gas_costs, &import_object)
+            .map_err(|err| {
+                VMError::InstanceError(format!(
+                    "Failed to create instance of execution environment: {}",
+                    err
+                ))
+            })?;
 
     // Get gas cost of instance creation
     let init_gas_cost = execution_env.get_init_gas_cost();
@@ -242,8 +230,7 @@ pub(crate) fn exec_wasmv1_module(
         Some(remaining_gas) => remaining_gas,
         None => {
             return Err(VMError::ExecutionError {
-                error: "Available gas does not cover instance creation"
-                    .to_string(),
+                error: "Available gas does not cover instance creation".to_string(),
                 init_gas_cost,
             })
         }
@@ -253,27 +240,26 @@ pub(crate) fn exec_wasmv1_module(
     // Get function to execute. Must follow the following prototype: param_addr:
     // i32 -> return_addr: i32
     let wasm_func =
-        execution_env.get_func(&store, function).map_err(|err| {
-            VMError::ExecutionError {
+        execution_env
+            .get_func(&store, function)
+            .map_err(|err| VMError::ExecutionError {
                 error: format!(
                     "Could not find guest function {} for call: {}",
                     function, err
                 ),
                 init_gas_cost,
-            }
-        })?;
+            })?;
 
     // Allocate and write function argument to guest memory
-    let param_offset =
-        execution_env
-            .create_buffer(&mut store, param)
-            .map_err(|err| VMError::ExecutionError {
-                error: format!(
-                    "Could not write argument for guest call {}: {}",
-                    function, err
-                ),
-                init_gas_cost,
-            })?;
+    let param_offset = execution_env
+        .create_buffer(&mut store, param)
+        .map_err(|err| VMError::ExecutionError {
+            error: format!(
+                "Could not write argument for guest call {}: {}",
+                function, err
+            ),
+            init_gas_cost,
+        })?;
 
     // Now that we have an instance, we can make the execution environment
     // available to the ABIs. We avoided setting it before instance creation
@@ -283,15 +269,12 @@ pub(crate) fn exec_wasmv1_module(
 
     // Call func
     let returned_offset =
-        wasm_func.call(&mut store, param_offset).map_err(|err| {
-            VMError::ExecutionError {
-                error: format!(
-                    "Error while calling guest function {}: {}",
-                    function, err
-                ),
+        wasm_func
+            .call(&mut store, param_offset)
+            .map_err(|err| VMError::ExecutionError {
+                error: format!("Error while calling guest function {}: {}", function, err),
                 init_gas_cost,
-            }
-        })?;
+            })?;
 
     // Take back the execution environment
     let execution_env = shared_abi_env

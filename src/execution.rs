@@ -59,15 +59,8 @@ impl RuntimeModule {
             )?)),
             RuntimeModuleId::WasmV1ModuleId => {
                 // Safe to use [1..] as we checked the bytecode length
-                let res = WasmV1Module::compile(
-                    &bytecode[1..],
-                    limit,
-                    gas_costs,
-                    compiler,
-                )
-                .map_err(|err| {
-                    anyhow!("Failed to compile WasmV1 module: {}", err)
-                })?;
+                let res = WasmV1Module::compile(&bytecode[1..], limit, gas_costs, compiler)
+                    .map_err(|err| anyhow!("Failed to compile WasmV1 module: {}", err))?;
                 Ok(Self::WasmV1Module(res))
             }
         }
@@ -84,9 +77,7 @@ impl RuntimeModule {
     /// Serialize a RuntimeModule, prepending its byte id
     pub fn serialize(&self) -> Result<Vec<u8>> {
         let (mut ser, id) = match self {
-            RuntimeModule::ASModule(module) => {
-                (module.serialize()?, RuntimeModuleId::ASModuleId)
-            }
+            RuntimeModule::ASModule(module) => (module.serialize()?, RuntimeModuleId::ASModuleId),
             RuntimeModule::WasmV1Module(module) => {
                 (module.serialize(), RuntimeModuleId::WasmV1ModuleId)
             }
@@ -100,11 +91,7 @@ impl RuntimeModule {
     }
 
     /// Deserialize a RuntimeModule
-    pub fn deserialize(
-        ser_module: &[u8],
-        limit: u64,
-        gas_costs: GasCosts,
-    ) -> Result<Self> {
+    pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
         let module_id = ser_module
             .first()
             .map(|&id| RuntimeModuleId::try_from(id))
@@ -114,13 +101,9 @@ impl RuntimeModule {
             Some(RuntimeModuleId::ASModuleId) => Ok(RuntimeModule::ASModule(
                 ASModule::deserialize(&ser_module[1..], limit, gas_costs)?,
             )),
-            Some(RuntimeModuleId::WasmV1ModuleId) => {
-                Ok(RuntimeModule::WasmV1Module(WasmV1Module::deserialize(
-                    &ser_module[1..],
-                    limit,
-                    gas_costs,
-                )?))
-            }
+            Some(RuntimeModuleId::WasmV1ModuleId) => Ok(RuntimeModule::WasmV1Module(
+                WasmV1Module::deserialize(&ser_module[1..], limit, gas_costs)?,
+            )),
             None => Err(anyhow!("Empty bytecode")),
         }
     }
@@ -130,9 +113,7 @@ impl RuntimeModule {
     pub(crate) fn function_exists(&self, function: &str) -> bool {
         match self {
             RuntimeModule::ASModule(module) => module.function_exists(function),
-            RuntimeModule::WasmV1Module(module) => {
-                module.function_exists(function)
-            }
+            RuntimeModule::WasmV1Module(module) => module.function_exists(function),
         }
     }
 }
@@ -147,15 +128,13 @@ pub(crate) fn exec(
     gas_costs: GasCosts,
 ) -> VMResult<(Response, Option<GasCalibrationResult>)> {
     let response = match rt_module {
-        RuntimeModule::ASModule(module) => exec_as_module(
-            interface, module, function, param, limit, gas_costs,
-        )?,
-        RuntimeModule::WasmV1Module(module) => exec_wasmv1_module(
-            interface, module, function, param, limit, gas_costs,
-        )
-        .map_err(|err| {
-            anyhow!("Failed to execute WasmV1 module: {}", err.to_string())
-        })?,
+        RuntimeModule::ASModule(module) => {
+            exec_as_module(interface, module, function, param, limit, gas_costs)?
+        }
+        RuntimeModule::WasmV1Module(module) => {
+            exec_wasmv1_module(interface, module, function, param, limit, gas_costs)
+                .map_err(|err| anyhow!("Failed to execute WasmV1 module: {}", err.to_string()))?
+        }
     };
     Ok(response)
 }
@@ -228,14 +207,12 @@ pub fn run_main_gc(
 // tests for serialize and deserialize
 #[test]
 fn test_serialize_deserialize() {
-    let bytecode =
-        include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/dummy.wat"));
+    let bytecode = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/dummy.wat"));
 
     // ASModule
     {
         let module = RuntimeModule::ASModule(
-            ASModule::new(bytecode, 0, GasCosts::default(), Compiler::CL)
-                .unwrap(),
+            ASModule::new(bytecode, 0, GasCosts::default(), Compiler::CL).unwrap(),
         );
 
         let serialized = module.serialize().unwrap();
@@ -244,11 +221,10 @@ fn test_serialize_deserialize() {
             RuntimeModuleId::ASModuleId as u8
         );
 
-        let serialized2 =
-            RuntimeModule::deserialize(&serialized, 0, GasCosts::default())
-                .unwrap()
-                .serialize()
-                .unwrap();
+        let serialized2 = RuntimeModule::deserialize(&serialized, 0, GasCosts::default())
+            .unwrap()
+            .serialize()
+            .unwrap();
 
         assert_eq!(serialized, serialized2);
     }
@@ -256,13 +232,7 @@ fn test_serialize_deserialize() {
     // WasmV1Module
     {
         let module = RuntimeModule::WasmV1Module(
-            WasmV1Module::compile(
-                bytecode,
-                0,
-                GasCosts::default(),
-                Compiler::CL,
-            )
-            .unwrap(),
+            WasmV1Module::compile(bytecode, 0, GasCosts::default(), Compiler::CL).unwrap(),
         );
 
         let serialized = module.serialize().unwrap();
@@ -271,11 +241,10 @@ fn test_serialize_deserialize() {
             RuntimeModuleId::WasmV1ModuleId as u8
         );
 
-        let serialized2 =
-            RuntimeModule::deserialize(&serialized, 0, GasCosts::default())
-                .unwrap()
-                .serialize()
-                .unwrap();
+        let serialized2 = RuntimeModule::deserialize(&serialized, 0, GasCosts::default())
+            .unwrap()
+            .serialize()
+            .unwrap();
 
         assert_eq!(serialized, serialized2);
     }

@@ -80,10 +80,7 @@ pub(crate) fn local_call(
 }
 
 /// Create a smart contract with the given `bytecode`
-pub(crate) fn create_sc(
-    ctx: &mut FunctionEnvMut<ASEnv>,
-    bytecode: &[u8],
-) -> ABIResult<String> {
+pub(crate) fn create_sc(ctx: &mut FunctionEnvMut<ASEnv>, bytecode: &[u8]) -> ABIResult<String> {
     let env = ctx.data();
     Ok(env.get_interface().create_module(bytecode)?)
 }

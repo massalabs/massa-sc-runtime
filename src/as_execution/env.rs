@@ -103,12 +103,10 @@ pub(crate) fn get_remaining_points(
             None => abi_bail!("Lost reference to exhausted_points"),
         };
         match env.get_remaining_points().as_ref() {
-            Some(remaining_points) => {
-                match remaining_points.get(store).try_into() {
-                    Ok::<u64, _>(remaining) => Ok(remaining),
-                    Err(_) => abi_bail!("remaining_points has wrong type"),
-                }
-            }
+            Some(remaining_points) => match remaining_points.get(store).try_into() {
+                Ok::<u64, _>(remaining) => Ok(remaining),
+                Err(_) => abi_bail!("remaining_points has wrong type"),
+            },
             None => abi_bail!("Lost reference to remaining_points"),
         }
     }
@@ -169,10 +167,7 @@ pub(crate) fn sub_remaining_gas_abi(
         env,
         store,
         *env.get_gas_costs().abi_costs.get(abi_name).ok_or_else(|| {
-            wasmer::RuntimeError::new(format!(
-                "Failed to get gas for {} ABI",
-                abi_name
-            ))
+            wasmer::RuntimeError::new(format!("Failed to get gas for {} ABI", abi_name))
         })?,
     )
 }

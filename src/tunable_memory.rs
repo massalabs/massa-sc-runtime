@@ -1,9 +1,6 @@
 use std::ptr::NonNull;
 use wasmer::{
-    vm::{
-        self, MemoryError, MemoryStyle, TableStyle, VMMemoryDefinition,
-        VMTableDefinition,
-    },
+    vm::{self, MemoryError, MemoryStyle, TableStyle, VMMemoryDefinition, VMTableDefinition},
     MemoryType, Pages, TableType, Tunables,
 };
 
@@ -112,11 +109,7 @@ impl<T: Tunables> Tunables for LimitingTunables<T> {
     /// [`TableStyle`].
     ///
     /// Delegated to base.
-    fn create_host_table(
-        &self,
-        ty: &TableType,
-        style: &TableStyle,
-    ) -> Result<vm::VMTable, String> {
+    fn create_host_table(&self, ty: &TableType, style: &TableStyle) -> Result<vm::VMTable, String> {
         self.base.create_host_table(ty, style)
     }
 
