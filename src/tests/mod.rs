@@ -23,11 +23,7 @@ impl Interface for TestInterface {
         Ok(vec![])
     }
 
-    fn init_call_wasmv1(
-        &self,
-        address: &str,
-        raw_coins: NativeAmount,
-    ) -> Result<Vec<u8>> {
+    fn init_call_wasmv1(&self, address: &str, raw_coins: NativeAmount) -> Result<Vec<u8>> {
         println!(
             "Init call wasmv1 to {}, with {:?} coins",
             address, raw_coins
@@ -116,8 +112,7 @@ impl Interface for TestInterface {
 
     fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule> {
         println!("Get module");
-        let as_module =
-            ASModule::new(bytecode, limit, GasCosts::default(), Compiler::SP)?;
+        let as_module = ASModule::new(bytecode, limit, GasCosts::default(), Compiler::SP)?;
         let module = RuntimeModule::ASModule(as_module);
         Ok(module)
     }
@@ -137,11 +132,7 @@ impl Interface for TestInterface {
         Ok(false)
     }
 
-    fn ds_entry_exists_wasmv1(
-        &self,
-        key: &[u8],
-        address: Option<String>,
-    ) -> Result<bool> {
+    fn ds_entry_exists_wasmv1(&self, key: &[u8], address: Option<String>) -> Result<bool> {
         match address {
             Some(address) => {
                 println!("Has data for {:?} at {:?}", address, key);
@@ -190,12 +181,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn raw_append_data_for(
-        &self,
-        address: &str,
-        key: &[u8],
-        value: &[u8],
-    ) -> Result<()> {
+    fn raw_append_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()> {
         println!(
             "Raw append data for {} at {:?} with value {:?}",
             address, key, value
@@ -217,7 +203,10 @@ impl Interface for TestInterface {
                 );
             }
             None => {
-                println!("Raw append data at {:?} for current address with value {:?}", key, value);
+                println!(
+                    "Raw append data at {:?} for current address with value {:?}",
+                    key, value
+                );
             }
         }
         Ok(())
@@ -233,11 +222,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn delete_ds_entry_wasmv1(
-        &self,
-        key: &[u8],
-        address: Option<String>,
-    ) -> Result<()> {
+    fn delete_ds_entry_wasmv1(&self, key: &[u8], address: Option<String>) -> Result<()> {
         match address {
             Some(address) => {
                 println!("Raw delete data for {:?} at {:?}", address, key);
@@ -259,11 +244,7 @@ impl Interface for TestInterface {
         Ok(vec![])
     }
 
-    fn get_ds_value_wasmv1(
-        &self,
-        key: &[u8],
-        address: Option<String>,
-    ) -> Result<Vec<u8>> {
+    fn get_ds_value_wasmv1(&self, key: &[u8], address: Option<String>) -> Result<Vec<u8>> {
         match address {
             Some(address) => {
                 println!("Raw get data for {:?} at {:?}", address, key);
@@ -280,12 +261,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn raw_set_data_for(
-        &self,
-        address: &str,
-        key: &[u8],
-        value: &[u8],
-    ) -> Result<()> {
+    fn raw_set_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()> {
         println!(
             "Raw set data for {} at {:?} with value {:?}",
             address, key, value
@@ -293,12 +269,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn set_ds_value_wasmv1(
-        &self,
-        key: &[u8],
-        value: &[u8],
-        address: Option<String>,
-    ) -> Result<()> {
+    fn set_ds_value_wasmv1(&self, key: &[u8], value: &[u8], address: Option<String>) -> Result<()> {
         match address {
             Some(address) => {
                 println!(
@@ -316,12 +287,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn signature_verify(
-        &self,
-        data: &[u8],
-        signature: &str,
-        public_key: &str,
-    ) -> Result<bool> {
+    fn signature_verify(&self, data: &[u8], signature: &str, public_key: &str) -> Result<bool> {
         println!(
             "Signature verify with data {:?}, signature {} and public key {}",
             data, signature, public_key
@@ -349,10 +315,7 @@ impl Interface for TestInterface {
         Ok(0)
     }
 
-    fn get_balance_wasmv1(
-        &self,
-        address: Option<String>,
-    ) -> Result<NativeAmount> {
+    fn get_balance_wasmv1(&self, address: Option<String>) -> Result<NativeAmount> {
         match address {
             Some(address) => {
                 println!("Get balance for {:?}", address);
@@ -372,11 +335,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn raw_set_bytecode_for(
-        &self,
-        address: &str,
-        bytecode: &[u8],
-    ) -> Result<()> {
+    fn raw_set_bytecode_for(&self, address: &str, bytecode: &[u8]) -> Result<()> {
         println!(
             "Raw set bytecode for {} with bytecode {:?}",
             address, bytecode
@@ -384,11 +343,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn set_bytecode_wasmv1(
-        &self,
-        bytecode: &[u8],
-        address: Option<String>,
-    ) -> Result<()> {
+    fn set_bytecode_wasmv1(&self, bytecode: &[u8], address: Option<String>) -> Result<()> {
         match address {
             Some(address) => {
                 println!(
@@ -475,11 +430,7 @@ impl Interface for TestInterface {
         match prefix {
             Some(prefix) => {
                 // dummy implementation
-                let filtered = data
-                    .iter()
-                    .filter(|k| k[0] == prefix[0])
-                    .cloned()
-                    .collect();
+                let filtered = data.iter().filter(|k| k[0] == prefix[0]).cloned().collect();
                 Ok(filtered)
             }
             None => Ok(data),
@@ -561,26 +512,17 @@ impl Interface for TestInterface {
         Ok([0u8; 32])
     }
 
-    fn native_amount_from_str_wasmv1(
-        &self,
-        amount: &str,
-    ) -> Result<NativeAmount> {
+    fn native_amount_from_str_wasmv1(&self, amount: &str) -> Result<NativeAmount> {
         let mantissa = amount.parse::<u64>().unwrap();
         Ok(NativeAmount { mantissa, scale: 0 })
     }
 
-    fn native_amount_to_string_wasmv1(
-        &self,
-        _amount: &NativeAmount,
-    ) -> Result<String> {
+    fn native_amount_to_string_wasmv1(&self, _amount: &NativeAmount) -> Result<String> {
         println!("native_amount_to_string_wasmv1");
         Ok("string amount".to_string())
     }
 
-    fn check_native_amount_wasmv1(
-        &self,
-        _amount: &NativeAmount,
-    ) -> Result<bool> {
+    fn check_native_amount_wasmv1(&self, _amount: &NativeAmount) -> Result<bool> {
         Ok(true)
     }
 
@@ -660,10 +602,7 @@ impl Interface for TestInterface {
         Ok(true)
     }
 
-    fn get_address_category_wasmv1(
-        &self,
-        _to_check: &str,
-    ) -> Result<AddressCategory> {
+    fn get_address_category_wasmv1(&self, _to_check: &str) -> Result<AddressCategory> {
         Ok(AddressCategory::ScAddress)
     }
 
@@ -732,11 +671,7 @@ impl Interface for TestInterface {
         "bs58checked".to_string()
     }
 
-    fn compare_address_wasmv1(
-        &self,
-        left: &str,
-        right: &str,
-    ) -> Result<ComparisonResult> {
+    fn compare_address_wasmv1(&self, left: &str, right: &str) -> Result<ComparisonResult> {
         let left: String = left.chars().skip(1).collect();
         let right: String = right.chars().skip(1).collect();
         let left = bs58::decode(left).with_check(None).into_vec();
@@ -785,11 +720,7 @@ impl Interface for TestInterface {
         Ok(res)
     }
 
-    fn compare_pub_key_wasmv1(
-        &self,
-        left: &str,
-        right: &str,
-    ) -> Result<ComparisonResult> {
+    fn compare_pub_key_wasmv1(&self, left: &str, right: &str) -> Result<ComparisonResult> {
         let left: String = left.chars().skip(1).collect();
         let right: String = right.chars().skip(1).collect();
         let left = bs58::decode(left).with_check(None).into_vec();
@@ -812,11 +743,7 @@ impl Interface for TestInterface {
         todo!()
     }
 
-    fn get_keys_for(
-        &self,
-        _address: &str,
-        _prefix: Option<&[u8]>,
-    ) -> Result<BTreeSet<Vec<u8>>> {
+    fn get_keys_for(&self, _address: &str, _prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {
         todo!()
     }
 
@@ -839,22 +766,18 @@ impl Interface for TestInterface {
         _signature: &[u8],
         _public_key: &[u8],
     ) -> Result<bool> {
-        println!("verify_evm_signature: , _message: {:?}, _signature: {:?}, _public_key: {:?}", _message, _signature, _public_key);
+        println!(
+            "verify_evm_signature: , _message: {:?}, _signature: {:?}, _public_key: {:?}",
+            _message, _signature, _public_key
+        );
         Ok(true)
     }
 
-    fn evm_get_address_from_pubkey(
-        &self,
-        _public_key: &[u8],
-    ) -> Result<Vec<u8>> {
+    fn evm_get_address_from_pubkey(&self, _public_key: &[u8]) -> Result<Vec<u8>> {
         Ok(vec![])
     }
 
-    fn evm_get_pubkey_from_signature(
-        &self,
-        _hash: &[u8],
-        _signature: &[u8],
-    ) -> Result<Vec<u8>> {
+    fn evm_get_pubkey_from_signature(&self, _hash: &[u8], _signature: &[u8]) -> Result<Vec<u8>> {
         Ok(vec![])
     }
 

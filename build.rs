@@ -16,8 +16,7 @@ const GIT_BRANCH: &str = "feature/Improve_ABI_types_in_wasmv1";
 
 #[cfg(feature = "build-wasm")]
 fn main() {
-    let manifest_dir =
-        env::var("CARGO_MANIFEST_DIR").expect("Failed to get Cargo dir");
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("Failed to get Cargo dir");
     let cargo_dir = &Path::new(&manifest_dir);
     let target_path = cargo_dir.join("as_abi_protobuf");
     let target_path_exists = target_path.exists();
@@ -72,8 +71,7 @@ fn git_clone(target_path: &PathBuf) {
 
 #[cfg(feature = "build-wasm")]
 fn npm_install(target_path: &PathBuf) {
-    env::set_current_dir(target_path)
-        .expect(&format!("Failed to cd to {}", target_path.display()));
+    env::set_current_dir(target_path).expect(&format!("Failed to cd to {}", target_path.display()));
 
     let npm_path = which("npm").expect("npm not found in PATH");
 
@@ -85,12 +83,14 @@ fn npm_install(target_path: &PathBuf) {
 
 #[cfg(feature = "build-wasm")]
 fn build_wasm() {
-    let package_json = fs::read_to_string("package.json")
-        .expect("Failed to read package.json file");
-    let package_data: serde_json::Value = serde_json::from_str(&package_json)
-        .expect("Failed to parse package.json file");
+    let package_json =
+        fs::read_to_string("package.json").expect("Failed to read package.json file");
+    let package_data: serde_json::Value =
+        serde_json::from_str(&package_json).expect("Failed to parse package.json file");
 
-    let Some(scripts) = package_data["scripts"].as_object() else { return };
+    let Some(scripts) = package_data["scripts"].as_object() else {
+        return;
+    };
     let rules: Vec<String> = scripts
         .into_iter()
         .filter(|(s, _)| s.starts_with("all:"))
@@ -116,13 +116,10 @@ fn copy_wasm(target_path: PathBuf, cargo_dir: &&Path) {
         for entry in entries {
             if let Ok(entry) = entry {
                 let path = entry.path();
-                if path.is_file()
-                    && path.extension().unwrap_or_default() == "wasm_add"
-                {
+                if path.is_file() && path.extension().unwrap_or_default() == "wasm_add" {
                     let file_name = path.file_name().unwrap();
                     let destination_path = wasm_dir.join(file_name);
-                    fs::copy(&path, &destination_path)
-                        .expect("Failed to copy the WASM file");
+                    fs::copy(&path, &destination_path).expect("Failed to copy the WASM file");
                 }
             }
         }

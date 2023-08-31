@@ -10,10 +10,7 @@ pub struct Ffi {
 }
 
 impl Ffi {
-    pub fn try_new(
-        instance: &Instance,
-        store: &impl AsStoreRef,
-    ) -> Result<Self, WasmV1Error> {
+    pub fn try_new(instance: &Instance, store: &impl AsStoreRef) -> Result<Self, WasmV1Error> {
         let guest_alloc_func = instance
             .exports
             .get_typed_function::<i32, i32>(store, "__alloc")
@@ -69,7 +66,10 @@ impl Ffi {
         offset: i32,
     ) -> Result<Vec<u8>, WasmV1Error> {
         let Ok(offset_u64): Result<u64, _> = offset.try_into() else {
-            return Err(WasmV1Error::RuntimeError(format!("Invalid memory read offset: {}", offset)));
+            return Err(WasmV1Error::RuntimeError(format!(
+                "Invalid memory read offset: {}",
+                offset
+            )));
         };
         let view = self.guest_memory.view(store);
 
@@ -82,7 +82,10 @@ impl Ffi {
         })?;
         let len = i32::from_le_bytes(len_buffer);
         let Ok(len): Result<u64, _> = len.try_into() else {
-            return Err(WasmV1Error::RuntimeError(format!("Memory read length invalid: {}", len)));
+            return Err(WasmV1Error::RuntimeError(format!(
+                "Memory read length invalid: {}",
+                len
+            )));
         };
 
         let memory_size = view.data_size();
@@ -102,19 +105,13 @@ impl Ffi {
             return Err(WasmV1Error::RuntimeError("Offset overflow".into()));
         };
         view.read(data_offset, &mut buffer).map_err(|err| {
-            WasmV1Error::RuntimeError(format!(
-                "Could not read guest memory: {}",
-                err
-            ))
+            WasmV1Error::RuntimeError(format!("Could not read guest memory: {}", err))
         })?;
 
         // Deallocate the buffer if there is a dealloc guest function
         if let Some(guest_dealloc_func) = &self.guest_dealloc_func {
             guest_dealloc_func.call(store, offset).map_err(|err| {
-                WasmV1Error::RuntimeError(format!(
-                    "__dealloc function call failed: {}",
-                    err
-                ))
+                WasmV1Error::RuntimeError(format!("__dealloc function call failed: {}", err))
             })?;
         }
         Ok(buffer)
@@ -127,20 +124,16 @@ impl Ffi {
         buffer: &[u8],
     ) -> Result<i32, WasmV1Error> {
         let len: i32 = buffer.len().try_into().map_err(|err| {
-            WasmV1Error::RuntimeError(format!(
-                "Could not convert buffer length to i32: {}",
-                err
-            ))
+            WasmV1Error::RuntimeError(format!("Could not convert buffer length to i32: {}", err))
         })?;
-        let offset: i32 =
-            self.guest_alloc_func.call(store, len).map_err(|err| {
-                WasmV1Error::RuntimeError(format!(
-                    "__alloc function call failed: {}",
-                    err
-                ))
-            })?;
+        let offset: i32 = self.guest_alloc_func.call(store, len).map_err(|err| {
+            WasmV1Error::RuntimeError(format!("__alloc function call failed: {}", err))
+        })?;
         let Ok(offset_u64): Result<u64, _> = offset.try_into() else {
-            return Err(WasmV1Error::RuntimeError(format!("__alloc returned invalid pointer: {}", offset)));
+            return Err(WasmV1Error::RuntimeError(format!(
+                "__alloc returned invalid pointer: {}",
+                offset
+            )));
         };
 
         self.guest_memory

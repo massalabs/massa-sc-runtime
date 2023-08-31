@@ -6,9 +6,7 @@ mod error;
 
 use crate::error::{exec_bail, VMResult};
 use crate::execution::Compiler;
-use crate::middlewares::gas_calibration::{
-    get_gas_calibration_result, GasCalibrationResult,
-};
+use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 use crate::middlewares::{dumper::Dumper, gas_calibration::GasCalibration};
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
@@ -16,9 +14,7 @@ use crate::{GasCosts, Interface, Response};
 use anyhow::Result;
 use std::sync::Arc;
 use wasmer::NativeEngineExt;
-use wasmer::{
-    wasmparser::Operator, BaseTunables, Engine, EngineBuilder, Pages, Target,
-};
+use wasmer::{wasmparser::Operator, BaseTunables, Engine, EngineBuilder, Pages, Target};
 use wasmer::{CompilerConfig, Cranelift, Features, Module, Store};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::metering::MeteringPoints;
@@ -65,11 +61,7 @@ impl ASModule {
         }
     }
 
-    pub fn deserialize(
-        ser_module: &[u8],
-        limit: u64,
-        gas_costs: GasCosts,
-    ) -> Result<Self> {
+    pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
         // Deserialization is only meant for Cranelift modules
         let engine = init_cl_engine(limit, gas_costs);
         let store = Store::new(engine.clone());
@@ -135,10 +127,9 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
         compiler_config.push_middleware(gas_calibration);
     } else {
         // Add metering middleware
-        let metering =
-            Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
-                gas_costs.operator_cost
-            }));
+        let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
+            gas_costs.operator_cost
+        }));
         compiler_config.push_middleware(metering);
     }
 
@@ -174,10 +165,9 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
         compiler_config.push_middleware(dumper);
     } else {
         // Add metering middleware
-        let metering =
-            Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
-                gas_costs.operator_cost
-            }));
+        let metering = Arc::new(Metering::new(limit, move |_: &Operator| -> u64 {
+            gas_costs.operator_cost
+        }));
         compiler_config.push_middleware(metering);
     }
 
@@ -219,18 +209,12 @@ pub(crate) fn exec_as_module(
         Compiler::SP => init_sp_engine(limit, gas_costs.clone()),
     };
     let mut store = Store::new(engine);
-    let mut context =
-        ASContext::new(interface, as_module.binary_module, gas_costs);
-    let (instance, init_rem_points) =
-        context.create_vm_instance_and_init_env(&mut store)?;
+    let mut context = ASContext::new(interface, as_module.binary_module, gas_costs);
+    let (instance, init_rem_points) = context.create_vm_instance_and_init_env(&mut store)?;
     let init_cost = as_module.initial_limit.saturating_sub(init_rem_points);
 
     if cfg!(not(feature = "gas_calibration")) {
-        metering::set_remaining_points(
-            &mut store,
-            &instance,
-            limit.saturating_sub(init_cost),
-        );
+        metering::set_remaining_points(&mut store, &instance, limit.saturating_sub(init_cost));
     }
 
     match context.execution(&mut store, &instance, function, param) {
@@ -253,9 +237,7 @@ pub(crate) fn exec_as_module(
                     MeteringPoints::Remaining(..) => exec_bail!(err, init_cost),
                     MeteringPoints::Exhausted => {
                         exec_bail!(
-                            format!(
-                                "Not enough gas, limit reached at: {function}"
-                            ),
+                            format!("Not enough gas, limit reached at: {function}"),
                             init_cost
                         )
                     }
