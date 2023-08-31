@@ -1387,88 +1387,6 @@
 <a href="#1387" id="1387">1387</a>
 <a href="#1388" id="1388">1388</a>
 <a href="#1389" id="1389">1389</a>
-<a href="#1390" id="1390">1390</a>
-<a href="#1391" id="1391">1391</a>
-<a href="#1392" id="1392">1392</a>
-<a href="#1393" id="1393">1393</a>
-<a href="#1394" id="1394">1394</a>
-<a href="#1395" id="1395">1395</a>
-<a href="#1396" id="1396">1396</a>
-<a href="#1397" id="1397">1397</a>
-<a href="#1398" id="1398">1398</a>
-<a href="#1399" id="1399">1399</a>
-<a href="#1400" id="1400">1400</a>
-<a href="#1401" id="1401">1401</a>
-<a href="#1402" id="1402">1402</a>
-<a href="#1403" id="1403">1403</a>
-<a href="#1404" id="1404">1404</a>
-<a href="#1405" id="1405">1405</a>
-<a href="#1406" id="1406">1406</a>
-<a href="#1407" id="1407">1407</a>
-<a href="#1408" id="1408">1408</a>
-<a href="#1409" id="1409">1409</a>
-<a href="#1410" id="1410">1410</a>
-<a href="#1411" id="1411">1411</a>
-<a href="#1412" id="1412">1412</a>
-<a href="#1413" id="1413">1413</a>
-<a href="#1414" id="1414">1414</a>
-<a href="#1415" id="1415">1415</a>
-<a href="#1416" id="1416">1416</a>
-<a href="#1417" id="1417">1417</a>
-<a href="#1418" id="1418">1418</a>
-<a href="#1419" id="1419">1419</a>
-<a href="#1420" id="1420">1420</a>
-<a href="#1421" id="1421">1421</a>
-<a href="#1422" id="1422">1422</a>
-<a href="#1423" id="1423">1423</a>
-<a href="#1424" id="1424">1424</a>
-<a href="#1425" id="1425">1425</a>
-<a href="#1426" id="1426">1426</a>
-<a href="#1427" id="1427">1427</a>
-<a href="#1428" id="1428">1428</a>
-<a href="#1429" id="1429">1429</a>
-<a href="#1430" id="1430">1430</a>
-<a href="#1431" id="1431">1431</a>
-<a href="#1432" id="1432">1432</a>
-<a href="#1433" id="1433">1433</a>
-<a href="#1434" id="1434">1434</a>
-<a href="#1435" id="1435">1435</a>
-<a href="#1436" id="1436">1436</a>
-<a href="#1437" id="1437">1437</a>
-<a href="#1438" id="1438">1438</a>
-<a href="#1439" id="1439">1439</a>
-<a href="#1440" id="1440">1440</a>
-<a href="#1441" id="1441">1441</a>
-<a href="#1442" id="1442">1442</a>
-<a href="#1443" id="1443">1443</a>
-<a href="#1444" id="1444">1444</a>
-<a href="#1445" id="1445">1445</a>
-<a href="#1446" id="1446">1446</a>
-<a href="#1447" id="1447">1447</a>
-<a href="#1448" id="1448">1448</a>
-<a href="#1449" id="1449">1449</a>
-<a href="#1450" id="1450">1450</a>
-<a href="#1451" id="1451">1451</a>
-<a href="#1452" id="1452">1452</a>
-<a href="#1453" id="1453">1453</a>
-<a href="#1454" id="1454">1454</a>
-<a href="#1455" id="1455">1455</a>
-<a href="#1456" id="1456">1456</a>
-<a href="#1457" id="1457">1457</a>
-<a href="#1458" id="1458">1458</a>
-<a href="#1459" id="1459">1459</a>
-<a href="#1460" id="1460">1460</a>
-<a href="#1461" id="1461">1461</a>
-<a href="#1462" id="1462">1462</a>
-<a href="#1463" id="1463">1463</a>
-<a href="#1464" id="1464">1464</a>
-<a href="#1465" id="1465">1465</a>
-<a href="#1466" id="1466">1466</a>
-<a href="#1467" id="1467">1467</a>
-<a href="#1468" id="1468">1468</a>
-<a href="#1469" id="1469">1469</a>
-<a href="#1470" id="1470">1470</a>
-<a href="#1471" id="1471">1471</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -1491,9 +1409,7 @@
     (<span class="macro-nonterminal">$env</span>:ident) =&gt; {
         <span class="kw">match </span><span class="macro-nonterminal">$env</span>.get_ffi_env().memory.as_ref() {
             <span class="prelude-val">Some</span>(mem) =&gt; mem,
-            <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(
-                <span class="string">&quot;AssemblyScript memory is missing from the environment&quot;
-            </span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;AssemblyScript memory is missing from the environment&quot;</span>),
         }
     };
 }
@@ -1514,9 +1430,7 @@
 <span class="doccomment">/// Get the coins that have been made available for a specific purpose for the
 /// current call.
 </span><span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_call_coins(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-) -&gt; ABIResult&lt;i64&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_call_coins(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;i64&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(env.get_interface().get_call_coins()<span class="question-mark">? </span><span class="kw">as </span>i64)
@@ -1570,17 +1484,13 @@
     //     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, to_address.len(), true);
     // }
-    </span><span class="prelude-val">Ok</span>(env.get_interface().transfer_coins_for(
-        from_address,
-        to_address,
-        raw_amount <span class="kw">as </span>u64,
-    )<span class="question-mark">?</span>)
+    </span><span class="prelude-val">Ok</span>(env
+        .get_interface()
+        .transfer_coins_for(from_address, to_address, raw_amount <span class="kw">as </span>u64)<span class="question-mark">?</span>)
 }
 
 <span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_balance(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-) -&gt; ABIResult&lt;i64&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_balance(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;i64&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(env.get_interface().get_balance()<span class="question-mark">? </span><span class="kw">as </span>i64)
@@ -1641,9 +1551,7 @@
 }
 
 <span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_remaining_gas(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-) -&gt; ABIResult&lt;i64&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_remaining_gas(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;i64&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(get_remaining_points(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx)<span class="question-mark">? </span><span class="kw">as </span>i64)
@@ -1654,10 +1562,7 @@
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
 </span><span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_print(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-    arg: i32,
-) -&gt; ABIResult&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_print(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;, arg: i32) -&gt; ABIResult&lt;()&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
@@ -1675,21 +1580,15 @@
 
 <span class="doccomment">/// Get the operation datastore keys (aka entries)
 </span><span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_op_keys(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-) -&gt; ABIResult&lt;i32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_op_keys(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;i32&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">match </span>env.get_interface().get_op_keys(<span class="prelude-val">None</span>) {
         <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
         <span class="prelude-val">Ok</span>(keys) =&gt; {
-            <span class="kw">let </span>fmt_keys = ser_bytearray_vec(
-                <span class="kw-2">&amp;</span>keys,
-                keys.len(),
-                settings::max_op_datastore_entry_count(),
-            )<span class="question-mark">?</span>;
-            <span class="kw">let </span>ptr =
-                pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>fmt_keys)<span class="question-mark">?</span>.offset();
+            <span class="kw">let </span>fmt_keys =
+                ser_bytearray_vec(<span class="kw-2">&amp;</span>keys, keys.len(), settings::max_op_datastore_entry_count())<span class="question-mark">?</span>;
+            <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>fmt_keys)<span class="question-mark">?</span>.offset();
             <span class="prelude-val">Ok</span>(ptr <span class="kw">as </span>i32)
         }
     }
@@ -1713,13 +1612,9 @@
     <span class="kw">match </span>env.get_interface().get_op_keys(prefix_opt) {
         <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
         <span class="prelude-val">Ok</span>(keys) =&gt; {
-            <span class="kw">let </span>fmt_keys = ser_bytearray_vec(
-                <span class="kw-2">&amp;</span>keys,
-                keys.len(),
-                settings::max_op_datastore_entry_count(),
-            )<span class="question-mark">?</span>;
-            <span class="kw">let </span>ptr =
-                pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>fmt_keys)<span class="question-mark">?</span>.offset();
+            <span class="kw">let </span>fmt_keys =
+                ser_bytearray_vec(<span class="kw-2">&amp;</span>keys, keys.len(), settings::max_op_datastore_entry_count())<span class="question-mark">?</span>;
+            <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>fmt_keys)<span class="question-mark">?</span>.offset();
             <span class="prelude-val">Ok</span>(ptr <span class="kw">as </span>i32)
         }
     }
@@ -1791,18 +1686,12 @@
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, bytecode.len(), true);
     // }
     </span><span class="kw">let </span>address = create_sc(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>bytecode)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(
-        StringPtr::alloc(<span class="kw-2">&amp;</span>address, env.get_ffi_env(), <span class="kw-2">&amp;mut </span>ctx)<span class="question-mark">?</span>.offset()
-            <span class="kw">as </span>i32,
-    )
+    <span class="prelude-val">Ok</span>(StringPtr::alloc(<span class="kw-2">&amp;</span>address, env.get_ffi_env(), <span class="kw-2">&amp;mut </span>ctx)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32)
 }
 
 <span class="doccomment">/// performs a hash on a bytearray and returns the hash
 </span><span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_hash(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-    value: i32,
-) -&gt; ABIResult&lt;i32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_hash(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;, value: i32) -&gt; ABIResult&lt;i32&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
@@ -1848,11 +1737,7 @@
         <span class="prelude-val">None
     </span>};
     <span class="kw">let </span>keys = env.get_interface().get_keys(prefix_opt)<span class="question-mark">?</span>;
-    <span class="kw">let </span>fmt_keys = ser_bytearray_vec(
-        <span class="kw-2">&amp;</span>keys,
-        keys.len(),
-        settings::max_datastore_entry_count(),
-    )<span class="question-mark">?</span>;
+    <span class="kw">let </span>fmt_keys = ser_bytearray_vec(<span class="kw-2">&amp;</span>keys, keys.len(), settings::max_datastore_entry_count())<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>fmt_keys)<span class="question-mark">?</span>.offset();
     <span class="prelude-val">Ok</span>(ptr <span class="kw">as </span>i32)
 }
@@ -1875,11 +1760,7 @@
         <span class="prelude-val">None
     </span>};
     <span class="kw">let </span>keys = env.get_interface().get_keys_for(<span class="kw-2">&amp;</span>address, prefix_opt)<span class="question-mark">?</span>;
-    <span class="kw">let </span>fmt_keys = ser_bytearray_vec(
-        <span class="kw-2">&amp;</span>keys,
-        keys.len(),
-        settings::max_datastore_entry_count(),
-    )<span class="question-mark">?</span>;
+    <span class="kw">let </span>fmt_keys = ser_bytearray_vec(<span class="kw-2">&amp;</span>keys, keys.len(), settings::max_datastore_entry_count())<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>fmt_keys)<span class="question-mark">?</span>.offset();
     <span class="prelude-val">Ok</span>(ptr <span class="kw">as </span>i32)
 }
@@ -1946,10 +1827,7 @@
 
 <span class="doccomment">/// gets a key-indexed data entry in the datastore, failing if non-existent
 </span><span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_data(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-    key: i32,
-) -&gt; ABIResult&lt;i32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_data(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;, key: i32) -&gt; ABIResult&lt;i32&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
@@ -1965,10 +1843,7 @@
 
 <span class="doccomment">/// checks if a key-indexed data entry exists in the datastore
 </span><span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_has_data(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-    key: i32,
-) -&gt; ABIResult&lt;i32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_has_data(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;, key: i32) -&gt; ABIResult&lt;i32&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
@@ -2140,9 +2015,7 @@
 }
 
 <span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_call_stack(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-) -&gt; ABIResult&lt;i32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_call_stack(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;i32&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>data = env.get_interface().get_call_stack()<span class="question-mark">?</span>;
@@ -2191,11 +2064,9 @@
     //     let fname = format!(&quot;massa.{}:2&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, public_key.len(), true);
     // }
-    </span><span class="prelude-val">Ok</span>(env.get_interface().signature_verify(
-        data.as_bytes(),
-        <span class="kw-2">&amp;</span>signature,
-        <span class="kw-2">&amp;</span>public_key,
-    )<span class="question-mark">? </span><span class="kw">as </span>i32)
+    </span><span class="prelude-val">Ok</span>(env
+        .get_interface()
+        .signature_verify(data.as_bytes(), <span class="kw-2">&amp;</span>signature, <span class="kw-2">&amp;</span>public_key)<span class="question-mark">? </span><span class="kw">as </span>i32)
 }
 
 <span class="doccomment">/// Verify an EVM signature.
@@ -2213,11 +2084,9 @@
     <span class="kw">let </span>data = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, data)<span class="question-mark">?</span>;
     <span class="kw">let </span>signature = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, signature)<span class="question-mark">?</span>;
     <span class="kw">let </span>public_key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, public_key)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(env.get_interface().evm_signature_verify(
-        <span class="kw-2">&amp;</span>data,
-        <span class="kw-2">&amp;</span>signature,
-        <span class="kw-2">&amp;</span>public_key,
-    )<span class="question-mark">? </span><span class="kw">as </span>i32)
+    <span class="prelude-val">Ok</span>(env
+        .get_interface()
+        .evm_signature_verify(<span class="kw-2">&amp;</span>data, <span class="kw-2">&amp;</span>signature, <span class="kw-2">&amp;</span>public_key)<span class="question-mark">? </span><span class="kw">as </span>i32)
 }
 
 <span class="doccomment">/// Get address from public key (EVM)
@@ -2303,9 +2172,7 @@
 
 <span class="doccomment">/// generates an unsafe random number
 </span><span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_unsafe_random(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-) -&gt; ABIResult&lt;i64&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_unsafe_random(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;i64&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(env.get_interface().unsafe_random()<span class="question-mark">?</span>)
@@ -2313,9 +2180,7 @@
 
 <span class="doccomment">/// gets the current unix timestamp in milliseconds
 </span><span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_time(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-) -&gt; ABIResult&lt;i64&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_time(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;i64&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(env.get_interface().get_time()<span class="question-mark">? </span><span class="kw">as </span>i64)
@@ -2417,9 +2282,7 @@
 
 <span class="doccomment">/// gets the period of the current execution slot
 </span><span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_current_period(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-) -&gt; ABIResult&lt;i64&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_current_period(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;i64&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(env.get_interface().get_current_period()<span class="question-mark">? </span><span class="kw">as </span>i64)
@@ -2427,9 +2290,7 @@
 
 <span class="doccomment">/// gets the thread of the current execution slot
 </span><span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_current_thread(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-) -&gt; ABIResult&lt;i32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_current_thread(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;i32&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(env.get_interface().get_current_thread()<span class="question-mark">? </span><span class="kw">as </span>i32)
@@ -2480,9 +2341,7 @@
 
 <span class="doccomment">/// get bytecode of the current address
 </span><span class="attr">#[named]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_bytecode(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-) -&gt; ABIResult&lt;i32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_bytecode(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;i32&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>data = env.get_interface().raw_get_bytecode()<span class="question-mark">?</span>;
@@ -2559,9 +2418,7 @@
 
 <span class="doccomment">/// Check whether or not the caller has write access in the current context
 </span><span class="attr">#[named]
-</span><span class="kw">pub fn </span>assembly_script_caller_has_write_access(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-) -&gt; ABIResult&lt;i32&gt; {
+</span><span class="kw">pub fn </span>assembly_script_caller_has_write_access(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;i32&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(env.get_interface().caller_has_write_access()<span class="question-mark">? </span><span class="kw">as </span>i32)
@@ -2634,9 +2491,7 @@
 
 <span class="doccomment">/// Assembly script builtin `Date.now()`
 </span><span class="attr">#[named]
-</span><span class="kw">pub fn </span>assembly_script_date_now(
-    <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
-) -&gt; ABIResult&lt;f64&gt; {
+</span><span class="kw">pub fn </span>assembly_script_date_now(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;f64&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
         sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
@@ -2787,10 +2642,7 @@
 }
 
 <span class="doccomment">/// Assembly script builtin `process.exit()`.
-</span><span class="kw">pub fn </span>assembly_script_process_exit(
-    _ctx: FunctionEnvMut&lt;ASEnv&gt;,
-    exit_code: i32,
-) -&gt; ABIResult&lt;()&gt; {
+</span><span class="kw">pub fn </span>assembly_script_process_exit(_ctx: FunctionEnvMut&lt;ASEnv&gt;, exit_code: i32) -&gt; ABIResult&lt;()&gt; {
     <span class="macro">abi_bail!</span>(<span class="macro">format!</span>(<span class="string">&quot;exit with code: {}&quot;</span>, exit_code));
 }
 
@@ -2813,28 +2665,17 @@
 }
 
 <span class="doccomment">/// Tooling that reads a buffer (Vec&lt;u8&gt;) in memory
-</span><span class="kw">fn </span>read_buffer(
-    memory: <span class="kw-2">&amp;</span>Memory,
-    store: <span class="kw-2">&amp;</span><span class="kw">impl </span>AsStoreRef,
-    offset: i32,
-) -&gt; ABIResult&lt;Vec&lt;u8&gt;&gt; {
+</span><span class="kw">fn </span>read_buffer(memory: <span class="kw-2">&amp;</span>Memory, store: <span class="kw-2">&amp;</span><span class="kw">impl </span>AsStoreRef, offset: i32) -&gt; ABIResult&lt;Vec&lt;u8&gt;&gt; {
     <span class="prelude-val">Ok</span>(BufferPtr::new(offset <span class="kw">as </span>u32).read(memory, store)<span class="question-mark">?</span>)
 }
 
 <span class="doccomment">/// Tooling, return a string from a given offset
-</span><span class="kw">fn </span>read_string(
-    memory: <span class="kw-2">&amp;</span>Memory,
-    store: <span class="kw-2">&amp;</span><span class="kw">impl </span>AsStoreRef,
-    ptr: i32,
-) -&gt; ABIResult&lt;String&gt; {
+</span><span class="kw">fn </span>read_string(memory: <span class="kw-2">&amp;</span>Memory, store: <span class="kw-2">&amp;</span><span class="kw">impl </span>AsStoreRef, ptr: i32) -&gt; ABIResult&lt;String&gt; {
     <span class="prelude-val">Ok</span>(StringPtr::new(ptr <span class="kw">as </span>u32).read(memory, store)<span class="question-mark">?</span>)
 }
 
 <span class="doccomment">/// Tooling, return a pointer offset of a serialized list in json
-</span><span class="kw">fn </span>alloc_string_array(
-    ctx: <span class="kw-2">&amp;mut </span>FunctionEnvMut&lt;ASEnv&gt;,
-    vec: <span class="kw-2">&amp;</span>[String],
-) -&gt; ABIResult&lt;i32&gt; {
+</span><span class="kw">fn </span>alloc_string_array(ctx: <span class="kw-2">&amp;mut </span>FunctionEnvMut&lt;ASEnv&gt;, vec: <span class="kw-2">&amp;</span>[String]) -&gt; ABIResult&lt;i32&gt; {
     <span class="kw">let </span>env = get_env(ctx)<span class="question-mark">?</span>;
     <span class="kw">let </span>addresses = serde_json::to_string(vec)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(StringPtr::alloc(<span class="kw-2">&amp;</span>addresses, env.get_ffi_env(), ctx)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32)
@@ -2843,11 +2684,7 @@
 <span class="doccomment">/// Flatten a Vec&lt;Vec&lt;u8&gt;&gt; (or anything that can be turned into an iterator) to
 /// a Vec&lt;u8&gt; with the format: L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L),
 /// V2_L ... VN (8 bits * VN_L)
-</span><span class="kw">fn </span>ser_bytearray_vec&lt;<span class="lifetime">&#39;a</span>, I&gt;(
-    data: I,
-    data_len: usize,
-    max_length: usize,
-) -&gt; ABIResult&lt;Vec&lt;u8&gt;&gt;
+</span><span class="kw">fn </span>ser_bytearray_vec&lt;<span class="lifetime">&#39;a</span>, I&gt;(data: I, data_len: usize, max_length: usize) -&gt; ABIResult&lt;Vec&lt;u8&gt;&gt;
 <span class="kw">where
     </span>I: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Vec&lt;u8&gt;&gt;,
 {
@@ -2929,8 +2766,7 @@
             .collect();
         <span class="macro">assert_eq!</span>(vb.len(), u16::MAX <span class="kw">as </span>usize);
 
-        <span class="kw">let </span>vb_ser =
-            ser_bytearray_vec(<span class="kw-2">&amp;</span>vb, vb.len(), u16::MAX <span class="kw">as </span>usize).unwrap();
+        <span class="kw">let </span>vb_ser = ser_bytearray_vec(<span class="kw-2">&amp;</span>vb, vb.len(), u16::MAX <span class="kw">as </span>usize).unwrap();
         <span class="macro">assert_eq!</span>(vb_ser[<span class="number">0</span>..<span class="number">4</span>], [<span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>]);
         <span class="macro">assert_eq!</span>(vb_ser[<span class="number">4</span>], <span class="number">1</span>);
         <span class="macro">assert_eq!</span>(vb_ser[<span class="number">4 </span>+ <span class="number">1</span>], <span class="number">0</span>);

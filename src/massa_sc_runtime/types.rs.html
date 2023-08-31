@@ -537,117 +537,6 @@
 <a href="#537" id="537">537</a>
 <a href="#538" id="538">538</a>
 <a href="#539" id="539">539</a>
-<a href="#540" id="540">540</a>
-<a href="#541" id="541">541</a>
-<a href="#542" id="542">542</a>
-<a href="#543" id="543">543</a>
-<a href="#544" id="544">544</a>
-<a href="#545" id="545">545</a>
-<a href="#546" id="546">546</a>
-<a href="#547" id="547">547</a>
-<a href="#548" id="548">548</a>
-<a href="#549" id="549">549</a>
-<a href="#550" id="550">550</a>
-<a href="#551" id="551">551</a>
-<a href="#552" id="552">552</a>
-<a href="#553" id="553">553</a>
-<a href="#554" id="554">554</a>
-<a href="#555" id="555">555</a>
-<a href="#556" id="556">556</a>
-<a href="#557" id="557">557</a>
-<a href="#558" id="558">558</a>
-<a href="#559" id="559">559</a>
-<a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
-<a href="#565" id="565">565</a>
-<a href="#566" id="566">566</a>
-<a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
-<a href="#570" id="570">570</a>
-<a href="#571" id="571">571</a>
-<a href="#572" id="572">572</a>
-<a href="#573" id="573">573</a>
-<a href="#574" id="574">574</a>
-<a href="#575" id="575">575</a>
-<a href="#576" id="576">576</a>
-<a href="#577" id="577">577</a>
-<a href="#578" id="578">578</a>
-<a href="#579" id="579">579</a>
-<a href="#580" id="580">580</a>
-<a href="#581" id="581">581</a>
-<a href="#582" id="582">582</a>
-<a href="#583" id="583">583</a>
-<a href="#584" id="584">584</a>
-<a href="#585" id="585">585</a>
-<a href="#586" id="586">586</a>
-<a href="#587" id="587">587</a>
-<a href="#588" id="588">588</a>
-<a href="#589" id="589">589</a>
-<a href="#590" id="590">590</a>
-<a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
-<a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
-<a href="#610" id="610">610</a>
-<a href="#611" id="611">611</a>
-<a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
-<a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a>
-<a href="#616" id="616">616</a>
-<a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
-<a href="#623" id="623">623</a>
-<a href="#624" id="624">624</a>
-<a href="#625" id="625">625</a>
-<a href="#626" id="626">626</a>
-<a href="#627" id="627">627</a>
-<a href="#628" id="628">628</a>
-<a href="#629" id="629">629</a>
-<a href="#630" id="630">630</a>
-<a href="#631" id="631">631</a>
-<a href="#632" id="632">632</a>
-<a href="#633" id="633">633</a>
-<a href="#634" id="634">634</a>
-<a href="#635" id="635">635</a>
-<a href="#636" id="636">636</a>
-<a href="#637" id="637">637</a>
-<a href="#638" id="638">638</a>
-<a href="#639" id="639">639</a>
-<a href="#640" id="640">640</a>
-<a href="#641" id="641">641</a>
-<a href="#642" id="642">642</a>
-<a href="#643" id="643">643</a>
-<a href="#644" id="644">644</a>
-<a href="#645" id="645">645</a>
-<a href="#646" id="646">646</a>
-<a href="#647" id="647">647</a>
-<a href="#648" id="648">648</a>
-<a href="#649" id="649">649</a>
-<a href="#650" id="650">650</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
@@ -692,8 +581,7 @@
 <span class="kw">impl </span>GasCosts {
     <span class="kw">pub fn </span>new(abi_cost_file: PathBuf, wasm_abi_file: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>abi_cost_file = std::fs::read_to_string(abi_cost_file)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>abi_costs: HashMap&lt;String, u64&gt; =
-            serde_json::from_str(<span class="kw-2">&amp;</span>abi_cost_file)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>abi_costs: HashMap&lt;String, u64&gt; = serde_json::from_str(<span class="kw-2">&amp;</span>abi_cost_file)<span class="question-mark">?</span>;
         abi_costs.iter_mut().for_each(|(<span class="kw">_</span>, v)| {
             <span class="kw">let </span>unit_digit = <span class="kw-2">*</span>v % <span class="number">10</span>;
             <span class="kw">if </span>unit_digit &gt; <span class="number">5 </span>{
@@ -703,21 +591,15 @@
             }
         });
         <span class="kw">let </span>wasm_abi_file = std::fs::read_to_string(wasm_abi_file)<span class="question-mark">?</span>;
-        <span class="kw">let </span>wasm_costs: HashMap&lt;String, u64&gt; =
-            serde_json::from_str(<span class="kw-2">&amp;</span>wasm_abi_file)<span class="question-mark">?</span>;
+        <span class="kw">let </span>wasm_costs: HashMap&lt;String, u64&gt; = serde_json::from_str(<span class="kw-2">&amp;</span>wasm_abi_file)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
-            operator_cost: wasm_costs.values().copied().sum::&lt;u64&gt;()
-                / wasm_costs.len() <span class="kw">as </span>u64,
-            launch_cost: <span class="kw-2">*</span>abi_costs.get(<span class="string">&quot;launch&quot;</span>).ok_or_else(|| {
-                <span class="macro">anyhow!</span>(<span class="string">&quot;launch cost not found in ABI gas cost file.&quot;</span>)
-            })<span class="question-mark">?</span>,
+            operator_cost: wasm_costs.values().copied().sum::&lt;u64&gt;() / wasm_costs.len() <span class="kw">as </span>u64,
+            launch_cost: <span class="kw-2">*</span>abi_costs
+                .get(<span class="string">&quot;launch&quot;</span>)
+                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;launch cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
             sp_compilation_cost: <span class="kw-2">*</span>abi_costs
                 .get(<span class="string">&quot;sp_compilation_cost&quot;</span>)
-                .ok_or_else(|| {
-                    <span class="macro">anyhow!</span>(
-                        <span class="string">&quot;sp_compilation_cost not found in ABI gas cost file.&quot;
-                    </span>)
-                })<span class="question-mark">?</span>,
+                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;sp_compilation_cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
             abi_costs,
         })
     }
@@ -727,10 +609,7 @@
 </span><span class="kw">impl </span>Default <span class="kw">for </span>GasCosts {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>abi_costs = HashMap::new();
-        abi_costs.insert(
-            String::from(<span class="string">&quot;assembly_script_address_from_public_key&quot;</span>),
-            <span class="number">147</span>,
-        );
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_address_from_public_key&quot;</span>), <span class="number">147</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_validate_address&quot;</span>), <span class="number">4</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_append_data&quot;</span>), <span class="number">162</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_append_data_for&quot;</span>), <span class="number">200</span>);
@@ -750,10 +629,8 @@
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_keys_for&quot;</span>), <span class="number">48</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_op_data&quot;</span>), <span class="number">71</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_op_keys&quot;</span>), <span class="number">138</span>);
-        abi_costs
-            .insert(String::from(<span class="string">&quot;assembly_script_get_op_keys_prefix&quot;</span>), <span class="number">138</span>);
-        abi_costs
-            .insert(String::from(<span class="string">&quot;assembly_script_get_owned_addresses&quot;</span>), <span class="number">52</span>);
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_op_keys_prefix&quot;</span>), <span class="number">138</span>);
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_owned_addresses&quot;</span>), <span class="number">52</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_remaining_gas&quot;</span>), <span class="number">7</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_time&quot;</span>), <span class="number">4</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_has_data&quot;</span>), <span class="number">69</span>);
@@ -764,17 +641,13 @@
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_keccak256_hash&quot;</span>), <span class="number">83</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_print&quot;</span>), <span class="number">35</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_send_message&quot;</span>), <span class="number">316</span>);
-        abi_costs.insert(
-            String::from(<span class="string">&quot;assembly_script_get_origin_operation_id&quot;</span>),
-            <span class="number">200</span>,
-        );
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_origin_operation_id&quot;</span>), <span class="number">200</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_set_bytecode&quot;</span>), <span class="number">74</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_set_bytecode_for&quot;</span>), <span class="number">129</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_set_data&quot;</span>), <span class="number">158</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_set_data_for&quot;</span>), <span class="number">165</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_signature_verify&quot;</span>), <span class="number">98</span>);
-        abi_costs
-            .insert(String::from(<span class="string">&quot;assembly_script_evm_signature_verify&quot;</span>), <span class="number">264</span>);
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_evm_signature_verify&quot;</span>), <span class="number">264</span>);
         abi_costs.insert(
             String::from(<span class="string">&quot;assembly_script_evm_get_address_from_pubkey&quot;</span>),
             <span class="number">11</span>,
@@ -785,18 +658,14 @@
         );
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_is_address_eoa&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_transfer_coins&quot;</span>), <span class="number">62</span>);
-        abi_costs
-            .insert(String::from(<span class="string">&quot;assembly_script_transfer_coins_for&quot;</span>), <span class="number">102</span>);
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_transfer_coins_for&quot;</span>), <span class="number">102</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_unsafe_random&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_call&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_local_call&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_local_execution&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_bytecode&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_bytecode_for&quot;</span>), <span class="number">11</span>);
-        abi_costs.insert(
-            String::from(<span class="string">&quot;assembly_script_caller_has_write_access&quot;</span>),
-            <span class="number">11</span>,
-        );
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_caller_has_write_access&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_function_exists&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_seed&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_abort&quot;</span>), <span class="number">11</span>);
@@ -825,11 +694,7 @@
     <span class="doccomment">/// Prepare the execution of a module at the given address and transfer a
     /// given amount of coins
 
-    </span><span class="kw">fn </span>init_call_wasmv1(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        address: <span class="kw-2">&amp;</span>str,
-        raw_coins: NativeAmount,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
+    </span><span class="kw">fn </span>init_call_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, raw_coins: NativeAmount) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
 
     <span class="doccomment">/// Finish a call
     </span><span class="kw">fn </span>finish_call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
@@ -842,10 +707,7 @@
     /// Defaults to zero if the address is not found.
     </span><span class="kw">fn </span>get_balance_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt;;
 
-    <span class="kw">fn </span>get_balance_wasmv1(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        address: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;NativeAmount&gt;;
+    <span class="kw">fn </span>get_balance_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;NativeAmount&gt;;
 
     <span class="doccomment">/// Transfer an amount from the address on the current call stack to a
     /// target address.
@@ -882,17 +744,9 @@
     <span class="doccomment">/// Sets the executable bytecode at a target address.
     /// The target address must exist and the current context must have access
     /// rights.
-    </span><span class="kw">fn </span>raw_set_bytecode_for(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        address: <span class="kw-2">&amp;</span>str,
-        bytecode: <span class="kw-2">&amp;</span>[u8],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
+    </span><span class="kw">fn </span>raw_set_bytecode_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, bytecode: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
-    <span class="kw">fn </span>set_bytecode_wasmv1(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        bytecode: <span class="kw-2">&amp;</span>[u8],
-        address: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
+    <span class="kw">fn </span>set_bytecode_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], address: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
     <span class="doccomment">/// Requires a new address that contains the sent &amp;[u8]
     </span><span class="kw">fn </span>create_module(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt;;
@@ -906,11 +760,7 @@
 
     <span class="doccomment">/// Return datastore keys
     /// Will only return keys with a given prefix if provided in args
-    </span><span class="kw">fn </span>get_keys_for(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        address: <span class="kw-2">&amp;</span>str,
-        prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeSet&lt;Vec&lt;u8&gt;&gt;&gt;;
+    </span><span class="kw">fn </span>get_keys_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeSet&lt;Vec&lt;u8&gt;&gt;&gt;;
 
     <span class="kw">fn </span>get_ds_keys_wasmv1(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -924,41 +774,22 @@
     <span class="doccomment">/// Requires the data at the address
     </span><span class="kw">fn </span>raw_get_data_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
 
-    <span class="kw">fn </span>get_ds_value_wasmv1(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        key: <span class="kw-2">&amp;</span>[u8],
-        address: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
+    <span class="kw">fn </span>get_ds_value_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>[u8], address: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
 
     <span class="doccomment">/// Set the datastore value for the corresponding key
     </span><span class="kw">fn </span>raw_set_data(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>[u8], value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
     <span class="doccomment">/// Set the datastore value for the corresponding key of the given address
-    </span><span class="kw">fn </span>raw_set_data_for(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        address: <span class="kw-2">&amp;</span>str,
-        key: <span class="kw-2">&amp;</span>[u8],
-        value: <span class="kw-2">&amp;</span>[u8],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
+    </span><span class="kw">fn </span>raw_set_data_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, key: <span class="kw-2">&amp;</span>[u8], value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
-    <span class="kw">fn </span>set_ds_value_wasmv1(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        key: <span class="kw-2">&amp;</span>[u8],
-        value: <span class="kw-2">&amp;</span>[u8],
-        address: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
+    <span class="kw">fn </span>set_ds_value_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>[u8], value: <span class="kw-2">&amp;</span>[u8], address: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
     <span class="doccomment">/// Append a value to the current datastore value for the corresponding key
     </span><span class="kw">fn </span>raw_append_data(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>[u8], value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
     <span class="doccomment">/// Append a value to the current datastore value for the corresponding key
     /// and the given address
-    </span><span class="kw">fn </span>raw_append_data_for(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        address: <span class="kw-2">&amp;</span>str,
-        key: <span class="kw-2">&amp;</span>[u8],
-        value: <span class="kw-2">&amp;</span>[u8],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
+    </span><span class="kw">fn </span>raw_append_data_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, key: <span class="kw-2">&amp;</span>[u8], value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
     <span class="kw">fn </span>append_ds_value_wasmv1(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -973,11 +804,7 @@
     <span class="doccomment">/// Delete a datastore entry at of the given address
     </span><span class="kw">fn </span>raw_delete_data_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
-    <span class="kw">fn </span>delete_ds_entry_wasmv1(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        key: <span class="kw-2">&amp;</span>[u8],
-        address: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
+    <span class="kw">fn </span>delete_ds_entry_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>[u8], address: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
     <span class="doccomment">/// Requires to replace the data in the current address
     ///
@@ -989,11 +816,7 @@
     <span class="doccomment">/// Check if a datastore entry exists
     </span><span class="kw">fn </span>has_data_for(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt;;
 
-    <span class="kw">fn </span>ds_entry_exists_wasmv1(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        key: <span class="kw-2">&amp;</span>[u8],
-        address: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt;;
+    <span class="kw">fn </span>ds_entry_exists_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>[u8], address: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt;;
 
     <span class="doccomment">/// Returns bytecode of the current address
     </span><span class="kw">fn </span>raw_get_bytecode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
@@ -1024,12 +847,7 @@
     </span><span class="kw">fn </span>hash_blake3(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;[u8; <span class="number">32</span>]&gt;;
 
     <span class="doccomment">/// Verify signature
-    </span><span class="kw">fn </span>signature_verify(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        data: <span class="kw-2">&amp;</span>[u8],
-        signature: <span class="kw-2">&amp;</span>str,
-        public_key: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt;;
+    </span><span class="kw">fn </span>signature_verify(<span class="kw-2">&amp;</span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8], signature: <span class="kw-2">&amp;</span>str, public_key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt;;
 
     <span class="doccomment">/// Verify signature (EVM)
     </span><span class="kw">fn </span>evm_signature_verify(
@@ -1040,15 +858,10 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt;;
 
     <span class="doccomment">/// Get address from public key (EVM)
-    </span><span class="kw">fn </span>evm_get_address_from_pubkey(<span class="kw-2">&amp;</span><span class="self">self</span>, public_key: <span class="kw-2">&amp;</span>[u8])
-        -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
+    </span><span class="kw">fn </span>evm_get_address_from_pubkey(<span class="kw-2">&amp;</span><span class="self">self</span>, public_key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
 
     <span class="doccomment">/// Get public key from signature (EVM)
-    </span><span class="kw">fn </span>evm_get_pubkey_from_signature(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        hash: <span class="kw-2">&amp;</span>[u8],
-        signature: <span class="kw-2">&amp;</span>[u8],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
+    </span><span class="kw">fn </span>evm_get_pubkey_from_signature(<span class="kw-2">&amp;</span><span class="self">self</span>, hash: <span class="kw-2">&amp;</span>[u8], signature: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
 
     <span class="doccomment">/// Return true if the address is a User address, false if it is an SC
     /// address
@@ -1143,18 +956,11 @@
     <span class="comment">// Keccak256 hash bytes
     </span><span class="kw">fn </span>hash_keccak256(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;[u8; <span class="number">32</span>]&gt;;
 
-    <span class="kw">fn </span>native_amount_from_str_wasmv1(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        amount: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;NativeAmount&gt;;
+    <span class="kw">fn </span>native_amount_from_str_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, amount: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;NativeAmount&gt;;
 
-    <span class="kw">fn </span>native_amount_to_string_wasmv1(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        amount: <span class="kw-2">&amp;</span>NativeAmount,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt;;
+    <span class="kw">fn </span>native_amount_to_string_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, amount: <span class="kw-2">&amp;</span>NativeAmount) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt;;
 
-    <span class="kw">fn </span>check_native_amount_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, amount: <span class="kw-2">&amp;</span>NativeAmount)
-        -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt;;
+    <span class="kw">fn </span>check_native_amount_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, amount: <span class="kw-2">&amp;</span>NativeAmount) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt;;
 
     <span class="kw">fn </span>add_native_amount_wasmv1(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1192,10 +998,7 @@
 
     <span class="kw">fn </span>check_signature_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, to_check: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt;;
 
-    <span class="kw">fn </span>get_address_category_wasmv1(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        to_check: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;AddressCategory&gt;;
+    <span class="kw">fn </span>get_address_category_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, to_check: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;AddressCategory&gt;;
 
     <span class="kw">fn </span>get_address_version_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt;;
 
@@ -1215,11 +1018,7 @@
         time2: <span class="kw-2">&amp;</span>NativeTime,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;NativeTime&gt;;
 
-    <span class="kw">fn </span>checked_mul_native_time_wasmv1(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        time: <span class="kw-2">&amp;</span>NativeTime,
-        factor: u64,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;NativeTime&gt;;
+    <span class="kw">fn </span>checked_mul_native_time_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, time: <span class="kw-2">&amp;</span>NativeTime, factor: u64) -&gt; <span class="prelude-ty">Result</span>&lt;NativeTime&gt;;
 
     <span class="kw">fn </span>checked_scalar_div_native_time_wasmv1(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1237,11 +1036,7 @@
 
     <span class="kw">fn </span>bytes_to_base58_check_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; String;
 
-    <span class="kw">fn </span>compare_address_wasmv1(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        left: <span class="kw-2">&amp;</span>str,
-        right: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ComparisonResult&gt;;
+    <span class="kw">fn </span>compare_address_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <span class="kw-2">&amp;</span>str, right: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;ComparisonResult&gt;;
 
     <span class="kw">fn </span>compare_native_amount_wasmv1(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1255,11 +1050,7 @@
         right: <span class="kw-2">&amp;</span>NativeTime,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ComparisonResult&gt;;
 
-    <span class="kw">fn </span>compare_pub_key_wasmv1(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        left: <span class="kw-2">&amp;</span>str,
-        right: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ComparisonResult&gt;;
+    <span class="kw">fn </span>compare_pub_key_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <span class="kw-2">&amp;</span>str, right: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;ComparisonResult&gt;;
 }
 
 <span class="kw">impl dyn </span>Interface {
@@ -1269,11 +1060,7 @@
         )<span class="question-mark">?</span>)<span class="question-mark">?</span>)
     }
 
-    <span class="kw">pub fn </span>get_data_for&lt;T: DeserializeOwned&gt;(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        address: <span class="kw-2">&amp;</span>str,
-        key: <span class="kw-2">&amp;</span>[u8],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
+    <span class="kw">pub fn </span>get_data_for&lt;T: DeserializeOwned&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
         <span class="prelude-val">Ok</span>(serde_json::from_str::&lt;T&gt;(std::str::from_utf8(
             <span class="kw-2">&amp;</span><span class="self">self</span>.raw_get_data_for(address, key)<span class="question-mark">?</span>,
         )<span class="question-mark">?</span>)<span class="question-mark">?</span>)
@@ -1285,17 +1072,8 @@
         </span><span class="self">self</span>.raw_set_data(key, serde_json::to_string::&lt;T&gt;(value)<span class="question-mark">?</span>.as_bytes())
     }
 
-    <span class="kw">pub fn </span>set_data_for&lt;T: Serialize&gt;(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        address: <span class="kw-2">&amp;</span>str,
-        key: <span class="kw-2">&amp;</span>[u8],
-        value: <span class="kw-2">&amp;</span>T,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="self">self</span>.raw_set_data_for(
-            address,
-            key,
-            serde_json::to_string::&lt;T&gt;(value)<span class="question-mark">?</span>.as_bytes(),
-        )
+    <span class="kw">pub fn </span>set_data_for&lt;T: Serialize&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, key: <span class="kw-2">&amp;</span>[u8], value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.raw_set_data_for(address, key, serde_json::to_string::&lt;T&gt;(value)<span class="question-mark">?</span>.as_bytes())
     }
 }
 </code></pre></div></section></main></body></html>

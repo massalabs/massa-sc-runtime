@@ -148,13 +148,6 @@
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>wasmer::{AsStoreMut, AsStoreRef, Instance, Memory, TypedFunction};
 
 <span class="kw">use </span><span class="kw">super</span>::WasmV1Error;
@@ -167,10 +160,7 @@
 }
 
 <span class="kw">impl </span>Ffi {
-    <span class="kw">pub fn </span>try_new(
-        instance: <span class="kw-2">&amp;</span>Instance,
-        store: <span class="kw-2">&amp;</span><span class="kw">impl </span>AsStoreRef,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, WasmV1Error&gt; {
+    <span class="kw">pub fn </span>try_new(instance: <span class="kw-2">&amp;</span>Instance, store: <span class="kw-2">&amp;</span><span class="kw">impl </span>AsStoreRef) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, WasmV1Error&gt; {
         <span class="kw">let </span>guest_alloc_func = instance
             .exports
             .get_typed_function::&lt;i32, i32&gt;(store, <span class="string">&quot;__alloc&quot;</span>)
@@ -226,7 +216,10 @@
         offset: i32,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, WasmV1Error&gt; {
         <span class="kw">let </span><span class="prelude-val">Ok</span>(offset_u64): <span class="prelude-ty">Result</span>&lt;u64, <span class="kw">_</span>&gt; = offset.try_into() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Invalid memory read offset: {}&quot;</span>, offset)));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                <span class="string">&quot;Invalid memory read offset: {}&quot;</span>,
+                offset
+            )));
         };
         <span class="kw">let </span>view = <span class="self">self</span>.guest_memory.view(store);
 
@@ -239,7 +232,10 @@
         })<span class="question-mark">?</span>;
         <span class="kw">let </span>len = i32::from_le_bytes(len_buffer);
         <span class="kw">let </span><span class="prelude-val">Ok</span>(len): <span class="prelude-ty">Result</span>&lt;u64, <span class="kw">_</span>&gt; = len.try_into() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Memory read length invalid: {}&quot;</span>, len)));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                <span class="string">&quot;Memory read length invalid: {}&quot;</span>,
+                len
+            )));
         };
 
         <span class="kw">let </span>memory_size = view.data_size();
@@ -259,19 +255,13 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(<span class="string">&quot;Offset overflow&quot;</span>.into()));
         };
         view.read(data_offset, <span class="kw-2">&amp;mut </span>buffer).map_err(|err| {
-            WasmV1Error::RuntimeError(<span class="macro">format!</span>(
-                <span class="string">&quot;Could not read guest memory: {}&quot;</span>,
-                err
-            ))
+            WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not read guest memory: {}&quot;</span>, err))
         })<span class="question-mark">?</span>;
 
         <span class="comment">// Deallocate the buffer if there is a dealloc guest function
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(guest_dealloc_func) = <span class="kw-2">&amp;</span><span class="self">self</span>.guest_dealloc_func {
             guest_dealloc_func.call(store, offset).map_err(|err| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(
-                    <span class="string">&quot;__dealloc function call failed: {}&quot;</span>,
-                    err
-                ))
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;__dealloc function call failed: {}&quot;</span>, err))
             })<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(buffer)
@@ -284,20 +274,16 @@
         buffer: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
         <span class="kw">let </span>len: i32 = buffer.len().try_into().map_err(|err| {
-            WasmV1Error::RuntimeError(<span class="macro">format!</span>(
-                <span class="string">&quot;Could not convert buffer length to i32: {}&quot;</span>,
-                err
-            ))
+            WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not convert buffer length to i32: {}&quot;</span>, err))
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>offset: i32 =
-            <span class="self">self</span>.guest_alloc_func.call(store, len).map_err(|err| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(
-                    <span class="string">&quot;__alloc function call failed: {}&quot;</span>,
-                    err
-                ))
-            })<span class="question-mark">?</span>;
+        <span class="kw">let </span>offset: i32 = <span class="self">self</span>.guest_alloc_func.call(store, len).map_err(|err| {
+            WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;__alloc function call failed: {}&quot;</span>, err))
+        })<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="prelude-val">Ok</span>(offset_u64): <span class="prelude-ty">Result</span>&lt;u64, <span class="kw">_</span>&gt; = offset.try_into() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;__alloc returned invalid pointer: {}&quot;</span>, offset)));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                <span class="string">&quot;__alloc returned invalid pointer: {}&quot;</span>,
+                offset
+            )));
         };
 
         <span class="self">self</span>.guest_memory
