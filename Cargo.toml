@@ -11,7 +11,7 @@ chrono = { version = "=0.4", features = ["clock"], default-features = false }
 displaydoc = "0.2"
 function_name = "0.3"
 loupe = "0.1"
-massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", rev = "b45cccca3fb09aa2bbee08aade080127521e39b8" }
+massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", rev = "de5da7787a7658478a2bbd039243675f87befea7" }
 more-asserts = "0.3"
 num_enum = "0.6.1"
 parking_lot = "0.12"
