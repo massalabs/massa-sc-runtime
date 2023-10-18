@@ -995,7 +995,8 @@ fn helper_get_module(
     bytecode: Vec<u8>,
     remaining_gas: u64,
 ) -> Result<crate::RuntimeModule, WasmV1Error> {
-    let module = handler
+    // IMPORTANT TODO: return remaining gas here when WASMV1 is used
+    let (module, _post_module_gas) = handler
         .interface
         .get_module(&bytecode, remaining_gas)
         .map_err(|err| WasmV1Error::RuntimeError(format!("Could not get module: {}", err)))?;

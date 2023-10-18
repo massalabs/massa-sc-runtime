@@ -392,7 +392,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ///
     /// * Get the corresponding runtime module if it already exists
     /// * Compile it if not
-    fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule>;
+    fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<(RuntimeModule, u64)>;
 
     /// Sends an async message
     ///

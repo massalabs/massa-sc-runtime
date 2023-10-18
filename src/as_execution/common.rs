@@ -32,13 +32,13 @@ pub(crate) fn call_module(
         get_remaining_points(&env, ctx)?
     };
 
-    let module = interface.get_module(&bytecode, remaining_gas)?;
+    let (module, post_module_gas) = interface.get_module(&bytecode, remaining_gas)?;
     let resp = crate::execution::run_function(
         &*interface,
         module,
         function,
         param,
-        remaining_gas,
+        post_module_gas,
         env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
@@ -64,13 +64,13 @@ pub(crate) fn local_call(
         get_remaining_points(&env, ctx)?
     };
 
-    let module = interface.get_module(bytecode, remaining_gas)?;
+    let (module, post_module_gas) = interface.get_module(bytecode, remaining_gas)?;
     let resp = crate::execution::run_function(
         &*interface,
         module,
         function,
         param,
-        remaining_gas,
+        post_module_gas,
         env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
@@ -104,5 +104,6 @@ pub(crate) fn function_exists(
 
     Ok(interface
         .get_module(&bytecode, remaining_gas)?
+        .0
         .function_exists(function))
 }
