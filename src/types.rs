@@ -36,7 +36,6 @@ pub struct GasCosts {
     pub(crate) abi_costs: HashMap<String, u64>,
     pub(crate) operator_cost: u64,
     pub(crate) launch_cost: u64,
-    pub vm_creation_cost: u64,
     pub cl_compilation_cost: u64,
     pub sp_compilation_cost: u64,
     pub max_instance_cost: u64,
@@ -61,9 +60,6 @@ impl GasCosts {
             launch_cost: *abi_costs
                 .get("launch")
                 .ok_or_else(|| anyhow!("launch cost not found in ABI gas cost file."))?,
-            vm_creation_cost: *abi_costs
-                .get("vm_creation")
-                .ok_or_else(|| anyhow!("vm_creation not found in ABI gas cost file."))?,
             cl_compilation_cost: *abi_costs
                 .get("cl_compilation")
                 .ok_or_else(|| anyhow!("cl_compilation cost not found in ABI gas cost file."))?,
@@ -153,7 +149,6 @@ impl Default for GasCosts {
             abi_costs,
             operator_cost: 1,
             launch_cost: 10_000,
-            vm_creation_cost: 10_000,
             sp_compilation_cost: 10_000,
             cl_compilation_cost: 10_000,
             max_instance_cost: 10_000,
