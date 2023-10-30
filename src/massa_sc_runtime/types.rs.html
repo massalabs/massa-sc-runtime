@@ -537,6 +537,16 @@
 <a href="#537" id="537">537</a>
 <a href="#538" id="538">538</a>
 <a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
@@ -572,10 +582,12 @@
 
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>GasCosts {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) abi_costs: HashMap&lt;String, u64&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) operator_cost: u64,
     <span class="kw">pub</span>(<span class="kw">crate</span>) launch_cost: u64,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) abi_costs: HashMap&lt;String, u64&gt;,
+    <span class="kw">pub </span>cl_compilation_cost: u64,
     <span class="kw">pub </span>sp_compilation_cost: u64,
+    <span class="kw">pub </span>max_instance_cost: u64,
 }
 
 <span class="kw">impl </span>GasCosts {
@@ -597,9 +609,15 @@
             launch_cost: <span class="kw-2">*</span>abi_costs
                 .get(<span class="string">&quot;launch&quot;</span>)
                 .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;launch cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
+            cl_compilation_cost: <span class="kw-2">*</span>abi_costs
+                .get(<span class="string">&quot;cl_compilation&quot;</span>)
+                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;cl_compilation cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
             sp_compilation_cost: <span class="kw-2">*</span>abi_costs
-                .get(<span class="string">&quot;sp_compilation_cost&quot;</span>)
-                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;sp_compilation_cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
+                .get(<span class="string">&quot;sp_compilation&quot;</span>)
+                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;sp_compilation cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
+            max_instance_cost: <span class="kw-2">*</span>abi_costs
+                .get(<span class="string">&quot;max_instance&quot;</span>)
+                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;max_instance cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
             abi_costs,
         })
     }
@@ -677,10 +695,12 @@
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_console_error&quot;</span>), <span class="number">36</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_trace&quot;</span>), <span class="number">36</span>);
         <span class="self">Self </span>{
+            abi_costs,
             operator_cost: <span class="number">1</span>,
             launch_cost: <span class="number">10_000</span>,
-            abi_costs,
             sp_compilation_cost: <span class="number">10_000</span>,
+            cl_compilation_cost: <span class="number">10_000</span>,
+            max_instance_cost: <span class="number">10_000</span>,
         }
     }
 }
@@ -916,7 +936,7 @@
     ///
     /// * Get the corresponding runtime module if it already exists
     /// * Compile it if not
-    </span><span class="kw">fn </span>get_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;RuntimeModule&gt;;
+    </span><span class="kw">fn </span>get_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(RuntimeModule, u64)&gt;;
 
     <span class="doccomment">/// Sends an async message
     ///

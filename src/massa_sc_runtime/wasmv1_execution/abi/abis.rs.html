@@ -1648,6 +1648,7 @@
 <a href="#1648" id="1648">1648</a>
 <a href="#1649" id="1649">1649</a>
 <a href="#1650" id="1650">1650</a>
+<a href="#1651" id="1651">1651</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{
     <span class="kw">super</span>::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
@@ -2645,7 +2646,8 @@
     bytecode: Vec&lt;u8&gt;,
     remaining_gas: u64,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">crate</span>::RuntimeModule, WasmV1Error&gt; {
-    <span class="kw">let </span>module = handler
+    <span class="comment">// IMPORTANT TODO: return remaining gas here when WASMV1 is used
+    </span><span class="kw">let </span>(module, _post_module_gas) = handler
         .interface
         .get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)
         .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not get module: {}&quot;</span>, err)))<span class="question-mark">?</span>;

@@ -106,6 +106,7 @@
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
 <a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Execution functions used by the ABIs.
 //!
 //! IMPORTANT: these were designed for, and should not be called outside of
@@ -140,13 +141,13 @@
         get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
     </span>};
 
-    <span class="kw">let </span>module = interface.get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(module, post_module_gas) = interface.get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)<span class="question-mark">?</span>;
     <span class="kw">let </span>resp = <span class="kw">crate</span>::execution::run_function(
         <span class="kw-2">&amp;*</span>interface,
         module,
         function,
         param,
-        remaining_gas,
+        post_module_gas,
         env.get_gas_costs(),
     )<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
@@ -172,13 +173,13 @@
         get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
     </span>};
 
-    <span class="kw">let </span>module = interface.get_module(bytecode, remaining_gas)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(module, post_module_gas) = interface.get_module(bytecode, remaining_gas)<span class="question-mark">?</span>;
     <span class="kw">let </span>resp = <span class="kw">crate</span>::execution::run_function(
         <span class="kw-2">&amp;*</span>interface,
         module,
         function,
         param,
-        remaining_gas,
+        post_module_gas,
         env.get_gas_costs(),
     )<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
@@ -212,6 +213,7 @@
 
     <span class="prelude-val">Ok</span>(interface
         .get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)<span class="question-mark">?
+        </span>.<span class="number">0
         </span>.function_exists(function))
 }
 </code></pre></div></section></main></body></html>
