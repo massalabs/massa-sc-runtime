@@ -107,6 +107,11 @@
 <a href="#107" id="107">107</a>
 <a href="#108" id="108">108</a>
 <a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Execution functions used by the ABIs.
 //!
 //! IMPORTANT: these were designed for, and should not be called outside of
@@ -163,6 +168,7 @@
     bytecode: <span class="kw-2">&amp;</span>[u8],
     function: <span class="kw-2">&amp;</span>str,
     param: <span class="kw-2">&amp;</span>[u8],
+    tmp: bool,
 ) -&gt; ABIResult&lt;Response&gt; {
     <span class="kw">let </span>env = get_env(ctx)<span class="question-mark">?</span>;
     <span class="kw">let </span>interface = env.get_interface();
@@ -173,7 +179,11 @@
         get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
     </span>};
 
-    <span class="kw">let </span>(module, post_module_gas) = interface.get_module(bytecode, remaining_gas)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(module, post_module_gas) = <span class="kw">if </span>tmp {
+        interface.get_tmp_module(bytecode, remaining_gas)<span class="question-mark">?
+    </span>} <span class="kw">else </span>{
+        interface.get_module(bytecode, remaining_gas)<span class="question-mark">?
+    </span>};
     <span class="kw">let </span>resp = <span class="kw">crate</span>::execution::run_function(
         <span class="kw-2">&amp;*</span>interface,
         module,
