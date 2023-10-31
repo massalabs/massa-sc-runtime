@@ -112,6 +112,13 @@ impl Interface for TestInterface {
 
     fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<(RuntimeModule, u64)> {
         println!("Get module");
+        let as_module = ASModule::new(bytecode, limit, GasCosts::default(), Compiler::CL)?;
+        let module = RuntimeModule::ASModule(as_module);
+        Ok((module, 0))
+    }
+
+    fn get_tmp_module(&self, bytecode: &[u8], limit: u64) -> Result<(RuntimeModule, u64)> {
+        println!("Get tmp module");
         let as_module = ASModule::new(bytecode, limit, GasCosts::default(), Compiler::SP)?;
         let module = RuntimeModule::ASModule(as_module);
         Ok((module, 0))
