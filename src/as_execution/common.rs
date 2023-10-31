@@ -54,6 +54,7 @@ pub(crate) fn local_call(
     bytecode: &[u8],
     function: &str,
     param: &[u8],
+    tmp: bool,
 ) -> ABIResult<Response> {
     let env = get_env(ctx)?;
     let interface = env.get_interface();
@@ -64,7 +65,11 @@ pub(crate) fn local_call(
         get_remaining_points(&env, ctx)?
     };
 
-    let (module, post_module_gas) = interface.get_module(bytecode, remaining_gas)?;
+    let (module, post_module_gas) = if tmp {
+        interface.get_tmp_module(bytecode, remaining_gas)?
+    } else {
+        interface.get_module(bytecode, remaining_gas)?
+    };
     let resp = crate::execution::run_function(
         &*interface,
         module,

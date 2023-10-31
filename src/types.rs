@@ -389,6 +389,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// * Compile it if not
     fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<(RuntimeModule, u64)>;
 
+    /// Same as get_module without cache
+    fn get_tmp_module(&self, bytecode: &[u8], limit: u64) -> Result<(RuntimeModule, u64)>;
+
     /// Sends an async message
     ///
     /// # Arguments
