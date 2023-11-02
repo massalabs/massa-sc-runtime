@@ -1649,6 +1649,17 @@
 <a href="#1649" id="1649">1649</a>
 <a href="#1650" id="1650">1650</a>
 <a href="#1651" id="1651">1651</a>
+<a href="#1652" id="1652">1652</a>
+<a href="#1653" id="1653">1653</a>
+<a href="#1654" id="1654">1654</a>
+<a href="#1655" id="1655">1655</a>
+<a href="#1656" id="1656">1656</a>
+<a href="#1657" id="1657">1657</a>
+<a href="#1658" id="1658">1658</a>
+<a href="#1659" id="1659">1659</a>
+<a href="#1660" id="1660">1660</a>
+<a href="#1661" id="1661">1661</a>
+<a href="#1662" id="1662">1662</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{
     <span class="kw">super</span>::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
@@ -1789,13 +1800,13 @@
                 })<span class="question-mark">?</span>;
 
             <span class="kw">let </span>remaining_gas = handler.get_remaining_gas();
-            <span class="kw">let </span>module = helper_get_module(handler, bytecode, remaining_gas)<span class="question-mark">?</span>;
+            <span class="kw">let </span>(module, gas) = helper_get_module(handler, bytecode, remaining_gas)<span class="question-mark">?</span>;
             <span class="kw">let </span>response = <span class="kw">crate</span>::execution::run_function(
                 handler.interface,
                 module,
                 <span class="kw-2">&amp;</span>req.target_function_name,
                 <span class="kw-2">&amp;</span>req.function_arg,
-                remaining_gas,
+                gas,
                 handler.get_gas_costs().clone(),
             )
             .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not run function: {}&quot;</span>, err)))<span class="question-mark">?</span>;
@@ -1819,14 +1830,14 @@
         |handler, req: CallRequest| {
             <span class="kw">let </span>bytecode = helper_get_bytecode(handler, req.target_sc_address)<span class="question-mark">?</span>;
             <span class="kw">let </span>remaining_gas = handler.get_remaining_gas();
-            <span class="kw">let </span>module = helper_get_module(handler, bytecode, remaining_gas)<span class="question-mark">?</span>;
+            <span class="kw">let </span>(module, gas) = helper_get_module(handler, bytecode, remaining_gas)<span class="question-mark">?</span>;
 
             <span class="kw">let </span>response = <span class="kw">crate</span>::execution::run_function(
                 handler.interface,
                 module,
                 <span class="kw-2">&amp;</span>req.target_function_name,
                 <span class="kw-2">&amp;</span>req.function_arg,
-                remaining_gas,
+                gas,
                 handler.get_gas_costs().clone(),
             )
             .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not run function: {}&quot;</span>, err)))<span class="question-mark">?</span>;
@@ -2551,14 +2562,14 @@
         arg_offset,
         |handler, req: LocalExecutionRequest| {
             <span class="kw">let </span>remaining_gas = handler.get_remaining_gas();
-            <span class="kw">let </span>module = helper_get_module(handler, req.bytecode, remaining_gas)<span class="question-mark">?</span>;
+            <span class="kw">let </span>(module, gas) = helper_get_tmp_module(handler, req.bytecode, remaining_gas)<span class="question-mark">?</span>;
 
             <span class="kw">match </span><span class="kw">crate</span>::execution::run_function(
                 handler.interface,
                 module,
                 <span class="kw-2">&amp;</span>req.target_function_name,
                 <span class="kw-2">&amp;</span>req.function_arg,
-                remaining_gas,
+                gas,
                 handler.get_gas_costs().clone(),
             ) {
                 <span class="prelude-val">Ok</span>(response) =&gt; {
@@ -2613,7 +2624,7 @@
                 handler.get_remaining_gas()
             };
 
-            <span class="kw">let </span><span class="prelude-val">Ok</span>(module) = helper_get_module(handler, bytecode, remaining_gas) <span class="kw">else </span>{
+            <span class="kw">let </span><span class="prelude-val">Ok</span>((module, _gas)) = helper_get_module(handler, bytecode, remaining_gas) <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_ok!</span>(FunctionExistsResult, {
                     exists: <span class="bool-val">false
                 </span>});
@@ -2645,13 +2656,24 @@
     handler: <span class="kw-2">&amp;mut </span><span class="kw">super</span>::handler::ABIHandler,
     bytecode: Vec&lt;u8&gt;,
     remaining_gas: u64,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">crate</span>::RuntimeModule, WasmV1Error&gt; {
-    <span class="comment">// IMPORTANT TODO: return remaining gas here when WASMV1 is used
-    </span><span class="kw">let </span>(module, _post_module_gas) = handler
+) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw">crate</span>::RuntimeModule, u64), WasmV1Error&gt; {
+    <span class="kw">let </span>(module, post_module_gas) = handler
         .interface
         .get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)
         .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not get module: {}&quot;</span>, err)))<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(module)
+    <span class="prelude-val">Ok</span>((module, post_module_gas))
+}
+
+<span class="kw">fn </span>helper_get_tmp_module(
+    handler: <span class="kw-2">&amp;mut </span><span class="kw">super</span>::handler::ABIHandler,
+    bytecode: Vec&lt;u8&gt;,
+    remaining_gas: u64,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw">crate</span>::RuntimeModule, u64), WasmV1Error&gt; {
+    <span class="kw">let </span>(module, post_module_gas) = handler
+        .interface
+        .get_tmp_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)
+        .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not get module: {}&quot;</span>, err)))<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>((module, post_module_gas))
 }
 
 <span class="attr">#[named]
