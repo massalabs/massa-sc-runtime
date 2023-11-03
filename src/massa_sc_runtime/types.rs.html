@@ -939,10 +939,10 @@
     ///
     /// * Get the corresponding runtime module if it already exists
     /// * Compile it if not
-    </span><span class="kw">fn </span>get_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(RuntimeModule, u64)&gt;;
+    </span><span class="kw">fn </span>get_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(RuntimeModule, u64)&gt;;
 
     <span class="doccomment">/// Same as get_module without cache
-    </span><span class="kw">fn </span>get_tmp_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(RuntimeModule, u64)&gt;;
+    </span><span class="kw">fn </span>get_tmp_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(RuntimeModule, u64)&gt;;
 
     <span class="doccomment">/// Sends an async message
     ///

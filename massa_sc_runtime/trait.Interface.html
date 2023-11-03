@@ -139,12 +139,12 @@
 <span class="item-spacer"></span>    fn <a href="#tymethod.get_module" class="fn">get_module</a>(
         &amp;self,
         bytecode: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u8.html">u8</a>],
-        limit: <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u64.html">u64</a>
+        gas_limit: <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u64.html">u64</a>
     ) -&gt; <a class="type" href="https://docs.rs/anyhow/1.0.75/anyhow/type.Result.html" title="type anyhow::Result">Result</a>&lt;(<a class="enum" href="enum.RuntimeModule.html" title="enum massa_sc_runtime::RuntimeModule">RuntimeModule</a>, <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u64.html">u64</a>)&gt;;
 <span class="item-spacer"></span>    fn <a href="#tymethod.get_tmp_module" class="fn">get_tmp_module</a>(
         &amp;self,
         bytecode: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u8.html">u8</a>],
-        limit: <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u64.html">u64</a>
+        gas_limit: <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u64.html">u64</a>
     ) -&gt; <a class="type" href="https://docs.rs/anyhow/1.0.75/anyhow/type.Result.html" title="type anyhow::Result">Result</a>&lt;(<a class="enum" href="enum.RuntimeModule.html" title="enum massa_sc_runtime::RuntimeModule">RuntimeModule</a>, <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u64.html">u64</a>)&gt;;
 <span class="item-spacer"></span>    fn <a href="#tymethod.send_message" class="fn">send_message</a>(
         &amp;self,
@@ -399,7 +399,7 @@ address</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="tymethod.get_module" class="method"><a class="srclink rightside" href="../src/massa_sc_runtime/types.rs.html#390">source</a><h4 class="code-header">fn <a href="#tymethod.get_module" class="fn">get_module</a>(
     &amp;self,
     bytecode: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u8.html">u8</a>],
-    limit: <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u64.html">u64</a>
+    gas_limit: <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u64.html">u64</a>
 ) -&gt; <a class="type" href="https://docs.rs/anyhow/1.0.75/anyhow/type.Result.html" title="type anyhow::Result">Result</a>&lt;(<a class="enum" href="enum.RuntimeModule.html" title="enum massa_sc_runtime::RuntimeModule">RuntimeModule</a>, <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u64.html">u64</a>)&gt;</h4></section></summary><div class="docblock"><p>For the given bytecode:</p>
 <ul>
 <li>Get the corresponding runtime module if it already exists</li>
@@ -408,7 +408,7 @@ address</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="tymethod.get_tmp_module" class="method"><a class="srclink rightside" href="../src/massa_sc_runtime/types.rs.html#393">source</a><h4 class="code-header">fn <a href="#tymethod.get_tmp_module" class="fn">get_tmp_module</a>(
     &amp;self,
     bytecode: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u8.html">u8</a>],
-    limit: <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u64.html">u64</a>
+    gas_limit: <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u64.html">u64</a>
 ) -&gt; <a class="type" href="https://docs.rs/anyhow/1.0.75/anyhow/type.Result.html" title="type anyhow::Result">Result</a>&lt;(<a class="enum" href="enum.RuntimeModule.html" title="enum massa_sc_runtime::RuntimeModule">RuntimeModule</a>, <a class="primitive" href="https://doc.rust-lang.org/1.72.1/std/primitive.u64.html">u64</a>)&gt;</h4></section></summary><div class="docblock"><p>Same as get_module without cache</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="tymethod.send_message" class="method"><a class="srclink rightside" href="../src/massa_sc_runtime/types.rs.html#410-421">source</a><h4 class="code-header">fn <a href="#tymethod.send_message" class="fn">send_message</a>(
     &amp;self,
