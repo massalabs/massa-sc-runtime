@@ -550,6 +550,10 @@
 <a href="#550" id="550">550</a>
 <a href="#551" id="551">551</a>
 <a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
@@ -939,9 +943,13 @@
     ///
     /// * Get the corresponding runtime module if it already exists
     /// * Compile it if not
+    ///
+    /// Returns a CL compiled module and the remaining gas after loading
     </span><span class="kw">fn </span>get_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(RuntimeModule, u64)&gt;;
 
-    <span class="doccomment">/// Same as get_module without cache
+    <span class="doccomment">/// Compile a temportary module from the given bytecode
+    ///
+    /// Returns a SP compiled module and the remaining gas after loading
     </span><span class="kw">fn </span>get_tmp_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(RuntimeModule, u64)&gt;;
 
     <span class="doccomment">/// Sends an async message
