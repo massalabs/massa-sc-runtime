@@ -387,9 +387,13 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ///
     /// * Get the corresponding runtime module if it already exists
     /// * Compile it if not
+    ///
+    /// Returns a CL compiled module and the remaining gas after loading
     fn get_module(&self, bytecode: &[u8], gas_limit: u64) -> Result<(RuntimeModule, u64)>;
 
-    /// Same as get_module without cache
+    /// Compile a temportary module from the given bytecode
+    ///
+    /// Returns a SP compiled module and the remaining gas after loading
     fn get_tmp_module(&self, bytecode: &[u8], gas_limit: u64) -> Result<(RuntimeModule, u64)>;
 
     /// Sends an async message
