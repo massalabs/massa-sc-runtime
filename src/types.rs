@@ -149,9 +149,9 @@ impl Default for GasCosts {
             abi_costs,
             operator_cost: 1,
             launch_cost: 10_000,
-            sp_compilation_cost: 10_000,
-            cl_compilation_cost: 10_000,
-            max_instance_cost: 10_000,
+            sp_compilation_cost: 314_000_000,
+            cl_compilation_cost: 745_000_000,
+            max_instance_cost: 2_100_000,
         }
     }
 }
