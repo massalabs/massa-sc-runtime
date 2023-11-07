@@ -989,7 +989,7 @@ pub(crate) fn assembly_script_local_execution(
     let function = &read_string(memory, &ctx, function)?;
     let param = &read_buffer(memory, &ctx, param)?;
 
-    let response = local_call(&mut ctx, bytecode, function, param)?;
+    let response = local_call(&mut ctx, bytecode, function, param, true)?;
     match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
@@ -1017,7 +1017,7 @@ pub(crate) fn assembly_script_local_call(
     let function = &read_string(memory, &ctx, function)?;
     let param = &read_buffer(memory, &ctx, param)?;
 
-    let response = local_call(&mut ctx, &bytecode, function, param)?;
+    let response = local_call(&mut ctx, &bytecode, function, param, false)?;
     match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(

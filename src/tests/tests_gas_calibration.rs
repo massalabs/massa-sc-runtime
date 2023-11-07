@@ -9,10 +9,7 @@ use std::collections::HashSet;
 
 use anyhow::Result;
 use more_asserts as ma;
-use parking_lot::Mutex;
 use serial_test::serial;
-
-use std::sync::Arc;
 
 #[test]
 #[serial]
@@ -24,7 +21,7 @@ fn test_basic_abi_call_counter() -> Result<()> {
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
+    let runtime_module = RuntimeModule::new(bytecode, gas_costs.clone(), Compiler::SP)?;
     let gas_calibration_result =
         run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
     // println!("gas_calibration_result: {:?}", gas_calibration_result);
@@ -89,8 +86,7 @@ fn test_basic_abi_call_counter_wasmv1() -> Result<()> {
     //     RuntimeModule::new(bytecode, 100_000, gas_costs.clone(),
     // Compiler::SP)?;
 
-    let runtime_module =
-        RuntimeModule::new(module, 200_000, gas_costs.clone(), Compiler::SP).unwrap();
+    let runtime_module = RuntimeModule::new(module, gas_costs.clone(), Compiler::SP).unwrap();
 
     match runtime_module.clone() {
         RuntimeModule::ASModule(_) => {
@@ -164,7 +160,7 @@ fn test_basic_abi_call_loop() -> Result<()> {
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
+    let runtime_module = RuntimeModule::new(bytecode, gas_costs.clone(), Compiler::SP)?;
     let gas_calibration_result =
         run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
     assert_eq!(
@@ -195,7 +191,7 @@ fn test_basic_abi_call_loop_wasmv1() -> Result<()> {
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
+    let runtime_module = RuntimeModule::new(bytecode, gas_costs.clone(), Compiler::SP)?;
     let gas_calibration_result =
         run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
     assert_eq!(
@@ -228,7 +224,7 @@ fn test_basic_op() -> Result<()> {
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
+    let runtime_module = RuntimeModule::new(bytecode, gas_costs.clone(), Compiler::SP)?;
     let gas_calibration_result =
         run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
     // 1 for env.abort + 4 env.abort parameters
@@ -280,7 +276,7 @@ fn test_basic_op_wasmv1() -> Result<()> {
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
+    let runtime_module = RuntimeModule::new(bytecode, gas_costs.clone(), Compiler::SP)?;
     let gas_calibration_result =
         run_main_gc(&interface, runtime_module, b"", 100_000, gas_costs.clone())?;
     // 1 for env.abort + 1 env.abort parameters
@@ -338,7 +334,7 @@ fn test_basic_abi_call_param_size() -> Result<()> {
     ));
 
     let gas_costs = GasCosts::default();
-    let runtime_module = RuntimeModule::new(bytecode, 100_000, gas_costs.clone(), Compiler::SP)?;
+    let runtime_module = RuntimeModule::new(bytecode, gas_costs.clone(), Compiler::SP)?;
     let gas_calibration_result = run_main_gc(
         &interface,
         runtime_module,

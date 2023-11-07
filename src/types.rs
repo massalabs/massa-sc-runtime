@@ -33,10 +33,12 @@ impl Clone for Box<dyn Interface> {
 
 #[derive(Clone, Debug)]
 pub struct GasCosts {
+    pub(crate) abi_costs: HashMap<String, u64>,
     pub(crate) operator_cost: u64,
     pub(crate) launch_cost: u64,
-    pub(crate) abi_costs: HashMap<String, u64>,
+    pub cl_compilation_cost: u64,
     pub sp_compilation_cost: u64,
+    pub max_instance_cost: u64,
 }
 
 impl GasCosts {
@@ -58,9 +60,15 @@ impl GasCosts {
             launch_cost: *abi_costs
                 .get("launch")
                 .ok_or_else(|| anyhow!("launch cost not found in ABI gas cost file."))?,
+            cl_compilation_cost: *abi_costs
+                .get("cl_compilation")
+                .ok_or_else(|| anyhow!("cl_compilation cost not found in ABI gas cost file."))?,
             sp_compilation_cost: *abi_costs
-                .get("sp_compilation_cost")
-                .ok_or_else(|| anyhow!("sp_compilation_cost not found in ABI gas cost file."))?,
+                .get("sp_compilation")
+                .ok_or_else(|| anyhow!("sp_compilation cost not found in ABI gas cost file."))?,
+            max_instance_cost: *abi_costs
+                .get("max_instance")
+                .ok_or_else(|| anyhow!("max_instance cost not found in ABI gas cost file."))?,
             abi_costs,
         })
     }
@@ -138,10 +146,12 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_console_error"), 36);
         abi_costs.insert(String::from("assembly_script_trace"), 36);
         Self {
+            abi_costs,
             operator_cost: 1,
             launch_cost: 10_000,
-            abi_costs,
-            sp_compilation_cost: 10_000,
+            sp_compilation_cost: 314_000_000,
+            cl_compilation_cost: 745_000_000,
+            max_instance_cost: 2_100_000,
         }
     }
 }
@@ -377,7 +387,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ///
     /// * Get the corresponding runtime module if it already exists
     /// * Compile it if not
-    fn get_module(&self, bytecode: &[u8], limit: u64) -> Result<RuntimeModule>;
+    ///
+    /// Returns a CL compiled module and the remaining gas after loading
+    fn get_module(&self, bytecode: &[u8], gas_limit: u64) -> Result<(RuntimeModule, u64)>;
+
+    /// Compile a temportary module from the given bytecode
+    ///
+    /// Returns a SP compiled module and the remaining gas after loading
+    fn get_tmp_module(&self, bytecode: &[u8], gas_limit: u64) -> Result<(RuntimeModule, u64)>;
 
     /// Sends an async message
     ///

@@ -35,12 +35,7 @@ impl RuntimeModule {
     /// * (0): legacy AssemblyScript module
     /// * (1): new agnostic module
     /// * (_): unsupported module
-    pub fn new(
-        bytecode: &[u8],
-        limit: u64,
-        gas_costs: GasCosts,
-        compiler: Compiler,
-    ) -> Result<Self> {
+    pub fn new(bytecode: &[u8], gas_costs: GasCosts, compiler: Compiler) -> Result<Self> {
         if bytecode.len() <= 2 {
             return Err(anyhow!("Too small bytecode"));
         }
@@ -55,12 +50,21 @@ impl RuntimeModule {
 
         match module_id {
             RuntimeModuleId::ASModuleId => Ok(Self::ASModule(ASModule::new(
-                bytecode, limit, gas_costs, compiler,
+                bytecode,
+                gas_costs.max_instance_cost,
+                gas_costs,
+                compiler,
             )?)),
             RuntimeModuleId::WasmV1ModuleId => {
                 // Safe to use [1..] as we checked the bytecode length
-                let res = WasmV1Module::compile(&bytecode[1..], limit, gas_costs, compiler)
-                    .map_err(|err| anyhow!("Failed to compile WasmV1 module: {}", err))?;
+                // TODO: ensure that the WasmV1 VM can be refilled with gas after launching a pre-compiled module
+                let res = WasmV1Module::compile(
+                    &bytecode[1..],
+                    gas_costs.max_instance_cost,
+                    gas_costs,
+                    compiler,
+                )
+                .map_err(|err| anyhow!("Failed to compile WasmV1 module: {}", err))?;
                 Ok(Self::WasmV1Module(res))
             }
         }
