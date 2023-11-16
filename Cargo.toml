@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
-as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", tag = "v0.5.2" }
+as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", tag = "v0.5.3" }
 base64 = "=0.21"
 chrono = { version = "=0.4", features = ["clock"], default-features = false }
 displaydoc = "0.2"
@@ -13,7 +13,7 @@ function_name = "0.3"
 loupe = "0.1"
 massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", rev = "a2e335b1493d302aa03b87e5fd611a2f2c21afdb" }
 more-asserts = "0.3"
-num_enum = "0.6.1"
+num_enum = "0.7"
 parking_lot = "0.12"
 prost = "=0.12"
 prost-types = "=0.12"
@@ -22,24 +22,24 @@ rand = "=0.8"
 regex = "1"
 serde = "=1.0"
 serde_json = "=1.0"
-serial_test = "2.0.0"
-sha2 = "=0.10.6"
+serial_test = "2"
+sha2 = "=0.10.8"
 sha3 = "=0.10.8"
 thiserror = "1.0"
 tracing = "0.1"
-wasmer = { version = "=4.2.0", features = ["static-artifact-create"] }
-wasmer-compiler-cranelift = "=4.2.0"
-wasmer-compiler-singlepass = "=4.2.0"
-wasmer-middlewares = "=4.2.0"
-wasmer-types = "=4.2.0"
+wasmer = { version = "=4.2.3", features = ["static-artifact-create"] }
+wasmer-compiler-cranelift = "=4.2.3"
+wasmer-compiler-singlepass = "=4.2.3"
+wasmer-middlewares = "=4.2.3"
+wasmer-types = "=4.2.3"
 
 [dev-dependencies]
-bs58 = { version = "=0.4", features = ["check"] }
+bs58 = { version = "=0.5.0", features = ["check"] }
 
 [build-dependencies]
 serde = "=1.0"
 serde_json = "=1.0"
-which = "4.4.0"
+which = "5"
 
 [features]
 gas_calibration = []
