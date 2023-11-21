@@ -36,7 +36,7 @@
 </span><span class="kw">pub enum </span>VMError {
     <span class="doccomment">/// VM instance error: {0}
     </span>InstanceError(String),
-    <span class="doccomment">/// VM execution error: {error} | Init cost is {init_gas_cost}
+    <span class="doccomment">/// VM execution error: {error}
     </span>ExecutionError { error: String, init_gas_cost: u64 },
 }
 
