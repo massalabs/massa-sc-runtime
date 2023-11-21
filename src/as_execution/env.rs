@@ -153,7 +153,7 @@ pub(crate) fn sub_remaining_gas(
     if let Some(remaining_gas) = remaining_gas.checked_sub(gas) {
         set_remaining_points(env, store, remaining_gas)?;
     } else {
-        abi_bail!("Remaining gas reach zero")
+        abi_bail!("Out of gas")
     }
     Ok(())
 }

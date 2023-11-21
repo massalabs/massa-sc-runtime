@@ -7,7 +7,7 @@ pub type VMResult<T> = Result<T, VMError>;
 pub enum VMError {
     /// VM instance error: {0}
     InstanceError(String),
-    /// VM execution error: {error} | Init cost is {init_gas_cost}
+    /// VM execution error: {error}
     ExecutionError { error: String, init_gas_cost: u64 },
 }
 
