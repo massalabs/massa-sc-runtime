@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
-as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", tag = "v0.5.3" }
+as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", tag = "v0.5.4" }
 base64 = "=0.21"
 chrono = { version = "=0.4", features = ["clock"], default-features = false }
 displaydoc = "0.2"
@@ -27,11 +27,11 @@ sha2 = "=0.10.8"
 sha3 = "=0.10.8"
 thiserror = "1.0"
 tracing = "0.1"
-wasmer = { version = "=4.2.3", features = ["static-artifact-create"] }
-wasmer-compiler-cranelift = "=4.2.3"
-wasmer-compiler-singlepass = "=4.2.3"
-wasmer-middlewares = "=4.2.3"
-wasmer-types = "=4.2.3"
+wasmer = { version = "=4.2.4", features = ["static-artifact-create"] }
+wasmer-compiler-cranelift = "=4.2.4"
+wasmer-compiler-singlepass = "=4.2.4"
+wasmer-middlewares = "=4.2.4"
+wasmer-types = "=4.2.4"
 
 [dev-dependencies]
 bs58 = { version = "=0.5.0", features = ["check"] }
