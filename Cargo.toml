@@ -5,13 +5,13 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
-as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", tag = "v0.5.4" }
+as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", tag = "v0.5.5" }
 base64 = "=0.21"
 chrono = { version = "=0.4", features = ["clock"], default-features = false }
 displaydoc = "0.2"
 function_name = "0.3"
 loupe = "0.1"
-massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", rev = "effc0418977cd64402172b7eb749a2fc7537771a" }
+massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", rev = "30b91d705b704287662b0e42457ece442005fa46" }
 more-asserts = "0.3"
 num_enum = "0.7"
 parking_lot = "0.12"
