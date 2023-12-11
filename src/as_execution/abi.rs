@@ -1051,6 +1051,14 @@ pub fn assembly_script_function_exists(
     Ok(function_exists(&mut ctx, address, function)? as i32)
 }
 
+/// Return current chain id
+#[named]
+pub fn assembly_script_chain_id(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
+    let env = get_env(&ctx)?;
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    Ok(env.get_interface().chain_id()? as i32)
+}
+
 /// Assembly script builtin `abort` function.
 ///
 /// It prints the origin filename, an error messag, the line and column.

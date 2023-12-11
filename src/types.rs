@@ -434,6 +434,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
     // Keccak256 hash bytes
     fn hash_keccak256(&self, bytes: &[u8]) -> Result<[u8; 32]>;
 
+    // Return the current chain id
+    fn chain_id(&self) -> Result<u64>;
+
     fn native_amount_from_str_wasmv1(&self, amount: &str) -> Result<NativeAmount>;
 
     fn native_amount_to_string_wasmv1(&self, amount: &NativeAmount) -> Result<String>;
@@ -529,6 +532,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ) -> Result<ComparisonResult>;
 
     fn compare_pub_key_wasmv1(&self, left: &str, right: &str) -> Result<ComparisonResult>;
+
+    // Return the current chain id
+    fn chain_id_wasmv1(&self) -> Result<u64>;
 }
 
 impl dyn Interface {
