@@ -89,7 +89,6 @@ impl ASContext {
             }
             set_remaining_points(&self.env, store, remaining_gas - metering_initial_cost)?;
         }
-
         // Now can exec
         let wasm_func = instance.exports.get_function(function)?;
         let argc = wasm_func.param_arity(store);

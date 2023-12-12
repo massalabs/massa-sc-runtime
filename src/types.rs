@@ -390,12 +390,12 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// * Compile it if not
     ///
     /// Returns a CL compiled module and the remaining gas after loading
-    fn get_module(&self, bytecode: &[u8], gas_limit: u64) -> Result<(RuntimeModule, u64)>;
+    fn get_module(&self, bytecode: &[u8], gas_limit: u64) -> Result<RuntimeModule>;
 
     /// Compile a temportary module from the given bytecode
     ///
     /// Returns a SP compiled module and the remaining gas after loading
-    fn get_tmp_module(&self, bytecode: &[u8], gas_limit: u64) -> Result<(RuntimeModule, u64)>;
+    fn get_tmp_module(&self, bytecode: &[u8], gas_limit: u64) -> Result<RuntimeModule>;
 
     /// Sends an async message
     ///
@@ -533,6 +533,8 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ) -> Result<ComparisonResult>;
 
     fn compare_pub_key_wasmv1(&self, left: &str, right: &str) -> Result<ComparisonResult>;
+
+    fn save_gas_remaining_before_subexecution(&self, gas_used_until: u64);
 }
 
 impl dyn Interface {

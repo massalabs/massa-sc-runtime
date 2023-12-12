@@ -25,30 +25,25 @@ pub(crate) fn call_module(
     let env = get_env(ctx)?;
     let bytecode = env.get_interface().init_call(address, raw_coins)?;
     let interface = env.get_interface();
+    let remaining_gas = get_remaining_gas(&env, ctx)?;
 
-    let remaining_gas = if cfg!(feature = "gas_calibration") {
-        u64::MAX
-    } else {
-        get_remaining_points(&env, ctx)?
-    };
+    let module = interface
+        .get_module(&bytecode, remaining_gas)
+        .map_err(|e| {
+            super::ABIError::Error(anyhow::anyhow!(format!(
+                "call to {}:{} error: {}",
+                address,
+                function,
+                e.to_string()
+            )))
+        })?;
 
-    let (module, post_module_gas) =
-        interface
-            .get_module(&bytecode, remaining_gas)
-            .map_err(|e| {
-                super::ABIError::Error(anyhow::anyhow!(format!(
-                    "call to {}:{} error: {}",
-                    address,
-                    function,
-                    e.to_string()
-                )))
-            })?;
     let resp = crate::execution::run_function(
         &*interface,
         module,
         function,
         param,
-        post_module_gas,
+        remaining_gas,
         env.get_gas_costs(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
@@ -67,26 +62,23 @@ pub(crate) fn local_call(
     tmp: bool,
 ) -> ABIResult<Response> {
     let env = get_env(ctx)?;
+    let gas_costs = env.get_gas_costs();
     let interface = env.get_interface();
+    let remaining_gas = get_remaining_gas(&env, ctx)?;
 
-    let remaining_gas = if cfg!(feature = "gas_calibration") {
-        u64::MAX
-    } else {
-        get_remaining_points(&env, ctx)?
-    };
-
-    let (module, post_module_gas) = if tmp {
+    let module = if tmp {
         interface.get_tmp_module(bytecode, remaining_gas)?
     } else {
         interface.get_module(bytecode, remaining_gas)?
     };
+
     let resp = crate::execution::run_function(
         &*interface,
         module,
         function,
         param,
-        post_module_gas,
-        env.get_gas_costs(),
+        remaining_gas,
+        gas_costs,
     )?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.remaining_gas)?;
@@ -110,15 +102,23 @@ pub(crate) fn function_exists(
     let env = get_env(ctx)?;
     let interface = env.get_interface();
     let bytecode = interface.raw_get_bytecode_for(address)?;
+    let remaining_gas = get_remaining_gas(&env, ctx)?;
 
+    let function_exists = interface
+        .get_module(&bytecode, remaining_gas)?
+        .function_exists(function);
+
+    Ok(function_exists)
+}
+
+pub(crate) fn get_remaining_gas(
+    env: &ASEnv,
+    ctx: &mut FunctionEnvMut<'_, ASEnv>,
+) -> Result<u64, super::ABIError> {
     let remaining_gas = if cfg!(feature = "gas_calibration") {
         u64::MAX
     } else {
-        get_remaining_points(&env, ctx)?
+        get_remaining_points(env, ctx)?
     };
-
-    Ok(interface
-        .get_module(&bytecode, remaining_gas)?
-        .0
-        .function_exists(function))
+    Ok(remaining_gas)
 }
