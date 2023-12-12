@@ -1387,6 +1387,14 @@
 <a href="#1387" id="1387">1387</a>
 <a href="#1388" id="1388">1388</a>
 <a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -2438,6 +2446,14 @@
     <span class="kw">let </span>function = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, function)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(function_exists(<span class="kw-2">&amp;mut </span>ctx, address, function)<span class="question-mark">? </span><span class="kw">as </span>i32)
+}
+
+<span class="doccomment">/// Return current chain id
+</span><span class="attr">#[named]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_chain_id(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;i64&gt; {
+    <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
+    sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(env.get_interface().chain_id()<span class="question-mark">? </span><span class="kw">as </span>i64)
 }
 
 <span class="doccomment">/// Assembly script builtin `abort` function.
