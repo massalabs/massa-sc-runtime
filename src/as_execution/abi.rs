@@ -1053,10 +1053,10 @@ pub fn assembly_script_function_exists(
 
 /// Return current chain id
 #[named]
-pub fn assembly_script_chain_id(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
+pub(crate) fn assembly_script_chain_id(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    Ok(env.get_interface().chain_id()? as i32)
+    Ok(env.get_interface().chain_id()? as i64)
 }
 
 /// Assembly script builtin `abort` function.

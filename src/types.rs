@@ -145,6 +145,7 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_console_warn"), 36);
         abi_costs.insert(String::from("assembly_script_console_error"), 36);
         abi_costs.insert(String::from("assembly_script_trace"), 36);
+        abi_costs.insert(String::from("assembly_script_chain_id"), 9);
         Self {
             abi_costs,
             operator_cost: 1,
@@ -532,9 +533,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ) -> Result<ComparisonResult>;
 
     fn compare_pub_key_wasmv1(&self, left: &str, right: &str) -> Result<ComparisonResult>;
-
-    // Return the current chain id
-    fn chain_id_wasmv1(&self) -> Result<u64>;
 }
 
 impl dyn Interface {
