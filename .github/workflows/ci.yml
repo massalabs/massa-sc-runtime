@@ -5,6 +5,8 @@ on:
     branches: [main, staging, trying]
   pull_request:
     branches: [main, 'testnet_*']
+  merge_group:
+    branches: [ main ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -21,7 +23,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.72.1
+          toolchain: 1.74.1
           components: rustfmt
           override: true
       - uses: Swatinem/rust-cache@v1
@@ -41,7 +43,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.72.1
+          toolchain: 1.74.1
           override: true
       - uses: Swatinem/rust-cache@v1
       - uses: arduino/setup-protoc@v1
@@ -64,7 +66,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.72.1
+          toolchain: 1.74.1
           components: clippy
           override: true
       - uses: Swatinem/rust-cache@v1
@@ -77,7 +79,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: -- -A clippy::uninlined-format-args
 
-  # Full cross-platform tests required by bors to merge on main branch
+  # Full cross-platform tests required to merge on main branch
   full:
     # if: github.ref == 'refs/heads/staging'
     name: full
@@ -96,7 +98,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.72.1
+          toolchain: 1.74.1
           override: true
       - uses: Swatinem/rust-cache@v1
       - uses: arduino/setup-protoc@v1
@@ -114,7 +116,7 @@ jobs:
           command: test
           args: --features gas_calibration
 
-  build: # quick hack because bors wrongly detect matrix jobs status
+  build: # quick hack because bors wrongly detect matrix jobs status. Note: May not be needed anymore with GitHub Merge Queues.
     # if: github.ref == 'refs/heads/staging'
     needs: full
     runs-on: ubuntu-latest
@@ -132,7 +134,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.72.1
+          toolchain: nightly
           override: true
       - uses: arduino/setup-protoc@v1
         with:
@@ -144,7 +146,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features --no-fail-fast
+          args: --features gas_calibration,testing,dumper --no-fail-fast
         env:
           CARGO_INCREMENTAL: "0"
           RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
@@ -166,7 +168,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.72.1
+          toolchain: 1.74.1
           components: rustfmt
           override: true
       - uses: arduino/setup-protoc@v1
