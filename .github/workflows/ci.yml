@@ -134,7 +134,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.74.1
+          toolchain: 1.76.0-nightly
           override: true
       - uses: arduino/setup-protoc@v1
         with:
