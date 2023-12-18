@@ -13,9 +13,6 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 pub enum Compiler {
     CL,
     SP,
-    SP,
-    SP,
-    SP,
 }
 
 #[derive(Clone)]
