@@ -126,7 +126,7 @@ jobs:
   # Code documentation and coverage will be run only on main branch
   coverage:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    #if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -134,7 +134,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: 1.74.1
           override: true
       - uses: arduino/setup-protoc@v1
         with:
