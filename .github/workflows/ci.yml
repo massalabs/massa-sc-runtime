@@ -116,7 +116,7 @@ jobs:
           command: test
           args: --features gas_calibration
 
-  build: # quick hack because bors wrongly detect matrix jobs status. Note: May not be needed anymore with GitHub Merge Queues
+  build: # quick hack because bors wrongly detect matrix jobs status. Note: May not be needed anymore with GitHub Merge Queues.
     # if: github.ref == 'refs/heads/staging'
     needs: full
     runs-on: ubuntu-latest
