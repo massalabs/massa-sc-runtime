@@ -2657,10 +2657,10 @@
     bytecode: Vec&lt;u8&gt;,
     remaining_gas: u64,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">crate</span>::RuntimeModule, WasmV1Error&gt; {
-    <span class="prelude-val">Ok</span>(handler
+    handler
         .interface
         .get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)
-        .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not get module: {}&quot;</span>, err)))<span class="question-mark">?</span>)
+        .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not get module: {}&quot;</span>, err)))
 }
 
 <span class="kw">fn </span>helper_get_tmp_module(
@@ -2668,10 +2668,10 @@
     bytecode: Vec&lt;u8&gt;,
     remaining_gas: u64,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">crate</span>::RuntimeModule, WasmV1Error&gt; {
-    <span class="prelude-val">Ok</span>(handler
+    handler
         .interface
         .get_tmp_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)
-        .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not get module: {}&quot;</span>, err)))<span class="question-mark">?</span>)
+        .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not get module: {}&quot;</span>, err)))
 }
 
 <span class="attr">#[named]
