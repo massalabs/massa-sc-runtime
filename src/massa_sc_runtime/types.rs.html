@@ -556,6 +556,8 @@
 <a href="#556" id="556">556</a>
 <a href="#557" id="557">557</a>
 <a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
@@ -703,6 +705,7 @@
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_console_warn&quot;</span>), <span class="number">36</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_console_error&quot;</span>), <span class="number">36</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_trace&quot;</span>), <span class="number">36</span>);
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_chain_id&quot;</span>), <span class="number">9</span>);
         <span class="self">Self </span>{
             abi_costs,
             operator_cost: <span class="number">1</span>,
@@ -947,12 +950,12 @@
     /// * Compile it if not
     ///
     /// Returns a CL compiled module and the remaining gas after loading
-    </span><span class="kw">fn </span>get_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;RuntimeModule&gt;;
+    </span><span class="kw">fn </span>get_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(RuntimeModule, u64)&gt;;
 
     <span class="doccomment">/// Compile a temportary module from the given bytecode
     ///
     /// Returns a SP compiled module and the remaining gas after loading
-    </span><span class="kw">fn </span>get_tmp_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;RuntimeModule&gt;;
+    </span><span class="kw">fn </span>get_tmp_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(RuntimeModule, u64)&gt;;
 
     <span class="doccomment">/// Sends an async message
     ///
@@ -991,6 +994,9 @@
 
     <span class="comment">// Keccak256 hash bytes
     </span><span class="kw">fn </span>hash_keccak256(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;[u8; <span class="number">32</span>]&gt;;
+
+    <span class="comment">// Return the current chain id
+    </span><span class="kw">fn </span>chain_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt;;
 
     <span class="kw">fn </span>native_amount_from_str_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, amount: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;NativeAmount&gt;;
 
@@ -1087,8 +1093,6 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ComparisonResult&gt;;
 
     <span class="kw">fn </span>compare_pub_key_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <span class="kw-2">&amp;</span>str, right: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;ComparisonResult&gt;;
-
-    <span class="kw">fn </span>save_gas_remaining_before_subexecution(<span class="kw-2">&amp;</span><span class="self">self</span>, gas_used_until: u64);
 }
 
 <span class="kw">impl dyn </span>Interface {

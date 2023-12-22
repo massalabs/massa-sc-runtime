@@ -149,25 +149,30 @@
     <span class="kw">let </span>env = get_env(ctx)<span class="question-mark">?</span>;
     <span class="kw">let </span>bytecode = env.get_interface().init_call(address, raw_coins)<span class="question-mark">?</span>;
     <span class="kw">let </span>interface = env.get_interface();
-    <span class="kw">let </span>remaining_gas = get_remaining_gas(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>module = interface
-        .get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)
-        .map_err(|e| {
-            <span class="kw">super</span>::ABIError::Error(<span class="macro">anyhow::anyhow!</span>(<span class="macro">format!</span>(
-                <span class="string">&quot;call to {}:{} error: {}&quot;</span>,
-                address,
-                function,
-                e.to_string()
-            )))
-        })<span class="question-mark">?</span>;
+    <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
+        u64::MAX
+    } <span class="kw">else </span>{
+        get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
+    </span>};
 
+    <span class="kw">let </span>(module, post_module_gas) =
+        interface
+            .get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)
+            .map_err(|e| {
+                <span class="kw">super</span>::ABIError::Error(<span class="macro">anyhow::anyhow!</span>(<span class="macro">format!</span>(
+                    <span class="string">&quot;call to {}:{} error: {}&quot;</span>,
+                    address,
+                    function,
+                    e.to_string()
+                )))
+            })<span class="question-mark">?</span>;
     <span class="kw">let </span>resp = <span class="kw">crate</span>::execution::run_function(
         <span class="kw-2">&amp;*</span>interface,
         module,
         function,
         param,
-        remaining_gas,
+        post_module_gas,
         env.get_gas_costs(),
     )<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
@@ -186,23 +191,26 @@
     tmp: bool,
 ) -&gt; ABIResult&lt;Response&gt; {
     <span class="kw">let </span>env = get_env(ctx)<span class="question-mark">?</span>;
-    <span class="kw">let </span>gas_costs = env.get_gas_costs();
     <span class="kw">let </span>interface = env.get_interface();
-    <span class="kw">let </span>remaining_gas = get_remaining_gas(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>module = <span class="kw">if </span>tmp {
+    <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
+        u64::MAX
+    } <span class="kw">else </span>{
+        get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
+    </span>};
+
+    <span class="kw">let </span>(module, post_module_gas) = <span class="kw">if </span>tmp {
         interface.get_tmp_module(bytecode, remaining_gas)<span class="question-mark">?
     </span>} <span class="kw">else </span>{
         interface.get_module(bytecode, remaining_gas)<span class="question-mark">?
     </span>};
-
     <span class="kw">let </span>resp = <span class="kw">crate</span>::execution::run_function(
         <span class="kw-2">&amp;*</span>interface,
         module,
         function,
         param,
-        remaining_gas,
-        gas_costs,
+        post_module_gas,
+        env.get_gas_costs(),
     )<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
         set_remaining_points(<span class="kw-2">&amp;</span>env, ctx, resp.remaining_gas)<span class="question-mark">?</span>;
@@ -226,24 +234,16 @@
     <span class="kw">let </span>env = get_env(ctx)<span class="question-mark">?</span>;
     <span class="kw">let </span>interface = env.get_interface();
     <span class="kw">let </span>bytecode = interface.raw_get_bytecode_for(address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>remaining_gas = get_remaining_gas(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>function_exists = interface
-        .get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)<span class="question-mark">?
-        </span>.function_exists(function);
-
-    <span class="prelude-val">Ok</span>(function_exists)
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_remaining_gas(
-    env: <span class="kw-2">&amp;</span>ASEnv,
-    ctx: <span class="kw-2">&amp;mut </span>FunctionEnvMut&lt;<span class="lifetime">&#39;_</span>, ASEnv&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;u64, <span class="kw">super</span>::ABIError&gt; {
     <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
         u64::MAX
     } <span class="kw">else </span>{
-        get_remaining_points(env, ctx)<span class="question-mark">?
+        get_remaining_points(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?
     </span>};
-    <span class="prelude-val">Ok</span>(remaining_gas)
+
+    <span class="prelude-val">Ok</span>(interface
+        .get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)<span class="question-mark">?
+        </span>.<span class="number">0
+        </span>.function_exists(function))
 }
 </code></pre></div></section></main></body></html>
