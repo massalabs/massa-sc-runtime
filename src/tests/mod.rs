@@ -801,6 +801,10 @@ impl Interface for TestInterface {
         println!("get_origin_operation_id");
         Ok(Some(String::new()))
     }
+
+    fn chain_id(&self) -> Result<u64> {
+        Ok(7)
+    }
 }
 
 #[cfg(feature = "gas_calibration")]

@@ -114,7 +114,8 @@ pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imp
         "abi_evm_verify_signature" => abi_evm_verify_signature,
         "abi_evm_get_address_from_pubkey" => abi_evm_get_address_from_pubkey,
         "abi_evm_get_pubkey_from_signature" => abi_evm_get_pubkey_from_signature,
-        "abi_is_address_eoa" => abi_is_address_eoa
+        "abi_is_address_eoa" => abi_is_address_eoa,
+        "abi_chain_id" => abi_chain_id
     )
 }
 
@@ -1654,6 +1655,26 @@ pub fn abi_verify_signature(
             {
                 Ok(is_verified) => {
                     resp_ok!(VerifySigResult, { is_verified })
+                }
+                Err(e) => resp_err!(e),
+            }
+        },
+    )
+}
+
+#[named]
+pub fn abi_chain_id(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        function_name!(),
+        store_env,
+        arg_offset,
+        |handler, _req: ChainIdRequest| -> Result<AbiResponse, WasmV1Error> {
+            match handler.interface.chain_id() {
+                Ok(chain_id) => {
+                    resp_ok!(ChainIdResult, { id: chain_id })
                 }
                 Err(e) => resp_err!(e),
             }

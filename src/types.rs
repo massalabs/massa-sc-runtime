@@ -145,6 +145,7 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_console_warn"), 36);
         abi_costs.insert(String::from("assembly_script_console_error"), 36);
         abi_costs.insert(String::from("assembly_script_trace"), 36);
+        abi_costs.insert(String::from("assembly_script_chain_id"), 9);
         Self {
             abi_costs,
             operator_cost: 1,
@@ -433,6 +434,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     // Keccak256 hash bytes
     fn hash_keccak256(&self, bytes: &[u8]) -> Result<[u8; 32]>;
+
+    // Return the current chain id
+    fn chain_id(&self) -> Result<u64>;
 
     fn native_amount_from_str_wasmv1(&self, amount: &str) -> Result<NativeAmount>;
 
