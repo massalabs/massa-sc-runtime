@@ -211,6 +211,9 @@ pub(crate) fn exec_wasmv1_module(
     let shared_abi_env: ABIEnv = Arc::new(Mutex::new(None));
     let import_object = register_abis(&mut store, shared_abi_env.clone());
 
+    // save the gas remaining before subexecution: used by readonly execution
+    interface.save_gas_remaining_before_subexecution(gas_limit);
+
     // Create an instance of the execution environment.
     let execution_env =
         ExecutionEnv::create_instance(&mut store, &module, interface, gas_costs, &import_object)

@@ -139,13 +139,13 @@ fn abi_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, W
                 })?;
 
             let remaining_gas = handler.get_remaining_gas();
-            let (module, gas) = helper_get_module(handler, bytecode, remaining_gas)?;
+            let module = helper_get_module(handler, bytecode, remaining_gas)?;
             let response = crate::execution::run_function(
                 handler.interface,
                 module,
                 &req.target_function_name,
                 &req.function_arg,
-                gas,
+                remaining_gas,
                 handler.get_gas_costs().clone(),
             )
             .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
@@ -169,14 +169,14 @@ fn abi_local_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<
         |handler, req: CallRequest| {
             let bytecode = helper_get_bytecode(handler, req.target_sc_address)?;
             let remaining_gas = handler.get_remaining_gas();
-            let (module, gas) = helper_get_module(handler, bytecode, remaining_gas)?;
+            let module = helper_get_module(handler, bytecode, remaining_gas)?;
 
             let response = crate::execution::run_function(
                 handler.interface,
                 module,
                 &req.target_function_name,
                 &req.function_arg,
-                gas,
+                remaining_gas,
                 handler.get_gas_costs().clone(),
             )
             .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
@@ -901,14 +901,14 @@ fn abi_local_execution(
         arg_offset,
         |handler, req: LocalExecutionRequest| {
             let remaining_gas = handler.get_remaining_gas();
-            let (module, gas) = helper_get_tmp_module(handler, req.bytecode, remaining_gas)?;
+            let module = helper_get_tmp_module(handler, req.bytecode, remaining_gas)?;
 
             match crate::execution::run_function(
                 handler.interface,
                 module,
                 &req.target_function_name,
                 &req.function_arg,
-                gas,
+                remaining_gas,
                 handler.get_gas_costs().clone(),
             ) {
                 Ok(response) => {
@@ -963,7 +963,8 @@ fn abi_function_exists(
                 handler.get_remaining_gas()
             };
 
-            let Ok((module, _gas)) = helper_get_module(handler, bytecode, remaining_gas) else {
+            // FIXME set updated value to store_env
+            let Ok(module) = helper_get_module(handler, bytecode, remaining_gas) else {
                 return resp_ok!(FunctionExistsResult, {
                     exists: false
                 });
@@ -995,24 +996,22 @@ fn helper_get_module(
     handler: &mut super::handler::ABIHandler,
     bytecode: Vec<u8>,
     remaining_gas: u64,
-) -> Result<(crate::RuntimeModule, u64), WasmV1Error> {
-    let (module, post_module_gas) = handler
+) -> Result<crate::RuntimeModule, WasmV1Error> {
+    handler
         .interface
         .get_module(&bytecode, remaining_gas)
-        .map_err(|err| WasmV1Error::RuntimeError(format!("Could not get module: {}", err)))?;
-    Ok((module, post_module_gas))
+        .map_err(|err| WasmV1Error::RuntimeError(format!("Could not get module: {}", err)))
 }
 
 fn helper_get_tmp_module(
     handler: &mut super::handler::ABIHandler,
     bytecode: Vec<u8>,
     remaining_gas: u64,
-) -> Result<(crate::RuntimeModule, u64), WasmV1Error> {
-    let (module, post_module_gas) = handler
+) -> Result<crate::RuntimeModule, WasmV1Error> {
+    handler
         .interface
         .get_tmp_module(&bytecode, remaining_gas)
-        .map_err(|err| WasmV1Error::RuntimeError(format!("Could not get module: {}", err)))?;
-    Ok((module, post_module_gas))
+        .map_err(|err| WasmV1Error::RuntimeError(format!("Could not get module: {}", err)))
 }
 
 #[named]
