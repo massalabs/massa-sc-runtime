@@ -558,6 +558,8 @@
 <a href="#558" id="558">558</a>
 <a href="#559" id="559">559</a>
 <a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
@@ -950,12 +952,12 @@
     /// * Compile it if not
     ///
     /// Returns a CL compiled module and the remaining gas after loading
-    </span><span class="kw">fn </span>get_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(RuntimeModule, u64)&gt;;
+    </span><span class="kw">fn </span>get_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;RuntimeModule&gt;;
 
     <span class="doccomment">/// Compile a temportary module from the given bytecode
     ///
     /// Returns a SP compiled module and the remaining gas after loading
-    </span><span class="kw">fn </span>get_tmp_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(RuntimeModule, u64)&gt;;
+    </span><span class="kw">fn </span>get_tmp_module(<span class="kw-2">&amp;</span><span class="self">self</span>, bytecode: <span class="kw-2">&amp;</span>[u8], gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;RuntimeModule&gt;;
 
     <span class="doccomment">/// Sends an async message
     ///
@@ -1093,6 +1095,8 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ComparisonResult&gt;;
 
     <span class="kw">fn </span>compare_pub_key_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, left: <span class="kw-2">&amp;</span>str, right: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;ComparisonResult&gt;;
+
+    <span class="kw">fn </span>save_gas_remaining_before_subexecution(<span class="kw-2">&amp;</span><span class="self">self</span>, gas_used_until: u64);
 }
 
 <span class="kw">impl dyn </span>Interface {
