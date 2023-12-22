@@ -246,6 +246,10 @@
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
 <a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>context;
@@ -458,6 +462,10 @@
     };
     <span class="kw">let </span><span class="kw-2">mut </span>store = Store::new(engine);
     <span class="kw">let </span><span class="kw-2">mut </span>context = ASContext::new(interface, as_module.binary_module, gas_costs);
+
+    <span class="comment">// save the gas remaining before subexecution: used by readonly execution
+    </span>interface.save_gas_remaining_before_subexecution(limit);
+
     <span class="kw">let </span>(instance, init_rem_points) = context.create_vm_instance_and_init_env(<span class="kw-2">&amp;mut </span>store)<span class="question-mark">?</span>;
     <span class="kw">let </span>init_cost = as_module.initial_limit.saturating_sub(init_rem_points);
 

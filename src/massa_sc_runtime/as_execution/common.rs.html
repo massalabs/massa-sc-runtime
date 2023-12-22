@@ -122,18 +122,6 @@
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Execution functions used by the ABIs.
 //!
 //! IMPORTANT: these were designed for, and should not be called outside of
@@ -161,7 +149,6 @@
     <span class="kw">let </span>env = get_env(ctx)<span class="question-mark">?</span>;
     <span class="kw">let </span>bytecode = env.get_interface().init_call(address, raw_coins)<span class="question-mark">?</span>;
     <span class="kw">let </span>interface = env.get_interface();
-
     <span class="kw">let </span>remaining_gas = get_remaining_gas(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>module = interface
@@ -174,9 +161,6 @@
                 e.to_string()
             )))
         })<span class="question-mark">?</span>;
-
-    <span class="comment">// this call happens here because in .get_module() the context is locked
-    </span>interface.save_gas_remaining_before_subexecution(remaining_gas);
 
     <span class="kw">let </span>resp = <span class="kw">crate</span>::execution::run_function(
         <span class="kw-2">&amp;*</span>interface,
@@ -204,7 +188,6 @@
     <span class="kw">let </span>env = get_env(ctx)<span class="question-mark">?</span>;
     <span class="kw">let </span>gas_costs = env.get_gas_costs();
     <span class="kw">let </span>interface = env.get_interface();
-
     <span class="kw">let </span>remaining_gas = get_remaining_gas(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>module = <span class="kw">if </span>tmp {
@@ -212,9 +195,6 @@
     </span>} <span class="kw">else </span>{
         interface.get_module(bytecode, remaining_gas)<span class="question-mark">?
     </span>};
-
-    <span class="comment">// this call happens here because in .get_module() the context is locked
-    </span>interface.save_gas_remaining_before_subexecution(remaining_gas);
 
     <span class="kw">let </span>resp = <span class="kw">crate</span>::execution::run_function(
         <span class="kw-2">&amp;*</span>interface,
@@ -246,15 +226,11 @@
     <span class="kw">let </span>env = get_env(ctx)<span class="question-mark">?</span>;
     <span class="kw">let </span>interface = env.get_interface();
     <span class="kw">let </span>bytecode = interface.raw_get_bytecode_for(address)<span class="question-mark">?</span>;
-
     <span class="kw">let </span>remaining_gas = get_remaining_gas(<span class="kw-2">&amp;</span>env, ctx)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>function_exists = interface
         .get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)<span class="question-mark">?
         </span>.function_exists(function);
-
-    <span class="comment">// this call happens here because in .get_module() the context is locked
-    </span>interface.save_gas_remaining_before_subexecution(remaining_gas);
 
     <span class="prelude-val">Ok</span>(function_exists)
 }
