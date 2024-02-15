@@ -12,6 +12,8 @@ use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
 use super::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
 use crate::settings;
+#[cfg(feature = "execution-trace")]
+use crate::types::AbiTrace;
 
 use super::common::{call_module, create_sc, function_exists, local_call};
 use super::error::{abi_bail, ABIResult};
@@ -67,9 +69,19 @@ pub(crate) fn assembly_script_transfer_coins(
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, to_address.len(), true);
     // }
-    Ok(env
+    let res = env
         .get_interface()
-        .transfer_coins(to_address, raw_amount as u64)?)
+        .transfer_coins(to_address, raw_amount as u64)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(
+        AbiTrace {
+            name: "transfer_coins".to_string(),
+            params: vec![to_address.to_string(), raw_amount.to_string()],
+            return_value: "".to_string(),
+            sub_calls: None
+        }
+    );
+    Ok(res)
 }
 
 /// Transfer an amount from the specified address to a target address.
@@ -95,16 +107,36 @@ pub(crate) fn assembly_script_transfer_coins_for(
     //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, to_address.len(), true);
     // }
-    Ok(env
+    let res = env
         .get_interface()
-        .transfer_coins_for(from_address, to_address, raw_amount as u64)?)
+        .transfer_coins_for(from_address, to_address, raw_amount as u64)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(
+        AbiTrace {
+            name: "transfer_coins_for".to_string(),
+            params: vec![from_address.to_string(), to_address.to_string(), raw_amount.to_string()],
+            return_value: "".to_string(),
+            sub_calls: None
+        }
+    );
+    Ok(res)
 }
 
 #[named]
 pub(crate) fn assembly_script_get_balance(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    Ok(env.get_interface().get_balance()? as i64)
+    let res = env.get_interface().get_balance()? as i64;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(
+        AbiTrace {
+            name: "get_balance".to_string(),
+            params: vec![],
+            return_value: res.to_string(),
+            sub_calls: None
+        }
+    );
+    Ok(res)
 }
 
 #[named]
@@ -121,7 +153,17 @@ pub(crate) fn assembly_script_get_balance_for(
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
     // }
-    Ok(env.get_interface().get_balance_for(address)? as i64)
+    let res = env.get_interface().get_balance_for(address)? as i64;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(
+        AbiTrace {
+            name: "get_balance_for".to_string(),
+            params: vec![address.to_string()],
+            return_value: res.to_string(),
+            sub_calls: None
+        }
+    );
+    Ok(res)
 }
 
 /// Raw call that have the right type signature to be able to be call a module
@@ -152,6 +194,15 @@ pub(crate) fn assembly_script_call(
     // }
 
     let response = call_module(&mut ctx, address, function, param, call_coins)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(
+        AbiTrace {
+            name: "call".to_string(),
+            params: vec![address.to_string(), function.to_string(), format!("{:X?}", param), call_coins.to_string()],
+            return_value: format!("{:X?}", response.ret),
+            sub_calls: Some(response.trace)
+        }
+    );
     match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(

@@ -10,6 +10,15 @@ use std::{
 
 use crate::execution::RuntimeModule;
 
+#[cfg(feature = "execution-trace")]
+#[derive(Debug, Clone)]
+pub struct AbiTrace {
+    pub name: String,
+    pub params: Vec<String>,
+    pub return_value: String,
+    pub sub_calls: Option<Vec<AbiTrace>>
+}
+
 /// That's what is returned when a module is executed correctly since the end
 #[derive(Debug)]
 pub struct Response {
@@ -19,6 +28,8 @@ pub struct Response {
     pub remaining_gas: u64,
     /// number of gas required for the instance creation
     pub init_gas_cost: u64,
+    #[cfg(feature = "execution-trace")]
+    pub trace: Vec<AbiTrace>,
 }
 
 pub trait InterfaceClone {

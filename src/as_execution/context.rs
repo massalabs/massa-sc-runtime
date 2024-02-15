@@ -114,6 +114,8 @@ impl ASContext {
                         ret: Vec::new(), // main return empty vec
                         remaining_gas: remaining_gas?,
                         init_gas_cost: 0,
+                        #[cfg(feature = "execution-trace")]
+                        trace: self.env.trace.clone(),
                     });
                 }
                 let ret = if let Some(offset) = value.first() {
@@ -136,6 +138,8 @@ impl ASContext {
                     ret,
                     remaining_gas: remaining_gas?,
                     init_gas_cost: 0,
+                    #[cfg(feature = "execution-trace")]
+                    trace: self.env.trace.clone(),
                 })
             }
             Err(error) => bail!(error),

@@ -1,5 +1,9 @@
 use super::{abi_bail, ABIResult};
 use crate::types::Interface;
+
+#[cfg(feature = "execution-trace")]
+use crate::types::AbiTrace;
+
 use crate::GasCosts;
 use std::{
     collections::HashMap,
@@ -30,6 +34,8 @@ pub struct ASEnv {
     gas_costs: GasCosts,
     /// Initially added for gas calibration but unused at the moment.
     param_size_map: HashMap<String, Option<Global>>,
+    #[cfg(feature = "execution-trace")]
+    pub trace: Vec<AbiTrace>,
 }
 
 impl ASEnv {
@@ -42,6 +48,8 @@ impl ASEnv {
             remaining_points: None,
             exhausted_points: None,
             param_size_map: Default::default(),
+            #[cfg(feature = "execution-trace")]
+            trace: Default::default(),
         }
     }
     pub fn get_interface(&self) -> Box<dyn Interface> {

@@ -314,6 +314,8 @@ pub(crate) fn exec_wasmv1_module(
             ret,
             remaining_gas,
             init_gas_cost,
+            #[cfg(feature = "execution-trace")]
+            trace: vec![],
         },
         gc_result,
     ))
