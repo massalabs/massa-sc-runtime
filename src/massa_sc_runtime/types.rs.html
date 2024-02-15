@@ -560,6 +560,17 @@
 <a href="#560" id="560">560</a>
 <a href="#561" id="561">561</a>
 <a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
@@ -572,6 +583,15 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::execution::RuntimeModule;
 
+<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>AbiTrace {
+    <span class="kw">pub </span>name: String,
+    <span class="kw">pub </span>params: Vec&lt;String&gt;,
+    <span class="kw">pub </span>return_value: String,
+    <span class="kw">pub </span>sub_calls: <span class="prelude-ty">Option</span>&lt;Vec&lt;AbiTrace&gt;&gt;
+}
+
 <span class="doccomment">/// That&#39;s what is returned when a module is executed correctly since the end
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Response {
@@ -581,6 +601,8 @@
     </span><span class="kw">pub </span>remaining_gas: u64,
     <span class="doccomment">/// number of gas required for the instance creation
     </span><span class="kw">pub </span>init_gas_cost: u64,
+    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    </span><span class="kw">pub </span>trace: Vec&lt;AbiTrace&gt;,
 }
 
 <span class="kw">pub trait </span>InterfaceClone {

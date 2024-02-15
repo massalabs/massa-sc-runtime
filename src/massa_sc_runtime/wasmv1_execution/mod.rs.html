@@ -318,6 +318,8 @@
 <a href="#318" id="318">318</a>
 <a href="#319" id="319">319</a>
 <a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>env;
 <span class="kw">mod </span>error;
@@ -634,6 +636,8 @@
             ret,
             remaining_gas,
             init_gas_cost,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+            </span>trace: <span class="macro">vec!</span>[],
         },
         gc_result,
     ))

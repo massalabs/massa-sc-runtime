@@ -1395,6 +1395,57 @@
 <a href="#1395" id="1395">1395</a>
 <a href="#1396" id="1396">1396</a>
 <a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
+<a href="#1403" id="1403">1403</a>
+<a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
+<a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
+<a href="#1421" id="1421">1421</a>
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
+<a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a>
+<a href="#1432" id="1432">1432</a>
+<a href="#1433" id="1433">1433</a>
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -1409,6 +1460,8 @@
 
 <span class="kw">use </span><span class="kw">super</span>::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
 <span class="kw">use </span><span class="kw">crate</span>::settings;
+<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::types::AbiTrace;
 
 <span class="kw">use </span><span class="kw">super</span>::common::{call_module, create_sc, function_exists, local_call};
 <span class="kw">use </span><span class="kw">super</span>::error::{abi_bail, ABIResult};
@@ -1464,9 +1517,19 @@
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, to_address.len(), true);
     // }
-    </span><span class="prelude-val">Ok</span>(env
+    </span><span class="kw">let </span>res = env
         .get_interface()
-        .transfer_coins(to_address, raw_amount <span class="kw">as </span>u64)<span class="question-mark">?</span>)
+        .transfer_coins(to_address, raw_amount <span class="kw">as </span>u64)<span class="question-mark">?</span>;
+    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    </span>ctx.data_mut().trace.push(
+        AbiTrace {
+            name: <span class="string">&quot;transfer_coins&quot;</span>.to_string(),
+            params: <span class="macro">vec!</span>[to_address.to_string(), raw_amount.to_string()],
+            return_value: <span class="string">&quot;&quot;</span>.to_string(),
+            sub_calls: <span class="prelude-val">None
+        </span>}
+    );
+    <span class="prelude-val">Ok</span>(res)
 }
 
 <span class="doccomment">/// Transfer an amount from the specified address to a target address.
@@ -1492,16 +1555,36 @@
     //     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, to_address.len(), true);
     // }
-    </span><span class="prelude-val">Ok</span>(env
+    </span><span class="kw">let </span>res = env
         .get_interface()
-        .transfer_coins_for(from_address, to_address, raw_amount <span class="kw">as </span>u64)<span class="question-mark">?</span>)
+        .transfer_coins_for(from_address, to_address, raw_amount <span class="kw">as </span>u64)<span class="question-mark">?</span>;
+    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    </span>ctx.data_mut().trace.push(
+        AbiTrace {
+            name: <span class="string">&quot;transfer_coins_for&quot;</span>.to_string(),
+            params: <span class="macro">vec!</span>[from_address.to_string(), to_address.to_string(), raw_amount.to_string()],
+            return_value: <span class="string">&quot;&quot;</span>.to_string(),
+            sub_calls: <span class="prelude-val">None
+        </span>}
+    );
+    <span class="prelude-val">Ok</span>(res)
 }
 
 <span class="attr">#[named]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_get_balance(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;i64&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(env.get_interface().get_balance()<span class="question-mark">? </span><span class="kw">as </span>i64)
+    <span class="kw">let </span>res = env.get_interface().get_balance()<span class="question-mark">? </span><span class="kw">as </span>i64;
+    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    </span>ctx.data_mut().trace.push(
+        AbiTrace {
+            name: <span class="string">&quot;get_balance&quot;</span>.to_string(),
+            params: <span class="macro">vec!</span>[],
+            return_value: res.to_string(),
+            sub_calls: <span class="prelude-val">None
+        </span>}
+    );
+    <span class="prelude-val">Ok</span>(res)
 }
 
 <span class="attr">#[named]
@@ -1518,7 +1601,17 @@
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
     // }
-    </span><span class="prelude-val">Ok</span>(env.get_interface().get_balance_for(address)<span class="question-mark">? </span><span class="kw">as </span>i64)
+    </span><span class="kw">let </span>res = env.get_interface().get_balance_for(address)<span class="question-mark">? </span><span class="kw">as </span>i64;
+    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    </span>ctx.data_mut().trace.push(
+        AbiTrace {
+            name: <span class="string">&quot;get_balance_for&quot;</span>.to_string(),
+            params: <span class="macro">vec!</span>[address.to_string()],
+            return_value: res.to_string(),
+            sub_calls: <span class="prelude-val">None
+        </span>}
+    );
+    <span class="prelude-val">Ok</span>(res)
 }
 
 <span class="doccomment">/// Raw call that have the right type signature to be able to be call a module
@@ -1549,6 +1642,15 @@
     // }
 
     </span><span class="kw">let </span>response = call_module(<span class="kw-2">&amp;mut </span>ctx, address, function, param, call_coins)<span class="question-mark">?</span>;
+    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    </span>ctx.data_mut().trace.push(
+        AbiTrace {
+            name: <span class="string">&quot;call&quot;</span>.to_string(),
+            params: <span class="macro">vec!</span>[address.to_string(), function.to_string(), <span class="macro">format!</span>(<span class="string">&quot;{:X?}&quot;</span>, param), call_coins.to_string()],
+            return_value: <span class="macro">format!</span>(<span class="string">&quot;{:X?}&quot;</span>, response.ret),
+            sub_calls: <span class="prelude-val">Some</span>(response.trace)
+        }
+    );
     <span class="kw">match </span>BufferPtr::alloc(<span class="kw-2">&amp;</span>response.ret, env.get_ffi_env(), <span class="kw-2">&amp;mut </span>ctx) {
         <span class="prelude-val">Ok</span>(ret) =&gt; <span class="prelude-val">Ok</span>(ret.offset() <span class="kw">as </span>i32),
         <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="macro">format!</span>(

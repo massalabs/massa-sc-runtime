@@ -283,6 +283,10 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">super</span>::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 <span class="kw">use </span><span class="kw">crate</span>::types::Response;
@@ -399,6 +403,8 @@
                         ret: Vec::new(), <span class="comment">// main return empty vec
                         </span>remaining_gas: remaining_gas<span class="question-mark">?</span>,
                         init_gas_cost: <span class="number">0</span>,
+                        <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+                        </span>trace: <span class="self">self</span>.env.trace.clone(),
                     });
                 }
                 <span class="kw">let </span>ret = <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = value.first() {
@@ -421,6 +427,8 @@
                     ret,
                     remaining_gas: remaining_gas<span class="question-mark">?</span>,
                     init_gas_cost: <span class="number">0</span>,
+                    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+                    </span>trace: <span class="self">self</span>.env.trace.clone(),
                 })
             }
             <span class="prelude-val">Err</span>(error) =&gt; <span class="macro">bail!</span>(error),
