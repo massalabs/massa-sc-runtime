@@ -12,11 +12,28 @@ use crate::execution::RuntimeModule;
 
 #[cfg(feature = "execution-trace")]
 #[derive(Debug, Clone)]
+pub enum AbiTraceType {
+    None,
+    Bool(bool),
+    U8(u8),
+    I32(i32),
+    I64(i64),
+    U64(u64),
+    F64(f64),
+    ByteArray(Vec<u8>),
+    ByteArrays(Vec<Vec<u8>>),
+    String(String),
+    Strings(Vec<String>),
+    Slot((u64, u8)),
+}
+
+#[cfg(feature = "execution-trace")]
+#[derive(Debug, Clone)]
 pub struct AbiTrace {
     pub name: String,
-    pub params: Vec<String>,
-    pub return_value: String,
-    pub sub_calls: Option<Vec<AbiTrace>>
+    pub params: Vec<AbiTraceType>,
+    pub return_value: AbiTraceType,
+    pub sub_calls: Option<Vec<AbiTrace>>,
 }
 
 /// That's what is returned when a module is executed correctly since the end

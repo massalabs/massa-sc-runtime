@@ -13,7 +13,7 @@ use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 use super::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
 use crate::settings;
 #[cfg(feature = "execution-trace")]
-use crate::types::AbiTrace;
+use crate::types::{AbiTrace, AbiTraceType};
 
 use super::common::{call_module, create_sc, function_exists, local_call};
 use super::error::{abi_bail, ABIResult};
@@ -46,7 +46,15 @@ pub(crate) fn get_env(ctx: &FunctionEnvMut<ASEnv>) -> ABIResult<ASEnv> {
 pub(crate) fn assembly_script_get_call_coins(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    Ok(env.get_interface().get_call_coins()? as i64)
+    let res = env.get_interface().get_call_coins()? as i64;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::I64(res),
+        sub_calls: None,
+    });
+    Ok(res)
 }
 
 /// Transfer an amount from the address on the current call stack to a target
@@ -63,7 +71,7 @@ pub(crate) fn assembly_script_transfer_coins(
         abi_bail!("Negative raw amount.");
     }
     let memory = get_memory!(env);
-    let to_address = &read_string(memory, &ctx, to_address)?;
+    let to_address = read_string(memory, &ctx, to_address)?;
     // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
@@ -71,16 +79,17 @@ pub(crate) fn assembly_script_transfer_coins(
     // }
     let res = env
         .get_interface()
-        .transfer_coins(to_address, raw_amount as u64)?;
+        .transfer_coins(&to_address, raw_amount as u64)?;
     #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(
-        AbiTrace {
-            name: "transfer_coins".to_string(),
-            params: vec![to_address.to_string(), raw_amount.to_string()],
-            return_value: "".to_string(),
-            sub_calls: None
-        }
-    );
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::String(to_address),
+            AbiTraceType::I64(raw_amount),
+        ],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(res)
 }
 
@@ -98,8 +107,8 @@ pub(crate) fn assembly_script_transfer_coins_for(
         abi_bail!("Negative raw amount.");
     }
     let memory = get_memory!(env);
-    let from_address = &read_string(memory, &ctx, from_address)?;
-    let to_address = &read_string(memory, &ctx, to_address)?;
+    let from_address = read_string(memory, &ctx, from_address)?;
+    let to_address = read_string(memory, &ctx, to_address)?;
     // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
@@ -107,18 +116,20 @@ pub(crate) fn assembly_script_transfer_coins_for(
     //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, to_address.len(), true);
     // }
-    let res = env
-        .get_interface()
-        .transfer_coins_for(from_address, to_address, raw_amount as u64)?;
+    let res =
+        env.get_interface()
+            .transfer_coins_for(&from_address, &to_address, raw_amount as u64)?;
     #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(
-        AbiTrace {
-            name: "transfer_coins_for".to_string(),
-            params: vec![from_address.to_string(), to_address.to_string(), raw_amount.to_string()],
-            return_value: "".to_string(),
-            sub_calls: None
-        }
-    );
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::String(from_address),
+            AbiTraceType::String(to_address),
+            AbiTraceType::I64(raw_amount),
+        ],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(res)
 }
 
@@ -128,14 +139,12 @@ pub(crate) fn assembly_script_get_balance(mut ctx: FunctionEnvMut<ASEnv>) -> ABI
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let res = env.get_interface().get_balance()? as i64;
     #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(
-        AbiTrace {
-            name: "get_balance".to_string(),
-            params: vec![],
-            return_value: res.to_string(),
-            sub_calls: None
-        }
-    );
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::I64(res),
+        sub_calls: None,
+    });
     Ok(res)
 }
 
@@ -147,22 +156,20 @@ pub(crate) fn assembly_script_get_balance_for(
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let address = &read_string(memory, &ctx, address)?;
+    let address = read_string(memory, &ctx, address)?;
     // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
     // }
-    let res = env.get_interface().get_balance_for(address)? as i64;
+    let res = env.get_interface().get_balance_for(&address)? as i64;
     #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(
-        AbiTrace {
-            name: "get_balance_for".to_string(),
-            params: vec![address.to_string()],
-            return_value: res.to_string(),
-            sub_calls: None
-        }
-    );
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::String(address)],
+        return_value: AbiTraceType::I64(res),
+        sub_calls: None,
+    });
     Ok(res)
 }
 
@@ -179,9 +186,9 @@ pub(crate) fn assembly_script_call(
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let address = &read_string(memory, &ctx, address)?;
-    let function = &read_string(memory, &ctx, function)?;
-    let param = &read_buffer(memory, &ctx, param)?;
+    let address = read_string(memory, &ctx, address)?;
+    let function = read_string(memory, &ctx, function)?;
+    let param = read_buffer(memory, &ctx, param)?;
 
     // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
@@ -193,16 +200,19 @@ pub(crate) fn assembly_script_call(
     //     param_size_update(&env, &mut ctx, &fname, param.len(), true);
     // }
 
-    let response = call_module(&mut ctx, address, function, param, call_coins)?;
+    let response = call_module(&mut ctx, &address, &function, &param, call_coins)?;
     #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(
-        AbiTrace {
-            name: "call".to_string(),
-            params: vec![address.to_string(), function.to_string(), format!("{:X?}", param), call_coins.to_string()],
-            return_value: format!("{:X?}", response.ret),
-            sub_calls: Some(response.trace)
-        }
-    );
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::String(address.clone()),
+            AbiTraceType::String(function.clone()),
+            AbiTraceType::ByteArray(param),
+            AbiTraceType::I64(call_coins),
+        ],
+        return_value: AbiTraceType::ByteArray(response.ret.clone()),
+        sub_calls: Some(response.trace),
+    });
     match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
@@ -216,7 +226,15 @@ pub(crate) fn assembly_script_call(
 pub(crate) fn assembly_script_get_remaining_gas(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    Ok(get_remaining_points(&env, &mut ctx)? as i64)
+    let res = get_remaining_points(&env, &mut ctx)? as i64;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::I64(res),
+        sub_calls: None,
+    });
+    Ok(res)
 }
 
 /// Create an instance of VM from a module with a
@@ -237,6 +255,13 @@ pub(crate) fn assembly_script_print(mut ctx: FunctionEnvMut<ASEnv>, arg: i32) ->
     // }
 
     env.get_interface().print(&message)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::String(message)],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(())
 }
 
@@ -251,6 +276,14 @@ pub(crate) fn assembly_script_get_op_keys(mut ctx: FunctionEnvMut<ASEnv>) -> ABI
             let fmt_keys =
                 ser_bytearray_vec(&keys, keys.len(), settings::max_op_datastore_entry_count())?;
             let ptr = pointer_from_bytearray(&env, &mut ctx, &fmt_keys)?.offset();
+
+            #[cfg(feature = "execution-trace")]
+            ctx.data_mut().trace.push(AbiTrace {
+                name: function_name!().to_string(),
+                params: vec![AbiTraceType::None],
+                return_value: AbiTraceType::ByteArray(fmt_keys),
+                sub_calls: None,
+            });
             Ok(ptr as i32)
         }
     }
@@ -277,6 +310,14 @@ pub(crate) fn assembly_script_get_op_keys_prefix(
             let fmt_keys =
                 ser_bytearray_vec(&keys, keys.len(), settings::max_op_datastore_entry_count())?;
             let ptr = pointer_from_bytearray(&env, &mut ctx, &fmt_keys)?.offset();
+
+            #[cfg(feature = "execution-trace")]
+            ctx.data_mut().trace.push(AbiTrace {
+                name: function_name!().to_string(),
+                params: vec![AbiTraceType::ByteArray(prefix)],
+                return_value: AbiTraceType::ByteArray(fmt_keys),
+                sub_calls: None,
+            });
             Ok(ptr as i32)
         }
     }
@@ -306,6 +347,15 @@ pub(crate) fn assembly_script_has_op_key(
             // 'true' is explicitly defined as: 0x01 while 'false' is: 0x00
             let b_vec: Vec<u8> = vec![b as u8];
             let a = pointer_from_bytearray(&env, &mut ctx, &b_vec)?.offset();
+
+            #[cfg(feature = "execution-trace")]
+            ctx.data_mut().trace.push(AbiTrace {
+                name: function_name!().to_string(),
+                params: vec![AbiTraceType::ByteArray(key_bytes)],
+                return_value: AbiTraceType::ByteArray(b_vec),
+                sub_calls: None,
+            });
+
             Ok(a as i32)
         }
     }
@@ -328,6 +378,14 @@ pub(crate) fn assembly_script_get_op_data(
     // }
     let data = env.get_interface().get_op_data(&key_bytes)?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32;
+
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::ByteArray(key_bytes)],
+        return_value: AbiTraceType::ByteArray(data),
+        sub_calls: None,
+    });
     Ok(ptr)
 }
 
@@ -348,7 +406,16 @@ pub(crate) fn assembly_script_create_sc(
     //     param_size_update(&env, &mut ctx, &fname, bytecode.len(), true);
     // }
     let address = create_sc(&mut ctx, &bytecode)?;
-    Ok(StringPtr::alloc(&address, env.get_ffi_env(), &mut ctx)?.offset() as i32)
+    let ptr = StringPtr::alloc(&address, env.get_ffi_env(), &mut ctx)?.offset() as i32;
+
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::ByteArray(bytecode)],
+        return_value: AbiTraceType::String(address.clone()),
+        sub_calls: None,
+    });
+    Ok(ptr)
 }
 
 /// performs a hash on a bytearray and returns the hash
@@ -365,6 +432,13 @@ pub(crate) fn assembly_script_hash(mut ctx: FunctionEnvMut<ASEnv>, value: i32) -
     // }
     let hash = env.get_interface().hash(&bytes)?.to_vec();
     let ptr = pointer_from_bytearray(&env, &mut ctx, &hash)?.offset();
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::ByteArray(bytes)],
+        return_value: AbiTraceType::ByteArray(hash),
+        sub_calls: None,
+    });
     Ok(ptr as i32)
 }
 
@@ -380,6 +454,15 @@ pub(crate) fn assembly_script_keccak256_hash(
     let bytes = read_buffer(memory, &ctx, value)?;
     let hash = env.get_interface().hash_keccak256(&bytes)?.to_vec();
     let ptr = pointer_from_bytearray(&env, &mut ctx, &hash)?.offset();
+
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::ByteArray(bytes)],
+        return_value: AbiTraceType::ByteArray(hash),
+        sub_calls: None,
+    });
+
     Ok(ptr as i32)
 }
 
@@ -401,6 +484,14 @@ pub(crate) fn assembly_script_get_keys(
     let keys = env.get_interface().get_keys(prefix_opt)?;
     let fmt_keys = ser_bytearray_vec(&keys, keys.len(), settings::max_datastore_entry_count())?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &fmt_keys)?.offset();
+
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::ByteArray(prefix)],
+        return_value: AbiTraceType::ByteArray(fmt_keys),
+        sub_calls: None,
+    });
     Ok(ptr as i32)
 }
 
@@ -424,6 +515,17 @@ pub(crate) fn assembly_script_get_keys_for(
     let keys = env.get_interface().get_keys_for(&address, prefix_opt)?;
     let fmt_keys = ser_bytearray_vec(&keys, keys.len(), settings::max_datastore_entry_count())?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &fmt_keys)?.offset();
+
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::String(address),
+            AbiTraceType::ByteArray(prefix),
+        ],
+        return_value: AbiTraceType::ByteArrays(keys.iter().cloned().collect()),
+        sub_calls: None,
+    });
     Ok(ptr as i32)
 }
 
@@ -460,6 +562,13 @@ pub(crate) fn assembly_script_set_data(
     // }
 
     env.get_interface().raw_set_data(&key, &value)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::ByteArray(key), AbiTraceType::ByteArray(value)],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(())
 }
 
@@ -484,6 +593,13 @@ pub(crate) fn assembly_script_append_data(
     //     param_size_update(&env, &mut ctx, &fname, value.len(), true);
     // }
     env.get_interface().raw_append_data(&key, &value)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::ByteArray(key), AbiTraceType::ByteArray(value)],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(())
 }
 
@@ -500,7 +616,15 @@ pub(crate) fn assembly_script_get_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
     // }
     let data = env.get_interface().raw_get_data(&key)?;
-    Ok(pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32)
+    let ptr = pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::ByteArray(key)],
+        return_value: AbiTraceType::ByteArray(data.clone()),
+        sub_calls: None,
+    });
+    Ok(ptr)
 }
 
 /// checks if a key-indexed data entry exists in the datastore
@@ -515,7 +639,15 @@ pub(crate) fn assembly_script_has_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
     // }
-    Ok(env.get_interface().has_data(&key)? as i32)
+    let res = env.get_interface().has_data(&key)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::ByteArray(key)],
+        return_value: AbiTraceType::Bool(res),
+        sub_calls: None,
+    });
+    Ok(res as i32)
 }
 
 /// deletes a key-indexed data entry in the datastore of the current address,
@@ -535,6 +667,13 @@ pub(crate) fn assembly_script_delete_data(
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
     // }
     env.get_interface().raw_delete_data(&key)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::ByteArray(key)],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(())
 }
 
@@ -564,6 +703,17 @@ pub(crate) fn assembly_script_set_data_for(
     // }
     env.get_interface()
         .raw_set_data_for(&address, &key, &value)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::String(address),
+            AbiTraceType::ByteArray(key),
+            AbiTraceType::ByteArray(value),
+        ],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(())
 }
 
@@ -593,6 +743,17 @@ pub(crate) fn assembly_script_append_data_for(
     // }
     env.get_interface()
         .raw_append_data_for(&address, &key, &value)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::String(address),
+            AbiTraceType::ByteArray(key),
+            AbiTraceType::ByteArray(value),
+        ],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(())
 }
 
@@ -618,7 +779,15 @@ pub(crate) fn assembly_script_get_data_for(
     // }
 
     let data = env.get_interface().raw_get_data_for(&address, &key)?;
-    Ok(pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32)
+    let ptr = pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::String(address), AbiTraceType::ByteArray(key)],
+        return_value: AbiTraceType::ByteArray(data),
+        sub_calls: None,
+    });
+    Ok(ptr)
 }
 
 /// Deletes a datastore entry for an address. Fails if the entry or address does
@@ -642,6 +811,13 @@ pub(crate) fn assembly_script_delete_data_for(
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
     // }
     env.get_interface().raw_delete_data_for(&address, &key)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::String(address), AbiTraceType::ByteArray(key)],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(())
 }
 
@@ -663,7 +839,15 @@ pub(crate) fn assembly_script_has_data_for(
     //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
     // }
-    Ok(env.get_interface().has_data_for(&address, &key)? as i32)
+    let res = env.get_interface().has_data_for(&address, &key)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::String(address), AbiTraceType::ByteArray(key)],
+        return_value: AbiTraceType::Bool(res),
+        sub_calls: None,
+    });
+    Ok(res as i32)
 }
 
 #[named]
@@ -673,7 +857,15 @@ pub(crate) fn assembly_script_get_owned_addresses(
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let data = env.get_interface().get_owned_addresses()?;
-    alloc_string_array(&mut ctx, &data)
+    let ptr = alloc_string_array(&mut ctx, &data);
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::Strings(data),
+        sub_calls: None,
+    });
+    ptr
 }
 
 #[named]
@@ -681,7 +873,15 @@ pub(crate) fn assembly_script_get_call_stack(mut ctx: FunctionEnvMut<ASEnv>) -> 
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let data = env.get_interface().get_call_stack()?;
-    alloc_string_array(&mut ctx, &data)
+    let ptr = alloc_string_array(&mut ctx, &data);
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::Strings(data),
+        sub_calls: None,
+    });
+    ptr
 }
 
 #[named]
@@ -698,7 +898,14 @@ pub(crate) fn assembly_script_generate_event(
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, event.len(), true);
     // }
-    env.get_interface().generate_event(event)?;
+    env.get_interface().generate_event(event.clone())?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::String(event)],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(())
 }
 
@@ -726,9 +933,21 @@ pub(crate) fn assembly_script_signature_verify(
     //     let fname = format!("massa.{}:2", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, public_key.len(), true);
     // }
-    Ok(env
+    let res = env
         .get_interface()
-        .signature_verify(data.as_bytes(), &signature, &public_key)? as i32)
+        .signature_verify(data.as_bytes(), &signature, &public_key)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::ByteArray(data.as_bytes().to_vec()),
+            AbiTraceType::String(signature),
+            AbiTraceType::String(public_key),
+        ],
+        return_value: AbiTraceType::Bool(res),
+        sub_calls: None,
+    });
+    Ok(res as i32)
 }
 
 /// Verify an EVM signature.
@@ -746,9 +965,21 @@ pub(crate) fn assembly_script_evm_signature_verify(
     let data = read_buffer(memory, &ctx, data)?;
     let signature = read_buffer(memory, &ctx, signature)?;
     let public_key = read_buffer(memory, &ctx, public_key)?;
-    Ok(env
+    let res = env
         .get_interface()
-        .evm_signature_verify(&data, &signature, &public_key)? as i32)
+        .evm_signature_verify(&data, &signature, &public_key)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::ByteArray(data),
+            AbiTraceType::ByteArray(signature),
+            AbiTraceType::ByteArray(public_key),
+        ],
+        return_value: AbiTraceType::Bool(res),
+        sub_calls: None,
+    });
+    Ok(res as i32)
 }
 
 /// Get address from public key (EVM)
@@ -765,6 +996,13 @@ pub(crate) fn assembly_script_evm_get_address_from_pubkey(
         .get_interface()
         .evm_get_address_from_pubkey(&public_key)?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &address)?.offset();
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::ByteArray(public_key)],
+        return_value: AbiTraceType::ByteArray(address),
+        sub_calls: None,
+    });
     Ok(ptr as i32)
 }
 
@@ -784,6 +1022,16 @@ pub(crate) fn assembly_script_evm_get_pubkey_from_signature(
         .get_interface()
         .evm_get_pubkey_from_signature(&data, &signature)?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &public_key)?.offset();
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::ByteArray(data),
+            AbiTraceType::ByteArray(signature),
+        ],
+        return_value: AbiTraceType::ByteArray(public_key),
+        sub_calls: None,
+    });
     Ok(ptr as i32)
 }
 
@@ -797,7 +1045,15 @@ pub(crate) fn assembly_script_is_address_eoa(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
-    Ok(env.get_interface().is_address_eoa(&address)? as i32)
+    let res = env.get_interface().is_address_eoa(&address)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::String(address)],
+        return_value: AbiTraceType::Bool(res),
+        sub_calls: None,
+    });
+    Ok(res as i32)
 }
 
 /// converts a public key to an address
@@ -816,7 +1072,15 @@ pub(crate) fn assembly_script_address_from_public_key(
     //     param_size_update(&env, &mut ctx, &fname, public_key.len(), true);
     // }
     let addr = env.get_interface().address_from_public_key(&public_key)?;
-    Ok(pointer_from_string(&env, &mut ctx, &addr)?.offset() as i32)
+    let ptr = pointer_from_string(&env, &mut ctx, &addr)?.offset() as i32;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::String(public_key)],
+        return_value: AbiTraceType::String(addr),
+        sub_calls: None,
+    });
+    Ok(ptr)
 }
 
 /// Validates an address is correct
@@ -829,7 +1093,15 @@ pub(crate) fn assembly_script_validate_address(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
-    Ok(env.get_interface().validate_address(&address)? as i32)
+    let res = env.get_interface().validate_address(&address)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::String(address)],
+        return_value: AbiTraceType::Bool(res),
+        sub_calls: None,
+    });
+    Ok(res as i32)
 }
 
 /// generates an unsafe random number
@@ -837,7 +1109,15 @@ pub(crate) fn assembly_script_validate_address(
 pub(crate) fn assembly_script_unsafe_random(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    Ok(env.get_interface().unsafe_random()?)
+    let res = env.get_interface().unsafe_random()?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::I64(res),
+        sub_calls: None,
+    });
+    Ok(res)
 }
 
 /// gets the current unix timestamp in milliseconds
@@ -845,7 +1125,15 @@ pub(crate) fn assembly_script_unsafe_random(mut ctx: FunctionEnvMut<ASEnv>) -> A
 pub(crate) fn assembly_script_get_time(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    Ok(env.get_interface().get_time()? as i64)
+    let res = env.get_interface().get_time()?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::U64(res),
+        sub_calls: None,
+    });
+    Ok(res as i64)
 }
 
 /// sends an async message
@@ -894,9 +1182,9 @@ pub(crate) fn assembly_script_send_message(
         abi_bail!("negative coins")
     }
     let memory = get_memory!(env);
-    let target_address = &read_string(memory, &ctx, target_address)?;
-    let target_handler = &read_string(memory, &ctx, target_handler)?;
-    let data = &read_buffer(memory, &ctx, data)?;
+    let target_address = read_string(memory, &ctx, target_address)?;
+    let target_handler = read_string(memory, &ctx, target_handler)?;
+    let data = read_buffer(memory, &ctx, data)?;
     // Do not remove this. It could be used for gas_calibration in future.
     // if cfg!(feature = "gas_calibration") {
     //     let fname = format!("massa.{}:0", function_name!());
@@ -906,7 +1194,7 @@ pub(crate) fn assembly_script_send_message(
     // true);     let fname = format!("massa.{}:2", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, data.len(), true);
     // }
-    let filter_address_string = &read_string(memory, &ctx, filter_address)?;
+    let filter_address_string = read_string(memory, &ctx, filter_address)?;
     let key = read_buffer(memory, &ctx, filter_datastore_key)?;
     let filter = match (filter_address_string.as_str(), key.as_slice()) {
         ("", _) => None,
@@ -915,16 +1203,36 @@ pub(crate) fn assembly_script_send_message(
     };
 
     env.get_interface().send_message(
-        target_address,
-        target_handler,
+        &target_address,
+        &target_handler,
         validity_start,
         validity_end,
         max_gas as u64,
         raw_fee as u64,
         raw_coins as u64,
-        data,
+        &data,
         filter,
     )?;
+
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::String(target_address),
+            AbiTraceType::String(target_handler),
+            AbiTraceType::Slot(validity_start),
+            AbiTraceType::Slot(validity_end),
+            AbiTraceType::U64(max_gas as u64),
+            AbiTraceType::U64(raw_fee as u64),
+            AbiTraceType::U64(raw_coins as u64),
+            AbiTraceType::ByteArray(data),
+            AbiTraceType::String(filter_address_string),
+            AbiTraceType::ByteArray(key),
+        ],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
+
     Ok(())
 }
 
@@ -939,7 +1247,15 @@ pub(crate) fn assembly_script_get_origin_operation_id(
         .get_interface()
         .get_origin_operation_id()?
         .unwrap_or_default();
-    Ok(pointer_from_string(&env, &mut ctx, &operation_id)?.offset() as i32)
+    let ptr = pointer_from_string(&env, &mut ctx, &operation_id)?.offset() as i32;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::String(operation_id),
+        sub_calls: None,
+    });
+    Ok(ptr)
 }
 
 /// gets the period of the current execution slot
@@ -947,7 +1263,15 @@ pub(crate) fn assembly_script_get_origin_operation_id(
 pub(crate) fn assembly_script_get_current_period(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    Ok(env.get_interface().get_current_period()? as i64)
+    let current_period = env.get_interface().get_current_period()?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::U64(current_period),
+        sub_calls: None,
+    });
+    Ok(current_period as i64)
 }
 
 /// gets the thread of the current execution slot
@@ -955,7 +1279,15 @@ pub(crate) fn assembly_script_get_current_period(mut ctx: FunctionEnvMut<ASEnv>)
 pub(crate) fn assembly_script_get_current_thread(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    Ok(env.get_interface().get_current_thread()? as i32)
+    let current_thread = env.get_interface().get_current_thread()?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::U8(current_thread),
+        sub_calls: None,
+    });
+    Ok(current_thread as i32)
 }
 
 /// sets the executable bytecode of an arbitrary address
@@ -979,6 +1311,16 @@ pub(crate) fn assembly_script_set_bytecode_for(
     // }
     env.get_interface()
         .raw_set_bytecode_for(&address, &bytecode_raw)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::String(address),
+            AbiTraceType::ByteArray(bytecode_raw),
+        ],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(())
 }
 
@@ -998,6 +1340,13 @@ pub(crate) fn assembly_script_set_bytecode(
     //     param_size_update(&env, &mut ctx, &fname, bytecode_raw.len(), true);
     // }
     env.get_interface().raw_set_bytecode(&bytecode_raw)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::ByteArray(bytecode_raw)],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(())
 }
 
@@ -1007,7 +1356,15 @@ pub(crate) fn assembly_script_get_bytecode(mut ctx: FunctionEnvMut<ASEnv>) -> AB
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let data = env.get_interface().raw_get_bytecode()?;
-    Ok(pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32)
+    let ptr = pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::ByteArray(data),
+        sub_calls: None,
+    });
+    Ok(ptr)
 }
 
 /// get bytecode of the target address
@@ -1021,7 +1378,15 @@ pub(crate) fn assembly_script_get_bytecode_for(
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let data = env.get_interface().raw_get_bytecode_for(&address)?;
-    Ok(pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32)
+    let ptr = pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::String(address)],
+        return_value: AbiTraceType::ByteArray(data),
+        sub_calls: None,
+    });
+    Ok(ptr)
 }
 
 /// execute `function` of the given bytecode in the current context
@@ -1036,18 +1401,30 @@ pub(crate) fn assembly_script_local_execution(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
 
-    let bytecode = &read_buffer(memory, &ctx, bytecode)?;
-    let function = &read_string(memory, &ctx, function)?;
-    let param = &read_buffer(memory, &ctx, param)?;
-
-    let response = local_call(&mut ctx, bytecode, function, param, true)?;
-    match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
+    let bytecode = read_buffer(memory, &ctx, bytecode)?;
+    let function = read_string(memory, &ctx, function)?;
+    let param = read_buffer(memory, &ctx, param)?;
+    let response = local_call(&mut ctx, &bytecode, &function, &param, true)?;
+    let res = match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
             "Cannot allocate response in local call of {}",
             function
         )),
-    }
+    };
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::ByteArray(bytecode),
+            AbiTraceType::String(function),
+            AbiTraceType::ByteArray(param),
+            AbiTraceType::Bool(true),
+        ],
+        return_value: AbiTraceType::ByteArray(response.ret.clone()),
+        sub_calls: Some(response.trace),
+    });
+    res
 }
 
 /// execute `function` of the bytecode located at `address` in the current
@@ -1065,17 +1442,31 @@ pub(crate) fn assembly_script_local_call(
 
     let address = &read_string(memory, &ctx, address)?;
     let bytecode = env.get_interface().raw_get_bytecode_for(address)?;
-    let function = &read_string(memory, &ctx, function)?;
-    let param = &read_buffer(memory, &ctx, param)?;
+    let function = read_string(memory, &ctx, function)?;
+    let param = read_buffer(memory, &ctx, param)?;
 
-    let response = local_call(&mut ctx, &bytecode, function, param, false)?;
-    match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
+    let response = local_call(&mut ctx, &bytecode, &function, &param, false)?;
+    let res = match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
             "Cannot allocate response in local call of {}",
             function
         )),
-    }
+    };
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::ByteArray(bytecode),
+            AbiTraceType::String(function),
+            AbiTraceType::ByteArray(param),
+            AbiTraceType::Bool(true),
+        ],
+        return_value: AbiTraceType::ByteArray(response.ret.clone()),
+        sub_calls: Some(response.trace),
+    });
+
+    res
 }
 
 /// Check whether or not the caller has write access in the current context
@@ -1083,10 +1474,18 @@ pub(crate) fn assembly_script_local_call(
 pub fn assembly_script_caller_has_write_access(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    Ok(env.get_interface().caller_has_write_access()? as i32)
+    let has_write_access = env.get_interface().caller_has_write_access()?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::Bool(has_write_access),
+        sub_calls: None,
+    });
+    Ok(has_write_access as i32)
 }
 
-/// Check whether or not the given function exists at the given address
+/// Check whether the given function exists at the given address
 #[named]
 pub fn assembly_script_function_exists(
     mut ctx: FunctionEnvMut<ASEnv>,
@@ -1098,8 +1497,15 @@ pub fn assembly_script_function_exists(
     let memory = get_memory!(env);
     let address = &read_string(memory, &ctx, address)?;
     let function = &read_string(memory, &ctx, function)?;
-
-    Ok(function_exists(&mut ctx, address, function)? as i32)
+    let function_exists = function_exists(&mut ctx, address, function)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::Bool(function_exists),
+        sub_calls: None,
+    });
+    Ok(function_exists as i32)
 }
 
 /// Return current chain id
@@ -1107,14 +1513,25 @@ pub fn assembly_script_function_exists(
 pub(crate) fn assembly_script_chain_id(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<u64> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    Ok(env.get_interface().chain_id()? as u64)
+    let chain_id = env.get_interface().chain_id()?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::U64(chain_id),
+        sub_calls: None,
+    });
+    Ok(chain_id as u64)
 }
 
 /// Assembly script builtin `abort` function.
 ///
 /// It prints the origin filename, an error messag, the line and column.
+#[allow(unused_macros)]
+#[allow(unused_mut)]
+#[named]
 pub fn assembly_script_abort(
-    ctx: FunctionEnvMut<ASEnv>,
+    mut ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
     filename: StringPtr,
     line: i32,
@@ -1137,6 +1554,18 @@ pub fn assembly_script_abort(
     if message_.is_err() || filename_.is_err() {
         abi_bail!("aborting failed to load message or filename")
     }
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            AbiTraceType::String(message_.clone().unwrap_or_default()),
+            AbiTraceType::String(filename_.clone().unwrap_or_default()),
+            AbiTraceType::I32(line),
+            AbiTraceType::I32(col),
+        ],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     abi_bail!(format!(
         "error: {} at {}:{} col: {}",
         message_.unwrap(),
@@ -1153,10 +1582,18 @@ pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
     if cfg!(not(feature = "gas_calibration")) {
         sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     }
-    match env.interface.unsafe_random_f64() {
-        Ok(ret) => Ok(ret),
+    let seed = match env.interface.unsafe_random_f64() {
+        Ok(ret) => ret,
         _ => abi_bail!("failed to get random from interface"),
-    }
+    };
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::F64(seed),
+        sub_calls: None,
+    });
+    Ok(seed)
 }
 
 /// Assembly script builtin `Date.now()`
@@ -1171,6 +1608,13 @@ pub fn assembly_script_date_now(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64
         _ => abi_bail!("failed to get time from interface"),
     };
     let ret = utime as f64;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![],
+        return_value: AbiTraceType::F64(ret),
+        sub_calls: None,
+    });
     Ok(ret)
 }
 
@@ -1224,6 +1668,7 @@ pub fn assembly_script_console_debug(
     if cfg!(not(feature = "gas_calibration")) {
         sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     }
+
     assembly_script_console(ctx, message, "DEBUG")
 }
 
@@ -1241,8 +1686,11 @@ pub fn assembly_script_console_error(
 }
 
 /// Assembly script console functions
+#[allow(unused_macros)]
+#[allow(unused_mut)]
+#[named]
 fn assembly_script_console(
-    ctx: FunctionEnvMut<ASEnv>,
+    mut ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
     prefix: &str,
 ) -> ABIResult<()> {
@@ -1260,7 +1708,14 @@ fn assembly_script_console(
         .add(" | ")
         .add(&message.read(&memory, &ctx)?);
 
-    env.get_interface().generate_event(message)?;
+    env.get_interface().generate_event(message.clone())?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::String(message)],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(())
 }
 
@@ -1307,7 +1762,15 @@ pub fn assembly_script_trace(
         _ => message, // Should we warn here or return an error?
     };
 
-    env.get_interface().generate_event(message_for_event)?;
+    env.get_interface()
+        .generate_event(message_for_event.clone())?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![AbiTraceType::String(message_for_event)],
+        return_value: AbiTraceType::None,
+        sub_calls: None,
+    });
     Ok(())
 }
 
