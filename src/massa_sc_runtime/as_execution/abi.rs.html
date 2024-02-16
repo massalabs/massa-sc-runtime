@@ -1909,6 +1909,8 @@
 <a href="#1909" id="1909">1909</a>
 <a href="#1910" id="1910">1910</a>
 <a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -1988,8 +1990,7 @@
     //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, to_address.len(), true);
     // }
-    </span><span class="kw">let </span>res = env
-        .get_interface()
+    </span>env.get_interface()
         .transfer_coins(<span class="kw-2">&amp;</span>to_address, raw_amount <span class="kw">as </span>u64)<span class="question-mark">?</span>;
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
@@ -2001,7 +2002,7 @@
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
-    <span class="prelude-val">Ok</span>(res)
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="doccomment">/// Transfer an amount from the specified address to a target address.
@@ -2027,9 +2028,8 @@
     //     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, to_address.len(), true);
     // }
-    </span><span class="kw">let </span>res =
-        env.get_interface()
-            .transfer_coins_for(<span class="kw-2">&amp;</span>from_address, <span class="kw-2">&amp;</span>to_address, raw_amount <span class="kw">as </span>u64)<span class="question-mark">?</span>;
+    </span>env.get_interface()
+        .transfer_coins_for(<span class="kw-2">&amp;</span>from_address, <span class="kw-2">&amp;</span>to_address, raw_amount <span class="kw">as </span>u64)<span class="question-mark">?</span>;
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
@@ -2041,7 +2041,7 @@
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
-    <span class="prelude-val">Ok</span>(res)
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="attr">#[named]
@@ -2768,7 +2768,9 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>data = env.get_interface().get_owned_addresses()<span class="question-mark">?</span>;
-    <span class="kw">let </span>ptr = alloc_string_array(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>data);
+    <span class="comment">// prevent data.clone() when enabling execution-trace
+    </span><span class="attr">#[allow(clippy::let_and_return)]
+    </span><span class="kw">let </span>ptr = alloc_string_array(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>data);
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
@@ -2784,7 +2786,9 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>data = env.get_interface().get_call_stack()<span class="question-mark">?</span>;
-    <span class="kw">let </span>ptr = alloc_string_array(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>data);
+    <span class="comment">// prevent data.clone() when enabling execution-trace
+    </span><span class="attr">#[allow(clippy::let_and_return)]
+    </span><span class="kw">let </span>ptr = alloc_string_array(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>data);
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
