@@ -11,7 +11,7 @@ use std::{
 use crate::execution::RuntimeModule;
 
 #[cfg(feature = "execution-trace")]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AbiTraceType {
     None,
     Bool(bool),
@@ -28,7 +28,7 @@ pub enum AbiTraceType {
 }
 
 #[cfg(feature = "execution-trace")]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AbiTrace {
     pub name: String,
     pub params: Vec<AbiTraceType>,

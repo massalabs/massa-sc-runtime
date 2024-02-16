@@ -37,7 +37,7 @@ impl ASContext {
     pub(crate) fn create_vm_instance_and_init_env(
         &mut self,
         store: &mut Store,
-    ) -> Result<(Instance, u64)> {
+    ) -> Result<(Instance, FunctionEnv<ASEnv>, u64)> {
         let (imports, mut fenv) = self.resolver(store);
         match Instance::new(store, &self.module, &imports) {
             Ok(instance) => {
@@ -56,7 +56,7 @@ impl ASContext {
                 self.env
                     .abi_enabled
                     .store(true, std::sync::atomic::Ordering::Relaxed);
-                Ok((instance, post_init_points))
+                Ok((instance, fenv, post_init_points))
             }
             Err(err) => {
                 // Filter the error created by the metering middleware when
@@ -110,12 +110,14 @@ impl ASContext {
                         get_remaining_points(&self.env, store)
                     };
 
+                    // println!("self.env.trace: {:p} {:?}", &self.env, self.env.trace);
+
                     return Ok(Response {
                         ret: Vec::new(), // main return empty vec
                         remaining_gas: remaining_gas?,
                         init_gas_cost: 0,
                         #[cfg(feature = "execution-trace")]
-                        trace: self.env.trace.clone(),
+                        trace: Default::default(),
                     });
                 }
                 let ret = if let Some(offset) = value.first() {
@@ -139,7 +141,7 @@ impl ASContext {
                     remaining_gas: remaining_gas?,
                     init_gas_cost: 0,
                     #[cfg(feature = "execution-trace")]
-                    trace: self.env.trace.clone(),
+                    trace: Default::default(),
                 })
             }
             Err(error) => bail!(error),

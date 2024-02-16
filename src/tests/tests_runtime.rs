@@ -6,6 +6,8 @@ use crate::{
     types::{GasCosts, Interface},
     RuntimeModule,
 };
+#[cfg(feature = "execution-trace")]
+use crate::{AbiTrace, AbiTraceType};
 use rand::Rng;
 use serial_test::serial;
 use wasmer::Store;
@@ -130,6 +132,30 @@ fn test_run_main() {
 
     let runtime_module = RuntimeModule::new(module, gas_costs.clone(), Compiler::SP).unwrap();
     run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+}
+
+#[cfg(feature = "execution-trace")]
+#[test]
+#[serial]
+/// Test basic main-only SC execution
+fn test_run_main_get_execution_traces() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> = Box::new(TestInterface);
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/basic_main.wasm"));
+
+    let runtime_module = RuntimeModule::new(module, gas_costs.clone(), Compiler::SP).unwrap();
+    let resp = run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+
+    assert_eq!(resp.trace.is_empty(), false);
+    assert_eq!(
+        resp.trace,
+        vec![AbiTrace {
+            name: "assembly_script_generate_event".to_string(),
+            params: vec![AbiTraceType::String("hello world!".to_string())],
+            return_value: AbiTraceType::None,
+            sub_calls: None
+        }]
+    )
 }
 
 #[test]
@@ -809,7 +835,7 @@ fn test_class_id() {
     let module = ASModule::new(bytecode, 100_000, GasCosts::default(), Compiler::SP).unwrap();
     let mut store = Store::new(module._engine);
     let mut context = ASContext::new(&*interface, module.binary_module, GasCosts::default());
-    let (instance, _) = context.create_vm_instance_and_init_env(&mut store).unwrap();
+    let (instance, _function_env, _) = context.create_vm_instance_and_init_env(&mut store).unwrap();
 
     // setup test specific context
     let (_, fenv) = context.resolver(&mut store);
