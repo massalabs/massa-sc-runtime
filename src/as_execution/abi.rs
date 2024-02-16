@@ -77,8 +77,7 @@ pub(crate) fn assembly_script_transfer_coins(
     //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, to_address.len(), true);
     // }
-    let res = env
-        .get_interface()
+    env.get_interface()
         .transfer_coins(&to_address, raw_amount as u64)?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -90,7 +89,7 @@ pub(crate) fn assembly_script_transfer_coins(
         return_value: AbiTraceType::None,
         sub_calls: None,
     });
-    Ok(res)
+    Ok(())
 }
 
 /// Transfer an amount from the specified address to a target address.
@@ -116,9 +115,8 @@ pub(crate) fn assembly_script_transfer_coins_for(
     //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&env, &mut ctx, &fname, to_address.len(), true);
     // }
-    let res =
-        env.get_interface()
-            .transfer_coins_for(&from_address, &to_address, raw_amount as u64)?;
+    env.get_interface()
+        .transfer_coins_for(&from_address, &to_address, raw_amount as u64)?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
         name: function_name!().to_string(),
@@ -130,7 +128,7 @@ pub(crate) fn assembly_script_transfer_coins_for(
         return_value: AbiTraceType::None,
         sub_calls: None,
     });
-    Ok(res)
+    Ok(())
 }
 
 #[named]
@@ -857,6 +855,8 @@ pub(crate) fn assembly_script_get_owned_addresses(
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let data = env.get_interface().get_owned_addresses()?;
+    // prevent data.clone() when enabling execution-trace
+    #[allow(clippy::let_and_return)]
     let ptr = alloc_string_array(&mut ctx, &data);
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -873,6 +873,8 @@ pub(crate) fn assembly_script_get_call_stack(mut ctx: FunctionEnvMut<ASEnv>) -> 
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let data = env.get_interface().get_call_stack()?;
+    // prevent data.clone() when enabling execution-trace
+    #[allow(clippy::let_and_return)]
     let ptr = alloc_string_array(&mut ctx, &data);
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
