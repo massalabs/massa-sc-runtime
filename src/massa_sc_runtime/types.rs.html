@@ -601,7 +601,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::execution::RuntimeModule;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub enum </span>AbiTraceType {
     <span class="prelude-val">None</span>,
     Bool(bool),
@@ -618,7 +618,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>AbiTrace {
     <span class="kw">pub </span>name: String,
     <span class="kw">pub </span>params: Vec&lt;AbiTraceType&gt;,

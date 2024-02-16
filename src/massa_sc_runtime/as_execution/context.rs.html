@@ -287,6 +287,8 @@
 <a href="#287" id="287">287</a>
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">super</span>::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 <span class="kw">use </span><span class="kw">crate</span>::types::Response;
@@ -326,7 +328,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_vm_instance_and_init_env(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         store: <span class="kw-2">&amp;mut </span>Store,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(Instance, u64)&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(Instance, FunctionEnv&lt;ASEnv&gt;, u64)&gt; {
         <span class="kw">let </span>(imports, <span class="kw-2">mut </span>fenv) = <span class="self">self</span>.resolver(store);
         <span class="kw">match </span>Instance::new(store, <span class="kw-2">&amp;</span><span class="self">self</span>.module, <span class="kw-2">&amp;</span>imports) {
             <span class="prelude-val">Ok</span>(instance) =&gt; {
@@ -345,7 +347,7 @@
                 <span class="self">self</span>.env
                     .abi_enabled
                     .store(<span class="bool-val">true</span>, std::sync::atomic::Ordering::Relaxed);
-                <span class="prelude-val">Ok</span>((instance, post_init_points))
+                <span class="prelude-val">Ok</span>((instance, fenv, post_init_points))
             }
             <span class="prelude-val">Err</span>(err) =&gt; {
                 <span class="comment">// Filter the error created by the metering middleware when
@@ -399,12 +401,14 @@
                         get_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env, store)
                     };
 
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(Response {
+                    <span class="comment">// println!(&quot;self.env.trace: {:p} {:?}&quot;, &amp;self.env, self.env.trace);
+
+                    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(Response {
                         ret: Vec::new(), <span class="comment">// main return empty vec
                         </span>remaining_gas: remaining_gas<span class="question-mark">?</span>,
                         init_gas_cost: <span class="number">0</span>,
                         <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
-                        </span>trace: <span class="self">self</span>.env.trace.clone(),
+                        </span>trace: Default::default(),
                     });
                 }
                 <span class="kw">let </span>ret = <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = value.first() {
@@ -428,7 +432,7 @@
                     remaining_gas: remaining_gas<span class="question-mark">?</span>,
                     init_gas_cost: <span class="number">0</span>,
                     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
-                    </span>trace: <span class="self">self</span>.env.trace.clone(),
+                    </span>trace: Default::default(),
                 })
             }
             <span class="prelude-val">Err</span>(error) =&gt; <span class="macro">bail!</span>(error),
