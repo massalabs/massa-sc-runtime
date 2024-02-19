@@ -415,7 +415,25 @@ fn test_transfer_coins_wasmv1_as() {
             println!("Module type WasmV1Module");
         }
     }
-    run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+
+    let resp = run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+
+    #[cfg(feature = "execution-trace")]
+    {
+        assert_eq!(resp.trace.is_empty(), false);
+        let trace_1 = resp.trace.get(0).unwrap();
+        assert_eq!(trace_1.name, "abi_transfer_coins");
+        assert_eq!(
+            trace_1.params,
+            vec![
+                AbiTraceType::String("abcd".to_string()),
+                AbiTraceType::I64(100),
+                AbiTraceType::String("efgh".to_string()),
+            ]
+        );
+        assert_eq!(trace_1.return_value, AbiTraceType::None);
+        assert_eq!(trace_1.sub_calls, None);
+    }
 }
 
 #[test]

@@ -32,6 +32,7 @@ wasmer-compiler-cranelift = "=4.2.4"
 wasmer-compiler-singlepass = "=4.2.4"
 wasmer-middlewares = "=4.2.4"
 wasmer-types = "=4.2.4"
+rust_decimal = { version = "1.32", default-features = false, optional = true }
 
 [dev-dependencies]
 bs58 = { version = "=0.5.0", features = ["check"] }
@@ -46,4 +47,4 @@ gas_calibration = []
 testing = []
 dumper = []
 build-wasm = []
-execution-trace = []
+execution-trace = ["rust_decimal"]
