@@ -1798,7 +1798,7 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::Interface;
 <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
-</span><span class="kw">use crate</span>::{AbiTrace, AbiTraceType};
+</span><span class="kw">use crate</span>::{into_trace_value, AbiTrace, AbiTraceType};
 <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
 </span><span class="kw">use </span>rust_decimal::prelude::ToPrimitive;
 <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
@@ -1960,10 +1960,10 @@
                     exec_env.trace.push(AbiTrace {
                         name: <span class="macro">function_name!</span>().to_string(),
                         params: <span class="macro">vec!</span>[
-                            AbiTraceType::String(req.target_sc_address),
-                            AbiTraceType::String(req.target_function_name),
-                            AbiTraceType::ByteArray(req.function_arg),
-                            AbiTraceType::I64(amount_.to_i64().unwrap()),
+                            <span class="macro">into_trace_value!</span>(req.target_sc_address),
+                            <span class="macro">into_trace_value!</span>(req.target_function_name),
+                            <span class="macro">into_trace_value!</span>(req.function_arg),
+                            <span class="macro">into_trace_value!</span>(amount_.to_i64().unwrap()),
                         ],
                         return_value: AbiTraceType::ByteArray(response.ret.clone()),
                         sub_calls: <span class="prelude-val">Some</span>(response.trace),
@@ -2006,9 +2006,9 @@
                     exec_env.trace.push(AbiTrace {
                         name: <span class="macro">function_name!</span>().to_string(),
                         params: <span class="macro">vec!</span>[
-                            AbiTraceType::ByteArray(bytecode),
-                            AbiTraceType::String(req.target_function_name),
-                            AbiTraceType::ByteArray(req.function_arg),
+                            <span class="macro">into_trace_value!</span>(bytecode),
+                            <span class="macro">into_trace_value!</span>(req.target_function_name),
+                            <span class="macro">into_trace_value!</span>(req.function_arg),
                         ],
                         return_value: AbiTraceType::ByteArray(response.ret.clone()),
                         sub_calls: <span class="prelude-val">Some</span>(response.trace),
@@ -2179,11 +2179,11 @@
                     </span>{
                         <span class="comment">// Build parameters
                         </span><span class="kw">let </span><span class="kw-2">mut </span>params = <span class="macro">vec!</span>[
-                            AbiTraceType::String(req.target_address),
-                            AbiTraceType::I64(amount_.to_i64().unwrap_or_default()),
+                            (<span class="string">&quot;target_address&quot;</span>, req.target_address).into(),
+                            (<span class="string">&quot;amount&quot;</span>, amount_.to_i64().unwrap_or_default()).into(),
                         ];
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(sender_address) = req.sender_address {
-                            params.push(AbiTraceType::String(sender_address))
+                            params.push(<span class="macro">into_trace_value!</span>(sender_address))
                         }
 
                         <span class="comment">// let mut guard = handler.store_env.data_mut().lock();
@@ -2728,21 +2728,21 @@
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
                     </span>{
+                        <span class="kw">let </span>filter_key = filter.unwrap_or_default().<span class="number">1</span>.unwrap_or_default().to_vec();
+                        <span class="kw">let </span>filter = filter.unwrap_or_default().<span class="number">0</span>.to_string();
                         <span class="kw">let </span>params = <span class="macro">vec!</span>[
-                            AbiTraceType::String(req.target_address),
-                            AbiTraceType::String(req.target_handler),
-                            AbiTraceType::Slot((start.period, start_thread)),
-                            AbiTraceType::Slot((end.period, end_thread)),
-                            AbiTraceType::U64(req.execution_gas),
-                            AbiTraceType::U64(req.raw_fee),
-                            AbiTraceType::U64(req.raw_coins),
-                            AbiTraceType::ByteArray(req.data),
+                            <span class="macro">into_trace_value!</span>(req.target_address),
+                            <span class="macro">into_trace_value!</span>(req.target_handler),
+                            <span class="macro">into_trace_value!</span>((start.period, start_thread)),
+                            <span class="macro">into_trace_value!</span>((end.period, end_thread)),
+                            <span class="macro">into_trace_value!</span>(req.execution_gas),
+                            <span class="macro">into_trace_value!</span>(req.raw_fee),
+                            <span class="macro">into_trace_value!</span>(req.raw_coins),
+                            <span class="macro">into_trace_value!</span>(req.data),
                             <span class="comment">// filter address
-                            </span>AbiTraceType::String(filter.unwrap_or_default().<span class="number">0</span>.to_string()),
+                            </span><span class="macro">into_trace_value!</span>(filter),
                             <span class="comment">// filter key
-                            </span>AbiTraceType::ByteArray(
-                                filter.unwrap_or_default().<span class="number">1</span>.unwrap_or_default().to_vec(),
-                            ),
+                            </span><span class="macro">into_trace_value!</span>(filter_key),
                         ];
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                             exec_env.trace.push(AbiTrace {
@@ -2814,9 +2814,9 @@
                             exec_env.trace.push(AbiTrace {
                                 name: <span class="macro">function_name!</span>().to_string(),
                                 params: <span class="macro">vec!</span>[
-                                    AbiTraceType::ByteArray(req.bytecode),
-                                    AbiTraceType::String(req.target_function_name),
-                                    AbiTraceType::ByteArray(req.function_arg),
+                                    <span class="macro">into_trace_value!</span>(req.bytecode),
+                                    <span class="macro">into_trace_value!</span>(req.target_function_name),
+                                    <span class="macro">into_trace_value!</span>(req.function_arg),
                                 ],
                                 return_value: AbiTraceType::ByteArray(response.ret.clone()),
                                 sub_calls: <span class="prelude-val">Some</span>(response.trace),

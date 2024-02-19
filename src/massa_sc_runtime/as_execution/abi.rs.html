@@ -1900,15 +1900,6 @@
 <a href="#1900" id="1900">1900</a>
 <a href="#1901" id="1901">1901</a>
 <a href="#1902" id="1902">1902</a>
-<a href="#1903" id="1903">1903</a>
-<a href="#1904" id="1904">1904</a>
-<a href="#1905" id="1905">1905</a>
-<a href="#1906" id="1906">1906</a>
-<a href="#1907" id="1907">1907</a>
-<a href="#1908" id="1908">1908</a>
-<a href="#1909" id="1909">1909</a>
-<a href="#1910" id="1910">1910</a>
-<a href="#1911" id="1911">1911</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -1924,7 +1915,10 @@
 <span class="kw">use </span><span class="kw">super</span>::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
 <span class="kw">use </span><span class="kw">crate</span>::settings;
 <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::types::{AbiTrace, AbiTraceType};
+</span><span class="kw">use crate</span>::{
+    into_trace_value,
+    types::{AbiTrace, AbiTraceType},
+};
 
 <span class="kw">use </span><span class="kw">super</span>::common::{call_module, create_sc, function_exists, local_call};
 <span class="kw">use </span><span class="kw">super</span>::error::{abi_bail, ABIResult};
@@ -1962,7 +1956,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::I64(res),
+        return_value: res.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(res)
@@ -1993,10 +1987,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[
-            AbiTraceType::String(to_address),
-            AbiTraceType::I64(raw_amount),
-        ],
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(to_address), <span class="macro">into_trace_value!</span>(raw_amount)],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
@@ -2032,9 +2023,9 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
-            AbiTraceType::String(from_address),
-            AbiTraceType::String(to_address),
-            AbiTraceType::I64(raw_amount),
+            <span class="macro">into_trace_value!</span>(from_address),
+            <span class="macro">into_trace_value!</span>(to_address),
+            <span class="macro">into_trace_value!</span>(raw_amount),
         ],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
@@ -2051,7 +2042,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::I64(res),
+        return_value: res.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(res)
@@ -2075,8 +2066,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::String(address)],
-        return_value: AbiTraceType::I64(res),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address)],
+        return_value: res.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(res)
@@ -2114,12 +2105,12 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
-            AbiTraceType::String(address.clone()),
-            AbiTraceType::String(function.clone()),
-            AbiTraceType::ByteArray(param),
-            AbiTraceType::I64(call_coins),
+            (<span class="string">&quot;address&quot;</span>, address.clone()).into(),
+            (<span class="string">&quot;function&quot;</span>, function.clone()).into(),
+            <span class="macro">into_trace_value!</span>(param),
+            <span class="macro">into_trace_value!</span>(call_coins),
         ],
-        return_value: AbiTraceType::ByteArray(response.ret.clone()),
+        return_value: response.ret.clone().into(),
         sub_calls: <span class="prelude-val">Some</span>(response.trace),
     });
     <span class="kw">match </span>BufferPtr::alloc(<span class="kw-2">&amp;</span>response.ret, env.get_ffi_env(), <span class="kw-2">&amp;mut </span>ctx) {
@@ -2140,7 +2131,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::I64(res),
+        return_value: res.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(res)
@@ -2167,7 +2158,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::String(message)],
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(message)],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
@@ -2189,8 +2180,8 @@
             <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
             </span>ctx.data_mut().trace.push(AbiTrace {
                 name: <span class="macro">function_name!</span>().to_string(),
-                params: <span class="macro">vec!</span>[AbiTraceType::None],
-                return_value: AbiTraceType::ByteArray(fmt_keys),
+                params: <span class="macro">vec!</span>[],
+                return_value: fmt_keys.into(),
                 sub_calls: <span class="prelude-val">None</span>,
             });
             <span class="prelude-val">Ok</span>(ptr <span class="kw">as </span>i32)
@@ -2223,7 +2214,7 @@
             <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
             </span>ctx.data_mut().trace.push(AbiTrace {
                 name: <span class="macro">function_name!</span>().to_string(),
-                params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(prefix)],
+                params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(prefix)],
                 return_value: AbiTraceType::ByteArray(fmt_keys),
                 sub_calls: <span class="prelude-val">None</span>,
             });
@@ -2260,8 +2251,8 @@
             <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
             </span>ctx.data_mut().trace.push(AbiTrace {
                 name: <span class="macro">function_name!</span>().to_string(),
-                params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(key_bytes)],
-                return_value: AbiTraceType::ByteArray(b_vec),
+                params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key_bytes)],
+                return_value: b_vec.into(),
                 sub_calls: <span class="prelude-val">None</span>,
             });
 
@@ -2291,8 +2282,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(key_bytes)],
-        return_value: AbiTraceType::ByteArray(data),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key_bytes)],
+        return_value: data.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(ptr)
@@ -2320,8 +2311,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(bytecode)],
-        return_value: AbiTraceType::String(address.clone()),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(bytecode)],
+        return_value: address.clone().into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(ptr)
@@ -2344,8 +2335,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(bytes)],
-        return_value: AbiTraceType::ByteArray(hash),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(bytes)],
+        return_value: hash.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(ptr <span class="kw">as </span>i32)
@@ -2367,8 +2358,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(bytes)],
-        return_value: AbiTraceType::ByteArray(hash),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(bytes)],
+        return_value: hash.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
 
@@ -2397,8 +2388,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(prefix)],
-        return_value: AbiTraceType::ByteArray(fmt_keys),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(prefix)],
+        return_value: fmt_keys.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(ptr <span class="kw">as </span>i32)
@@ -2428,10 +2419,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[
-            AbiTraceType::String(address),
-            AbiTraceType::ByteArray(prefix),
-        ],
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address), <span class="macro">into_trace_value!</span>(prefix)],
         return_value: AbiTraceType::ByteArrays(keys.iter().cloned().collect()),
         sub_calls: <span class="prelude-val">None</span>,
     });
@@ -2474,7 +2462,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(key), AbiTraceType::ByteArray(value)],
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key), <span class="macro">into_trace_value!</span>(value)],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
@@ -2505,7 +2493,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(key), AbiTraceType::ByteArray(value)],
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key), <span class="macro">into_trace_value!</span>(value)],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
@@ -2529,8 +2517,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(key)],
-        return_value: AbiTraceType::ByteArray(data.clone()),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key)],
+        return_value: data.clone().into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(ptr)
@@ -2552,8 +2540,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(key)],
-        return_value: AbiTraceType::Bool(res),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key)],
+        return_value: res.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(res <span class="kw">as </span>i32)
@@ -2579,7 +2567,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(key)],
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key)],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
@@ -2616,9 +2604,9 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
-            AbiTraceType::String(address),
-            AbiTraceType::ByteArray(key),
-            AbiTraceType::ByteArray(value),
+            <span class="macro">into_trace_value!</span>(address),
+            <span class="macro">into_trace_value!</span>(key),
+            <span class="macro">into_trace_value!</span>(value),
         ],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
@@ -2656,9 +2644,9 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
-            AbiTraceType::String(address),
-            AbiTraceType::ByteArray(key),
-            AbiTraceType::ByteArray(value),
+            <span class="macro">into_trace_value!</span>(address),
+            <span class="macro">into_trace_value!</span>(key),
+            <span class="macro">into_trace_value!</span>(value),
         ],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
@@ -2692,8 +2680,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::String(address), AbiTraceType::ByteArray(key)],
-        return_value: AbiTraceType::ByteArray(data),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address), <span class="macro">into_trace_value!</span>(key)],
+        return_value: data.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(ptr)
@@ -2723,7 +2711,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::String(address), AbiTraceType::ByteArray(key)],
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address), <span class="macro">into_trace_value!</span>(key)],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
@@ -2752,8 +2740,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::String(address), AbiTraceType::ByteArray(key)],
-        return_value: AbiTraceType::Bool(res),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address), <span class="macro">into_trace_value!</span>(key)],
+        return_value: res.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(res <span class="kw">as </span>i32)
@@ -2773,7 +2761,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::Strings(data),
+        return_value: data.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     ptr
@@ -2791,7 +2779,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::Strings(data),
+        return_value: data.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     ptr
@@ -2815,7 +2803,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::String(event)],
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(event)],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
@@ -2853,11 +2841,11 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
-            AbiTraceType::ByteArray(data.as_bytes().to_vec()),
-            AbiTraceType::String(signature),
-            AbiTraceType::String(public_key),
+            <span class="macro">into_trace_value!</span>(data.as_bytes().to_vec()),
+            <span class="macro">into_trace_value!</span>(signature),
+            <span class="macro">into_trace_value!</span>(public_key),
         ],
-        return_value: AbiTraceType::Bool(res),
+        return_value: res.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(res <span class="kw">as </span>i32)
@@ -2885,11 +2873,11 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
-            AbiTraceType::ByteArray(data),
-            AbiTraceType::ByteArray(signature),
-            AbiTraceType::ByteArray(public_key),
+            <span class="macro">into_trace_value!</span>(data),
+            <span class="macro">into_trace_value!</span>(signature),
+            <span class="macro">into_trace_value!</span>(public_key),
         ],
-        return_value: AbiTraceType::Bool(res),
+        return_value: res.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(res <span class="kw">as </span>i32)
@@ -2912,8 +2900,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(public_key)],
-        return_value: AbiTraceType::ByteArray(address),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(public_key)],
+        return_value: address.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(ptr <span class="kw">as </span>i32)
@@ -2938,11 +2926,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[
-            AbiTraceType::ByteArray(data),
-            AbiTraceType::ByteArray(signature),
-        ],
-        return_value: AbiTraceType::ByteArray(public_key),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(data), <span class="macro">into_trace_value!</span>(signature)],
+        return_value: public_key.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(ptr <span class="kw">as </span>i32)
@@ -2962,8 +2947,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::String(address)],
-        return_value: AbiTraceType::Bool(res),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address)],
+        return_value: res.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(res <span class="kw">as </span>i32)
@@ -2989,8 +2974,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::String(public_key)],
-        return_value: AbiTraceType::String(addr),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(public_key)],
+        return_value: addr.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(ptr)
@@ -3010,8 +2995,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::String(address)],
-        return_value: AbiTraceType::Bool(res),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address)],
+        return_value: res.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(res <span class="kw">as </span>i32)
@@ -3027,7 +3012,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::I64(res),
+        return_value: res.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(res)
@@ -3043,7 +3028,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::U64(res),
+        return_value: res.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(res <span class="kw">as </span>i64)
@@ -3131,16 +3116,16 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
-            AbiTraceType::String(target_address),
-            AbiTraceType::String(target_handler),
-            AbiTraceType::Slot(validity_start),
-            AbiTraceType::Slot(validity_end),
-            AbiTraceType::U64(max_gas <span class="kw">as </span>u64),
-            AbiTraceType::U64(raw_fee <span class="kw">as </span>u64),
-            AbiTraceType::U64(raw_coins <span class="kw">as </span>u64),
-            AbiTraceType::ByteArray(data),
-            AbiTraceType::String(filter_address_string),
-            AbiTraceType::ByteArray(key),
+            <span class="macro">into_trace_value!</span>(target_address),
+            <span class="macro">into_trace_value!</span>(target_handler),
+            <span class="macro">into_trace_value!</span>(validity_start),
+            <span class="macro">into_trace_value!</span>(validity_end),
+            <span class="macro">into_trace_value!</span>(max_gas <span class="kw">as </span>u64),
+            <span class="macro">into_trace_value!</span>(raw_fee <span class="kw">as </span>u64),
+            <span class="macro">into_trace_value!</span>(raw_coins <span class="kw">as </span>u64),
+            <span class="macro">into_trace_value!</span>(data),
+            <span class="macro">into_trace_value!</span>(filter_address_string),
+            <span class="macro">into_trace_value!</span>(key),
         ],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
@@ -3165,7 +3150,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::String(operation_id),
+        return_value: operation_id.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(ptr)
@@ -3181,7 +3166,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::U64(current_period),
+        return_value: current_period.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(current_period <span class="kw">as </span>i64)
@@ -3197,7 +3182,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::U8(current_thread),
+        return_value: current_thread.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(current_thread <span class="kw">as </span>i32)
@@ -3227,10 +3212,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[
-            AbiTraceType::String(address),
-            AbiTraceType::ByteArray(bytecode_raw),
-        ],
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address), <span class="macro">into_trace_value!</span>(bytecode_raw)],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
@@ -3256,7 +3238,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::ByteArray(bytecode_raw)],
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(bytecode_raw)],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
@@ -3274,7 +3256,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::ByteArray(data),
+        return_value: data.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(ptr)
@@ -3295,8 +3277,8 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::String(address)],
-        return_value: AbiTraceType::ByteArray(data),
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address)],
+        return_value: data.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(ptr)
@@ -3329,11 +3311,11 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
-            AbiTraceType::ByteArray(bytecode),
-            AbiTraceType::String(function),
-            AbiTraceType::ByteArray(param),
+            <span class="macro">into_trace_value!</span>(bytecode),
+            <span class="macro">into_trace_value!</span>(function),
+            <span class="macro">into_trace_value!</span>(param),
         ],
-        return_value: AbiTraceType::ByteArray(response.ret.clone()),
+        return_value: response.ret.clone().into(),
         sub_calls: <span class="prelude-val">Some</span>(response.trace),
     });
     res
@@ -3369,11 +3351,11 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
-            AbiTraceType::ByteArray(bytecode),
-            AbiTraceType::String(function),
-            AbiTraceType::ByteArray(param),
+            <span class="macro">into_trace_value!</span>(bytecode),
+            <span class="macro">into_trace_value!</span>(function),
+            <span class="macro">into_trace_value!</span>(param),
         ],
-        return_value: AbiTraceType::ByteArray(response.ret.clone()),
+        return_value: response.ret.clone().into(),
         sub_calls: <span class="prelude-val">Some</span>(response.trace),
     });
 
@@ -3390,7 +3372,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::Bool(has_write_access),
+        return_value: has_write_access.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(has_write_access <span class="kw">as </span>i32)
@@ -3413,7 +3395,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::Bool(function_exists),
+        return_value: function_exists.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(function_exists <span class="kw">as </span>i32)
@@ -3429,7 +3411,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::U64(chain_id),
+        return_value: chain_id.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(chain_id <span class="kw">as </span>u64)
@@ -3469,10 +3451,10 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
-            AbiTraceType::String(message_.clone().unwrap_or_default()),
-            AbiTraceType::String(filename_.clone().unwrap_or_default()),
-            AbiTraceType::I32(line),
-            AbiTraceType::I32(col),
+            <span class="macro">into_trace_value!</span>(message_.clone().unwrap_or_default()),
+            <span class="macro">into_trace_value!</span>(filename_.clone().unwrap_or_default()),
+            <span class="macro">into_trace_value!</span>(line),
+            <span class="macro">into_trace_value!</span>(col),
         ],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
@@ -3501,7 +3483,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::F64(seed),
+        return_value: seed.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(seed)
@@ -3523,7 +3505,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
-        return_value: AbiTraceType::F64(ret),
+        return_value: ret.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="prelude-val">Ok</span>(ret)
@@ -3623,7 +3605,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::String(message)],
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(message)],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
@@ -3678,7 +3660,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[AbiTraceType::String(message_for_event)],
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(message_for_event)],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
