@@ -91,7 +91,6 @@ where
 pub struct ABIHandler<'a, 'b> {
     pub(crate) store_env: &'b mut FunctionEnvMut<'a, ABIEnv>,
     pub(crate) exec_env: &'b mut ExecutionEnv,
-    // pub interface: &'b mut dyn Interface,
 }
 
 impl<'a, 'b> ABIHandler<'a, 'b> {

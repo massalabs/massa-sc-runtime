@@ -110,8 +110,6 @@ impl ASContext {
                         get_remaining_points(&self.env, store)
                     };
 
-                    // println!("self.env.trace: {:p} {:?}", &self.env, self.env.trace);
-
                     return Ok(Response {
                         ret: Vec::new(), // main return empty vec
                         remaining_gas: remaining_gas?,
