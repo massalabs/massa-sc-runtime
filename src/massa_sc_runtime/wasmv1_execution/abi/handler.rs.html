@@ -186,11 +186,8 @@
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::env::{ABIEnv, ExecutionEnv};
-<span class="kw">use crate</span>::{wasmv1_execution::WasmV1Error, GasCosts, Interface};
+<span class="kw">use crate</span>::{wasmv1_execution::WasmV1Error, GasCosts};
 <span class="kw">use </span>std::io::Cursor;
 <span class="kw">use </span>wasmer::FunctionEnvMut;
 
@@ -209,17 +206,15 @@
 {
     <span class="comment">// get environment and interface
     </span><span class="kw">let </span>env_mutex = store_env.data().clone();
-    <span class="kw">let </span>env_lock = env_mutex.lock();
-    <span class="kw">let </span>exec_env = env_lock.as_ref().ok_or_else(|| {
+    <span class="kw">let </span><span class="kw-2">mut </span>env_lock = env_mutex.lock();
+    <span class="kw">let </span>exec_env = env_lock.as_mut().ok_or_else(|| {
         WasmV1Error::InstanciationError(<span class="string">&quot;ABIs cannot be called at initialization time.&quot;</span>.into())
     })<span class="question-mark">?</span>;
-    <span class="kw">let </span>interface = exec_env.get_interface();
 
     <span class="comment">// create handler
     </span><span class="kw">let </span><span class="kw-2">mut </span>handler = ABIHandler {
         store_env: <span class="kw-2">&amp;mut </span>store_env,
         exec_env,
-        interface,
     };
 
     <span class="comment">// apply gas cost
@@ -252,17 +247,16 @@
 {
     <span class="comment">// get environment and interface
     </span><span class="kw">let </span>env_mutex = store_env.data().clone();
-    <span class="kw">let </span>env_lock = env_mutex.lock();
-    <span class="kw">let </span>exec_env = env_lock.as_ref().ok_or_else(|| {
+    <span class="kw">let </span><span class="kw-2">mut </span>env_lock = env_mutex.lock();
+    <span class="kw">let </span>exec_env = env_lock.as_mut().ok_or_else(|| {
         WasmV1Error::InstanciationError(<span class="string">&quot;ABIs cannot be called at initialization time.&quot;</span>.into())
     })<span class="question-mark">?</span>;
-    <span class="kw">let </span>interface = exec_env.get_interface();
+    <span class="comment">// let interface = exec_env.get_interface_mut();
 
-    <span class="comment">// create handler
+    // create handler
     </span><span class="kw">let </span><span class="kw-2">mut </span>handler = ABIHandler {
         store_env: <span class="kw-2">&amp;mut </span>store_env,
         exec_env,
-        interface,
     };
 
     <span class="comment">// apply gas cost
@@ -283,10 +277,10 @@
 
 <span class="doccomment">/// A helper structure to handle ABI calls
 </span><span class="kw">pub struct </span>ABIHandler&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
-    store_env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>FunctionEnvMut&lt;<span class="lifetime">&#39;a</span>, ABIEnv&gt;,
-    exec_env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>ExecutionEnv,
-    <span class="kw">pub </span>interface: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw">dyn </span>Interface,
-}
+    <span class="kw">pub</span>(<span class="kw">crate</span>) store_env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>FunctionEnvMut&lt;<span class="lifetime">&#39;a</span>, ABIEnv&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) exec_env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>ExecutionEnv,
+    <span class="comment">// pub interface: &amp;&#39;b mut dyn Interface,
+</span>}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; ABIHandler&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
     <span class="doccomment">/// Read argument

@@ -637,7 +637,7 @@
             remaining_gas,
             init_gas_cost,
             <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
-            </span>trace: <span class="macro">vec!</span>[],
+            </span>trace: execution_env.trace.clone(),
         },
         gc_result,
     ))

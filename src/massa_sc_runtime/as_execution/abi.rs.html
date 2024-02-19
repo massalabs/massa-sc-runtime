@@ -1909,8 +1909,6 @@
 <a href="#1909" id="1909">1909</a>
 <a href="#1910" id="1910">1910</a>
 <a href="#1911" id="1911">1911</a>
-<a href="#1912" id="1912">1912</a>
-<a href="#1913" id="1913">1913</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -3334,7 +3332,6 @@
             AbiTraceType::ByteArray(bytecode),
             AbiTraceType::String(function),
             AbiTraceType::ByteArray(param),
-            AbiTraceType::Bool(<span class="bool-val">true</span>),
         ],
         return_value: AbiTraceType::ByteArray(response.ret.clone()),
         sub_calls: <span class="prelude-val">Some</span>(response.trace),
@@ -3375,7 +3372,6 @@
             AbiTraceType::ByteArray(bytecode),
             AbiTraceType::String(function),
             AbiTraceType::ByteArray(param),
-            AbiTraceType::Bool(<span class="bool-val">true</span>),
         ],
         return_value: AbiTraceType::ByteArray(response.ret.clone()),
         sub_calls: <span class="prelude-val">Some</span>(response.trace),
