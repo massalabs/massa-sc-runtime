@@ -29,10 +29,107 @@ pub enum AbiTraceType {
 }
 
 #[cfg(feature = "execution-trace")]
+impl From<bool> for AbiTraceType {
+    fn from(v: bool) -> Self {
+        Self::Bool(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<u8> for AbiTraceType {
+    fn from(v: u8) -> Self {
+        Self::U8(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<i32> for AbiTraceType {
+    fn from(v: i32) -> Self {
+        Self::I32(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<i64> for AbiTraceType {
+    fn from(v: i64) -> Self {
+        Self::I64(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<u64> for AbiTraceType {
+    fn from(v: u64) -> Self {
+        Self::U64(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<f64> for AbiTraceType {
+    fn from(v: f64) -> Self {
+        Self::F64(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<Vec<u8>> for AbiTraceType {
+    fn from(v: Vec<u8>) -> Self {
+        Self::ByteArray(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<Vec<Vec<u8>>> for AbiTraceType {
+    fn from(v: Vec<Vec<u8>>) -> Self {
+        Self::ByteArrays(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<String> for AbiTraceType {
+    fn from(v: String) -> Self {
+        Self::String(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<Vec<String>> for AbiTraceType {
+    fn from(v: Vec<String>) -> Self {
+        Self::Strings(v)
+    }
+}
+
+#[cfg(feature = "execution-trace")]
+impl From<(u64, u8)> for AbiTraceType {
+    fn from(v: (u64, u8)) -> Self {
+        Self::Slot(v)
+    }
+}
+
+#[cfg(feature = "execution-trace")]
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct AbiTraceValue {
+    pub name: String,
+    #[serde(flatten)]
+    pub value: AbiTraceType,
+}
+
+#[cfg(feature = "execution-trace")]
+impl<T> From<(&str, T)> for AbiTraceValue
+where
+    T: Into<AbiTraceType>,
+{
+    fn from((name, value): (&str, T)) -> Self {
+        Self {
+            name: name.to_string(),
+            value: value.into(),
+        }
+    }
+}
+
+#[cfg(feature = "execution-trace")]
+#[macro_export]
+macro_rules! into_trace_value {
+    ($a: expr) => {{
+        (stringify!($a), $a).into()
+    }};
+}
+
+#[cfg(feature = "execution-trace")]
 #[derive(Debug, Clone, PartialEq)]
 pub struct AbiTrace {
     pub name: String,
-    pub params: Vec<AbiTraceType>,
+    pub params: Vec<AbiTraceValue>,
     pub return_value: AbiTraceType,
     pub sub_calls: Option<Vec<AbiTrace>>,
 }

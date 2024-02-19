@@ -11,7 +11,7 @@ use wasmer::{imports, AsStoreMut, Function, FunctionEnv, FunctionEnvMut, Imports
 
 use crate::Interface;
 #[cfg(feature = "execution-trace")]
-use crate::{AbiTrace, AbiTraceType};
+use crate::{into_trace_value, AbiTrace, AbiTraceType};
 #[cfg(feature = "execution-trace")]
 use rust_decimal::prelude::ToPrimitive;
 #[cfg(feature = "execution-trace")]
@@ -173,10 +173,10 @@ fn abi_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, W
                     exec_env.trace.push(AbiTrace {
                         name: function_name!().to_string(),
                         params: vec![
-                            AbiTraceType::String(req.target_sc_address),
-                            AbiTraceType::String(req.target_function_name),
-                            AbiTraceType::ByteArray(req.function_arg),
-                            AbiTraceType::I64(amount_.to_i64().unwrap()),
+                            into_trace_value!(req.target_sc_address),
+                            into_trace_value!(req.target_function_name),
+                            into_trace_value!(req.function_arg),
+                            into_trace_value!(amount_.to_i64().unwrap()),
                         ],
                         return_value: AbiTraceType::ByteArray(response.ret.clone()),
                         sub_calls: Some(response.trace),
@@ -219,9 +219,9 @@ fn abi_local_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<
                     exec_env.trace.push(AbiTrace {
                         name: function_name!().to_string(),
                         params: vec![
-                            AbiTraceType::ByteArray(bytecode),
-                            AbiTraceType::String(req.target_function_name),
-                            AbiTraceType::ByteArray(req.function_arg),
+                            into_trace_value!(bytecode),
+                            into_trace_value!(req.target_function_name),
+                            into_trace_value!(req.function_arg),
                         ],
                         return_value: AbiTraceType::ByteArray(response.ret.clone()),
                         sub_calls: Some(response.trace),
@@ -392,11 +392,11 @@ fn abi_transfer_coins(
                     {
                         // Build parameters
                         let mut params = vec![
-                            AbiTraceType::String(req.target_address),
-                            AbiTraceType::I64(amount_.to_i64().unwrap_or_default()),
+                            ("target_address", req.target_address).into(),
+                            ("amount", amount_.to_i64().unwrap_or_default()).into(),
                         ];
                         if let Some(sender_address) = req.sender_address {
-                            params.push(AbiTraceType::String(sender_address))
+                            params.push(into_trace_value!(sender_address))
                         }
 
                         // let mut guard = handler.store_env.data_mut().lock();
@@ -941,21 +941,21 @@ fn abi_send_async_message(
                 Ok(_) => {
                     #[cfg(feature = "execution-trace")]
                     {
+                        let filter_key = filter.unwrap_or_default().1.unwrap_or_default().to_vec();
+                        let filter = filter.unwrap_or_default().0.to_string();
                         let params = vec![
-                            AbiTraceType::String(req.target_address),
-                            AbiTraceType::String(req.target_handler),
-                            AbiTraceType::Slot((start.period, start_thread)),
-                            AbiTraceType::Slot((end.period, end_thread)),
-                            AbiTraceType::U64(req.execution_gas),
-                            AbiTraceType::U64(req.raw_fee),
-                            AbiTraceType::U64(req.raw_coins),
-                            AbiTraceType::ByteArray(req.data),
+                            into_trace_value!(req.target_address),
+                            into_trace_value!(req.target_handler),
+                            into_trace_value!((start.period, start_thread)),
+                            into_trace_value!((end.period, end_thread)),
+                            into_trace_value!(req.execution_gas),
+                            into_trace_value!(req.raw_fee),
+                            into_trace_value!(req.raw_coins),
+                            into_trace_value!(req.data),
                             // filter address
-                            AbiTraceType::String(filter.unwrap_or_default().0.to_string()),
+                            into_trace_value!(filter),
                             // filter key
-                            AbiTraceType::ByteArray(
-                                filter.unwrap_or_default().1.unwrap_or_default().to_vec(),
-                            ),
+                            into_trace_value!(filter_key),
                         ];
                         if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                             exec_env.trace.push(AbiTrace {
@@ -1027,9 +1027,9 @@ fn abi_local_execution(
                             exec_env.trace.push(AbiTrace {
                                 name: function_name!().to_string(),
                                 params: vec![
-                                    AbiTraceType::ByteArray(req.bytecode),
-                                    AbiTraceType::String(req.target_function_name),
-                                    AbiTraceType::ByteArray(req.function_arg),
+                                    into_trace_value!(req.bytecode),
+                                    into_trace_value!(req.target_function_name),
+                                    into_trace_value!(req.function_arg),
                                 ],
                                 return_value: AbiTraceType::ByteArray(response.ret.clone()),
                                 sub_calls: Some(response.trace),

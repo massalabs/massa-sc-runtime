@@ -6,12 +6,13 @@ use crate::{
     types::{GasCosts, Interface},
     RuntimeModule,
 };
-#[cfg(feature = "execution-trace")]
-use crate::{AbiTrace, AbiTraceType};
 use rand::Rng;
 use serial_test::serial;
 use wasmer::Store;
 use wasmer::WasmPtr;
+
+#[cfg(feature = "execution-trace")]
+use crate::{AbiTrace, AbiTraceType, AbiTraceValue};
 
 #[test]
 #[serial]
@@ -151,7 +152,7 @@ fn test_run_main_get_execution_traces() {
         resp.trace,
         vec![AbiTrace {
             name: "assembly_script_generate_event".to_string(),
-            params: vec![AbiTraceType::String("hello world!".to_string())],
+            params: vec![("event", "hello world!".to_string()).into()],
             return_value: AbiTraceType::None,
             sub_calls: None
         }]
@@ -416,19 +417,19 @@ fn test_transfer_coins_wasmv1_as() {
         }
     }
 
-    let resp = run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+    let _resp = run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
 
     #[cfg(feature = "execution-trace")]
     {
-        assert_eq!(resp.trace.is_empty(), false);
-        let trace_1 = resp.trace.get(0).unwrap();
+        assert_eq!(_resp.trace.is_empty(), false);
+        let trace_1 = _resp.trace.get(0).unwrap();
         assert_eq!(trace_1.name, "abi_transfer_coins");
         assert_eq!(
             trace_1.params,
             vec![
-                AbiTraceType::String("abcd".to_string()),
-                AbiTraceType::I64(100),
-                AbiTraceType::String("efgh".to_string()),
+                ("target_address", "abcd".to_string()).into(),
+                ("amount", 100i64).into(),
+                ("sender_address", "efgh".to_string()).into(),
             ]
         );
         assert_eq!(trace_1.return_value, AbiTraceType::None);
@@ -952,4 +953,15 @@ fn test_ser() {
     let s6 = serde_json::to_string(&at6).unwrap();
     println!("s6: {}", s6);
     assert!(s6.find("slot").is_some());
+
+    let atv1 = AbiTraceValue {
+        name: "foo".to_string(),
+        value: at6,
+    };
+    let s_atv1_ = serde_json::to_string(&atv1);
+    println!("s_atv1: {:?}", s_atv1_);
+
+    let s_atv1 = s_atv1_.unwrap();
+    assert!(s_atv1.find("foo").is_some());
+    assert!(s_atv1.find("slot").is_some());
 }
