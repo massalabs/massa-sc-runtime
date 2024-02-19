@@ -287,8 +287,6 @@
 <a href="#287" id="287">287</a>
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">super</span>::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 <span class="kw">use </span><span class="kw">crate</span>::types::Response;
@@ -401,9 +399,7 @@
                         get_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env, store)
                     };
 
-                    <span class="comment">// println!(&quot;self.env.trace: {:p} {:?}&quot;, &amp;self.env, self.env.trace);
-
-                    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(Response {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(Response {
                         ret: Vec::new(), <span class="comment">// main return empty vec
                         </span>remaining_gas: remaining_gas<span class="question-mark">?</span>,
                         init_gas_cost: <span class="number">0</span>,

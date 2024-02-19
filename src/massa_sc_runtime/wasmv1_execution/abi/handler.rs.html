@@ -185,7 +185,6 @@
 <a href="#185" id="185">185</a>
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::env::{ABIEnv, ExecutionEnv};
 <span class="kw">use crate</span>::{wasmv1_execution::WasmV1Error, GasCosts};
 <span class="kw">use </span>std::io::Cursor;
@@ -279,8 +278,7 @@
 </span><span class="kw">pub struct </span>ABIHandler&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) store_env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>FunctionEnvMut&lt;<span class="lifetime">&#39;a</span>, ABIEnv&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) exec_env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>ExecutionEnv,
-    <span class="comment">// pub interface: &amp;&#39;b mut dyn Interface,
-</span>}
+}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; ABIHandler&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
     <span class="doccomment">/// Read argument
