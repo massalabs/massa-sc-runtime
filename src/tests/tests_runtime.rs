@@ -918,3 +918,38 @@ fn test_class_id() {
     );
     assert_eq!(array_class_id, 4);
 }
+
+#[cfg(feature = "execution-trace")]
+#[test]
+#[serial]
+/// Non regression test on the AS class id values
+fn test_ser() {
+    let at0 = AbiTraceType::Bool(true);
+    let at1 = AbiTraceType::String("hello".to_string());
+    let at2 = AbiTraceType::U64(33);
+    let at3 = AbiTraceType::ByteArray(vec![1, 255, 0]);
+    let at4 = AbiTraceType::ByteArrays(vec![vec![1, 255, 0], vec![11, 42, 33]]);
+    let at5 = AbiTraceType::Strings(vec!["yo".to_string(), "yo2".to_string()]);
+    let at6 = AbiTraceType::Slot((111, 22));
+    let s0 = serde_json::to_string(&at0).unwrap();
+    println!("s0: {}", s0);
+    assert!(s0.find("bool").is_some());
+    let s1 = serde_json::to_string(&at1).unwrap();
+    println!("s1: {}", s1);
+    assert!(s1.find("string").is_some());
+    let s2 = serde_json::to_string(&at2).unwrap();
+    println!("s2: {}", s2);
+    assert!(s2.find("u64").is_some());
+    let s3 = serde_json::to_string(&at3).unwrap();
+    println!("s3: {}", s3);
+    assert!(s3.find("byteArray").is_some());
+    let s4 = serde_json::to_string(&at4).unwrap();
+    println!("s4: {}", s4);
+    assert!(s4.find("byteArrays").is_some());
+    let s5 = serde_json::to_string(&at5).unwrap();
+    println!("s5: {}", s5);
+    assert!(s5.find("strings").is_some());
+    let s6 = serde_json::to_string(&at6).unwrap();
+    println!("s6: {}", s6);
+    assert!(s6.find("slot").is_some());
+}

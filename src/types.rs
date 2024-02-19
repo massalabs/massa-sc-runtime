@@ -11,7 +11,8 @@ use std::{
 use crate::execution::RuntimeModule;
 
 #[cfg(feature = "execution-trace")]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(tag = "type", content = "value", rename_all = "camelCase")]
 pub enum AbiTraceType {
     None,
     Bool(bool),
