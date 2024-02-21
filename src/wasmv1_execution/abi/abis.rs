@@ -395,9 +395,19 @@ fn abi_transfer_coins(
                             ("target_address", req.target_address).into(),
                             ("amount", amount_.to_i64().unwrap_or_default()).into(),
                         ];
-                        if let Some(sender_address) = req.sender_address {
-                            params.push(into_trace_value!(sender_address))
-                        }
+
+                        let sender_address = match req.sender_address {
+                            Some(sender_address) => sender_address,
+                            None => {
+                                let call_stack = interface.get_call_stack();
+                                call_stack
+                                    .unwrap_or_default()
+                                    .last()
+                                    .cloned()
+                                    .unwrap_or_default()
+                            }
+                        };
+                        params.push(into_trace_value!(sender_address));
 
                         // let mut guard = handler.store_env.data_mut().lock();
                         handler.exec_env.trace.push(AbiTrace {
