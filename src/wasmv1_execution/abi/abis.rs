@@ -946,8 +946,10 @@ fn abi_send_async_message(
                         let params = vec![
                             into_trace_value!(req.target_address),
                             into_trace_value!(req.target_handler),
-                            into_trace_value!((start.period, start_thread)),
-                            into_trace_value!((end.period, end_thread)),
+                            into_trace_value!(start.period),
+                            into_trace_value!(start.thread),
+                            into_trace_value!(end.period),
+                            into_trace_value!(end.thread),
                             into_trace_value!(req.execution_gas),
                             into_trace_value!(req.raw_fee),
                             into_trace_value!(req.raw_coins),
