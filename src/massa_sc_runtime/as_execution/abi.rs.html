@@ -1900,6 +1900,8 @@
 <a href="#1900" id="1900">1900</a>
 <a href="#1901" id="1901">1901</a>
 <a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -3118,8 +3120,10 @@
         params: <span class="macro">vec!</span>[
             <span class="macro">into_trace_value!</span>(target_address),
             <span class="macro">into_trace_value!</span>(target_handler),
-            <span class="macro">into_trace_value!</span>(validity_start),
-            <span class="macro">into_trace_value!</span>(validity_end),
+            <span class="macro">into_trace_value!</span>(validity_start_period),
+            <span class="macro">into_trace_value!</span>(validity_start_thread),
+            <span class="macro">into_trace_value!</span>(validity_end_period),
+            <span class="macro">into_trace_value!</span>(validity_end_thread),
             <span class="macro">into_trace_value!</span>(max_gas <span class="kw">as </span>u64),
             <span class="macro">into_trace_value!</span>(raw_fee <span class="kw">as </span>u64),
             <span class="macro">into_trace_value!</span>(raw_coins <span class="kw">as </span>u64),
@@ -3388,13 +3392,13 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>address = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
-    <span class="kw">let </span>function = <span class="kw-2">&amp;</span>read_string(memory, <span class="kw-2">&amp;</span>ctx, function)<span class="question-mark">?</span>;
-    <span class="kw">let </span>function_exists = function_exists(<span class="kw-2">&amp;mut </span>ctx, address, function)<span class="question-mark">?</span>;
+    <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
+    <span class="kw">let </span>function = read_string(memory, <span class="kw-2">&amp;</span>ctx, function)<span class="question-mark">?</span>;
+    <span class="kw">let </span>function_exists = function_exists(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>address, <span class="kw-2">&amp;</span>function)<span class="question-mark">?</span>;
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[],
+        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address), <span class="macro">into_trace_value!</span>(function)],
         return_value: function_exists.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
