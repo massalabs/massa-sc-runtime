@@ -3,6 +3,7 @@ use massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
 };
 use serde::{de::DeserializeOwned, Serialize};
+use std::collections::VecDeque;
 use std::{
     collections::{BTreeSet, HashMap},
     path::PathBuf,
@@ -18,6 +19,7 @@ pub enum AbiTraceType {
     Bool(bool),
     U8(u8),
     I32(i32),
+    U32(u32),
     I64(i64),
     U64(u64),
     F64(f64),
@@ -46,6 +48,14 @@ impl From<i32> for AbiTraceType {
         Self::I32(v)
     }
 }
+
+#[cfg(feature = "execution-trace")]
+impl From<u32> for AbiTraceType {
+    fn from(v: u32) -> Self {
+        Self::U32(v)
+    }
+}
+
 #[cfg(feature = "execution-trace")]
 impl From<i64> for AbiTraceType {
     fn from(v: i64) -> Self {
@@ -132,6 +142,32 @@ pub struct AbiTrace {
     pub params: Vec<AbiTraceValue>,
     pub return_value: AbiTraceType,
     pub sub_calls: Option<Vec<AbiTrace>>,
+}
+
+#[cfg(feature = "execution-trace")]
+impl AbiTrace {
+    pub fn flatten_filter(&self, abi_names: &Vec<String>) -> Vec<&Self> {
+        let mut filtered: Vec<&Self> = Default::default();
+        let mut to_process: VecDeque<&Self> = vec![self].into();
+
+        while !to_process.is_empty() {
+            let t = to_process.pop_front();
+            if let Some(trace) = t {
+                if abi_names.iter().find(|t| *(*t) == trace.name).is_some() {
+                    // filtered.extend(&trace)
+                    filtered.push(trace);
+                }
+
+                if let Some(sub_call) = &trace.sub_calls {
+                    for sc in sub_call.iter().rev() {
+                        to_process.push_front(sc);
+                    }
+                }
+            }
+        }
+
+        filtered
+    }
 }
 
 /// That's what is returned when a module is executed correctly since the end
