@@ -1787,6 +1787,16 @@
 <a href="#1787" id="1787">1787</a>
 <a href="#1788" id="1788">1788</a>
 <a href="#1789" id="1789">1789</a>
+<a href="#1790" id="1790">1790</a>
+<a href="#1791" id="1791">1791</a>
+<a href="#1792" id="1792">1792</a>
+<a href="#1793" id="1793">1793</a>
+<a href="#1794" id="1794">1794</a>
+<a href="#1795" id="1795">1795</a>
+<a href="#1796" id="1796">1796</a>
+<a href="#1797" id="1797">1797</a>
+<a href="#1798" id="1798">1798</a>
+<a href="#1799" id="1799">1799</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{
     <span class="kw">super</span>::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
@@ -2184,9 +2194,19 @@
                             (<span class="string">&quot;target_address&quot;</span>, req.target_address).into(),
                             (<span class="string">&quot;amount&quot;</span>, amount_.to_i64().unwrap_or_default()).into(),
                         ];
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(sender_address) = req.sender_address {
-                            params.push(<span class="macro">into_trace_value!</span>(sender_address))
-                        }
+
+                        <span class="kw">let </span>sender_address = <span class="kw">match </span>req.sender_address {
+                            <span class="prelude-val">Some</span>(sender_address) =&gt; sender_address,
+                            <span class="prelude-val">None </span>=&gt; {
+                                <span class="kw">let </span>call_stack = interface.get_call_stack();
+                                call_stack
+                                    .unwrap_or_default()
+                                    .last()
+                                    .cloned()
+                                    .unwrap_or_default()
+                            }
+                        };
+                        params.push(<span class="macro">into_trace_value!</span>(sender_address));
 
                         <span class="comment">// let mut guard = handler.store_env.data_mut().lock();
                         </span>handler.exec_env.trace.push(AbiTrace {

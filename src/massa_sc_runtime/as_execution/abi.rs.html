@@ -1902,6 +1902,20 @@
 <a href="#1902" id="1902">1902</a>
 <a href="#1903" id="1903">1903</a>
 <a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -1987,12 +2001,26 @@
     </span>env.get_interface()
         .transfer_coins(<span class="kw-2">&amp;</span>to_address, raw_amount <span class="kw">as </span>u64)<span class="question-mark">?</span>;
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
-    </span>ctx.data_mut().trace.push(AbiTrace {
-        name: <span class="macro">function_name!</span>().to_string(),
-        params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(to_address), <span class="macro">into_trace_value!</span>(raw_amount)],
-        return_value: AbiTraceType::None,
-        sub_calls: <span class="prelude-val">None</span>,
-    });
+    </span>{
+        <span class="kw">let </span>call_stack = env.get_interface().get_call_stack();
+        <span class="comment">// TODO: check if this is always correct (with nested of nested call?)
+        </span><span class="kw">let </span>from_address = call_stack
+            .unwrap_or_default()
+            .last()
+            .cloned()
+            .unwrap_or_else(|| <span class="string">&quot;&quot;</span>.to_string());
+
+        ctx.data_mut().trace.push(AbiTrace {
+            name: <span class="macro">function_name!</span>().to_string(),
+            params: <span class="macro">vec!</span>[
+                <span class="macro">into_trace_value!</span>(from_address),
+                <span class="macro">into_trace_value!</span>(to_address),
+                (<span class="macro">stringify!</span>(raw_amount), raw_amount <span class="kw">as </span>u64).into(),
+            ],
+            return_value: AbiTraceType::None,
+            sub_calls: <span class="prelude-val">None</span>,
+        });
+    }
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -2027,7 +2055,7 @@
         params: <span class="macro">vec!</span>[
             <span class="macro">into_trace_value!</span>(from_address),
             <span class="macro">into_trace_value!</span>(to_address),
-            <span class="macro">into_trace_value!</span>(raw_amount),
+            (<span class="macro">stringify!</span>(raw_amount), raw_amount <span class="kw">as </span>u64).into(),
         ],
         return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
