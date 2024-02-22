@@ -83,12 +83,15 @@ pub(crate) fn assembly_script_transfer_coins(
     env.get_interface()
         .transfer_coins(&to_address, raw_amount as u64)?;
     #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(to_address), into_trace_value!(raw_amount)],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    {
+        let from_address = env.get_interface().get_call_stack()?.last().unwrap().clone();
+        ctx.data_mut().trace.push(AbiTrace {
+            name: function_name!().to_string(),
+            params: vec![into_trace_value!(from_address), into_trace_value!(to_address), into_trace_value!(raw_amount)],
+            return_value: AbiTraceType::None,
+            sub_calls: None,
+        });
+    }
     Ok(())
 }
 
