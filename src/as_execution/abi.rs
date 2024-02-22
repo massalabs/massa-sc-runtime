@@ -84,10 +84,21 @@ pub(crate) fn assembly_script_transfer_coins(
         .transfer_coins(&to_address, raw_amount as u64)?;
     #[cfg(feature = "execution-trace")]
     {
-        let from_address = env.get_interface().get_call_stack()?.last().unwrap().clone();
+        let call_stack = env.get_interface().get_call_stack();
+        // TODO: check if this is always correct (with nested of nested call?)
+        let from_address = call_stack
+            .unwrap_or_default()
+            .last()
+            .cloned()
+            .unwrap_or_else(|| "".to_string());
+
         ctx.data_mut().trace.push(AbiTrace {
             name: function_name!().to_string(),
-            params: vec![into_trace_value!(from_address), into_trace_value!(to_address), into_trace_value!(raw_amount)],
+            params: vec![
+                into_trace_value!(from_address),
+                into_trace_value!(to_address),
+                (stringify!(raw_amount), raw_amount as u64).into(),
+            ],
             return_value: AbiTraceType::None,
             sub_calls: None,
         });
@@ -126,7 +137,7 @@ pub(crate) fn assembly_script_transfer_coins_for(
         params: vec![
             into_trace_value!(from_address),
             into_trace_value!(to_address),
-            into_trace_value!(raw_amount),
+            (stringify!(raw_amount), raw_amount as u64).into(),
         ],
         return_value: AbiTraceType::None,
         sub_calls: None,
@@ -1219,8 +1230,10 @@ pub(crate) fn assembly_script_send_message(
         params: vec![
             into_trace_value!(target_address),
             into_trace_value!(target_handler),
-            into_trace_value!(validity_start),
-            into_trace_value!(validity_end),
+            into_trace_value!(validity_start_period),
+            into_trace_value!(validity_start_thread),
+            into_trace_value!(validity_end_period),
+            into_trace_value!(validity_end_thread),
             into_trace_value!(max_gas as u64),
             into_trace_value!(raw_fee as u64),
             into_trace_value!(raw_coins as u64),
@@ -1489,13 +1502,13 @@ pub fn assembly_script_function_exists(
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let address = &read_string(memory, &ctx, address)?;
-    let function = &read_string(memory, &ctx, function)?;
-    let function_exists = function_exists(&mut ctx, address, function)?;
+    let address = read_string(memory, &ctx, address)?;
+    let function = read_string(memory, &ctx, function)?;
+    let function_exists = function_exists(&mut ctx, &address, &function)?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
         name: function_name!().to_string(),
-        params: vec![],
+        params: vec![into_trace_value!(address), into_trace_value!(function)],
         return_value: function_exists.into(),
         sub_calls: None,
     });

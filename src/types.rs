@@ -18,6 +18,7 @@ pub enum AbiTraceType {
     Bool(bool),
     U8(u8),
     I32(i32),
+    U32(u32),
     I64(i64),
     U64(u64),
     F64(f64),
@@ -46,6 +47,14 @@ impl From<i32> for AbiTraceType {
         Self::I32(v)
     }
 }
+
+#[cfg(feature = "execution-trace")]
+impl From<u32> for AbiTraceType {
+    fn from(v: u32) -> Self {
+        Self::U32(v)
+    }
+}
+
 #[cfg(feature = "execution-trace")]
 impl From<i64> for AbiTraceType {
     fn from(v: i64) -> Self {
