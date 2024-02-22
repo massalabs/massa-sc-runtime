@@ -8,6 +8,9 @@ use wasmer::{AsStoreMut, AsStoreRef, Imports, Instance, InstantiationError, Type
 use wasmer_middlewares::metering::{self, MeteringPoints};
 use wasmer_types::TrapCode;
 
+#[cfg(feature = "execution-trace")]
+use crate::AbiTrace;
+
 pub type ABIEnv = Arc<Mutex<Option<ExecutionEnv>>>;
 
 /// Execution environment for ABIs.
@@ -24,6 +27,8 @@ pub struct ExecutionEnv {
     ffi: Ffi,
     /// Gas cost of instance creation
     init_gas_cost: u64,
+    #[cfg(feature = "execution-trace")]
+    pub trace: Vec<AbiTrace>,
 }
 
 /// ABI environment giving ABIs access to the interface, gas costs and memory.
@@ -87,6 +92,8 @@ impl ExecutionEnv {
             instance,
             ffi,
             init_gas_cost,
+            #[cfg(feature = "execution-trace")]
+            trace: Default::default(),
         })
     }
 

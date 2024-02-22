@@ -10,6 +10,139 @@ use std::{
 
 use crate::execution::RuntimeModule;
 
+#[cfg(feature = "execution-trace")]
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(tag = "type", content = "value", rename_all = "camelCase")]
+pub enum AbiTraceType {
+    None,
+    Bool(bool),
+    U8(u8),
+    I32(i32),
+    U32(u32),
+    I64(i64),
+    U64(u64),
+    F64(f64),
+    ByteArray(Vec<u8>),
+    ByteArrays(Vec<Vec<u8>>),
+    String(String),
+    Strings(Vec<String>),
+    Slot((u64, u8)),
+}
+
+#[cfg(feature = "execution-trace")]
+impl From<bool> for AbiTraceType {
+    fn from(v: bool) -> Self {
+        Self::Bool(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<u8> for AbiTraceType {
+    fn from(v: u8) -> Self {
+        Self::U8(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<i32> for AbiTraceType {
+    fn from(v: i32) -> Self {
+        Self::I32(v)
+    }
+}
+
+#[cfg(feature = "execution-trace")]
+impl From<u32> for AbiTraceType {
+    fn from(v: u32) -> Self {
+        Self::U32(v)
+    }
+}
+
+#[cfg(feature = "execution-trace")]
+impl From<i64> for AbiTraceType {
+    fn from(v: i64) -> Self {
+        Self::I64(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<u64> for AbiTraceType {
+    fn from(v: u64) -> Self {
+        Self::U64(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<f64> for AbiTraceType {
+    fn from(v: f64) -> Self {
+        Self::F64(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<Vec<u8>> for AbiTraceType {
+    fn from(v: Vec<u8>) -> Self {
+        Self::ByteArray(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<Vec<Vec<u8>>> for AbiTraceType {
+    fn from(v: Vec<Vec<u8>>) -> Self {
+        Self::ByteArrays(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<String> for AbiTraceType {
+    fn from(v: String) -> Self {
+        Self::String(v)
+    }
+}
+#[cfg(feature = "execution-trace")]
+impl From<Vec<String>> for AbiTraceType {
+    fn from(v: Vec<String>) -> Self {
+        Self::Strings(v)
+    }
+}
+
+#[cfg(feature = "execution-trace")]
+impl From<(u64, u8)> for AbiTraceType {
+    fn from(v: (u64, u8)) -> Self {
+        Self::Slot(v)
+    }
+}
+
+#[cfg(feature = "execution-trace")]
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct AbiTraceValue {
+    pub name: String,
+    #[serde(flatten)]
+    pub value: AbiTraceType,
+}
+
+#[cfg(feature = "execution-trace")]
+impl<T> From<(&str, T)> for AbiTraceValue
+where
+    T: Into<AbiTraceType>,
+{
+    fn from((name, value): (&str, T)) -> Self {
+        Self {
+            name: name.to_string(),
+            value: value.into(),
+        }
+    }
+}
+
+#[cfg(feature = "execution-trace")]
+#[macro_export]
+macro_rules! into_trace_value {
+    ($a: expr) => {{
+        (stringify!($a), $a).into()
+    }};
+}
+
+#[cfg(feature = "execution-trace")]
+#[derive(Debug, Clone, PartialEq)]
+pub struct AbiTrace {
+    pub name: String,
+    pub params: Vec<AbiTraceValue>,
+    pub return_value: AbiTraceType,
+    pub sub_calls: Option<Vec<AbiTrace>>,
+}
+
 /// That's what is returned when a module is executed correctly since the end
 #[derive(Debug)]
 pub struct Response {
@@ -19,6 +152,8 @@ pub struct Response {
     pub remaining_gas: u64,
     /// number of gas required for the instance creation
     pub init_gas_cost: u64,
+    #[cfg(feature = "execution-trace")]
+    pub trace: Vec<AbiTrace>,
 }
 
 pub trait InterfaceClone {

@@ -11,7 +11,7 @@ chrono = { version = "=0.4", features = ["clock"], default-features = false }
 displaydoc = "0.2"
 function_name = "0.3"
 loupe = "0.1"
-massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", rev = "84678fb77cf6d06d85d55e2c20502908ff292e61"}
+massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", rev = "25638b3b7d387afbca81afcb02bae1af03697f18"}
 more-asserts = "0.3"
 num_enum = "0.7"
 parking_lot = "0.12"
@@ -20,7 +20,7 @@ prost-types = "=0.12"
 rand = "=0.8"
 # for gas_calibration middleware
 regex = "1"
-serde = "=1.0"
+serde = { version = "=1.0", features = ["derive"] }
 serde_json = "=1.0"
 serial_test = "2"
 sha2 = "=0.10.8"
@@ -32,6 +32,7 @@ wasmer-compiler-cranelift = "=4.2.4"
 wasmer-compiler-singlepass = "=4.2.4"
 wasmer-middlewares = "=4.2.4"
 wasmer-types = "=4.2.4"
+rust_decimal = { version = "1.32", default-features = false, optional = true }
 
 [dev-dependencies]
 bs58 = { version = "=0.5.0", features = ["check"] }
@@ -46,3 +47,4 @@ gas_calibration = []
 testing = []
 dumper = []
 build-wasm = []
+execution-trace = ["rust_decimal"]

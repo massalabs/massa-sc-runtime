@@ -1,5 +1,5 @@
 use super::super::env::{ABIEnv, ExecutionEnv};
-use crate::{wasmv1_execution::WasmV1Error, GasCosts, Interface};
+use crate::{wasmv1_execution::WasmV1Error, GasCosts};
 use std::io::Cursor;
 use wasmer::FunctionEnvMut;
 
@@ -18,17 +18,15 @@ where
 {
     // get environment and interface
     let env_mutex = store_env.data().clone();
-    let env_lock = env_mutex.lock();
-    let exec_env = env_lock.as_ref().ok_or_else(|| {
+    let mut env_lock = env_mutex.lock();
+    let exec_env = env_lock.as_mut().ok_or_else(|| {
         WasmV1Error::InstanciationError("ABIs cannot be called at initialization time.".into())
     })?;
-    let interface = exec_env.get_interface();
 
     // create handler
     let mut handler = ABIHandler {
         store_env: &mut store_env,
         exec_env,
-        interface,
     };
 
     // apply gas cost
@@ -61,17 +59,16 @@ where
 {
     // get environment and interface
     let env_mutex = store_env.data().clone();
-    let env_lock = env_mutex.lock();
-    let exec_env = env_lock.as_ref().ok_or_else(|| {
+    let mut env_lock = env_mutex.lock();
+    let exec_env = env_lock.as_mut().ok_or_else(|| {
         WasmV1Error::InstanciationError("ABIs cannot be called at initialization time.".into())
     })?;
-    let interface = exec_env.get_interface();
+    // let interface = exec_env.get_interface_mut();
 
     // create handler
     let mut handler = ABIHandler {
         store_env: &mut store_env,
         exec_env,
-        interface,
     };
 
     // apply gas cost
@@ -92,9 +89,8 @@ where
 
 /// A helper structure to handle ABI calls
 pub struct ABIHandler<'a, 'b> {
-    store_env: &'b mut FunctionEnvMut<'a, ABIEnv>,
-    exec_env: &'b ExecutionEnv,
-    pub interface: &'b dyn Interface,
+    pub(crate) store_env: &'b mut FunctionEnvMut<'a, ABIEnv>,
+    pub(crate) exec_env: &'b mut ExecutionEnv,
 }
 
 impl<'a, 'b> ABIHandler<'a, 'b> {

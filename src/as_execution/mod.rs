@@ -211,10 +211,10 @@ pub(crate) fn exec_as_module(
     let mut store = Store::new(engine);
     let mut context = ASContext::new(interface, as_module.binary_module, gas_costs);
 
-    // save the gas remaining before subexecution: used by readonly execution
+    // save the gas remaining before sub-execution: used by readonly execution
     interface.save_gas_remaining_before_subexecution(limit);
 
-    let (instance, init_rem_points) = context.create_vm_instance_and_init_env(&mut store)?;
+    let (instance, _fenv, init_rem_points) = context.create_vm_instance_and_init_env(&mut store)?;
     let init_cost = as_module.initial_limit.saturating_sub(init_rem_points);
 
     if cfg!(not(feature = "gas_calibration")) {
@@ -229,6 +229,12 @@ pub(crate) fn exec_as_module(
                 None
             };
             response.init_gas_cost = init_cost;
+
+            #[cfg(feature = "execution-trace")]
+            {
+                response.trace = _fenv.as_ref(&store).trace.clone();
+            }
+
             Ok((response, gc_result))
         }
         Err(err) => {

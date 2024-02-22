@@ -11,6 +11,9 @@ use serial_test::serial;
 use wasmer::Store;
 use wasmer::WasmPtr;
 
+#[cfg(feature = "execution-trace")]
+use crate::{AbiTrace, AbiTraceType, AbiTraceValue};
+
 #[test]
 #[serial]
 #[ignore]
@@ -130,6 +133,30 @@ fn test_run_main() {
 
     let runtime_module = RuntimeModule::new(module, gas_costs.clone(), Compiler::SP).unwrap();
     run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+}
+
+#[cfg(feature = "execution-trace")]
+#[test]
+#[serial]
+/// Test basic main-only SC execution
+fn test_run_main_get_execution_traces() {
+    let gas_costs = GasCosts::default();
+    let interface: Box<dyn Interface> = Box::new(TestInterface);
+    let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/basic_main.wasm"));
+
+    let runtime_module = RuntimeModule::new(module, gas_costs.clone(), Compiler::SP).unwrap();
+    let resp = run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+
+    assert_eq!(resp.trace.is_empty(), false);
+    assert_eq!(
+        resp.trace,
+        vec![AbiTrace {
+            name: "assembly_script_generate_event".to_string(),
+            params: vec![("event", "hello world!".to_string()).into()],
+            return_value: AbiTraceType::None,
+            sub_calls: None
+        }]
+    )
 }
 
 #[test]
@@ -389,7 +416,25 @@ fn test_transfer_coins_wasmv1_as() {
             println!("Module type WasmV1Module");
         }
     }
-    run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+
+    let _resp = run_main(&*interface, runtime_module, 100_000, gas_costs).unwrap();
+
+    #[cfg(feature = "execution-trace")]
+    {
+        assert_eq!(_resp.trace.is_empty(), false);
+        let trace_1 = _resp.trace.get(0).unwrap();
+        assert_eq!(trace_1.name, "abi_transfer_coins");
+        assert_eq!(
+            trace_1.params,
+            vec![
+                ("target_address", "abcd".to_string()).into(),
+                ("amount", 100i64).into(),
+                ("sender_address", "efgh".to_string()).into(),
+            ]
+        );
+        assert_eq!(trace_1.return_value, AbiTraceType::None);
+        assert_eq!(trace_1.sub_calls, None);
+    }
 }
 
 #[test]
@@ -809,7 +854,7 @@ fn test_class_id() {
     let module = ASModule::new(bytecode, 100_000, GasCosts::default(), Compiler::SP).unwrap();
     let mut store = Store::new(module._engine);
     let mut context = ASContext::new(&*interface, module.binary_module, GasCosts::default());
-    let (instance, _) = context.create_vm_instance_and_init_env(&mut store).unwrap();
+    let (instance, _function_env, _) = context.create_vm_instance_and_init_env(&mut store).unwrap();
 
     // setup test specific context
     let (_, fenv) = context.resolver(&mut store);
@@ -873,4 +918,50 @@ fn test_class_id() {
             .unwrap(),
     );
     assert_eq!(array_class_id, 4);
+}
+
+#[cfg(feature = "execution-trace")]
+#[test]
+#[serial]
+/// Non regression test on the AS class id values
+fn test_ser() {
+    let at0 = AbiTraceType::Bool(true);
+    let at1 = AbiTraceType::String("hello".to_string());
+    let at2 = AbiTraceType::U64(33);
+    let at3 = AbiTraceType::ByteArray(vec![1, 255, 0]);
+    let at4 = AbiTraceType::ByteArrays(vec![vec![1, 255, 0], vec![11, 42, 33]]);
+    let at5 = AbiTraceType::Strings(vec!["yo".to_string(), "yo2".to_string()]);
+    let at6 = AbiTraceType::Slot((111, 22));
+    let s0 = serde_json::to_string(&at0).unwrap();
+    println!("s0: {}", s0);
+    assert!(s0.find("bool").is_some());
+    let s1 = serde_json::to_string(&at1).unwrap();
+    println!("s1: {}", s1);
+    assert!(s1.find("string").is_some());
+    let s2 = serde_json::to_string(&at2).unwrap();
+    println!("s2: {}", s2);
+    assert!(s2.find("u64").is_some());
+    let s3 = serde_json::to_string(&at3).unwrap();
+    println!("s3: {}", s3);
+    assert!(s3.find("byteArray").is_some());
+    let s4 = serde_json::to_string(&at4).unwrap();
+    println!("s4: {}", s4);
+    assert!(s4.find("byteArrays").is_some());
+    let s5 = serde_json::to_string(&at5).unwrap();
+    println!("s5: {}", s5);
+    assert!(s5.find("strings").is_some());
+    let s6 = serde_json::to_string(&at6).unwrap();
+    println!("s6: {}", s6);
+    assert!(s6.find("slot").is_some());
+
+    let atv1 = AbiTraceValue {
+        name: "foo".to_string(),
+        value: at6,
+    };
+    let s_atv1_ = serde_json::to_string(&atv1);
+    println!("s_atv1: {:?}", s_atv1_);
+
+    let s_atv1 = s_atv1_.unwrap();
+    assert!(s_atv1.find("foo").is_some());
+    assert!(s_atv1.find("slot").is_some());
 }
