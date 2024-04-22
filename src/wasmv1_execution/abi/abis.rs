@@ -10,12 +10,12 @@ use massa_proto_rs::massa::{
 use wasmer::{imports, AsStoreMut, Function, FunctionEnv, FunctionEnvMut, Imports};
 
 use crate::Interface;
-#[cfg(feature = "execution-trace")]
-use crate::{into_trace_value, AbiTrace, AbiTraceType};
-#[cfg(feature = "execution-trace")]
-use rust_decimal::prelude::ToPrimitive;
-#[cfg(feature = "execution-trace")]
-use rust_decimal::Decimal;
+// #[cfg(feature = "execution-trace")]
+// use crate::{into_trace_value, AbiTrace, AbiTraceType};
+// #[cfg(feature = "execution-trace")]
+// use rust_decimal::prelude::ToPrimitive;
+// #[cfg(feature = "execution-trace")]
+// use rust_decimal::Decimal;
 
 // This macro ease the construction of the Error variant of the response to an
 // ABI call.
@@ -139,9 +139,9 @@ fn abi_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, W
                 .call_coins
                 .ok_or_else(|| WasmV1Error::RuntimeError("No coins provided".into()))?;
 
-            #[cfg(feature = "execution-trace")]
-            let amount_ = Decimal::try_from_i128_with_scale(amount.mantissa as i128, amount.scale)
-                .unwrap_or_default();
+            // #[cfg(feature = "execution-trace")]
+            // let amount_ = Decimal::try_from_i128_with_scale(amount.mantissa as i128, amount.scale)
+            //     .unwrap_or_default();
 
             let interface = handler.exec_env.get_interface();
             let bytecode = interface
@@ -167,22 +167,22 @@ fn abi_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, W
                 WasmV1Error::RuntimeError(format!("Could not finish call: {}", err))
             })?;
 
-            #[cfg(feature = "execution-trace")]
-            {
-                if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
-                    exec_env.trace.push(AbiTrace {
-                        name: function_name!().to_string(),
-                        params: vec![
-                            into_trace_value!(req.target_sc_address),
-                            into_trace_value!(req.target_function_name),
-                            into_trace_value!(req.function_arg),
-                            into_trace_value!(amount_.to_i64().unwrap()),
-                        ],
-                        return_value: AbiTraceType::ByteArray(response.ret.clone()),
-                        sub_calls: Some(response.trace),
-                    });
-                }
-            }
+            // #[cfg(feature = "execution-trace")]
+            // {
+            //     if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
+            //         exec_env.trace.push(AbiTrace {
+            //             name: function_name!().to_string(),
+            //             params: vec![
+            //                 into_trace_value!(req.target_sc_address),
+            //                 into_trace_value!(req.target_function_name),
+            //                 into_trace_value!(req.function_arg),
+            //                 into_trace_value!(amount_.to_i64().unwrap()),
+            //             ],
+            //             return_value: AbiTraceType::ByteArray(response.ret.clone()),
+            //             sub_calls: Some(response.trace),
+            //         });
+            //     }
+            // }
             Ok(CallResponse { data: response.ret })
         },
     )
@@ -213,21 +213,21 @@ fn abi_local_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<
             .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
             handler.set_remaining_gas(response.remaining_gas);
 
-            #[cfg(feature = "execution-trace")]
-            {
-                if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
-                    exec_env.trace.push(AbiTrace {
-                        name: function_name!().to_string(),
-                        params: vec![
-                            into_trace_value!(bytecode),
-                            into_trace_value!(req.target_function_name),
-                            into_trace_value!(req.function_arg),
-                        ],
-                        return_value: AbiTraceType::ByteArray(response.ret.clone()),
-                        sub_calls: Some(response.trace),
-                    });
-                }
-            }
+            // #[cfg(feature = "execution-trace")]
+            // {
+            //     if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
+            //         exec_env.trace.push(AbiTrace {
+            //             name: function_name!().to_string(),
+            //             params: vec![
+            //                 into_trace_value!(bytecode),
+            //                 into_trace_value!(req.target_function_name),
+            //                 into_trace_value!(req.function_arg),
+            //             ],
+            //             return_value: AbiTraceType::ByteArray(response.ret.clone()),
+            //             sub_calls: Some(response.trace),
+            //         });
+            //     }
+            // }
 
             Ok(CallResponse { data: response.ret })
         },
@@ -376,9 +376,9 @@ fn abi_transfer_coins(
             //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
             // true); }
 
-            #[cfg(feature = "execution-trace")]
-            let amount_ = Decimal::try_from_i128_with_scale(amount.mantissa as i128, amount.scale)
-                .unwrap_or_default();
+            // #[cfg(feature = "execution-trace")]
+            // let amount_ = Decimal::try_from_i128_with_scale(amount.mantissa as i128, amount.scale)
+            //     .unwrap_or_default();
 
             let interface = handler.exec_env.get_interface();
 
@@ -388,35 +388,35 @@ fn abi_transfer_coins(
                 req.sender_address.clone(),
             ) {
                 Ok(_) => {
-                    #[cfg(feature = "execution-trace")]
-                    {
-                        // Build parameters
-                        let mut params = vec![
-                            ("target_address", req.target_address).into(),
-                            ("amount", amount_.to_i64().unwrap_or_default()).into(),
-                        ];
+                    // #[cfg(feature = "execution-trace")]
+                    // {
+                    //     // Build parameters
+                    //     let mut params = vec![
+                    //         ("target_address", req.target_address).into(),
+                    //         ("amount", amount_.to_i64().unwrap_or_default()).into(),
+                    //     ];
 
-                        let sender_address = match req.sender_address {
-                            Some(sender_address) => sender_address,
-                            None => {
-                                let call_stack = interface.get_call_stack();
-                                call_stack
-                                    .unwrap_or_default()
-                                    .last()
-                                    .cloned()
-                                    .unwrap_or_default()
-                            }
-                        };
-                        params.push(into_trace_value!(sender_address));
+                    //     let sender_address = match req.sender_address {
+                    //         Some(sender_address) => sender_address,
+                    //         None => {
+                    //             let call_stack = interface.get_call_stack();
+                    //             call_stack
+                    //                 .unwrap_or_default()
+                    //                 .last()
+                    //                 .cloned()
+                    //                 .unwrap_or_default()
+                    //         }
+                    //     };
+                    //     params.push(into_trace_value!(sender_address));
 
-                        // let mut guard = handler.store_env.data_mut().lock();
-                        handler.exec_env.trace.push(AbiTrace {
-                            name: function_name!().to_string(),
-                            params,
-                            return_value: AbiTraceType::None,
-                            sub_calls: None,
-                        });
-                    }
+                    //     // let mut guard = handler.store_env.data_mut().lock();
+                    //     handler.exec_env.trace.push(AbiTrace {
+                    //         name: function_name!().to_string(),
+                    //         params,
+                    //         return_value: AbiTraceType::None,
+                    //         sub_calls: None,
+                    //     });
+                    // }
                     resp_ok!(TransferCoinsResult, {})
                 }
                 Err(e) => resp_err!(e),
@@ -949,35 +949,35 @@ fn abi_send_async_message(
                 filter,
             ) {
                 Ok(_) => {
-                    #[cfg(feature = "execution-trace")]
-                    {
-                        let filter_key = filter.unwrap_or_default().1.unwrap_or_default().to_vec();
-                        let filter = filter.unwrap_or_default().0.to_string();
-                        let params = vec![
-                            into_trace_value!(req.target_address),
-                            into_trace_value!(req.target_handler),
-                            into_trace_value!(start.period),
-                            into_trace_value!(start.thread),
-                            into_trace_value!(end.period),
-                            into_trace_value!(end.thread),
-                            into_trace_value!(req.execution_gas),
-                            into_trace_value!(req.raw_fee),
-                            into_trace_value!(req.raw_coins),
-                            into_trace_value!(req.data),
-                            // filter address
-                            into_trace_value!(filter),
-                            // filter key
-                            into_trace_value!(filter_key),
-                        ];
-                        if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
-                            exec_env.trace.push(AbiTrace {
-                                name: function_name!().to_string(),
-                                params,
-                                return_value: AbiTraceType::None,
-                                sub_calls: None,
-                            });
-                        }
-                    }
+                    // #[cfg(feature = "execution-trace")]
+                    // {
+                    //     let filter_key = filter.unwrap_or_default().1.unwrap_or_default().to_vec();
+                    //     let filter = filter.unwrap_or_default().0.to_string();
+                    //     let params = vec![
+                    //         into_trace_value!(req.target_address),
+                    //         into_trace_value!(req.target_handler),
+                    //         into_trace_value!(start.period),
+                    //         into_trace_value!(start.thread),
+                    //         into_trace_value!(end.period),
+                    //         into_trace_value!(end.thread),
+                    //         into_trace_value!(req.execution_gas),
+                    //         into_trace_value!(req.raw_fee),
+                    //         into_trace_value!(req.raw_coins),
+                    //         into_trace_value!(req.data),
+                    //         // filter address
+                    //         into_trace_value!(filter),
+                    //         // filter key
+                    //         into_trace_value!(filter_key),
+                    //     ];
+                    //     if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
+                    //         exec_env.trace.push(AbiTrace {
+                    //             name: function_name!().to_string(),
+                    //             params,
+                    //             return_value: AbiTraceType::None,
+                    //             sub_calls: None,
+                    //         });
+                    //     }
+                    // }
 
                     resp_ok!(SendAsyncMessageResult, {})
                 }
@@ -1033,21 +1033,21 @@ fn abi_local_execution(
                 Ok(response) => {
                     handler.set_remaining_gas(response.remaining_gas);
 
-                    #[cfg(feature = "execution-trace")]
-                    {
-                        if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
-                            exec_env.trace.push(AbiTrace {
-                                name: function_name!().to_string(),
-                                params: vec![
-                                    into_trace_value!(req.bytecode),
-                                    into_trace_value!(req.target_function_name),
-                                    into_trace_value!(req.function_arg),
-                                ],
-                                return_value: AbiTraceType::ByteArray(response.ret.clone()),
-                                sub_calls: Some(response.trace),
-                            });
-                        }
-                    }
+                    // #[cfg(feature = "execution-trace")]
+                    // {
+                    //     if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
+                    //         exec_env.trace.push(AbiTrace {
+                    //             name: function_name!().to_string(),
+                    //             params: vec![
+                    //                 into_trace_value!(req.bytecode),
+                    //                 into_trace_value!(req.target_function_name),
+                    //                 into_trace_value!(req.function_arg),
+                    //             ],
+                    //             return_value: AbiTraceType::ByteArray(response.ret.clone()),
+                    //             sub_calls: Some(response.trace),
+                    //         });
+                    //     }
+                    // }
 
                     resp_ok!(LocalExecutionResponse, { data: response.ret })
                 }

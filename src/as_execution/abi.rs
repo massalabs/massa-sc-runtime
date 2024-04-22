@@ -12,11 +12,11 @@ use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
 use super::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
 use crate::settings;
-#[cfg(feature = "execution-trace")]
-use crate::{
-    into_trace_value,
-    types::{AbiTrace, AbiTraceType},
-};
+// #[cfg(feature = "execution-trace")]
+// use crate::{
+//     into_trace_value,
+//     types::{AbiTrace, AbiTraceType},
+// };
 
 use super::common::{call_module, create_sc, function_exists, local_call};
 use super::error::{abi_bail, ABIResult};
@@ -50,13 +50,13 @@ pub(crate) fn assembly_script_get_call_coins(mut ctx: FunctionEnvMut<ASEnv>) -> 
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let res = env.get_interface().get_call_coins()? as i64;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: res.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: res.into(),
+    //     sub_calls: None,
+    // });
     Ok(res)
 }
 
@@ -82,27 +82,27 @@ pub(crate) fn assembly_script_transfer_coins(
     // }
     env.get_interface()
         .transfer_coins(&to_address, raw_amount as u64)?;
-    #[cfg(feature = "execution-trace")]
-    {
-        let call_stack = env.get_interface().get_call_stack();
-        // TODO: check if this is always correct (with nested of nested call?)
-        let from_address = call_stack
-            .unwrap_or_default()
-            .last()
-            .cloned()
-            .unwrap_or_else(|| "".to_string());
+    // #[cfg(feature = "execution-trace")]
+    // {
+    //     let call_stack = env.get_interface().get_call_stack();
+    //     // TODO: check if this is always correct (with nested of nested call?)
+    //     let from_address = call_stack
+    //         .unwrap_or_default()
+    //         .last()
+    //         .cloned()
+    //         .unwrap_or_else(|| "".to_string());
 
-        ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
-            params: vec![
-                into_trace_value!(from_address),
-                into_trace_value!(to_address),
-                (stringify!(raw_amount), raw_amount as u64).into(),
-            ],
-            return_value: AbiTraceType::None,
-            sub_calls: None,
-        });
-    }
+    //     ctx.data_mut().trace.push(AbiTrace {
+    //         name: function_name!().to_string(),
+    //         params: vec![
+    //             into_trace_value!(from_address),
+    //             into_trace_value!(to_address),
+    //             (stringify!(raw_amount), raw_amount as u64).into(),
+    //         ],
+    //         return_value: AbiTraceType::None,
+    //         sub_calls: None,
+    //     });
+    // }
     Ok(())
 }
 
@@ -131,17 +131,17 @@ pub(crate) fn assembly_script_transfer_coins_for(
     // }
     env.get_interface()
         .transfer_coins_for(&from_address, &to_address, raw_amount as u64)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![
-            into_trace_value!(from_address),
-            into_trace_value!(to_address),
-            (stringify!(raw_amount), raw_amount as u64).into(),
-        ],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![
+    //         into_trace_value!(from_address),
+    //         into_trace_value!(to_address),
+    //         (stringify!(raw_amount), raw_amount as u64).into(),
+    //     ],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     Ok(())
 }
 
@@ -150,13 +150,13 @@ pub(crate) fn assembly_script_get_balance(mut ctx: FunctionEnvMut<ASEnv>) -> ABI
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let res = env.get_interface().get_balance()? as i64;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: res.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: res.into(),
+    //     sub_calls: None,
+    // });
     Ok(res)
 }
 
@@ -175,13 +175,13 @@ pub(crate) fn assembly_script_get_balance_for(
     //     param_size_update(&env, &mut ctx, &fname, address.len(), true);
     // }
     let res = env.get_interface().get_balance_for(&address)? as i64;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(address)],
-        return_value: res.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(address)],
+    //     return_value: res.into(),
+    //     sub_calls: None,
+    // });
     Ok(res)
 }
 
@@ -213,18 +213,18 @@ pub(crate) fn assembly_script_call(
     // }
 
     let response = call_module(&mut ctx, &address, &function, &param, call_coins)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![
-            ("address", address.clone()).into(),
-            ("function", function.clone()).into(),
-            into_trace_value!(param),
-            into_trace_value!(call_coins),
-        ],
-        return_value: response.ret.clone().into(),
-        sub_calls: Some(response.trace),
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![
+    //         ("address", address.clone()).into(),
+    //         ("function", function.clone()).into(),
+    //         into_trace_value!(param),
+    //         into_trace_value!(call_coins),
+    //     ],
+    //     return_value: response.ret.clone().into(),
+    //     sub_calls: Some(response.trace),
+    // });
     match BufferPtr::alloc(&response.ret, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
         _ => abi_bail!(format!(
@@ -239,13 +239,13 @@ pub(crate) fn assembly_script_get_remaining_gas(mut ctx: FunctionEnvMut<ASEnv>) 
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let res = get_remaining_points(&env, &mut ctx)? as i64;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: res.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: res.into(),
+    //     sub_calls: None,
+    // });
     Ok(res)
 }
 
@@ -267,13 +267,13 @@ pub(crate) fn assembly_script_print(mut ctx: FunctionEnvMut<ASEnv>, arg: i32) ->
     // }
 
     env.get_interface().print(&message)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(message)],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(message)],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     Ok(())
 }
 
@@ -289,13 +289,13 @@ pub(crate) fn assembly_script_get_op_keys(mut ctx: FunctionEnvMut<ASEnv>) -> ABI
                 ser_bytearray_vec(&keys, keys.len(), settings::max_op_datastore_entry_count())?;
             let ptr = pointer_from_bytearray(&env, &mut ctx, &fmt_keys)?.offset();
 
-            #[cfg(feature = "execution-trace")]
-            ctx.data_mut().trace.push(AbiTrace {
-                name: function_name!().to_string(),
-                params: vec![],
-                return_value: fmt_keys.into(),
-                sub_calls: None,
-            });
+            // #[cfg(feature = "execution-trace")]
+            // ctx.data_mut().trace.push(AbiTrace {
+            //     name: function_name!().to_string(),
+            //     params: vec![],
+            //     return_value: fmt_keys.into(),
+            //     sub_calls: None,
+            // });
             Ok(ptr as i32)
         }
     }
@@ -323,13 +323,13 @@ pub(crate) fn assembly_script_get_op_keys_prefix(
                 ser_bytearray_vec(&keys, keys.len(), settings::max_op_datastore_entry_count())?;
             let ptr = pointer_from_bytearray(&env, &mut ctx, &fmt_keys)?.offset();
 
-            #[cfg(feature = "execution-trace")]
-            ctx.data_mut().trace.push(AbiTrace {
-                name: function_name!().to_string(),
-                params: vec![into_trace_value!(prefix)],
-                return_value: AbiTraceType::ByteArray(fmt_keys),
-                sub_calls: None,
-            });
+            // #[cfg(feature = "execution-trace")]
+            // ctx.data_mut().trace.push(AbiTrace {
+            //     name: function_name!().to_string(),
+            //     params: vec![into_trace_value!(prefix)],
+            //     return_value: AbiTraceType::ByteArray(fmt_keys),
+            //     sub_calls: None,
+            // });
             Ok(ptr as i32)
         }
     }
@@ -360,13 +360,13 @@ pub(crate) fn assembly_script_has_op_key(
             let b_vec: Vec<u8> = vec![b as u8];
             let a = pointer_from_bytearray(&env, &mut ctx, &b_vec)?.offset();
 
-            #[cfg(feature = "execution-trace")]
-            ctx.data_mut().trace.push(AbiTrace {
-                name: function_name!().to_string(),
-                params: vec![into_trace_value!(key_bytes)],
-                return_value: b_vec.into(),
-                sub_calls: None,
-            });
+            // #[cfg(feature = "execution-trace")]
+            // ctx.data_mut().trace.push(AbiTrace {
+            //     name: function_name!().to_string(),
+            //     params: vec![into_trace_value!(key_bytes)],
+            //     return_value: b_vec.into(),
+            //     sub_calls: None,
+            // });
 
             Ok(a as i32)
         }
@@ -391,13 +391,13 @@ pub(crate) fn assembly_script_get_op_data(
     let data = env.get_interface().get_op_data(&key_bytes)?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32;
 
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(key_bytes)],
-        return_value: data.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(key_bytes)],
+    //     return_value: data.into(),
+    //     sub_calls: None,
+    // });
     Ok(ptr)
 }
 
@@ -420,13 +420,13 @@ pub(crate) fn assembly_script_create_sc(
     let address = create_sc(&mut ctx, &bytecode)?;
     let ptr = StringPtr::alloc(&address, env.get_ffi_env(), &mut ctx)?.offset() as i32;
 
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(bytecode)],
-        return_value: address.clone().into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(bytecode)],
+    //     return_value: address.clone().into(),
+    //     sub_calls: None,
+    // });
     Ok(ptr)
 }
 
@@ -444,13 +444,13 @@ pub(crate) fn assembly_script_hash(mut ctx: FunctionEnvMut<ASEnv>, value: i32) -
     // }
     let hash = env.get_interface().hash(&bytes)?.to_vec();
     let ptr = pointer_from_bytearray(&env, &mut ctx, &hash)?.offset();
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(bytes)],
-        return_value: hash.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(bytes)],
+    //     return_value: hash.into(),
+    //     sub_calls: None,
+    // });
     Ok(ptr as i32)
 }
 
@@ -467,13 +467,13 @@ pub(crate) fn assembly_script_keccak256_hash(
     let hash = env.get_interface().hash_keccak256(&bytes)?.to_vec();
     let ptr = pointer_from_bytearray(&env, &mut ctx, &hash)?.offset();
 
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(bytes)],
-        return_value: hash.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(bytes)],
+    //     return_value: hash.into(),
+    //     sub_calls: None,
+    // });
 
     Ok(ptr as i32)
 }
@@ -497,13 +497,13 @@ pub(crate) fn assembly_script_get_keys(
     let fmt_keys = ser_bytearray_vec(&keys, keys.len(), settings::max_datastore_entry_count())?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &fmt_keys)?.offset();
 
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(prefix)],
-        return_value: fmt_keys.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(prefix)],
+    //     return_value: fmt_keys.into(),
+    //     sub_calls: None,
+    // });
     Ok(ptr as i32)
 }
 
@@ -528,13 +528,13 @@ pub(crate) fn assembly_script_get_keys_for(
     let fmt_keys = ser_bytearray_vec(&keys, keys.len(), settings::max_datastore_entry_count())?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &fmt_keys)?.offset();
 
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(address), into_trace_value!(prefix)],
-        return_value: AbiTraceType::ByteArrays(keys.iter().cloned().collect()),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(address), into_trace_value!(prefix)],
+    //     return_value: AbiTraceType::ByteArrays(keys.iter().cloned().collect()),
+    //     sub_calls: None,
+    // });
     Ok(ptr as i32)
 }
 
@@ -571,13 +571,13 @@ pub(crate) fn assembly_script_set_data(
     // }
 
     env.get_interface().raw_set_data(&key, &value)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(key), into_trace_value!(value)],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(key), into_trace_value!(value)],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     Ok(())
 }
 
@@ -602,13 +602,13 @@ pub(crate) fn assembly_script_append_data(
     //     param_size_update(&env, &mut ctx, &fname, value.len(), true);
     // }
     env.get_interface().raw_append_data(&key, &value)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(key), into_trace_value!(value)],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(key), into_trace_value!(value)],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     Ok(())
 }
 
@@ -626,13 +626,13 @@ pub(crate) fn assembly_script_get_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
     // }
     let data = env.get_interface().raw_get_data(&key)?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(key)],
-        return_value: data.clone().into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(key)],
+    //     return_value: data.clone().into(),
+    //     sub_calls: None,
+    // });
     Ok(ptr)
 }
 
@@ -649,13 +649,13 @@ pub(crate) fn assembly_script_has_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
     // }
     let res = env.get_interface().has_data(&key)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(key)],
-        return_value: res.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(key)],
+    //     return_value: res.into(),
+    //     sub_calls: None,
+    // });
     Ok(res as i32)
 }
 
@@ -676,13 +676,13 @@ pub(crate) fn assembly_script_delete_data(
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
     // }
     env.get_interface().raw_delete_data(&key)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(key)],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(key)],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     Ok(())
 }
 
@@ -712,17 +712,17 @@ pub(crate) fn assembly_script_set_data_for(
     // }
     env.get_interface()
         .raw_set_data_for(&address, &key, &value)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![
-            into_trace_value!(address),
-            into_trace_value!(key),
-            into_trace_value!(value),
-        ],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![
+    //         into_trace_value!(address),
+    //         into_trace_value!(key),
+    //         into_trace_value!(value),
+    //     ],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     Ok(())
 }
 
@@ -752,17 +752,17 @@ pub(crate) fn assembly_script_append_data_for(
     // }
     env.get_interface()
         .raw_append_data_for(&address, &key, &value)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![
-            into_trace_value!(address),
-            into_trace_value!(key),
-            into_trace_value!(value),
-        ],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![
+    //         into_trace_value!(address),
+    //         into_trace_value!(key),
+    //         into_trace_value!(value),
+    //     ],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     Ok(())
 }
 
@@ -789,13 +789,13 @@ pub(crate) fn assembly_script_get_data_for(
 
     let data = env.get_interface().raw_get_data_for(&address, &key)?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(address), into_trace_value!(key)],
-        return_value: data.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(address), into_trace_value!(key)],
+    //     return_value: data.into(),
+    //     sub_calls: None,
+    // });
     Ok(ptr)
 }
 
@@ -820,13 +820,13 @@ pub(crate) fn assembly_script_delete_data_for(
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
     // }
     env.get_interface().raw_delete_data_for(&address, &key)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(address), into_trace_value!(key)],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(address), into_trace_value!(key)],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     Ok(())
 }
 
@@ -849,13 +849,13 @@ pub(crate) fn assembly_script_has_data_for(
     //     param_size_update(&env, &mut ctx, &fname, key.len(), true);
     // }
     let res = env.get_interface().has_data_for(&address, &key)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(address), into_trace_value!(key)],
-        return_value: res.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(address), into_trace_value!(key)],
+    //     return_value: res.into(),
+    //     sub_calls: None,
+    // });
     Ok(res as i32)
 }
 
@@ -869,13 +869,13 @@ pub(crate) fn assembly_script_get_owned_addresses(
     // prevent data.clone() when enabling execution-trace
     #[allow(clippy::let_and_return)]
     let ptr = alloc_string_array(&mut ctx, &data);
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: data.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: data.into(),
+    //     sub_calls: None,
+    // });
     ptr
 }
 
@@ -887,13 +887,13 @@ pub(crate) fn assembly_script_get_call_stack(mut ctx: FunctionEnvMut<ASEnv>) -> 
     // prevent data.clone() when enabling execution-trace
     #[allow(clippy::let_and_return)]
     let ptr = alloc_string_array(&mut ctx, &data);
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: data.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: data.into(),
+    //     sub_calls: None,
+    // });
     ptr
 }
 
@@ -912,13 +912,13 @@ pub(crate) fn assembly_script_generate_event(
     //     param_size_update(&env, &mut ctx, &fname, event.len(), true);
     // }
     env.get_interface().generate_event(event.clone())?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(event)],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(event)],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     Ok(())
 }
 
@@ -949,17 +949,17 @@ pub(crate) fn assembly_script_signature_verify(
     let res = env
         .get_interface()
         .signature_verify(data.as_bytes(), &signature, &public_key)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![
-            into_trace_value!(data.as_bytes().to_vec()),
-            into_trace_value!(signature),
-            into_trace_value!(public_key),
-        ],
-        return_value: res.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![
+    //         into_trace_value!(data.as_bytes().to_vec()),
+    //         into_trace_value!(signature),
+    //         into_trace_value!(public_key),
+    //     ],
+    //     return_value: res.into(),
+    //     sub_calls: None,
+    // });
     Ok(res as i32)
 }
 
@@ -981,17 +981,17 @@ pub(crate) fn assembly_script_evm_signature_verify(
     let res = env
         .get_interface()
         .evm_signature_verify(&data, &signature, &public_key)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![
-            into_trace_value!(data),
-            into_trace_value!(signature),
-            into_trace_value!(public_key),
-        ],
-        return_value: res.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![
+    //         into_trace_value!(data),
+    //         into_trace_value!(signature),
+    //         into_trace_value!(public_key),
+    //     ],
+    //     return_value: res.into(),
+    //     sub_calls: None,
+    // });
     Ok(res as i32)
 }
 
@@ -1009,13 +1009,13 @@ pub(crate) fn assembly_script_evm_get_address_from_pubkey(
         .get_interface()
         .evm_get_address_from_pubkey(&public_key)?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &address)?.offset();
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(public_key)],
-        return_value: address.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(public_key)],
+    //     return_value: address.into(),
+    //     sub_calls: None,
+    // });
     Ok(ptr as i32)
 }
 
@@ -1035,13 +1035,13 @@ pub(crate) fn assembly_script_evm_get_pubkey_from_signature(
         .get_interface()
         .evm_get_pubkey_from_signature(&data, &signature)?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &public_key)?.offset();
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(data), into_trace_value!(signature)],
-        return_value: public_key.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(data), into_trace_value!(signature)],
+    //     return_value: public_key.into(),
+    //     sub_calls: None,
+    // });
     Ok(ptr as i32)
 }
 
@@ -1056,13 +1056,13 @@ pub(crate) fn assembly_script_is_address_eoa(
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let res = env.get_interface().is_address_eoa(&address)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(address)],
-        return_value: res.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(address)],
+    //     return_value: res.into(),
+    //     sub_calls: None,
+    // });
     Ok(res as i32)
 }
 
@@ -1083,13 +1083,13 @@ pub(crate) fn assembly_script_address_from_public_key(
     // }
     let addr = env.get_interface().address_from_public_key(&public_key)?;
     let ptr = pointer_from_string(&env, &mut ctx, &addr)?.offset() as i32;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(public_key)],
-        return_value: addr.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(public_key)],
+    //     return_value: addr.into(),
+    //     sub_calls: None,
+    // });
     Ok(ptr)
 }
 
@@ -1104,13 +1104,13 @@ pub(crate) fn assembly_script_validate_address(
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let res = env.get_interface().validate_address(&address)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(address)],
-        return_value: res.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(address)],
+    //     return_value: res.into(),
+    //     sub_calls: None,
+    // });
     Ok(res as i32)
 }
 
@@ -1120,13 +1120,13 @@ pub(crate) fn assembly_script_unsafe_random(mut ctx: FunctionEnvMut<ASEnv>) -> A
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let res = env.get_interface().unsafe_random()?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: res.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: res.into(),
+    //     sub_calls: None,
+    // });
     Ok(res)
 }
 
@@ -1136,13 +1136,13 @@ pub(crate) fn assembly_script_get_time(mut ctx: FunctionEnvMut<ASEnv>) -> ABIRes
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let res = env.get_interface().get_time()?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: res.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: res.into(),
+    //     sub_calls: None,
+    // });
     Ok(res as i64)
 }
 
@@ -1224,26 +1224,26 @@ pub(crate) fn assembly_script_send_message(
         filter,
     )?;
 
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![
-            into_trace_value!(target_address),
-            into_trace_value!(target_handler),
-            into_trace_value!(validity_start_period),
-            into_trace_value!(validity_start_thread),
-            into_trace_value!(validity_end_period),
-            into_trace_value!(validity_end_thread),
-            into_trace_value!(max_gas as u64),
-            into_trace_value!(raw_fee as u64),
-            into_trace_value!(raw_coins as u64),
-            into_trace_value!(data),
-            into_trace_value!(filter_address_string),
-            into_trace_value!(key),
-        ],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![
+    //         into_trace_value!(target_address),
+    //         into_trace_value!(target_handler),
+    //         into_trace_value!(validity_start_period),
+    //         into_trace_value!(validity_start_thread),
+    //         into_trace_value!(validity_end_period),
+    //         into_trace_value!(validity_end_thread),
+    //         into_trace_value!(max_gas as u64),
+    //         into_trace_value!(raw_fee as u64),
+    //         into_trace_value!(raw_coins as u64),
+    //         into_trace_value!(data),
+    //         into_trace_value!(filter_address_string),
+    //         into_trace_value!(key),
+    //     ],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
 
     Ok(())
 }
@@ -1260,13 +1260,13 @@ pub(crate) fn assembly_script_get_origin_operation_id(
         .get_origin_operation_id()?
         .unwrap_or_default();
     let ptr = pointer_from_string(&env, &mut ctx, &operation_id)?.offset() as i32;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: operation_id.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: operation_id.into(),
+    //     sub_calls: None,
+    // });
     Ok(ptr)
 }
 
@@ -1276,13 +1276,13 @@ pub(crate) fn assembly_script_get_current_period(mut ctx: FunctionEnvMut<ASEnv>)
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let current_period = env.get_interface().get_current_period()?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: current_period.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: current_period.into(),
+    //     sub_calls: None,
+    // });
     Ok(current_period as i64)
 }
 
@@ -1292,13 +1292,13 @@ pub(crate) fn assembly_script_get_current_thread(mut ctx: FunctionEnvMut<ASEnv>)
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let current_thread = env.get_interface().get_current_thread()?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: current_thread.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: current_thread.into(),
+    //     sub_calls: None,
+    // });
     Ok(current_thread as i32)
 }
 
@@ -1323,13 +1323,13 @@ pub(crate) fn assembly_script_set_bytecode_for(
     // }
     env.get_interface()
         .raw_set_bytecode_for(&address, &bytecode_raw)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(address), into_trace_value!(bytecode_raw)],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(address), into_trace_value!(bytecode_raw)],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     Ok(())
 }
 
@@ -1349,13 +1349,13 @@ pub(crate) fn assembly_script_set_bytecode(
     //     param_size_update(&env, &mut ctx, &fname, bytecode_raw.len(), true);
     // }
     env.get_interface().raw_set_bytecode(&bytecode_raw)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(bytecode_raw)],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(bytecode_raw)],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     Ok(())
 }
 
@@ -1366,13 +1366,13 @@ pub(crate) fn assembly_script_get_bytecode(mut ctx: FunctionEnvMut<ASEnv>) -> AB
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let data = env.get_interface().raw_get_bytecode()?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: data.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: data.into(),
+    //     sub_calls: None,
+    // });
     Ok(ptr)
 }
 
@@ -1388,13 +1388,13 @@ pub(crate) fn assembly_script_get_bytecode_for(
     let address = read_string(memory, &ctx, address)?;
     let data = env.get_interface().raw_get_bytecode_for(&address)?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(address)],
-        return_value: data.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(address)],
+    //     return_value: data.into(),
+    //     sub_calls: None,
+    // });
     Ok(ptr)
 }
 
@@ -1421,17 +1421,17 @@ pub(crate) fn assembly_script_local_execution(
             function
         )),
     };
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![
-            into_trace_value!(bytecode),
-            into_trace_value!(function),
-            into_trace_value!(param),
-        ],
-        return_value: response.ret.clone().into(),
-        sub_calls: Some(response.trace),
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![
+    //         into_trace_value!(bytecode),
+    //         into_trace_value!(function),
+    //         into_trace_value!(param),
+    //     ],
+    //     return_value: response.ret.clone().into(),
+    //     sub_calls: Some(response.trace),
+    // });
     res
 }
 
@@ -1461,17 +1461,17 @@ pub(crate) fn assembly_script_local_call(
             function
         )),
     };
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![
-            into_trace_value!(bytecode),
-            into_trace_value!(function),
-            into_trace_value!(param),
-        ],
-        return_value: response.ret.clone().into(),
-        sub_calls: Some(response.trace),
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![
+    //         into_trace_value!(bytecode),
+    //         into_trace_value!(function),
+    //         into_trace_value!(param),
+    //     ],
+    //     return_value: response.ret.clone().into(),
+    //     sub_calls: Some(response.trace),
+    // });
 
     res
 }
@@ -1482,13 +1482,13 @@ pub fn assembly_script_caller_has_write_access(mut ctx: FunctionEnvMut<ASEnv>) -
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let has_write_access = env.get_interface().caller_has_write_access()?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: has_write_access.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: has_write_access.into(),
+    //     sub_calls: None,
+    // });
     Ok(has_write_access as i32)
 }
 
@@ -1505,13 +1505,13 @@ pub fn assembly_script_function_exists(
     let address = read_string(memory, &ctx, address)?;
     let function = read_string(memory, &ctx, function)?;
     let function_exists = function_exists(&mut ctx, &address, &function)?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(address), into_trace_value!(function)],
-        return_value: function_exists.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(address), into_trace_value!(function)],
+    //     return_value: function_exists.into(),
+    //     sub_calls: None,
+    // });
     Ok(function_exists as i32)
 }
 
@@ -1521,13 +1521,13 @@ pub(crate) fn assembly_script_chain_id(mut ctx: FunctionEnvMut<ASEnv>) -> ABIRes
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let chain_id = env.get_interface().chain_id()?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: chain_id.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: chain_id.into(),
+    //     sub_calls: None,
+    // });
     Ok(chain_id as u64)
 }
 
@@ -1561,18 +1561,18 @@ pub fn assembly_script_abort(
     if message_.is_err() || filename_.is_err() {
         abi_bail!("aborting failed to load message or filename")
     }
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![
-            into_trace_value!(message_.clone().unwrap_or_default()),
-            into_trace_value!(filename_.clone().unwrap_or_default()),
-            into_trace_value!(line),
-            into_trace_value!(col),
-        ],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![
+    //         into_trace_value!(message_.clone().unwrap_or_default()),
+    //         into_trace_value!(filename_.clone().unwrap_or_default()),
+    //         into_trace_value!(line),
+    //         into_trace_value!(col),
+    //     ],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     abi_bail!(format!(
         "error: {} at {}:{} col: {}",
         message_.unwrap(),
@@ -1593,13 +1593,13 @@ pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
         Ok(ret) => ret,
         _ => abi_bail!("failed to get random from interface"),
     };
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: seed.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: seed.into(),
+    //     sub_calls: None,
+    // });
     Ok(seed)
 }
 
@@ -1615,13 +1615,13 @@ pub fn assembly_script_date_now(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64
         _ => abi_bail!("failed to get time from interface"),
     };
     let ret = utime as f64;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![],
-        return_value: ret.into(),
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![],
+    //     return_value: ret.into(),
+    //     sub_calls: None,
+    // });
     Ok(ret)
 }
 
@@ -1716,13 +1716,13 @@ fn assembly_script_console(
         .add(&message.read(&memory, &ctx)?);
 
     env.get_interface().generate_event(message.clone())?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(message)],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(message)],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     Ok(())
 }
 
@@ -1771,13 +1771,13 @@ pub fn assembly_script_trace(
 
     env.get_interface()
         .generate_event(message_for_event.clone())?;
-    #[cfg(feature = "execution-trace")]
-    ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
-        params: vec![into_trace_value!(message_for_event)],
-        return_value: AbiTraceType::None,
-        sub_calls: None,
-    });
+    // #[cfg(feature = "execution-trace")]
+    // ctx.data_mut().trace.push(AbiTrace {
+    //     name: function_name!().to_string(),
+    //     params: vec![into_trace_value!(message_for_event)],
+    //     return_value: AbiTraceType::None,
+    //     sub_calls: None,
+    // });
     Ok(())
 }
 
