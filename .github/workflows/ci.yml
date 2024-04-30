@@ -70,9 +70,9 @@ jobs:
           components: clippy
           override: true
       - uses: Swatinem/rust-cache@v1
-      - uses: arduino/setup-protoc@v1
+      - uses: arduino/setup-protoc@v3
         with:
-          version: '3.x'
+          version: '23.x'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions-rs/clippy-check@v1
         with:
@@ -101,9 +101,9 @@ jobs:
           toolchain: 1.74.1
           override: true
       - uses: Swatinem/rust-cache@v1
-      - uses: arduino/setup-protoc@v1
+      - uses: arduino/setup-protoc@v3
         with:
-          version: '3.x'
+          version: '23.x'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions-rs/cargo@v1
         with:
@@ -136,9 +136,9 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
-      - uses: arduino/setup-protoc@v1
+      - uses: arduino/setup-protoc@v3
         with:
-          version: '3.x'
+          version: '23.x'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions-rs/cargo@v1
         with:
@@ -171,9 +171,9 @@ jobs:
           toolchain: 1.74.1
           components: rustfmt
           override: true
-      - uses: arduino/setup-protoc@v1
+      - uses: arduino/setup-protoc@v3
         with:
-          version: '3.x'
+          version: '23.x'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions-rs/cargo@v1
         with:
