@@ -282,9 +282,9 @@ impl ASContext {
                 "assembly_script_function_exists" => Function::new_typed_with_env(store, &fenv, assembly_script_function_exists),
                 "assembly_script_chain_id" => Function::new_typed_with_env(store, &fenv, assembly_script_chain_id),
                 "assembly_script_get_asc_fee" => Function::new_typed_with_env(store, &fenv, assembly_script_get_asc_fee),
-                "assembly_script_asc_register" => Function::new_typed_with_env(store, &fenv, assembly_script_asc_register),
-                "assembly_script_asc_exists" => Function::new_typed_with_env(store, &fenv, assembly_script_asc_exists),
-                "assembly_script_asc_cancel" => Function::new_typed_with_env(store, &fenv, assembly_script_asc_cancel),
+                "assembly_script_asc_call_register" => Function::new_typed_with_env(store, &fenv, assembly_script_asc_call_register),
+                "assembly_script_asc_call_exists" => Function::new_typed_with_env(store, &fenv, assembly_script_asc_call_exists),
+                "assembly_script_asc_call_cancel" => Function::new_typed_with_env(store, &fenv, assembly_script_asc_call_cancel),
             },
         };
 

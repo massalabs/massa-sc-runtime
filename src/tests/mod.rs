@@ -818,7 +818,7 @@ impl Interface for TestInterface {
         Ok((true, 0))
     }
 
-    fn asc_register(
+    fn asc_call_register(
         &self,
         target_slot: (u64, u8),
         target_addr: &str,
@@ -828,19 +828,19 @@ impl Interface for TestInterface {
         max_gas: u64,
     ) -> Result<String> {
         println!(
-            "asc_register: target_slot: {:?}, target_addr: {}, target_func: {}, params: {:?}, coins: {}, max_gas: {}",
+            "asc_call_register: target_slot: {:?}, target_addr: {}, target_func: {}, params: {:?}, coins: {}, max_gas: {}",
             target_slot, target_addr, target_func, params, coins, max_gas
         );
         Ok("asc_id".to_string())
     }
 
-    fn asc_exists(&self, id: &str) -> Result<bool> {
-        println!("asc_exists: id: {:?}", id);
+    fn asc_call_exists(&self, id: &str) -> Result<bool> {
+        println!("asc_call_exists: id: {:?}", id);
         Ok(true)
     }
 
-    fn asc_cancel(&self, id: &str) -> Result<()> {
-        println!("asc_cancel: id: {:?}", id);
+    fn asc_call_cancel(&self, id: &str) -> Result<()> {
+        println!("asc_call_cancel: id: {:?}", id);
         Ok(())
     }
 }

@@ -272,9 +272,9 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_caller_has_write_access"), 11);
         abi_costs.insert(String::from("assembly_script_function_exists"), 11);
         abi_costs.insert(String::from("assembly_script_get_asc_fee"), 11);
-        abi_costs.insert(String::from("assembly_script_asc_register"), 11);
-        abi_costs.insert(String::from("assembly_script_asc_exists"), 11);
-        abi_costs.insert(String::from("assembly_script_asc_cancel"), 11);
+        abi_costs.insert(String::from("assembly_script_asc_call_register"), 11);
+        abi_costs.insert(String::from("assembly_script_asc_call_exists"), 11);
+        abi_costs.insert(String::from("assembly_script_asc_call_cancel"), 11);
         abi_costs.insert(String::from("assembly_script_seed"), 11);
         abi_costs.insert(String::from("assembly_script_abort"), 11);
         abi_costs.insert(String::from("assembly_script_date_now"), 11);
@@ -581,7 +581,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn get_asc_fee(&self, target_slot: (u64, u8), gas_limit: u64) -> Result<(bool, u64)>;
 
     // Register a new asc call and return his id
-    fn asc_register(
+    fn asc_call_register(
         &self,
         target_slot: (u64, u8),
         target_addr: &str,
@@ -592,10 +592,10 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ) -> Result<String>;
 
     // Return true if the current asc call exists
-    fn asc_exists(&self, id: &str) -> Result<bool>;
+    fn asc_call_exists(&self, id: &str) -> Result<bool>;
 
     // Cancel a asc call (will return the coins)
-    fn asc_cancel(&self, id: &str) -> Result<()>;
+    fn asc_call_cancel(&self, id: &str) -> Result<()>;
 
     fn native_amount_from_str_wasmv1(&self, amount: &str) -> Result<NativeAmount>;
 

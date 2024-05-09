@@ -1570,7 +1570,7 @@ pub(crate) fn assembly_script_get_asc_fee(
 /// Register a new ASC call in the target slot with the given parameters.
 #[named]
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn assembly_script_asc_register(
+pub(crate) fn assembly_script_asc_call_register(
     mut ctx: FunctionEnvMut<ASEnv>,
     target_address: i32,
     target_function: i32,
@@ -1597,16 +1597,14 @@ pub(crate) fn assembly_script_asc_register(
     let target_address = read_string(memory, &ctx, target_address)?;
     let target_function = read_string(memory, &ctx, target_function)?;
     let params = read_buffer(memory, &ctx, params)?;
-    let response = env
-        .get_interface()
-        .asc_register(
-            asc_target_slot,
-            &target_address,
-            &target_function,
-            &params,
-            raw_coins as u64,
-            max_gas as u64,
-        )?;
+    let response = env.get_interface().asc_call_register(
+        asc_target_slot,
+        &target_address,
+        &target_function,
+        &params,
+        raw_coins as u64,
+        max_gas as u64,
+    )?;
     let res = StringPtr::alloc(&response, env.get_ffi_env(), &mut ctx)?.offset() as i32;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -1628,7 +1626,7 @@ pub(crate) fn assembly_script_asc_register(
 
 /// Check if an ASC call exists with the given asc_id (exists meaning to be executed in the future).
 #[named]
-pub(crate) fn assembly_script_asc_exists(
+pub(crate) fn assembly_script_asc_call_exists(
     mut ctx: FunctionEnvMut<ASEnv>,
     asc_id: i32,
 ) -> ABIResult<i32> {
@@ -1636,7 +1634,7 @@ pub(crate) fn assembly_script_asc_exists(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let asc_id = read_string(memory, &ctx, asc_id)?;
-    let exists = env.get_interface().asc_exists(&asc_id)?;
+    let exists = env.get_interface().asc_call_exists(&asc_id)?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
         name: function_name!().to_string(),
@@ -1649,7 +1647,7 @@ pub(crate) fn assembly_script_asc_exists(
 
 /// Cancel an ASC call with the given asc_id. This will reimburse the user with the coins they provided
 #[named]
-pub(crate) fn assembly_script_asc_cancel(
+pub(crate) fn assembly_script_asc_call_cancel(
     mut ctx: FunctionEnvMut<ASEnv>,
     asc_id: i32,
 ) -> ABIResult<()> {
@@ -1657,7 +1655,7 @@ pub(crate) fn assembly_script_asc_cancel(
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let asc_id = read_string(memory, &ctx, asc_id)?;
-    env.get_interface().asc_cancel(&asc_id)?;
+    env.get_interface().asc_call_cancel(&asc_id)?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
         name: function_name!().to_string(),
