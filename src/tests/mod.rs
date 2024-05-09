@@ -810,9 +810,9 @@ impl Interface for TestInterface {
         println!("save_gas_remaining_before_subexecution: {}", gas_used_until);
     }
 
-    fn get_asc_fee(&self, target_slot: (u64, u8), gas_limit: u64) -> Result<(bool, u64)> {
+    fn get_asc_call_fee(&self, target_slot: (u64, u8), gas_limit: u64) -> Result<(bool, u64)> {
         println!(
-            "get_asc_fee: target_slot: {:?}, gas_limit: {}",
+            "get_asc_call_fee: target_slot: {:?}, gas_limit: {}",
             target_slot, gas_limit
         );
         Ok((true, 0))

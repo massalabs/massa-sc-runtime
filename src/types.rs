@@ -271,7 +271,7 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_get_bytecode_for"), 11);
         abi_costs.insert(String::from("assembly_script_caller_has_write_access"), 11);
         abi_costs.insert(String::from("assembly_script_function_exists"), 11);
-        abi_costs.insert(String::from("assembly_script_get_asc_fee"), 11);
+        abi_costs.insert(String::from("assembly_script_get_asc_call_fee"), 11);
         abi_costs.insert(String::from("assembly_script_asc_call_register"), 11);
         abi_costs.insert(String::from("assembly_script_asc_call_exists"), 11);
         abi_costs.insert(String::from("assembly_script_asc_call_cancel"), 11);
@@ -578,7 +578,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn chain_id(&self) -> Result<u64>;
 
     // Return a boolean that determine if there is place in this slot and an amount of fee needed to take the space
-    fn get_asc_fee(&self, target_slot: (u64, u8), gas_limit: u64) -> Result<(bool, u64)>;
+    fn get_asc_call_fee(&self, target_slot: (u64, u8), gas_limit: u64) -> Result<(bool, u64)>;
 
     // Register a new asc call and return his id
     fn asc_call_register(

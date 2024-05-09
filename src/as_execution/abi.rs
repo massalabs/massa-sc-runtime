@@ -1533,7 +1533,7 @@ pub(crate) fn assembly_script_chain_id(mut ctx: FunctionEnvMut<ASEnv>) -> ABIRes
 
 /// Return the price in nMAS to book an ASC call space in a specific slot.
 #[named]
-pub(crate) fn assembly_script_get_asc_fee(
+pub(crate) fn assembly_script_get_asc_call_fee(
     mut ctx: FunctionEnvMut<ASEnv>,
     asc_period: i64,
     asc_thread: i32,
@@ -1549,7 +1549,9 @@ pub(crate) fn assembly_script_get_asc_fee(
     if max_gas.is_negative() {
         abi_bail!("negative max gas");
     }
-    let (available, mut price) = env.get_interface().get_asc_fee(asc_slot, max_gas as u64)?;
+    let (available, mut price) = env
+        .get_interface()
+        .get_asc_call_fee(asc_slot, max_gas as u64)?;
     if !available {
         price = 0;
     }
