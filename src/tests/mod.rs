@@ -809,6 +809,40 @@ impl Interface for TestInterface {
     fn save_gas_remaining_before_subexecution(&self, gas_used_until: u64) {
         println!("save_gas_remaining_before_subexecution: {}", gas_used_until);
     }
+
+    fn get_asc_fee(&self, target_slot: (u64, u8), gas_limit: u64) -> Result<(bool, u64)> {
+        println!(
+            "get_asc_fee: target_slot: {:?}, gas_limit: {}",
+            target_slot, gas_limit
+        );
+        Ok((true, 0))
+    }
+
+    fn asc_register(
+        &self,
+        target_slot: (u64, u8),
+        target_addr: &str,
+        target_func: &str,
+        params: &[u8],
+        coins: u64,
+        max_gas: u64,
+    ) -> Result<&[u8]> {
+        println!(
+            "asc_register: target_slot: {:?}, target_addr: {}, target_func: {}, params: {:?}, coins: {}, max_gas: {}",
+            target_slot, target_addr, target_func, params, coins, max_gas
+        );
+        Ok(&[])
+    }
+
+    fn asc_exists(&self, id: &[u8]) -> Result<bool> {
+        println!("asc_exists: id: {:?}", id);
+        Ok(true)
+    }
+
+    fn asc_cancel(&self, id: &[u8]) -> Result<()> {
+        println!("asc_cancel: id: {:?}", id);
+        Ok(())
+    }
 }
 
 #[cfg(feature = "gas_calibration")]
