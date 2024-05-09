@@ -1606,15 +1606,8 @@ pub(crate) fn assembly_script_asc_register(
             &params,
             raw_coins as u64,
             max_gas as u64,
-        )?
-        .to_vec();
-    let res = match BufferPtr::alloc(&response, env.get_ffi_env(), &mut ctx) {
-        Ok(ret) => Ok(ret.offset() as i32),
-        _ => abi_bail!(format!(
-            "Cannot allocate response in ASC call of {}",
-            target_function
-        )),
-    };
+        )?;
+    let res = StringPtr::alloc(&response, env.get_ffi_env(), &mut ctx)?.offset() as i32;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
         name: function_name!().to_string(),
@@ -1630,7 +1623,7 @@ pub(crate) fn assembly_script_asc_register(
         return_value: response.to_owned().into(),
         sub_calls: None,
     });
-    res
+    Ok(res)
 }
 
 /// Check if an ASC call exists with the given asc_id (exists meaning to be executed in the future).
@@ -1642,7 +1635,7 @@ pub(crate) fn assembly_script_asc_exists(
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let asc_id = read_buffer(memory, &ctx, asc_id)?;
+    let asc_id = read_string(memory, &ctx, asc_id)?;
     let exists = env.get_interface().asc_exists(&asc_id)?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -1663,7 +1656,7 @@ pub(crate) fn assembly_script_asc_cancel(
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let asc_id = read_buffer(memory, &ctx, asc_id)?;
+    let asc_id = read_string(memory, &ctx, asc_id)?;
     env.get_interface().asc_cancel(&asc_id)?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
