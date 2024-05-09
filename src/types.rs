@@ -589,13 +589,13 @@ pub trait Interface: Send + Sync + InterfaceClone {
         params: &[u8],
         coins: u64,
         max_gas: u64,
-    ) -> Result<String>;
+    ) -> Result<Vec<u8>>;
 
     // Return true if the current asc call exists
-    fn asc_call_exists(&self, id: &str) -> Result<bool>;
+    fn asc_call_exists(&self, id: &[u8]) -> Result<bool>;
 
     // Cancel a asc call (will return the coins)
-    fn asc_call_cancel(&self, id: &str) -> Result<()>;
+    fn asc_call_cancel(&self, id: &[u8]) -> Result<()>;
 
     fn native_amount_from_str_wasmv1(&self, amount: &str) -> Result<NativeAmount>;
 

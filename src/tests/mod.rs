@@ -826,20 +826,20 @@ impl Interface for TestInterface {
         params: &[u8],
         coins: u64,
         max_gas: u64,
-    ) -> Result<String> {
+    ) -> Result<Vec<u8>> {
         println!(
             "asc_call_register: target_slot: {:?}, target_addr: {}, target_func: {}, params: {:?}, coins: {}, max_gas: {}",
             target_slot, target_addr, target_func, params, coins, max_gas
         );
-        Ok("asc_id".to_string())
+        Ok(vec![])
     }
 
-    fn asc_call_exists(&self, id: &str) -> Result<bool> {
+    fn asc_call_exists(&self, id: &[u8]) -> Result<bool> {
         println!("asc_call_exists: id: {:?}", id);
         Ok(true)
     }
 
-    fn asc_call_cancel(&self, id: &str) -> Result<()> {
+    fn asc_call_cancel(&self, id: &[u8]) -> Result<()> {
         println!("asc_call_cancel: id: {:?}", id);
         Ok(())
     }
