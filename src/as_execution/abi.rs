@@ -1531,6 +1531,146 @@ pub(crate) fn assembly_script_chain_id(mut ctx: FunctionEnvMut<ASEnv>) -> ABIRes
     Ok(chain_id as u64)
 }
 
+/// Return the price in nMAS to book an ASC call space in a specific slot.
+#[named]
+pub(crate) fn assembly_script_get_asc_call_fee(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    asc_period: i64,
+    asc_thread: i32,
+    max_gas: i64,
+) -> ABIResult<u64> {
+    let env = get_env(&ctx)?;
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let asc_slot: (u64, u8) = match (asc_period.try_into(), asc_thread.try_into()) {
+        (Ok(p), Ok(t)) => (p, t),
+        (Err(_), _) => abi_bail!("negative validity end period"),
+        (_, Err(_)) => abi_bail!("invalid validity end thread"),
+    };
+    if max_gas.is_negative() {
+        abi_bail!("negative max gas");
+    }
+    let (available, mut price) = env
+        .get_interface()
+        .get_asc_call_fee(asc_slot, max_gas as u64)?;
+    if !available {
+        price = 0;
+    }
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            into_trace_value!(asc_period),
+            into_trace_value!(asc_thread),
+            into_trace_value!(max_gas),
+        ],
+        return_value: price.into(),
+        sub_calls: None,
+    });
+    Ok(price)
+}
+
+/// Register a new ASC call in the target slot with the given parameters.
+#[named]
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn assembly_script_asc_call_register(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    target_address: i32,
+    target_function: i32,
+    target_period: i64,
+    target_thread: i32,
+    max_gas: i64,
+    raw_coins: i64,
+    params: i32,
+) -> ABIResult<i32> {
+    let env = get_env(&ctx)?;
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let asc_target_slot: (u64, u8) = match (target_period.try_into(), target_thread.try_into()) {
+        (Ok(p), Ok(t)) => (p, t),
+        (Err(_), _) => abi_bail!("negative validity end period"),
+        (_, Err(_)) => abi_bail!("invalid validity end thread"),
+    };
+    if max_gas.is_negative() {
+        abi_bail!("negative max gas");
+    }
+    if raw_coins.is_negative() {
+        abi_bail!("negative coins")
+    }
+    let memory = get_memory!(env);
+    let target_address = read_string(memory, &ctx, target_address)?;
+    let target_function = read_string(memory, &ctx, target_function)?;
+    let params = read_buffer(memory, &ctx, params)?;
+    let response = env.get_interface().asc_call_register(
+        asc_target_slot,
+        &target_address,
+        &target_function,
+        &params,
+        raw_coins as u64,
+        max_gas as u64,
+    )?;
+    let res = match BufferPtr::alloc(&response, env.get_ffi_env(), &mut ctx) {
+        Ok(ret) => Ok(ret.offset() as i32),
+        _ => abi_bail!("Cannot allocate response in asc call register"),
+    };
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![
+            into_trace_value!(target_address),
+            into_trace_value!(target_function),
+            into_trace_value!(target_period),
+            into_trace_value!(target_thread),
+            into_trace_value!(max_gas as u64),
+            into_trace_value!(raw_coins as u64),
+            into_trace_value!(params),
+        ],
+        return_value: response.to_owned().into(),
+        sub_calls: None,
+    });
+    res
+}
+
+/// Check if an ASC call exists with the given asc_id (exists meaning to be executed in the future).
+#[named]
+pub(crate) fn assembly_script_asc_call_exists(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    asc_id: i32,
+) -> ABIResult<i32> {
+    let env = get_env(&ctx)?;
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let memory = get_memory!(env);
+    let asc_id = read_buffer(memory, &ctx, asc_id)?;
+    let exists = env.get_interface().asc_call_exists(&asc_id)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![into_trace_value!(asc_id)],
+        return_value: exists.into(),
+        sub_calls: None,
+    });
+    Ok(exists as i32)
+}
+
+/// Cancel an ASC call with the given asc_id. This will reimburse the user with the coins they provided
+#[named]
+pub(crate) fn assembly_script_asc_call_cancel(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    asc_id: i32,
+) -> ABIResult<()> {
+    let env = get_env(&ctx)?;
+    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    let memory = get_memory!(env);
+    let asc_id = read_buffer(memory, &ctx, asc_id)?;
+    env.get_interface().asc_call_cancel(&asc_id)?;
+    #[cfg(feature = "execution-trace")]
+    ctx.data_mut().trace.push(AbiTrace {
+        name: function_name!().to_string(),
+        params: vec![into_trace_value!(asc_id)],
+        return_value: (),
+        sub_calls: None,
+    });
+    Ok(())
+}
+
 /// Assembly script builtin `abort` function.
 ///
 /// It prints the origin filename, an error messag, the line and column.
