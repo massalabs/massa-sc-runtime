@@ -256,11 +256,16 @@
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>context;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>env;
 <span class="kw">mod </span>error;
+
+<span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span><span class="kw">crate</span>::error::{exec_bail, VMResult};
 <span class="kw">use </span><span class="kw">crate</span>::execution::Compiler;
@@ -269,14 +274,15 @@
 <span class="kw">use </span><span class="kw">crate</span>::settings::max_number_of_pages;
 <span class="kw">use </span><span class="kw">crate</span>::tunable_memory::LimitingTunables;
 <span class="kw">use crate</span>::{GasCosts, Interface, Response};
+
 <span class="kw">use </span>anyhow::Result;
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>wasmer::NativeEngineExt;
-<span class="kw">use </span>wasmer::{wasmparser::Operator, BaseTunables, Engine, EngineBuilder, Pages, Target};
-<span class="kw">use </span>wasmer::{CompilerConfig, Cranelift, Features, Module, Store};
+<span class="kw">use </span>wasmer::sys::{BaseTunables, EngineBuilder, Features};
+<span class="kw">use </span>wasmer::{
+    wasmparser::Operator, CompilerConfig, Cranelift, Engine, Module, NativeEngineExt, Pages, Store,
+    Target,
+};
 <span class="kw">use </span>wasmer_compiler_singlepass::Singlepass;
-<span class="kw">use </span>wasmer_middlewares::metering::MeteringPoints;
-<span class="kw">use </span>wasmer_middlewares::{metering, Metering};
+<span class="kw">use </span>wasmer_middlewares::{metering, metering::MeteringPoints, Metering};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>context::<span class="kw-2">*</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>error::<span class="kw-2">*</span>;
