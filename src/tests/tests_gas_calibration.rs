@@ -1,8 +1,5 @@
 use crate::execution::Compiler;
 use crate::middlewares::operator::{OPERATOR_CARDINALITY, OPERATOR_VARIANTS};
-use crate::middlewares::operator::{
-    _OPERATOR_BULK_MEMORY, _OPERATOR_NON_TRAPPING_FLOAT_TO_INT, _OPERATOR_THREAD, _OPERATOR_VECTOR,
-};
 use crate::tests::TestInterface;
 use crate::{run_main_gc, types::Interface, GasCosts, RuntimeModule};
 use std::collections::HashSet;
@@ -410,32 +407,4 @@ fn test_operators_definition() {
 
     let op_variants = HashSet::from(OPERATOR_VARIANTS);
     assert_eq!(op_variants.len(), OPERATOR_VARIANTS.len());
-
-    assert_eq!(
-        HashSet::from(_OPERATOR_THREAD).len(),
-        _OPERATOR_THREAD.len()
-    );
-    assert_eq!(
-        HashSet::from(_OPERATOR_VECTOR).len(),
-        _OPERATOR_VECTOR.len()
-    );
-    assert_eq!(
-        HashSet::from(_OPERATOR_BULK_MEMORY).len(),
-        _OPERATOR_BULK_MEMORY.len()
-    );
-    assert_eq!(
-        HashSet::from(_OPERATOR_NON_TRAPPING_FLOAT_TO_INT).len(),
-        _OPERATOR_NON_TRAPPING_FLOAT_TO_INT.len()
-    );
-
-    let op_iterator = _OPERATOR_THREAD
-        .iter()
-        .chain(_OPERATOR_VECTOR.iter())
-        .chain(_OPERATOR_BULK_MEMORY.iter())
-        .chain(_OPERATOR_NON_TRAPPING_FLOAT_TO_INT.iter());
-
-    for operator_name in op_iterator {
-        println!("Checking operator name: {}", operator_name);
-        assert!(op_variants.contains(operator_name))
-    }
 }

@@ -4,6 +4,8 @@ mod context;
 pub(crate) mod env;
 mod error;
 
+use std::sync::Arc;
+
 use crate::error::{exec_bail, VMResult};
 use crate::execution::Compiler;
 use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
@@ -11,14 +13,15 @@ use crate::middlewares::{dumper::Dumper, gas_calibration::GasCalibration};
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::{GasCosts, Interface, Response};
+
 use anyhow::Result;
-use std::sync::Arc;
-use wasmer::NativeEngineExt;
-use wasmer::{wasmparser::Operator, BaseTunables, Engine, EngineBuilder, Pages, Target};
-use wasmer::{CompilerConfig, Cranelift, Features, Module, Store};
+use wasmer::sys::{BaseTunables, EngineBuilder, Features};
+use wasmer::{
+    wasmparser::Operator, CompilerConfig, Cranelift, Engine, Module, NativeEngineExt, Pages, Store,
+    Target,
+};
 use wasmer_compiler_singlepass::Singlepass;
-use wasmer_middlewares::metering::MeteringPoints;
-use wasmer_middlewares::{metering, Metering};
+use wasmer_middlewares::{metering, metering::MeteringPoints, Metering};
 
 pub(crate) use context::*;
 pub(crate) use error::*;
