@@ -3,6 +3,8 @@ mod env;
 mod error;
 mod ffi;
 
+use std::sync::Arc;
+
 use self::env::{ABIEnv, ExecutionEnv};
 use crate::error::VMResult;
 use crate::execution::Compiler;
@@ -12,14 +14,17 @@ use crate::middlewares::gas_calibration::{
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::{GasCosts, Interface, Response, VMError};
+
 use abi::*;
-use anyhow::Result;
 pub(crate) use error::*;
+
+use anyhow::Result;
 use parking_lot::Mutex;
-use std::sync::Arc;
-use wasmer::NativeEngineExt;
-use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
-use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
+use wasmer::sys::{BaseTunables, EngineBuilder, Features};
+use wasmer::{
+    wasmparser::Operator, CompilerConfig, Cranelift, Engine, Module, NativeEngineExt, Pages, Store,
+    Target,
+};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
 
