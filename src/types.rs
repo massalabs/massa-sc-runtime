@@ -294,7 +294,6 @@ impl Default for GasCosts {
 
 #[allow(unused_variables)]
 pub trait Interface: Send + Sync + InterfaceClone {
-
     fn increment_recursion_counter(&self) -> Result<()>;
 
     fn decrement_recursion_counter(&self) -> Result<()>;
