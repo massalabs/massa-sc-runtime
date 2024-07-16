@@ -695,6 +695,11 @@
 <a href="#695" id="695">695</a>
 <a href="#696" id="696">696</a>
 <a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
@@ -991,6 +996,11 @@
 
 <span class="attr">#[allow(unused_variables)]
 </span><span class="kw">pub trait </span>Interface: Send + Sync + InterfaceClone {
+
+    <span class="kw">fn </span>increment_recursion_counter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
+
+    <span class="kw">fn </span>decrement_recursion_counter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
+
     <span class="doccomment">/// Prepare the execution of a module at the given address and transfer a
     /// given amount of coins
     </span><span class="kw">fn </span>init_call(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, raw_coins: u64) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
