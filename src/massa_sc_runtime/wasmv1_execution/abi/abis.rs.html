@@ -1797,26 +1797,6 @@
 <a href="#1797" id="1797">1797</a>
 <a href="#1798" id="1798">1798</a>
 <a href="#1799" id="1799">1799</a>
-<a href="#1800" id="1800">1800</a>
-<a href="#1801" id="1801">1801</a>
-<a href="#1802" id="1802">1802</a>
-<a href="#1803" id="1803">1803</a>
-<a href="#1804" id="1804">1804</a>
-<a href="#1805" id="1805">1805</a>
-<a href="#1806" id="1806">1806</a>
-<a href="#1807" id="1807">1807</a>
-<a href="#1808" id="1808">1808</a>
-<a href="#1809" id="1809">1809</a>
-<a href="#1810" id="1810">1810</a>
-<a href="#1811" id="1811">1811</a>
-<a href="#1812" id="1812">1812</a>
-<a href="#1813" id="1813">1813</a>
-<a href="#1814" id="1814">1814</a>
-<a href="#1815" id="1815">1815</a>
-<a href="#1816" id="1816">1816</a>
-<a href="#1817" id="1817">1817</a>
-<a href="#1818" id="1818">1818</a>
-<a href="#1819" id="1819">1819</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{
     <span class="kw">super</span>::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
@@ -1971,9 +1951,6 @@
             <span class="kw">let </span>remaining_gas = handler.get_remaining_gas();
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">let </span>module = helper_get_module(interface, bytecode, remaining_gas)<span class="question-mark">?</span>;
-            interface.increment_recursion_counter().map_err(|e| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not increment recursion counter: {}&quot;</span>, e))
-            })<span class="question-mark">?</span>;
             <span class="kw">let </span>response = <span class="kw">crate</span>::execution::run_function(
                 interface,
                 module,
@@ -1983,9 +1960,6 @@
                 handler.get_gas_costs().clone(),
             )
             .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not run function: {}&quot;</span>, err)))<span class="question-mark">?</span>;
-            interface.decrement_recursion_counter().map_err(|e| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not decrement recursion counter: {}&quot;</span>, e))
-            })<span class="question-mark">?</span>;
             handler.set_remaining_gas(response.remaining_gas);
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             interface.finish_call().map_err(|err| {
@@ -2026,9 +2000,7 @@
             <span class="kw">let </span>remaining_gas = handler.get_remaining_gas();
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">let </span>module = helper_get_module(interface, bytecode.clone(), remaining_gas)<span class="question-mark">?</span>;
-            interface.increment_recursion_counter().map_err(|e| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not increment recursion counter: {}&quot;</span>, e))
-            })<span class="question-mark">?</span>;
+
             <span class="kw">let </span>response = <span class="kw">crate</span>::execution::run_function(
                 interface,
                 module,
@@ -2038,9 +2010,6 @@
                 handler.get_gas_costs().clone(),
             )
             .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not run function: {}&quot;</span>, err)))<span class="question-mark">?</span>;
-            interface.decrement_recursion_counter().map_err(|e| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not decrement recursion counter: {}&quot;</span>, e))
-            })<span class="question-mark">?</span>;
             handler.set_remaining_gas(response.remaining_gas);
 
             <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
@@ -2852,9 +2821,6 @@
             <span class="kw">let </span>module = helper_get_tmp_module(handler, req.bytecode.clone(), remaining_gas)<span class="question-mark">?</span>;
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
-            interface.increment_recursion_counter().map_err(|e| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not increment recursion counter: {}&quot;</span>, e))
-            })<span class="question-mark">?</span>;
             <span class="kw">match </span><span class="kw">crate</span>::execution::run_function(
                 interface,
                 module,
@@ -2864,12 +2830,6 @@
                 handler.get_gas_costs().clone(),
             ) {
                 <span class="prelude-val">Ok</span>(response) =&gt; {
-                    interface.decrement_recursion_counter().map_err(|e| {
-                        WasmV1Error::RuntimeError(<span class="macro">format!</span>(
-                            <span class="string">&quot;Could not decrement recursion counter: {}&quot;</span>,
-                            e
-                        ))
-                    })<span class="question-mark">?</span>;
                     handler.set_remaining_gas(response.remaining_gas);
 
                     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
