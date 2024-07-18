@@ -294,6 +294,9 @@ impl Default for GasCosts {
 
 #[allow(unused_variables)]
 pub trait Interface: Send + Sync + InterfaceClone {
+
+    fn get_interface_version(&self) -> Result<u32>;
+
     /// Prepare the execution of a module at the given address and transfer a
     /// given amount of coins
     fn init_call(&self, address: &str, raw_coins: u64) -> Result<Vec<u8>>;

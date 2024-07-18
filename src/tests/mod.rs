@@ -23,6 +23,11 @@ impl Interface for TestInterface {
         Ok(vec![])
     }
 
+    fn get_interface_version(&self) -> Result<u32> {
+        println!("get interface version");
+        Ok(0)
+    }
+
     fn init_call_wasmv1(&self, address: &str, raw_coins: NativeAmount) -> Result<Vec<u8>> {
         println!(
             "Init call wasmv1 to {}, with {:?} coins",
