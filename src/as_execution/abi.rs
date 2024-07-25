@@ -1531,17 +1531,17 @@ pub(crate) fn assembly_script_chain_id(mut ctx: FunctionEnvMut<ASEnv>) -> ABIRes
     Ok(chain_id as u64)
 }
 
-/// Return the price in nMAS to book an ASC call space in a specific slot.
+/// Return the price in nMAS to book an deferred call space in a specific slot.
 #[named]
-pub(crate) fn assembly_script_get_asc_call_fee(
+pub(crate) fn assembly_script_get_deferred_call_quote(
     mut ctx: FunctionEnvMut<ASEnv>,
-    asc_period: i64,
-    asc_thread: i32,
+    deferred_call_period: i64,
+    deferred_call_thread: i32,
     max_gas: i64,
 ) -> ABIResult<u64> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    let asc_slot: (u64, u8) = match (asc_period.try_into(), asc_thread.try_into()) {
+    let asc_slot: (u64, u8) = match (deferred_call_period.try_into(), deferred_call_thread.try_into()) {
         (Ok(p), Ok(t)) => (p, t),
         (Err(_), _) => abi_bail!("negative validity end period"),
         (_, Err(_)) => abi_bail!("invalid validity end thread"),
@@ -1551,7 +1551,7 @@ pub(crate) fn assembly_script_get_asc_call_fee(
     }
     let (available, mut price) = env
         .get_interface()
-        .get_asc_call_fee(asc_slot, max_gas as u64)?;
+        .deferred_call_quote(asc_slot, max_gas as u64)?;
     if !available {
         price = 0;
     }
@@ -1559,8 +1559,8 @@ pub(crate) fn assembly_script_get_asc_call_fee(
     ctx.data_mut().trace.push(AbiTrace {
         name: function_name!().to_string(),
         params: vec![
-            into_trace_value!(asc_period),
-            into_trace_value!(asc_thread),
+            into_trace_value!(deferred_call_period),
+            into_trace_value!(deferred_call_thread),
             into_trace_value!(max_gas),
         ],
         return_value: price.into(),
@@ -1569,10 +1569,10 @@ pub(crate) fn assembly_script_get_asc_call_fee(
     Ok(price)
 }
 
-/// Register a new ASC call in the target slot with the given parameters.
+/// Register a new deferred call in the target slot with the given parameters.
 #[named]
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn assembly_script_asc_call_register(
+pub(crate) fn assembly_script_deferred_call_register(
     mut ctx: FunctionEnvMut<ASEnv>,
     target_address: i32,
     target_function: i32,
@@ -1599,7 +1599,7 @@ pub(crate) fn assembly_script_asc_call_register(
     let target_address = read_string(memory, &ctx, target_address)?;
     let target_function = read_string(memory, &ctx, target_function)?;
     let params = read_buffer(memory, &ctx, params)?;
-    let response = env.get_interface().asc_call_register(
+    let response = env.get_interface().deferred_call_register(
         asc_target_slot,
         &target_address,
         &target_function,
@@ -1629,17 +1629,17 @@ pub(crate) fn assembly_script_asc_call_register(
     res
 }
 
-/// Check if an ASC call exists with the given asc_id (exists meaning to be executed in the future).
+/// Check if an deferred call exists with the given deferred_call_id (exists meaning to be executed in the future).
 #[named]
-pub(crate) fn assembly_script_asc_call_exists(
+pub(crate) fn assembly_script_deferred_call_exists(
     mut ctx: FunctionEnvMut<ASEnv>,
-    asc_id: i32,
+    deferred_id: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let asc_id = read_buffer(memory, &ctx, asc_id)?;
-    let exists = env.get_interface().asc_call_exists(&asc_id)?;
+    let asc_id = read_buffer(memory, &ctx, deferred_id)?;
+    let exists = env.get_interface().deferred_call_exists(&asc_id)?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
         name: function_name!().to_string(),
@@ -1650,21 +1650,21 @@ pub(crate) fn assembly_script_asc_call_exists(
     Ok(exists as i32)
 }
 
-/// Cancel an ASC call with the given asc_id. This will reimburse the user with the coins they provided
+/// Cancel an deferred call with the given deferred_call_id. This will reimburse the user with the coins they provided
 #[named]
-pub(crate) fn assembly_script_asc_call_cancel(
+pub(crate) fn assembly_script_deferred_call_cancel(
     mut ctx: FunctionEnvMut<ASEnv>,
-    asc_id: i32,
+    deferred_call_id: i32,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let asc_id = read_buffer(memory, &ctx, asc_id)?;
-    env.get_interface().asc_call_cancel(&asc_id)?;
+    let deferred_id = read_buffer(memory, &ctx, deferred_call_id)?;
+    env.get_interface().deferred_call_cancel(&deferred_id)?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
         name: function_name!().to_string(),
-        params: vec![into_trace_value!(asc_id)],
+        params: vec![into_trace_value!(deferred_id)],
         return_value: (),
         sub_calls: None,
     });

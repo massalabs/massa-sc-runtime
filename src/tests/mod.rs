@@ -810,7 +810,7 @@ impl Interface for TestInterface {
         println!("save_gas_remaining_before_subexecution: {}", gas_used_until);
     }
 
-    fn get_asc_call_fee(&self, target_slot: (u64, u8), gas_limit: u64) -> Result<(bool, u64)> {
+    fn deferred_call_quote(&self, target_slot: (u64, u8), gas_limit: u64) -> Result<(bool, u64)> {
         println!(
             "get_asc_call_fee: target_slot: {:?}, gas_limit: {}",
             target_slot, gas_limit
@@ -818,7 +818,7 @@ impl Interface for TestInterface {
         Ok((true, 0))
     }
 
-    fn asc_call_register(
+    fn deferred_call_register(
         &self,
         target_slot: (u64, u8),
         target_addr: &str,
@@ -834,12 +834,12 @@ impl Interface for TestInterface {
         Ok(vec![])
     }
 
-    fn asc_call_exists(&self, id: &[u8]) -> Result<bool> {
+    fn deferred_call_exists(&self, id: &[u8]) -> Result<bool> {
         println!("asc_call_exists: id: {:?}", id);
         Ok(true)
     }
 
-    fn asc_call_cancel(&self, id: &[u8]) -> Result<()> {
+    fn deferred_call_cancel(&self, id: &[u8]) -> Result<()> {
         println!("asc_call_cancel: id: {:?}", id);
         Ok(())
     }

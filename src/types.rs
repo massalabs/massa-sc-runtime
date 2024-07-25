@@ -271,10 +271,10 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_get_bytecode_for"), 11);
         abi_costs.insert(String::from("assembly_script_caller_has_write_access"), 11);
         abi_costs.insert(String::from("assembly_script_function_exists"), 11);
-        abi_costs.insert(String::from("assembly_script_get_asc_call_fee"), 11);
-        abi_costs.insert(String::from("assembly_script_asc_call_register"), 11);
-        abi_costs.insert(String::from("assembly_script_asc_call_exists"), 11);
-        abi_costs.insert(String::from("assembly_script_asc_call_cancel"), 11);
+        abi_costs.insert(String::from("assembly_script_get_deferred_call_quote"), 11);
+        abi_costs.insert(String::from("assembly_script_deferred_call_register"), 11);
+        abi_costs.insert(String::from("assembly_script_deferred_call_exists"), 11);
+        abi_costs.insert(String::from("assembly_script_deferred_call_cancel"), 11);
         abi_costs.insert(String::from("assembly_script_seed"), 11);
         abi_costs.insert(String::from("assembly_script_abort"), 11);
         abi_costs.insert(String::from("assembly_script_date_now"), 11);
@@ -578,10 +578,10 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn chain_id(&self) -> Result<u64>;
 
     // Return a boolean that determine if there is place in this slot and an amount of fee needed to take the space
-    fn get_asc_call_fee(&self, target_slot: (u64, u8), gas_limit: u64) -> Result<(bool, u64)>;
+    fn deferred_call_quote(&self, target_slot: (u64, u8), gas_limit: u64) -> Result<(bool, u64)>;
 
-    // Register a new asc call and return his id
-    fn asc_call_register(
+    // Register a new deferred call and return his id
+    fn deferred_call_register(
         &self,
         target_slot: (u64, u8),
         target_addr: &str,
@@ -591,11 +591,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
         max_gas: u64,
     ) -> Result<Vec<u8>>;
 
-    // Return true if the current asc call exists
-    fn asc_call_exists(&self, id: &[u8]) -> Result<bool>;
+    // Return true if the current deferred call exists
+    fn deferred_call_exists(&self, id: &[u8]) -> Result<bool>;
 
-    // Cancel a asc call (will return the coins)
-    fn asc_call_cancel(&self, id: &[u8]) -> Result<()>;
+    // Cancel a deferred call (will return the coins)
+    fn deferred_call_cancel(&self, id: &[u8]) -> Result<()>;
 
     fn native_amount_from_str_wasmv1(&self, amount: &str) -> Result<NativeAmount>;
 
