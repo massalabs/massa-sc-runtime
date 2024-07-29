@@ -1541,7 +1541,10 @@ pub(crate) fn assembly_script_get_deferred_call_quote(
 ) -> ABIResult<u64> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
-    let asc_slot: (u64, u8) = match (deferred_call_period.try_into(), deferred_call_thread.try_into()) {
+    let asc_slot: (u64, u8) = match (
+        deferred_call_period.try_into(),
+        deferred_call_thread.try_into(),
+    ) {
         (Ok(p), Ok(t)) => (p, t),
         (Err(_), _) => abi_bail!("negative validity end period"),
         (_, Err(_)) => abi_bail!("invalid validity end thread"),
@@ -1600,12 +1603,12 @@ pub(crate) fn assembly_script_deferred_call_register(
     let target_function = read_string(memory, &ctx, target_function)?;
     let params = read_buffer(memory, &ctx, params)?;
     let response = env.get_interface().deferred_call_register(
-        asc_target_slot,
         &target_address,
         &target_function,
-        &params,
-        raw_coins as u64,
+        asc_target_slot,
         max_gas as u64,
+        raw_coins as u64,
+        &params,
     )?;
     let res = match BufferPtr::alloc(&response, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),

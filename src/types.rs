@@ -583,12 +583,12 @@ pub trait Interface: Send + Sync + InterfaceClone {
     // Register a new deferred call and return his id
     fn deferred_call_register(
         &self,
-        target_slot: (u64, u8),
         target_addr: &str,
         target_func: &str,
-        params: &[u8],
-        coins: u64,
+        target_slot: (u64, u8),
         max_gas: u64,
+        coins: u64,
+        params: &[u8],
     ) -> Result<Vec<u8>>;
 
     // Return true if the current deferred call exists
