@@ -1,6 +1,6 @@
 use crate::as_execution::ASModule;
 use crate::types::{Interface, InterfaceClone};
-use crate::{Compiler, GasCosts, RuntimeModule};
+use crate::{Compiler, CondomLimits, GasCosts, RuntimeModule};
 
 use anyhow::Result;
 use massa_proto_rs::massa::model::v1::*;
@@ -117,14 +117,26 @@ impl Interface for TestInterface {
 
     fn get_module(&self, bytecode: &[u8], gas_limit: u64) -> Result<RuntimeModule> {
         println!("Get module");
-        let as_module = ASModule::new(bytecode, gas_limit, GasCosts::default(), Compiler::CL)?;
+        let as_module = ASModule::new(
+            bytecode,
+            gas_limit,
+            GasCosts::default(),
+            Compiler::CL,
+            CondomLimits::default(),
+        )?;
         let module = RuntimeModule::ASModule(as_module);
         Ok(module)
     }
 
     fn get_tmp_module(&self, bytecode: &[u8], gas_limit: u64) -> Result<RuntimeModule> {
         println!("Get tmp module");
-        let as_module = ASModule::new(bytecode, gas_limit, GasCosts::default(), Compiler::SP)?;
+        let as_module = ASModule::new(
+            bytecode,
+            gas_limit,
+            GasCosts::default(),
+            Compiler::SP,
+            CondomLimits::default(),
+        )?;
         let module = RuntimeModule::ASModule(as_module);
         Ok(module)
     }
@@ -397,8 +409,8 @@ impl Interface for TestInterface {
     fn create_module(&self, module: &[u8]) -> Result<String> {
         if module.len() > 32 {
             let mut bytes = Vec::new();
-            for i in 0..32 {
-                bytes.push(module[i]);
+            for item in module.iter().take(32) {
+                bytes.push(item);
             }
             println!("Create module with module (cut) {:?}", bytes.as_slice());
         } else {

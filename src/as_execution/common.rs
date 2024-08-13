@@ -45,6 +45,7 @@ pub(crate) fn call_module(
         param,
         remaining_gas,
         env.get_gas_costs(),
+        env.get_condom_limits(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.remaining_gas)?;
@@ -79,6 +80,7 @@ pub(crate) fn local_call(
         param,
         remaining_gas,
         gas_costs,
+        env.get_condom_limits(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.remaining_gas)?;

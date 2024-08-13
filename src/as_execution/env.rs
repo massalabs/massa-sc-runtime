@@ -1,5 +1,5 @@
 use super::{abi_bail, ABIResult};
-use crate::types::Interface;
+use crate::{types::Interface, CondomLimits};
 
 #[cfg(feature = "execution-trace")]
 use crate::types::AbiTrace;
@@ -32,6 +32,8 @@ pub struct ASEnv {
     pub exhausted_points: Option<Global>,
     /// Gas costs of different execution operations.
     gas_costs: GasCosts,
+    /// Maximum number of exports
+    condom_limits: CondomLimits,
     /// Initially added for gas calibration but unused at the moment.
     param_size_map: HashMap<String, Option<Global>>,
     #[cfg(feature = "execution-trace")]
@@ -39,7 +41,11 @@ pub struct ASEnv {
 }
 
 impl ASEnv {
-    pub fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
+    pub fn new(
+        interface: &dyn Interface,
+        gas_costs: GasCosts,
+        condom_limits: CondomLimits,
+    ) -> Self {
         Self {
             ffi_env: Default::default(),
             abi_enabled: Arc::new(AtomicBool::new(false)),
@@ -48,6 +54,7 @@ impl ASEnv {
             remaining_points: None,
             exhausted_points: None,
             param_size_map: Default::default(),
+            condom_limits,
             #[cfg(feature = "execution-trace")]
             trace: Default::default(),
         }
@@ -76,6 +83,9 @@ impl Metered for ASEnv {
     fn get_gas_costs(&self) -> GasCosts {
         self.gas_costs.clone()
     }
+    fn get_condom_limits(&self) -> CondomLimits {
+        self.condom_limits.clone()
+    }
 }
 
 /// Trait describing a metered object.
@@ -86,6 +96,7 @@ pub(crate) trait Metered {
     fn get_remaining_points(&self) -> Option<&Global>;
     fn get_gc_param(&self, name: &str) -> Option<&Global>;
     fn get_gas_costs(&self) -> GasCosts;
+    fn get_condom_limits(&self) -> CondomLimits;
 }
 
 /// Get remaining metering points.
