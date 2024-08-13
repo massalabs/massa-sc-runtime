@@ -166,6 +166,25 @@ impl Clone for Box<dyn Interface> {
     }
 }
 
+#[derive(Clone, Debug, Default)]
+pub struct CondomLimits {
+    pub max_exports: Option<usize>,
+    pub max_functions: Option<usize>,
+    pub max_signature_len: Option<usize>,
+    pub max_name_len: Option<usize>,
+    pub max_imports_len: Option<usize>,
+    pub max_table_initializers_len: Option<usize>,
+    pub max_passive_elements_len: Option<usize>,
+    pub max_passive_data_len: Option<usize>,
+    pub max_global_initializers_len: Option<usize>,
+    pub max_function_names_len: Option<usize>,
+    pub max_tables_count: Option<usize>,
+    pub max_memories_len: Option<usize>,
+    pub max_globals_len: Option<usize>,
+    pub max_custom_sections_len: Option<usize>,
+    pub max_custom_sections_data_len: Option<usize>,
+}
+
 #[derive(Clone, Debug)]
 pub struct GasCosts {
     pub(crate) abi_costs: HashMap<String, u64>,
