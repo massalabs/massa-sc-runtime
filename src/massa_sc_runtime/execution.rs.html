@@ -299,10 +299,11 @@
 <a href="#299" id="299">299</a>
 <a href="#300" id="300">300</a>
 <a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::as_execution::{exec_as_module, ASModule};
 <span class="kw">use </span><span class="kw">crate</span>::error::VMResult;
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::GasCalibrationResult;
-<span class="kw">use </span><span class="kw">crate</span>::settings;
+<span class="kw">use crate</span>::{settings, CondomLimits};
 <span class="kw">use </span><span class="kw">crate</span>::types::{Interface, Response};
 <span class="kw">use </span><span class="kw">crate</span>::wasmv1_execution::{exec_wasmv1_module, WasmV1Module};
 <span class="kw">use </span><span class="kw">crate</span>::GasCosts;
@@ -340,7 +341,7 @@
         bytecode: <span class="kw-2">&amp;</span>[u8],
         gas_costs: GasCosts,
         compiler: Compiler,
-        max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+        condom_limits: CondomLimits,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span>bytecode.len() &lt;= <span class="number">2 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;Too small bytecode&quot;</span>));
@@ -360,7 +361,7 @@
                 gas_costs.max_instance_cost,
                 gas_costs,
                 compiler,
-                max_exports,
+                condom_limits,
             )<span class="question-mark">?</span>)),
             RuntimeModuleId::WasmV1ModuleId =&gt; {
                 <span class="comment">// Safe to use [1..] as we checked the bytecode length
@@ -370,7 +371,7 @@
                     gas_costs.max_instance_cost,
                     gas_costs,
                     compiler,
-                    max_exports,
+                    condom_limits,
                 )
                 .map_err(|err| <span class="macro">anyhow!</span>(<span class="string">&quot;Failed to compile WasmV1 module: {}&quot;</span>, err))<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="self">Self</span>::WasmV1Module(res))
@@ -407,7 +408,7 @@
         ser_module: <span class="kw-2">&amp;</span>[u8],
         limit: u64,
         gas_costs: GasCosts,
-        max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+        condom_limits: CondomLimits,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>module_id = ser_module
             .first()
@@ -416,10 +417,10 @@
 
         <span class="kw">match </span>module_id {
             <span class="prelude-val">Some</span>(RuntimeModuleId::ASModuleId) =&gt; <span class="prelude-val">Ok</span>(RuntimeModule::ASModule(
-                ASModule::deserialize(<span class="kw-2">&amp;</span>ser_module[<span class="number">1</span>..], limit, gas_costs, max_exports)<span class="question-mark">?</span>,
+                ASModule::deserialize(<span class="kw-2">&amp;</span>ser_module[<span class="number">1</span>..], limit, gas_costs, condom_limits)<span class="question-mark">?</span>,
             )),
             <span class="prelude-val">Some</span>(RuntimeModuleId::WasmV1ModuleId) =&gt; <span class="prelude-val">Ok</span>(RuntimeModule::WasmV1Module(
-                WasmV1Module::deserialize(<span class="kw-2">&amp;</span>ser_module[<span class="number">1</span>..], limit, gas_costs, max_exports)<span class="question-mark">?</span>,
+                WasmV1Module::deserialize(<span class="kw-2">&amp;</span>ser_module[<span class="number">1</span>..], limit, gas_costs, condom_limits)<span class="question-mark">?</span>,
             )),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;Empty bytecode&quot;</span>)),
         }
@@ -443,7 +444,7 @@
     param: <span class="kw-2">&amp;</span>[u8],
     limit: u64,
     gas_costs: GasCosts,
-    max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    condom_limits: CondomLimits,
 ) -&gt; VMResult&lt;(Response, <span class="prelude-ty">Option</span>&lt;GasCalibrationResult&gt;)&gt; {
     <span class="kw">let </span>response = <span class="kw">match </span>rt_module {
         RuntimeModule::ASModule(module) =&gt; exec_as_module(
@@ -453,7 +454,7 @@
             param,
             limit,
             gas_costs,
-            max_exports,
+            condom_limits,
         )<span class="question-mark">?</span>,
         RuntimeModule::WasmV1Module(module) =&gt; exec_wasmv1_module(
             interface,
@@ -462,7 +463,7 @@
             param,
             limit,
             gas_costs,
-            max_exports,
+            condom_limits,
         )
         .map_err(|err| <span class="macro">anyhow!</span>(<span class="string">&quot;Failed to execute WasmV1 module: {}&quot;</span>, err.to_string()))<span class="question-mark">?</span>,
     };
@@ -487,7 +488,7 @@
     rt_module: RuntimeModule,
     limit: u64,
     gas_costs: GasCosts,
-    max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    condom_limits: CondomLimits,
 ) -&gt; VMResult&lt;Response&gt; {
     <span class="prelude-val">Ok</span>(exec(
         interface,
@@ -496,7 +497,7 @@
         <span class="string">b&quot;&quot;</span>,
         limit,
         gas_costs,
-        max_exports,
+        condom_limits,
     )<span class="question-mark">?
     </span>.<span class="number">0</span>)
 }
@@ -519,7 +520,7 @@
     param: <span class="kw-2">&amp;</span>[u8],
     limit: u64,
     gas_costs: GasCosts,
-    max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    condom_limits: CondomLimits,
 ) -&gt; VMResult&lt;Response&gt; {
     <span class="prelude-val">Ok</span>(exec(
         interface,
@@ -528,7 +529,7 @@
         param,
         limit,
         gas_costs,
-        max_exports,
+        condom_limits,
     )<span class="question-mark">?
     </span>.<span class="number">0</span>)
 }
@@ -541,6 +542,7 @@
     param: <span class="kw-2">&amp;</span>[u8],
     limit: u64,
     gas_costs: GasCosts,
+    condom_limits: CondomLimits
 ) -&gt; VMResult&lt;GasCalibrationResult&gt; {
     <span class="prelude-val">Ok</span>(exec(
         interface,
@@ -549,7 +551,7 @@
         param,
         limit,
         gas_costs,
-        <span class="prelude-val">None</span>,
+        condom_limits,
     )<span class="question-mark">?
     </span>.<span class="number">1
     </span>.unwrap())
@@ -563,7 +565,7 @@
     <span class="comment">// ASModule
     </span>{
         <span class="kw">let </span>module = RuntimeModule::ASModule(
-            ASModule::new(bytecode, <span class="number">0</span>, GasCosts::default(), Compiler::CL, <span class="prelude-val">None</span>).unwrap(),
+            ASModule::new(bytecode, <span class="number">0</span>, GasCosts::default(), Compiler::CL, CondomLimits::default()).unwrap(),
         );
 
         <span class="kw">let </span>serialized = module.serialize().unwrap();
@@ -572,7 +574,7 @@
             RuntimeModuleId::ASModuleId <span class="kw">as </span>u8
         );
 
-        <span class="kw">let </span>serialized2 = RuntimeModule::deserialize(<span class="kw-2">&amp;</span>serialized, <span class="number">0</span>, GasCosts::default(), <span class="prelude-val">None</span>)
+        <span class="kw">let </span>serialized2 = RuntimeModule::deserialize(<span class="kw-2">&amp;</span>serialized, <span class="number">0</span>, GasCosts::default(), CondomLimits::default())
             .unwrap()
             .serialize()
             .unwrap();
@@ -583,7 +585,7 @@
     <span class="comment">// WasmV1Module
     </span>{
         <span class="kw">let </span>module = RuntimeModule::WasmV1Module(
-            WasmV1Module::compile(bytecode, <span class="number">0</span>, GasCosts::default(), Compiler::CL, <span class="prelude-val">None</span>).unwrap(),
+            WasmV1Module::compile(bytecode, <span class="number">0</span>, GasCosts::default(), Compiler::CL, CondomLimits::default()).unwrap(),
         );
 
         <span class="kw">let </span>serialized = module.serialize().unwrap();
@@ -592,7 +594,7 @@
             RuntimeModuleId::WasmV1ModuleId <span class="kw">as </span>u8
         );
 
-        <span class="kw">let </span>serialized2 = RuntimeModule::deserialize(<span class="kw-2">&amp;</span>serialized, <span class="number">0</span>, GasCosts::default(), <span class="prelude-val">None</span>)
+        <span class="kw">let </span>serialized2 = RuntimeModule::deserialize(<span class="kw-2">&amp;</span>serialized, <span class="number">0</span>, GasCosts::default(), CondomLimits::default())
             .unwrap()
             .serialize()
             .unwrap();

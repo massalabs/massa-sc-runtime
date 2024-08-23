@@ -171,7 +171,7 @@
         param,
         remaining_gas,
         env.get_gas_costs(),
-        env.get_max_exports(),
+        env.get_condom_limits(),
     )<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
         set_remaining_points(<span class="kw-2">&amp;</span>env, ctx, resp.remaining_gas)<span class="question-mark">?</span>;
@@ -206,7 +206,7 @@
         param,
         remaining_gas,
         gas_costs,
-        env.get_max_exports(),
+        env.get_condom_limits(),
     )<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
         set_remaining_points(<span class="kw-2">&amp;</span>env, ctx, resp.remaining_gas)<span class="question-mark">?</span>;

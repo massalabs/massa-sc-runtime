@@ -295,7 +295,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::{dumper::Dumper, gas_calibration::GasCalibration};
 <span class="kw">use </span><span class="kw">crate</span>::settings::max_number_of_pages;
 <span class="kw">use </span><span class="kw">crate</span>::tunable_memory::LimitingTunables;
-<span class="kw">use crate</span>::{GasCosts, Interface, Response};
+<span class="kw">use crate</span>::{CondomLimits, GasCosts, Interface, Response};
 <span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>wasmer::NativeEngineExt;
@@ -328,11 +328,11 @@
         limit: u64,
         gas_costs: GasCosts,
         compiler: Compiler,
-        max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+        condom_limits: CondomLimits,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>engine = <span class="kw">match </span>compiler {
-            Compiler::CL =&gt; init_cl_engine(limit, gas_costs, max_exports),
-            Compiler::SP =&gt; init_sp_engine(limit, gas_costs, max_exports),
+            Compiler::CL =&gt; init_cl_engine(limit, gas_costs, condom_limits),
+            Compiler::SP =&gt; init_sp_engine(limit, gas_costs, condom_limits),
         };
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             binary_module: Module::new(<span class="kw-2">&amp;</span>engine, bytecode)<span class="question-mark">?</span>,
@@ -355,10 +355,10 @@
         ser_module: <span class="kw-2">&amp;</span>[u8],
         limit: u64,
         gas_costs: GasCosts,
-        max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+        condom_limits: CondomLimits,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// Deserialization is only meant for Cranelift modules
-        </span><span class="kw">let </span>engine = init_cl_engine(limit, gas_costs, max_exports);
+        </span><span class="kw">let </span>engine = init_cl_engine(limit, gas_costs, condom_limits);
         <span class="kw">let </span>store = Store::new(engine.clone());
         <span class="comment">// Unsafe because code injection is possible
         // That&#39;s not an issue because we only deserialize modules we have
@@ -409,7 +409,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_sp_engine(
     limit: u64,
     gas_costs: GasCosts,
-    max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    condom_limits: CondomLimits,
 ) -&gt; Engine {
     <span class="comment">// Singlepass is used to compile arbitrary bytecode.
     //
@@ -421,7 +421,7 @@
     </span>compiler_config.canonicalize_nans(<span class="bool-val">true</span>);
 
     <span class="comment">// Add condom middleware
-    </span>compiler_config.push_middleware(Arc::new(CondomMiddleware::new(max_exports)));
+    </span>compiler_config.push_middleware(Arc::new(CondomMiddleware::new(condom_limits)));
 
     <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
         <span class="comment">// Add gas calibration middleware
@@ -450,7 +450,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_cl_engine(
     limit: u64,
     gas_costs: GasCosts,
-    max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    condom_limits: CondomLimits,
 ) -&gt; Engine {
     <span class="comment">// Cranelift is used to compile bytecode that will be cached.
     //
@@ -462,7 +462,7 @@
     </span>compiler_config.canonicalize_nans(<span class="bool-val">true</span>);
 
     <span class="comment">// Add condom middleware
-    </span>compiler_config.push_middleware(Arc::new(CondomMiddleware::new(max_exports)));
+    </span>compiler_config.push_middleware(Arc::new(CondomMiddleware::new(condom_limits)));
 
     <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
         <span class="comment">// Add gas calibration middleware
@@ -512,14 +512,14 @@
     param: <span class="kw-2">&amp;</span>[u8],
     limit: u64,
     gas_costs: GasCosts,
-    max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    condom_limits: CondomLimits,
 ) -&gt; VMResult&lt;(Response, <span class="prelude-ty">Option</span>&lt;GasCalibrationResult&gt;)&gt; {
     <span class="kw">let </span>engine = <span class="kw">match </span>as_module.compiler {
-        Compiler::CL =&gt; init_cl_engine(limit, gas_costs.clone(), max_exports),
-        Compiler::SP =&gt; init_sp_engine(limit, gas_costs.clone(), max_exports),
+        Compiler::CL =&gt; init_cl_engine(limit, gas_costs.clone(), condom_limits.clone()),
+        Compiler::SP =&gt; init_sp_engine(limit, gas_costs.clone(), condom_limits.clone()),
     };
     <span class="kw">let </span><span class="kw-2">mut </span>store = Store::new(engine);
-    <span class="kw">let </span><span class="kw-2">mut </span>context = ASContext::new(interface, as_module.binary_module, gas_costs, max_exports);
+    <span class="kw">let </span><span class="kw-2">mut </span>context = ASContext::new(interface, as_module.binary_module, gas_costs, condom_limits.clone());
 
     <span class="comment">// save the gas remaining before sub-execution: used by readonly execution
     </span>interface.save_gas_remaining_before_subexecution(limit);

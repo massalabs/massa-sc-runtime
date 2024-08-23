@@ -368,7 +368,7 @@
 };
 <span class="kw">use </span><span class="kw">crate</span>::settings::max_number_of_pages;
 <span class="kw">use </span><span class="kw">crate</span>::tunable_memory::LimitingTunables;
-<span class="kw">use crate</span>::{GasCosts, Interface, Response, VMError};
+<span class="kw">use crate</span>::{CondomLimits, GasCosts, Interface, Response, VMError};
 <span class="kw">use </span>abi::<span class="kw-2">*</span>;
 <span class="kw">use </span>anyhow::Result;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>error::<span class="kw-2">*</span>;
@@ -400,11 +400,11 @@
         limit: u64,
         gas_costs: GasCosts,
         compiler: Compiler,
-        max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+        condom_limits: CondomLimits,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, WasmV1Error&gt; {
         <span class="kw">let </span>engine = <span class="kw">match </span>compiler {
-            Compiler::CL =&gt; init_cl_engine(limit, gas_costs, max_exports),
-            Compiler::SP =&gt; init_sp_engine(limit, gas_costs, max_exports),
+            Compiler::CL =&gt; init_cl_engine(limit, gas_costs, condom_limits),
+            Compiler::SP =&gt; init_sp_engine(limit, gas_costs, condom_limits),
         };
         <span class="kw">let </span>binary_module = <span class="kw">match </span>Module::new(<span class="kw-2">&amp;</span>engine, bytecode) {
             <span class="prelude-val">Ok</span>(module) =&gt; module,
@@ -442,10 +442,10 @@
         ser_module: <span class="kw-2">&amp;</span>[u8],
         limit: u64,
         gas_costs: GasCosts,
-        max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+        condom_limits: CondomLimits,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// Deserialization is only meant for Cranelift modules
-        </span><span class="kw">let </span>engine = init_cl_engine(limit, gas_costs, max_exports);
+        </span><span class="kw">let </span>engine = init_cl_engine(limit, gas_costs, condom_limits);
         <span class="kw">let </span>store = Store::new(engine.clone());
         <span class="comment">// Unsafe because code injection is possible
         // That&#39;s not an issue because we only deserialize modules we have
@@ -499,7 +499,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_sp_engine(
     limit: u64,
     gas_costs: GasCosts,
-    max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    condom_limits: CondomLimits,
 ) -&gt; Engine {
     <span class="comment">// Singlepass is used to compile arbitrary bytecode.
     //
@@ -509,7 +509,7 @@
 
     <span class="comment">// Canonicalize NaN
     </span>compiler_config.canonicalize_nans(<span class="bool-val">true</span>);
-    add_middleware(<span class="kw-2">&amp;mut </span>compiler_config, limit, gas_costs, max_exports);
+    add_middleware(<span class="kw-2">&amp;mut </span>compiler_config, limit, gas_costs, condom_limits);
 
     <span class="kw">let </span>base = BaseTunables::for_target(<span class="kw-2">&amp;</span>Target::default());
     <span class="kw">let </span>tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
@@ -526,7 +526,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init_cl_engine(
     limit: u64,
     gas_costs: GasCosts,
-    max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    condom_limits: CondomLimits,
 ) -&gt; Engine {
     <span class="comment">// Cranelift is used to compile bytecode that will be cached.
     //
@@ -536,7 +536,7 @@
 
     <span class="comment">// Canonicalize NaN
     </span>compiler_config.canonicalize_nans(<span class="bool-val">true</span>);
-    add_middleware(<span class="kw-2">&amp;mut </span>compiler_config, limit, gas_costs, max_exports);
+    add_middleware(<span class="kw-2">&amp;mut </span>compiler_config, limit, gas_costs, condom_limits);
 
     <span class="kw">let </span>base = BaseTunables::for_target(<span class="kw-2">&amp;</span>Target::default());
     <span class="kw">let </span>tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
@@ -554,12 +554,12 @@
     compiler_config: <span class="kw-2">&amp;mut </span>T,
     limit: u64,
     gas_costs: GasCosts,
-    max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    condom_limits: CondomLimits,
 ) <span class="kw">where
     </span>T: CompilerConfig,
 {
     <span class="comment">// Add condom middleware
-    </span><span class="kw">let </span>condom_middleware = Arc::new(CondomMiddleware::new(max_exports));
+    </span><span class="kw">let </span>condom_middleware = Arc::new(CondomMiddleware::new(condom_limits));
     compiler_config.push_middleware(condom_middleware);
 
     <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
@@ -582,12 +582,12 @@
     param: <span class="kw-2">&amp;</span>[u8],
     gas_limit: u64,
     gas_costs: GasCosts,
-    max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    condom_limits: CondomLimits,
 ) -&gt; VMResult&lt;(Response, <span class="prelude-ty">Option</span>&lt;GasCalibrationResult&gt;)&gt; {
     <span class="comment">// Init store
     </span><span class="kw">let </span>engine = <span class="kw">match </span>module.compiler {
-        Compiler::CL =&gt; init_cl_engine(gas_limit, gas_costs.clone(), max_exports),
-        Compiler::SP =&gt; init_sp_engine(gas_limit, gas_costs.clone(), max_exports),
+        Compiler::CL =&gt; init_cl_engine(gas_limit, gas_costs.clone(), condom_limits.clone()),
+        Compiler::SP =&gt; init_sp_engine(gas_limit, gas_costs.clone(), condom_limits.clone()),
     };
     <span class="kw">let </span><span class="kw-2">mut </span>store = Store::new(engine);
 
@@ -605,7 +605,7 @@
         interface,
         gas_costs,
         <span class="kw-2">&amp;</span>import_object,
-        max_exports,
+        condom_limits,
     )
     .map_err(|err| {
         VMError::InstanceError(<span class="macro">format!</span>(

@@ -191,7 +191,7 @@
 <a href="#191" id="191">191</a>
 <a href="#192" id="192">192</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::env::{ABIEnv, ExecutionEnv};
-<span class="kw">use crate</span>::{wasmv1_execution::WasmV1Error, GasCosts};
+<span class="kw">use crate</span>::{wasmv1_execution::WasmV1Error, CondomLimits, GasCosts};
 <span class="kw">use </span>std::io::Cursor;
 <span class="kw">use </span>wasmer::FunctionEnvMut;
 
@@ -372,9 +372,9 @@
             .unwrap_or(<span class="kw-2">&amp;</span><span class="number">0</span>)
     }
 
-    <span class="doccomment">/// Get max exports
-    </span><span class="kw">pub fn </span>get_max_exports(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        <span class="self">self</span>.exec_env.get_max_exports()
+    <span class="doccomment">/// Get condom limits
+    </span><span class="kw">pub fn </span>get_condom_limits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CondomLimits {
+        <span class="self">self</span>.exec_env.get_condom_limits()
     }
 
     <span class="doccomment">/// Get the memory maximum size in bytes
