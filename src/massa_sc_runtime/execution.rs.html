@@ -300,13 +300,37 @@
 <a href="#300" id="300">300</a>
 <a href="#301" id="301">301</a>
 <a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::as_execution::{exec_as_module, ASModule};
 <span class="kw">use </span><span class="kw">crate</span>::error::VMResult;
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::GasCalibrationResult;
-<span class="kw">use crate</span>::{settings, CondomLimits};
 <span class="kw">use </span><span class="kw">crate</span>::types::{Interface, Response};
 <span class="kw">use </span><span class="kw">crate</span>::wasmv1_execution::{exec_wasmv1_module, WasmV1Module};
 <span class="kw">use </span><span class="kw">crate</span>::GasCosts;
+<span class="kw">use crate</span>::{settings, CondomLimits};
 <span class="kw">use </span>anyhow::{anyhow, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>num_enum::{IntoPrimitive, TryFromPrimitive};
 
@@ -542,7 +566,7 @@
     param: <span class="kw-2">&amp;</span>[u8],
     limit: u64,
     gas_costs: GasCosts,
-    condom_limits: CondomLimits
+    condom_limits: CondomLimits,
 ) -&gt; VMResult&lt;GasCalibrationResult&gt; {
     <span class="prelude-val">Ok</span>(exec(
         interface,
@@ -565,7 +589,14 @@
     <span class="comment">// ASModule
     </span>{
         <span class="kw">let </span>module = RuntimeModule::ASModule(
-            ASModule::new(bytecode, <span class="number">0</span>, GasCosts::default(), Compiler::CL, CondomLimits::default()).unwrap(),
+            ASModule::new(
+                bytecode,
+                <span class="number">0</span>,
+                GasCosts::default(),
+                Compiler::CL,
+                CondomLimits::default(),
+            )
+            .unwrap(),
         );
 
         <span class="kw">let </span>serialized = module.serialize().unwrap();
@@ -574,10 +605,15 @@
             RuntimeModuleId::ASModuleId <span class="kw">as </span>u8
         );
 
-        <span class="kw">let </span>serialized2 = RuntimeModule::deserialize(<span class="kw-2">&amp;</span>serialized, <span class="number">0</span>, GasCosts::default(), CondomLimits::default())
-            .unwrap()
-            .serialize()
-            .unwrap();
+        <span class="kw">let </span>serialized2 = RuntimeModule::deserialize(
+            <span class="kw-2">&amp;</span>serialized,
+            <span class="number">0</span>,
+            GasCosts::default(),
+            CondomLimits::default(),
+        )
+        .unwrap()
+        .serialize()
+        .unwrap();
 
         <span class="macro">assert_eq!</span>(serialized, serialized2);
     }
@@ -585,7 +621,14 @@
     <span class="comment">// WasmV1Module
     </span>{
         <span class="kw">let </span>module = RuntimeModule::WasmV1Module(
-            WasmV1Module::compile(bytecode, <span class="number">0</span>, GasCosts::default(), Compiler::CL, CondomLimits::default()).unwrap(),
+            WasmV1Module::compile(
+                bytecode,
+                <span class="number">0</span>,
+                GasCosts::default(),
+                Compiler::CL,
+                CondomLimits::default(),
+            )
+            .unwrap(),
         );
 
         <span class="kw">let </span>serialized = module.serialize().unwrap();
@@ -594,10 +637,15 @@
             RuntimeModuleId::WasmV1ModuleId <span class="kw">as </span>u8
         );
 
-        <span class="kw">let </span>serialized2 = RuntimeModule::deserialize(<span class="kw-2">&amp;</span>serialized, <span class="number">0</span>, GasCosts::default(), CondomLimits::default())
-            .unwrap()
-            .serialize()
-            .unwrap();
+        <span class="kw">let </span>serialized2 = RuntimeModule::deserialize(
+            <span class="kw-2">&amp;</span>serialized,
+            <span class="number">0</span>,
+            GasCosts::default(),
+            CondomLimits::default(),
+        )
+        .unwrap()
+        .serialize()
+        .unwrap();
 
         <span class="macro">assert_eq!</span>(serialized, serialized2);
     }
