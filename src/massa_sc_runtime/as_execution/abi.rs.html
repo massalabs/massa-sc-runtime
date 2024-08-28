@@ -2064,6 +2064,8 @@
 <a href="#2064" id="2064">2064</a>
 <a href="#2065" id="2065">2065</a>
 <a href="#2066" id="2066">2066</a>
+<a href="#2067" id="2067">2067</a>
+<a href="#2068" id="2068">2068</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -3615,9 +3617,11 @@
         (<span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative validity end period&quot;</span>),
         (<span class="kw">_</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;invalid validity end thread&quot;</span>),
     };
-    <span class="kw">if </span>max_gas.is_negative() {
-        <span class="macro">abi_bail!</span>(<span class="string">&quot;negative max gas&quot;</span>);
-    }
+
+    <span class="kw">let </span>max_gas: u64 = <span class="kw">match </span>max_gas.try_into() {
+        <span class="prelude-val">Ok</span>(g) =&gt; g,
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative max gas&quot;</span>),
+    };
     <span class="kw">let </span>(available, <span class="kw-2">mut </span>price) = env
         .get_interface()
         .deferred_call_quote(asc_slot, max_gas <span class="kw">as </span>u64)<span class="question-mark">?</span>;
