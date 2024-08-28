@@ -820,12 +820,12 @@ impl Interface for TestInterface {
 
     fn deferred_call_register(
         &self,
-        target_slot: (u64, u8),
         target_addr: &str,
         target_func: &str,
+        target_slot: (u64, u8),
+        max_gas: u64,
         params: &[u8],
         coins: u64,
-        max_gas: u64,
     ) -> Result<Vec<u8>> {
         println!(
             "asc_call_register: target_slot: {:?}, target_addr: {}, target_func: {}, params: {:?}, coins: {}, max_gas: {}",

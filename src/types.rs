@@ -587,8 +587,8 @@ pub trait Interface: Send + Sync + InterfaceClone {
         target_func: &str,
         target_slot: (u64, u8),
         max_gas: u64,
-        coins: u64,
         params: &[u8],
+        coins: u64,
     ) -> Result<Vec<u8>>;
 
     // Return true if the current deferred call exists

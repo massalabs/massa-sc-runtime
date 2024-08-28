@@ -1582,8 +1582,8 @@ pub(crate) fn assembly_script_deferred_call_register(
     target_period: i64,
     target_thread: i32,
     max_gas: i64,
-    raw_coins: i64,
     params: i32,
+    raw_coins: i64,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
@@ -1592,12 +1592,17 @@ pub(crate) fn assembly_script_deferred_call_register(
         (Err(_), _) => abi_bail!("negative validity end period"),
         (_, Err(_)) => abi_bail!("invalid validity end thread"),
     };
-    if max_gas.is_negative() {
-        abi_bail!("negative max gas");
-    }
-    if raw_coins.is_negative() {
-        abi_bail!("negative coins")
-    }
+
+    let max_gas: u64 = match max_gas.try_into() {
+        Ok(g) => g,
+        Err(_) => abi_bail!("negative max gas"),
+    };
+
+    let raw_coins: u64 = match raw_coins.try_into() {
+        Ok(c) => c,
+        Err(_) => abi_bail!("negative coins"),
+    };
+
     let memory = get_memory!(env);
     let target_address = read_string(memory, &ctx, target_address)?;
     let target_function = read_string(memory, &ctx, target_function)?;
@@ -1607,8 +1612,8 @@ pub(crate) fn assembly_script_deferred_call_register(
         &target_function,
         asc_target_slot,
         max_gas as u64,
-        raw_coins as u64,
         &params,
+        raw_coins as u64,
     )?;
     let res = match BufferPtr::alloc(&response, env.get_ffi_env(), &mut ctx) {
         Ok(ret) => Ok(ret.offset() as i32),
