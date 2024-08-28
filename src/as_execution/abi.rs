@@ -1549,9 +1549,11 @@ pub(crate) fn assembly_script_get_deferred_call_quote(
         (Err(_), _) => abi_bail!("negative validity end period"),
         (_, Err(_)) => abi_bail!("invalid validity end thread"),
     };
-    if max_gas.is_negative() {
-        abi_bail!("negative max gas");
-    }
+
+    let max_gas: u64 = match max_gas.try_into() {
+        Ok(g) => g,
+        Err(_) => abi_bail!("negative max gas"),
+    };
     let (available, mut price) = env
         .get_interface()
         .deferred_call_quote(asc_slot, max_gas as u64)?;
