@@ -704,6 +704,21 @@
 <a href="#704" id="704">704</a>
 <a href="#705" id="705">705</a>
 <a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
@@ -872,13 +887,6 @@
     }
 }
 
-<span class="attr">#[derive(Clone, Debug, Default)]
-</span><span class="kw">pub struct </span>CondomLimits {
-    <span class="kw">pub </span>max_exports: <span class="prelude-ty">Option</span>&lt;usize&gt;,
-    <span class="kw">pub </span>max_functions: <span class="prelude-ty">Option</span>&lt;usize&gt;,
-    <span class="kw">pub </span>max_signature_len: <span class="prelude-ty">Option</span>&lt;usize&gt;,
-}
-
 <span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>GasCosts {
     <span class="kw">pub</span>(<span class="kw">crate</span>) abi_costs: HashMap&lt;String, u64&gt;,
@@ -984,6 +992,10 @@
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_bytecode_for&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_caller_has_write_access&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_function_exists&quot;</span>), <span class="number">11</span>);
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_deferred_call_quote&quot;</span>), <span class="number">11</span>);
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_deferred_call_register&quot;</span>), <span class="number">11</span>);
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_deferred_call_exists&quot;</span>), <span class="number">11</span>);
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_deferred_call_cancel&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_seed&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_abort&quot;</span>), <span class="number">11</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_date_now&quot;</span>), <span class="number">11</span>);
@@ -1007,8 +1019,6 @@
 
 <span class="attr">#[allow(unused_variables)]
 </span><span class="kw">pub trait </span>Interface: Send + Sync + InterfaceClone {
-    <span class="kw">fn </span>get_interface_version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u32&gt;;
-
     <span class="doccomment">/// Prepare the execution of a module at the given address and transfer a
     /// given amount of coins
     </span><span class="kw">fn </span>init_call(<span class="kw-2">&amp;</span><span class="self">self</span>, address: <span class="kw-2">&amp;</span>str, raw_coins: u64) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
@@ -1287,6 +1297,26 @@
 
     <span class="comment">// Return the current chain id
     </span><span class="kw">fn </span>chain_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt;;
+
+    <span class="comment">// Return a boolean that determine if there is place in this slot and an amount of fee needed to take the space
+    </span><span class="kw">fn </span>deferred_call_quote(<span class="kw-2">&amp;</span><span class="self">self</span>, target_slot: (u64, u8), gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(bool, u64)&gt;;
+
+    <span class="comment">// Register a new deferred call and return his id
+    </span><span class="kw">fn </span>deferred_call_register(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        target_addr: <span class="kw-2">&amp;</span>str,
+        target_func: <span class="kw-2">&amp;</span>str,
+        target_slot: (u64, u8),
+        max_gas: u64,
+        params: <span class="kw-2">&amp;</span>[u8],
+        coins: u64,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
+
+    <span class="comment">// Return true if the current deferred call exists
+    </span><span class="kw">fn </span>deferred_call_exists(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt;;
+
+    <span class="comment">// Cancel a deferred call (will return the coins)
+    </span><span class="kw">fn </span>deferred_call_cancel(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
     <span class="kw">fn </span>native_amount_from_str_wasmv1(<span class="kw-2">&amp;</span><span class="self">self</span>, amount: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;NativeAmount&gt;;
 
