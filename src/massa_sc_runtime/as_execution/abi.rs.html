@@ -2063,9 +2063,6 @@
 <a href="#2063" id="2063">2063</a>
 <a href="#2064" id="2064">2064</a>
 <a href="#2065" id="2065">2065</a>
-<a href="#2066" id="2066">2066</a>
-<a href="#2067" id="2067">2067</a>
-<a href="#2068" id="2068">2068</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -3685,10 +3682,7 @@
         <span class="kw-2">&amp;</span>params,
         raw_coins <span class="kw">as </span>u64,
     )<span class="question-mark">?</span>;
-    <span class="kw">let </span>res = <span class="kw">match </span>BufferPtr::alloc(<span class="kw-2">&amp;</span>response, env.get_ffi_env(), <span class="kw-2">&amp;mut </span>ctx) {
-        <span class="prelude-val">Ok</span>(ret) =&gt; <span class="prelude-val">Ok</span>(ret.offset() <span class="kw">as </span>i32),
-        <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;Cannot allocate response in asc call register&quot;</span>),
-    };
+    <span class="kw">let </span>ptr = pointer_from_string(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>response)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32;
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
@@ -3704,7 +3698,7 @@
         return_value: response.to_owned().into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
-    res
+    <span class="prelude-val">Ok</span>(ptr)
 }
 
 <span class="doccomment">/// Check if an deferred call exists with the given deferred_call_id (exists meaning to be executed in the future).
@@ -3716,7 +3710,7 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>asc_id = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, deferred_id)<span class="question-mark">?</span>;
+    <span class="kw">let </span>asc_id = read_string(memory, <span class="kw-2">&amp;</span>ctx, deferred_id)<span class="question-mark">?</span>;
     <span class="kw">let </span>exists = env.get_interface().deferred_call_exists(<span class="kw-2">&amp;</span>asc_id)<span class="question-mark">?</span>;
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
@@ -3737,7 +3731,7 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
-    <span class="kw">let </span>deferred_id = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, deferred_call_id)<span class="question-mark">?</span>;
+    <span class="kw">let </span>deferred_id = read_string(memory, <span class="kw-2">&amp;</span>ctx, deferred_call_id)<span class="question-mark">?</span>;
     env.get_interface().deferred_call_cancel(<span class="kw-2">&amp;</span>deferred_id)<span class="question-mark">?</span>;
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
