@@ -1617,10 +1617,7 @@ pub(crate) fn assembly_script_deferred_call_register(
         &params,
         raw_coins as u64,
     )?;
-    let res = match BufferPtr::alloc(&response, env.get_ffi_env(), &mut ctx) {
-        Ok(ret) => Ok(ret.offset() as i32),
-        _ => abi_bail!("Cannot allocate response in asc call register"),
-    };
+    let ptr = pointer_from_string(&env, &mut ctx, &response)?.offset() as i32;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
         name: function_name!().to_string(),
@@ -1636,7 +1633,7 @@ pub(crate) fn assembly_script_deferred_call_register(
         return_value: response.to_owned().into(),
         sub_calls: None,
     });
-    res
+    Ok(ptr)
 }
 
 /// Check if an deferred call exists with the given deferred_call_id (exists meaning to be executed in the future).
@@ -1648,7 +1645,7 @@ pub(crate) fn assembly_script_deferred_call_exists(
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let asc_id = read_buffer(memory, &ctx, deferred_id)?;
+    let asc_id = read_string(memory, &ctx, deferred_id)?;
     let exists = env.get_interface().deferred_call_exists(&asc_id)?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -1669,7 +1666,7 @@ pub(crate) fn assembly_script_deferred_call_cancel(
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
-    let deferred_id = read_buffer(memory, &ctx, deferred_call_id)?;
+    let deferred_id = read_string(memory, &ctx, deferred_call_id)?;
     env.get_interface().deferred_call_cancel(&deferred_id)?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {

@@ -826,20 +826,20 @@ impl Interface for TestInterface {
         max_gas: u64,
         params: &[u8],
         coins: u64,
-    ) -> Result<Vec<u8>> {
+    ) -> Result<String> {
         println!(
             "asc_call_register: target_slot: {:?}, target_addr: {}, target_func: {}, params: {:?}, coins: {}, max_gas: {}",
             target_slot, target_addr, target_func, params, coins, max_gas
         );
-        Ok(vec![])
+        Ok("sample_test_id".to_string())
     }
 
-    fn deferred_call_exists(&self, id: &[u8]) -> Result<bool> {
+    fn deferred_call_exists(&self, id: &str) -> Result<bool> {
         println!("asc_call_exists: id: {:?}", id);
         Ok(true)
     }
 
-    fn deferred_call_cancel(&self, id: &[u8]) -> Result<()> {
+    fn deferred_call_cancel(&self, id: &str) -> Result<()> {
         println!("asc_call_cancel: id: {:?}", id);
         Ok(())
     }

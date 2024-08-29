@@ -589,13 +589,13 @@ pub trait Interface: Send + Sync + InterfaceClone {
         max_gas: u64,
         params: &[u8],
         coins: u64,
-    ) -> Result<Vec<u8>>;
+    ) -> Result<String>;
 
     // Return true if the current deferred call exists
-    fn deferred_call_exists(&self, id: &[u8]) -> Result<bool>;
+    fn deferred_call_exists(&self, id: &str) -> Result<bool>;
 
     // Cancel a deferred call (will return the coins)
-    fn deferred_call_cancel(&self, id: &[u8]) -> Result<()>;
+    fn deferred_call_cancel(&self, id: &str) -> Result<()>;
 
     fn native_amount_from_str_wasmv1(&self, amount: &str) -> Result<NativeAmount>;
 
