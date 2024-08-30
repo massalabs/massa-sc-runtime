@@ -81,6 +81,7 @@ pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imp
         "abi_compare_pub_key" => abi_compare_pub_key,
         "abi_create_sc" => abi_create_sc,
         "abi_deferred_call_quote" => abi_deferred_call_quote,
+        "abi_deferred_call_exists" => abi_deferred_call_exists,
         "abi_delete_ds_entry" => abi_delete_ds_entry,
         "abi_div_rem_native_amount" => abi_div_rem_native_amount,
         "abi_ds_entry_exists" => abi_ds_entry_exists,
@@ -933,6 +934,31 @@ fn abi_deferred_call_quote(
                         price = 0;
                     }
                     resp_ok!(DeferredCallQuoteResult, { available, cost: price })
+                }
+                Err(e) => resp_err!(e),
+            }
+        },
+    )
+}
+
+#[named]
+fn abi_deferred_call_exists(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        function_name!(),
+        store_env,
+        arg_offset,
+        |handler, req: DeferredCallExistsRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Some(call_id) = req.call_id else {
+                return resp_err!("Call ID is required");
+            };
+
+            let interface = handler.exec_env.get_interface();
+            match interface.deferred_call_exists(&call_id) {
+                Ok(exists) => {
+                    resp_ok!(DeferredCallExistsResult, { call_exists: exists })
                 }
                 Err(e) => resp_err!(e),
             }
