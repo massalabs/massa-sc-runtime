@@ -80,6 +80,7 @@ pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imp
         "abi_compare_native_time" => abi_compare_native_time,
         "abi_compare_pub_key" => abi_compare_pub_key,
         "abi_create_sc" => abi_create_sc,
+        "abi_deferred_call_quote" => abi_deferred_call_quote,
         "abi_delete_ds_entry" => abi_delete_ds_entry,
         "abi_div_rem_native_amount" => abi_div_rem_native_amount,
         "abi_ds_entry_exists" => abi_ds_entry_exists,
@@ -903,6 +904,37 @@ fn abi_get_native_time(
                 Ok(time) => {
                     resp_ok!(GetNativeTimeResult, { time: Some(NativeTime { milliseconds: time }) })
                 }
+            }
+        },
+    )
+}
+
+#[named]
+fn abi_deferred_call_quote(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        function_name!(),
+        store_env,
+        arg_offset,
+        |handler, req: DeferredCallQuoteRequest| -> Result<AbiResponse, WasmV1Error> {
+            let interface = handler.exec_env.get_interface();
+
+            let Some(target_slot) = req.target_slot else {
+                return resp_err!("Target slot is required");
+            };
+
+            match interface
+                .deferred_call_quote((target_slot.period, target_slot.thread as u8), req.max_gas)
+            {
+                Ok((available, mut price)) => {
+                    if !available {
+                        price = 0;
+                    }
+                    resp_ok!(DeferredCallQuoteResult, { available, cost: price })
+                }
+                Err(e) => resp_err!(e),
             }
         },
     )
