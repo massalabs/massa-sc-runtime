@@ -1797,6 +1797,38 @@
 <a href="#1797" id="1797">1797</a>
 <a href="#1798" id="1798">1798</a>
 <a href="#1799" id="1799">1799</a>
+<a href="#1800" id="1800">1800</a>
+<a href="#1801" id="1801">1801</a>
+<a href="#1802" id="1802">1802</a>
+<a href="#1803" id="1803">1803</a>
+<a href="#1804" id="1804">1804</a>
+<a href="#1805" id="1805">1805</a>
+<a href="#1806" id="1806">1806</a>
+<a href="#1807" id="1807">1807</a>
+<a href="#1808" id="1808">1808</a>
+<a href="#1809" id="1809">1809</a>
+<a href="#1810" id="1810">1810</a>
+<a href="#1811" id="1811">1811</a>
+<a href="#1812" id="1812">1812</a>
+<a href="#1813" id="1813">1813</a>
+<a href="#1814" id="1814">1814</a>
+<a href="#1815" id="1815">1815</a>
+<a href="#1816" id="1816">1816</a>
+<a href="#1817" id="1817">1817</a>
+<a href="#1818" id="1818">1818</a>
+<a href="#1819" id="1819">1819</a>
+<a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{
     <span class="kw">super</span>::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
@@ -1879,6 +1911,7 @@
         <span class="string">&quot;abi_compare_native_time&quot; </span>=&gt; abi_compare_native_time,
         <span class="string">&quot;abi_compare_pub_key&quot; </span>=&gt; abi_compare_pub_key,
         <span class="string">&quot;abi_create_sc&quot; </span>=&gt; abi_create_sc,
+        <span class="string">&quot;abi_deferred_call_quote&quot; </span>=&gt; abi_deferred_call_quote,
         <span class="string">&quot;abi_delete_ds_entry&quot; </span>=&gt; abi_delete_ds_entry,
         <span class="string">&quot;abi_div_rem_native_amount&quot; </span>=&gt; abi_div_rem_native_amount,
         <span class="string">&quot;abi_ds_entry_exists&quot; </span>=&gt; abi_ds_entry_exists,
@@ -2702,6 +2735,37 @@
                 <span class="prelude-val">Ok</span>(time) =&gt; {
                     <span class="macro">resp_ok!</span>(GetNativeTimeResult, { time: <span class="prelude-val">Some</span>(NativeTime { milliseconds: time }) })
                 }
+            }
+        },
+    )
+}
+
+<span class="attr">#[named]
+</span><span class="kw">fn </span>abi_deferred_call_quote(
+    store_env: FunctionEnvMut&lt;ABIEnv&gt;,
+    arg_offset: i32,
+) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
+    handle_abi(
+        <span class="macro">function_name!</span>(),
+        store_env,
+        arg_offset,
+        |handler, req: DeferredCallQuoteRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+            <span class="kw">let </span>interface = handler.exec_env.get_interface();
+
+            <span class="kw">let </span><span class="prelude-val">Some</span>(target_slot) = req.target_slot <span class="kw">else </span>{
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Target slot is required&quot;</span>);
+            };
+
+            <span class="kw">match </span>interface
+                .deferred_call_quote((target_slot.period, target_slot.thread <span class="kw">as </span>u8), req.max_gas)
+            {
+                <span class="prelude-val">Ok</span>((available, <span class="kw-2">mut </span>price)) =&gt; {
+                    <span class="kw">if </span>!available {
+                        price = <span class="number">0</span>;
+                    }
+                    <span class="macro">resp_ok!</span>(DeferredCallQuoteResult, { available, cost: price })
+                }
+                <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
         },
     )
