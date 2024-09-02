@@ -2063,6 +2063,7 @@
 <a href="#2063" id="2063">2063</a>
 <a href="#2064" id="2064">2064</a>
 <a href="#2065" id="2065">2065</a>
+<a href="#2066" id="2066">2066</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -3727,20 +3728,21 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_deferred_call_cancel(
     <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
     deferred_call_id: i32,
-) -&gt; ABIResult&lt;()&gt; {
+) -&gt; ABIResult&lt;i32&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>deferred_id = read_string(memory, <span class="kw-2">&amp;</span>ctx, deferred_call_id)<span class="question-mark">?</span>;
-    env.get_interface().deferred_call_cancel(<span class="kw-2">&amp;</span>deferred_id)<span class="question-mark">?</span>;
+    <span class="kw">let </span>canceled = env.get_interface().deferred_call_cancel(<span class="kw-2">&amp;</span>deferred_id)<span class="question-mark">?</span>;
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(deferred_id)],
-        return_value: (),
+        return_value: canceled.into(),
         sub_calls: <span class="prelude-val">None</span>,
     });
-    <span class="prelude-val">Ok</span>(())
+
+    <span class="prelude-val">Ok</span>(canceled <span class="kw">as </span>i32)
 }
 
 <span class="doccomment">/// Assembly script builtin `abort` function.
