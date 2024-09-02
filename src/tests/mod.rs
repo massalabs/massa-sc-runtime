@@ -839,9 +839,9 @@ impl Interface for TestInterface {
         Ok(true)
     }
 
-    fn deferred_call_cancel(&self, id: &str) -> Result<()> {
+    fn deferred_call_cancel(&self, id: &str) -> Result<bool> {
         println!("asc_call_cancel: id: {:?}", id);
-        Ok(())
+        Ok(false)
     }
 }
 
