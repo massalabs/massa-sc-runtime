@@ -2882,7 +2882,7 @@
 
             <span class="kw">let </span>interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.deferred_call_cancel(<span class="kw-2">&amp;</span>call_id) {
-                <span class="prelude-val">Ok</span>(canceled) =&gt; {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
                     </span>{
                         <span class="kw">let </span>params = <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(req.call_id)];
@@ -2890,13 +2890,13 @@
                             exec_env.trace.push(AbiTrace {
                                 name: <span class="macro">function_name!</span>().to_string(),
                                 params,
-                                return_value: AbiTraceType::Bool(canceled),
+                                return_value: AbiTraceType::None,
                                 sub_calls: <span class="prelude-val">None</span>,
                             });
                         }
                     }
 
-                    <span class="macro">resp_ok!</span>(DeferredCallCancelResult, { canceled })
+                    <span class="macro">resp_ok!</span>(DeferredCallCancelResult, {})
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }

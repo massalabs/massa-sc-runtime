@@ -3728,12 +3728,12 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assembly_script_deferred_call_cancel(
     <span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;,
     deferred_call_id: i32,
-) -&gt; ABIResult&lt;i32&gt; {
+) -&gt; ABIResult&lt;()&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>deferred_id = read_string(memory, <span class="kw-2">&amp;</span>ctx, deferred_call_id)<span class="question-mark">?</span>;
-    <span class="kw">let </span>canceled = env.get_interface().deferred_call_cancel(<span class="kw-2">&amp;</span>deferred_id)<span class="question-mark">?</span>;
+    env.get_interface().deferred_call_cancel(<span class="kw-2">&amp;</span>deferred_id)<span class="question-mark">?</span>;
     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
@@ -3742,7 +3742,7 @@
         sub_calls: <span class="prelude-val">None</span>,
     });
 
-    <span class="prelude-val">Ok</span>(canceled <span class="kw">as </span>i32)
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="doccomment">/// Assembly script builtin `abort` function.
