@@ -1662,12 +1662,12 @@ pub(crate) fn assembly_script_deferred_call_exists(
 pub(crate) fn assembly_script_deferred_call_cancel(
     mut ctx: FunctionEnvMut<ASEnv>,
     deferred_call_id: i32,
-) -> ABIResult<i32> {
+) -> ABIResult<()> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
     let memory = get_memory!(env);
     let deferred_id = read_string(memory, &ctx, deferred_call_id)?;
-    let canceled = env.get_interface().deferred_call_cancel(&deferred_id)?;
+    env.get_interface().deferred_call_cancel(&deferred_id)?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
         name: function_name!().to_string(),
@@ -1676,7 +1676,7 @@ pub(crate) fn assembly_script_deferred_call_cancel(
         sub_calls: None,
     });
 
-    Ok(canceled as i32)
+    Ok(())
 }
 
 /// Assembly script builtin `abort` function.

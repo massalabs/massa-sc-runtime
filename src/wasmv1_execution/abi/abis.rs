@@ -928,7 +928,7 @@ fn abi_deferred_call_cancel(
 
             let interface: &dyn Interface = handler.exec_env.get_interface();
             match interface.deferred_call_cancel(&call_id) {
-                Ok(canceled) => {
+                Ok(_) => {
                     #[cfg(feature = "execution-trace")]
                     {
                         let params = vec![into_trace_value!(req.call_id)];
@@ -936,13 +936,13 @@ fn abi_deferred_call_cancel(
                             exec_env.trace.push(AbiTrace {
                                 name: function_name!().to_string(),
                                 params,
-                                return_value: AbiTraceType::Bool(canceled),
+                                return_value: AbiTraceType::None,
                                 sub_calls: None,
                             });
                         }
                     }
 
-                    resp_ok!(DeferredCallCancelResult, { canceled })
+                    resp_ok!(DeferredCallCancelResult, {})
                 }
                 Err(e) => resp_err!(e),
             }
