@@ -1672,7 +1672,7 @@ pub(crate) fn assembly_script_deferred_call_cancel(
     ctx.data_mut().trace.push(AbiTrace {
         name: function_name!().to_string(),
         params: vec![into_trace_value!(deferred_id)],
-        return_value: canceled.into(),
+        return_value: AbiTraceType::None,
         sub_calls: None,
     });
 
