@@ -3738,7 +3738,7 @@
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(deferred_id)],
-        return_value: canceled.into(),
+        return_value: AbiTraceType::None,
         sub_calls: <span class="prelude-val">None</span>,
     });
 
