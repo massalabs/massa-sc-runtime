@@ -1299,10 +1299,6 @@
 <a href="#1299" id="1299">1299</a>
 <a href="#1300" id="1300">1300</a>
 <a href="#1301" id="1301">1301</a>
-<a href="#1302" id="1302">1302</a>
-<a href="#1303" id="1303">1303</a>
-<a href="#1304" id="1304">1304</a>
-<a href="#1305" id="1305">1305</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// An entry-point protection middleware that prevents malicious WASM files from reaching the compilation step.
 </span><span class="kw">use </span>std::fmt;
 <span class="kw">use </span>wasmer::{
@@ -1390,7 +1386,6 @@
         }
 
         <span class="comment">// Check the import limits
-        </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;enable-serde&quot;</span>, serde(with = <span class="string">&quot;serde_imports&quot;</span>))]
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_imports) = <span class="self">self</span>.limits.max_imports_len {
             <span class="kw">if </span>module_info.imports.len() &gt; max_imports {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
@@ -2519,23 +2514,20 @@
         <span class="kw">let </span>name_len = <span class="number">256</span>;
         <span class="kw">let </span>fn_name_len = <span class="number">256</span>;
         <span class="kw">let </span>custon_section_data_len = <span class="number">1_000_000</span>;
-        <span class="comment">// exporting all 10_000 fn causes the wasmparser to fail because of
-        // internal limits
-        // set nb_exports to 1000 seems reasonable
-        </span><span class="kw">let </span>nb_exports = nb_fn;
-        <span class="kw">let </span>nb_imports_fn = <span class="number">100</span>;
+        <span class="kw">let </span>nb_exports = nb_fn;
+        <span class="kw">let </span>nb_imports_fn = <span class="number">256</span>;
         <span class="kw">let </span>nb_imports_mem = <span class="number">1</span>;
         <span class="kw">let </span>nb_table_ini = nb_fn;
         <span class="kw">let </span>nb_passive_elm = nb_fn;
         <span class="kw">let </span>nb_passive_data = <span class="number">512</span>;
         <span class="kw">let </span>nb_global_ini = <span class="number">512</span>;
-        <span class="kw">let </span>nb_tables = <span class="number">15</span>;
+        <span class="kw">let </span>nb_tables = <span class="number">16</span>;
         <span class="kw">let </span>nb_memories = <span class="number">1</span>; <span class="comment">// only 1 supported so far (cf specification)
 
         </span><span class="kw">let </span>nb_locals = <span class="number">512</span>;
 
         <span class="kw">let </span>condom_limits = CondomLimits {
-            max_exports: <span class="prelude-val">Some</span>(nb_exports),
+            max_exports: <span class="prelude-val">Some</span>(nb_exports + nb_global_ini),
             max_functions: <span class="prelude-val">Some</span>(nb_fn + nb_imports_fn),
             max_signature_len: <span class="prelude-val">Some</span>(nb_params + nb_return_values),
             max_name_len: <span class="prelude-val">Some</span>(name_len),
