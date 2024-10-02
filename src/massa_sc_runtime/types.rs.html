@@ -719,6 +719,10 @@
 <a href="#719" id="719">719</a>
 <a href="#720" id="720">720</a>
 <a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
@@ -1299,7 +1303,11 @@
     </span><span class="kw">fn </span>chain_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt;;
 
     <span class="comment">// Return a boolean that determine if there is place in this slot and an amount of fee needed to take the space
-    </span><span class="kw">fn </span>deferred_call_quote(<span class="kw-2">&amp;</span><span class="self">self</span>, target_slot: (u64, u8), gas_limit: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(bool, u64)&gt;;
+    </span><span class="kw">fn </span>get_deferred_call_quote(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        target_slot: (u64, u8),
+        gas_limit: u64,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(bool, u64)&gt;;
 
     <span class="comment">// Register a new deferred call and return his id
     </span><span class="kw">fn </span>deferred_call_register(

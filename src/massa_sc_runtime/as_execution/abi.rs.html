@@ -3622,7 +3622,7 @@
     };
     <span class="kw">let </span>(available, <span class="kw-2">mut </span>price) = env
         .get_interface()
-        .deferred_call_quote(asc_slot, max_gas <span class="kw">as </span>u64)<span class="question-mark">?</span>;
+        .get_deferred_call_quote(asc_slot, max_gas <span class="kw">as </span>u64)<span class="question-mark">?</span>;
     <span class="kw">if </span>!available {
         price = <span class="number">0</span>;
     }

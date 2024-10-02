@@ -1952,6 +1952,7 @@
 <a href="#1952" id="1952">1952</a>
 <a href="#1953" id="1953">1953</a>
 <a href="#1954" id="1954">1954</a>
+<a href="#1955" id="1955">1955</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{
     <span class="kw">super</span>::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
@@ -2035,7 +2036,7 @@
         <span class="string">&quot;abi_compare_pub_key&quot; </span>=&gt; abi_compare_pub_key,
         <span class="string">&quot;abi_create_sc&quot; </span>=&gt; abi_create_sc,
         <span class="string">&quot;abi_deferred_call_cancel&quot; </span>=&gt; abi_deferred_call_cancel,
-        <span class="string">&quot;abi_deferred_call_quote&quot; </span>=&gt; abi_deferred_call_quote,
+        <span class="string">&quot;abi_get_deferred_call_quote&quot; </span>=&gt; abi_get_deferred_call_quote,
         <span class="string">&quot;abi_deferred_call_exists&quot; </span>=&gt; abi_deferred_call_exists,
         <span class="string">&quot;abi_deferred_call_register&quot; </span>=&gt; abi_deferred_call_register,
         <span class="string">&quot;abi_delete_ds_entry&quot; </span>=&gt; abi_delete_ds_entry,
@@ -2962,7 +2963,7 @@
 }
 
 <span class="attr">#[named]
-</span><span class="kw">fn </span>abi_deferred_call_quote(
+</span><span class="kw">fn </span>abi_get_deferred_call_quote(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
@@ -2977,9 +2978,10 @@
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Target slot is required&quot;</span>);
             };
 
-            <span class="kw">match </span>interface
-                .deferred_call_quote((target_slot.period, target_slot.thread <span class="kw">as </span>u8), req.max_gas)
-            {
+            <span class="kw">match </span>interface.get_deferred_call_quote(
+                (target_slot.period, target_slot.thread <span class="kw">as </span>u8),
+                req.max_gas,
+            ) {
                 <span class="prelude-val">Ok</span>((available, <span class="kw-2">mut </span>price)) =&gt; {
                     <span class="kw">if </span>!available {
                         price = <span class="number">0</span>;
