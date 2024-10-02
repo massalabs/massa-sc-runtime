@@ -578,7 +578,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn chain_id(&self) -> Result<u64>;
 
     // Return a boolean that determine if there is place in this slot and an amount of fee needed to take the space
-    fn deferred_call_quote(&self, target_slot: (u64, u8), gas_limit: u64) -> Result<(bool, u64)>;
+    fn get_deferred_call_quote(
+        &self,
+        target_slot: (u64, u8),
+        gas_limit: u64,
+    ) -> Result<(bool, u64)>;
 
     // Register a new deferred call and return his id
     fn deferred_call_register(

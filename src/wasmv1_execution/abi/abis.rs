@@ -81,7 +81,7 @@ pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imp
         "abi_compare_pub_key" => abi_compare_pub_key,
         "abi_create_sc" => abi_create_sc,
         "abi_deferred_call_cancel" => abi_deferred_call_cancel,
-        "abi_deferred_call_quote" => abi_deferred_call_quote,
+        "abi_get_deferred_call_quote" => abi_get_deferred_call_quote,
         "abi_deferred_call_exists" => abi_deferred_call_exists,
         "abi_deferred_call_register" => abi_deferred_call_register,
         "abi_delete_ds_entry" => abi_delete_ds_entry,
@@ -1008,7 +1008,7 @@ fn abi_deferred_call_register(
 }
 
 #[named]
-fn abi_deferred_call_quote(
+fn abi_get_deferred_call_quote(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
@@ -1023,9 +1023,10 @@ fn abi_deferred_call_quote(
                 return resp_err!("Target slot is required");
             };
 
-            match interface
-                .deferred_call_quote((target_slot.period, target_slot.thread as u8), req.max_gas)
-            {
+            match interface.get_deferred_call_quote(
+                (target_slot.period, target_slot.thread as u8),
+                req.max_gas,
+            ) {
                 Ok((available, mut price)) => {
                     if !available {
                         price = 0;

@@ -1556,7 +1556,7 @@ pub(crate) fn assembly_script_get_deferred_call_quote(
     };
     let (available, mut price) = env
         .get_interface()
-        .deferred_call_quote(asc_slot, max_gas as u64)?;
+        .get_deferred_call_quote(asc_slot, max_gas as u64)?;
     if !available {
         price = 0;
     }

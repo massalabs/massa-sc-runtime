@@ -810,7 +810,11 @@ impl Interface for TestInterface {
         println!("save_gas_remaining_before_subexecution: {}", gas_used_until);
     }
 
-    fn deferred_call_quote(&self, target_slot: (u64, u8), gas_limit: u64) -> Result<(bool, u64)> {
+    fn get_deferred_call_quote(
+        &self,
+        target_slot: (u64, u8),
+        gas_limit: u64,
+    ) -> Result<(bool, u64)> {
         println!(
             "get_asc_call_fee: target_slot: {:?}, gas_limit: {}",
             target_slot, gas_limit
