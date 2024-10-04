@@ -15,7 +15,7 @@ massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", rev 
 more-asserts = "0.3"
 num_enum = "0.7"
 parking_lot = "0.12"
-prost = "=0.12"
+prost = "=0.13"
 prost-types = "=0.12"
 rand = "=0.8"
 # for gas_calibration middleware
