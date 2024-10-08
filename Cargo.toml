@@ -37,7 +37,9 @@ rust_decimal = { version = "1.32", default-features = false, optional = true }
 [dev-dependencies]
 bs58 = { version = "=0.5.0", features = ["check"] }
 sysinfo = "0.31"
-num-format = { version = "0.4.3", features = ["with-system-locale"] }
+num-format = { version = "0.4.4", features = ["with-system-locale"] }
+# winapi dep for num-format dependency to compile, see from: https://github.com/bcmyers/num-format/issues/43
+winapi = { version="0.3.9", features=["errhandlingapi"] }
 
 [build-dependencies]
 serde = "=1.0"
