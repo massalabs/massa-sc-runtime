@@ -718,6 +718,11 @@
 <a href="#718" id="718">718</a>
 <a href="#719" id="719">719</a>
 <a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
@@ -945,6 +950,11 @@
                 .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;max_instance cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
             abi_costs,
         })
+    }
+
+    <span class="attr">#[cfg(any(test, feature = <span class="string">&quot;gas_calibration&quot;</span>, feature = <span class="string">&quot;testing&quot;</span>))]
+    </span><span class="kw">pub fn </span>get_abi_costs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HashMap&lt;String, u64&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.abi_costs
     }
 }
 
