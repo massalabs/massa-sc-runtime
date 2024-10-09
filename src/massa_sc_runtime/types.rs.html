@@ -716,6 +716,8 @@
 <a href="#716" id="716">716</a>
 <a href="#717" id="717">717</a>
 <a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
@@ -1018,6 +1020,8 @@
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_console_error&quot;</span>), <span class="number">36</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_trace&quot;</span>), <span class="number">36</span>);
         abi_costs.insert(String::from(<span class="string">&quot;assembly_script_chain_id&quot;</span>), <span class="number">9</span>);
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_current_period&quot;</span>), <span class="number">157</span>);
+        abi_costs.insert(String::from(<span class="string">&quot;assembly_script_get_current_thread&quot;</span>), <span class="number">154</span>);
         <span class="self">Self </span>{
             abi_costs,
             operator_cost: <span class="number">1</span>,
