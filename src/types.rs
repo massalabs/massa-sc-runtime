@@ -300,6 +300,8 @@ impl Default for GasCosts {
         abi_costs.insert(String::from("assembly_script_console_error"), 36);
         abi_costs.insert(String::from("assembly_script_trace"), 36);
         abi_costs.insert(String::from("assembly_script_chain_id"), 9);
+        abi_costs.insert(String::from("assembly_script_get_current_period"), 157);
+        abi_costs.insert(String::from("assembly_script_get_current_thread"), 154);
         Self {
             abi_costs,
             operator_cost: 1,
