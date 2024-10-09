@@ -512,6 +512,76 @@ impl Default for GasCosts {
             String::from("assembly_script_get_current_thread"),
             154,
         );
+
+        // abi v1
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_address_version"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_call"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_checked_scalar_div_native_time"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_check_signature"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_local_call"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_compare_address"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("sp_compilation"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_append_ds_value"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_delete_ds_entry"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_address_from_public_key"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_bytes_to_base58_check"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_hash_blake3"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_evm_get_pubkey_from_signature"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_remaining_gas"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_add_native_amount"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_base58_check_to_bytes"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_set_bytecode"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_call_coins"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_chain_id"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_abort"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_checked_div_native_time"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_address_category"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_send_async_message"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_check_address"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_sub_native_amount"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_scalar_mul_native_amount"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_bytecode"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_op_keys"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_native_amount_to_string"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_hash_sha256"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_native_amount_from_string"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_create_sc"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_origin_operation_id"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_pubkey_version"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_is_address_eoa"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_evm_get_address_from_pubkey"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_ds_value"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_scalar_div_rem_native_amount"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_signature_version"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_unsafe_random"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_compare_pub_key"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_generate_event"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_verify_signature"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_checked_sub_native_time"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_native_time"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_owned_addresses"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_check_pubkey"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_compare_native_amount"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_compare_native_time"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_balance"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_set_ds_value"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_ds_keys"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_op_data"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_ds_entry_exists"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_div_rem_native_amount"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_evm_verify_signature"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_check_native_amount"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_transfer_coins"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_hash_keccak256"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_current_slot"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_checked_add_native_time"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_op_entry_exists"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_function_exists"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_get_call_stack"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_caller_has_write_access"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_local_execution"), 30);
+        GasCosts::try_insert(&mut abi_costs, String::from("abi_checked_mul_native_time"), 30);
+        
         Self {
             abi_costs,
             operator_cost: 1,
