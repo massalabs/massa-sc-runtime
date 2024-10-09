@@ -226,6 +226,11 @@ impl GasCosts {
             abi_costs,
         })
     }
+
+    #[cfg(any(test, feature = "gas_calibration", feature = "testing"))]
+    pub fn get_abi_costs(&self) -> &HashMap<String, u64> {
+        &self.abi_costs
+    }
 }
 
 #[cfg(any(test, feature = "gas_calibration", feature = "testing"))]
