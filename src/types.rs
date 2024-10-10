@@ -188,15 +188,15 @@ pub struct CondomLimits {
 #[derive(Clone, Debug)]
 pub struct GasCosts {
     pub(crate) abi_costs: HashMap<String, u64>,
-    pub(crate) operator_cost: u64,
     pub(crate) launch_cost: u64,
+    pub(crate) operator_cost: u64,
     pub cl_compilation_cost: u64,
     pub sp_compilation_cost: u64,
     pub max_instance_cost: u64,
 }
 
 impl GasCosts {
-    pub fn new(abi_cost_file: PathBuf, wasm_abi_file: PathBuf) -> Result<Self> {
+    pub fn new(abi_cost_file: PathBuf) -> Result<Self> {
         let abi_cost_file = std::fs::read_to_string(abi_cost_file)?;
         let mut abi_costs: HashMap<String, u64> = serde_json::from_str(&abi_cost_file)?;
         abi_costs.iter_mut().for_each(|(_, v)| {
@@ -207,10 +207,11 @@ impl GasCosts {
                 *v -= unit_digit;
             }
         });
-        let wasm_abi_file = std::fs::read_to_string(wasm_abi_file)?;
-        let wasm_costs: HashMap<String, u64> = serde_json::from_str(&wasm_abi_file)?;
         Ok(Self {
-            operator_cost: wasm_costs.values().copied().sum::<u64>() / wasm_costs.len() as u64,
+            // Note: Use a constant = 23 here in order to not break compatibility with previous Massa node version
+            //       The gas calibration for wasm operators is very incomplete for now and should be reworked
+            //       See: https://github.com/massalabs/gas-calibration/issues/9
+            operator_cost: 23,
             launch_cost: *abi_costs
                 .get("launch")
                 .ok_or_else(|| anyhow!("launch cost not found in ABI gas cost file."))?,
