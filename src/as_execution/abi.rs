@@ -1892,7 +1892,6 @@ mod tests {
 
     #[test]
     fn test_ser_edge_cases() {
-
         // Serializing some values with one as an empty vec
         let vb: Vec<Vec<u8>> = vec![vec![1, 2, 3], vec![]];
 
