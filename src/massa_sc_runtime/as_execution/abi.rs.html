@@ -1916,22 +1916,6 @@
 <a href="#1916" id="1916">1916</a>
 <a href="#1917" id="1917">1917</a>
 <a href="#1918" id="1918">1918</a>
-<a href="#1919" id="1919">1919</a>
-<a href="#1920" id="1920">1920</a>
-<a href="#1921" id="1921">1921</a>
-<a href="#1922" id="1922">1922</a>
-<a href="#1923" id="1923">1923</a>
-<a href="#1924" id="1924">1924</a>
-<a href="#1925" id="1925">1925</a>
-<a href="#1926" id="1926">1926</a>
-<a href="#1927" id="1927">1927</a>
-<a href="#1928" id="1928">1928</a>
-<a href="#1929" id="1929">1929</a>
-<a href="#1930" id="1930">1930</a>
-<a href="#1931" id="1931">1931</a>
-<a href="#1932" id="1932">1932</a>
-<a href="#1933" id="1933">1933</a>
-<a href="#1934" id="1934">1934</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -3758,9 +3742,6 @@
 <span class="doccomment">/// Flatten a Vec&lt;Vec&lt;u8&gt;&gt; (or anything that can be turned into an iterator) to
 /// a Vec&lt;u8&gt; with the format: L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L),
 /// V2_L ... VN (8 bits * VN_L)
-/// Edge cases:
-/// Serializing an empty vec![] will return an empty vec![] and not [0, 0, 0, 0]
-/// See also unit tests: test_ser_edge_cases
 </span><span class="kw">fn </span>ser_bytearray_vec&lt;<span class="lifetime">&#39;a</span>, I&gt;(data: I, data_len: usize, max_length: usize) -&gt; ABIResult&lt;Vec&lt;u8&gt;&gt;
 <span class="kw">where
     </span>I: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Vec&lt;u8&gt;&gt;,
@@ -3815,40 +3796,27 @@
         <span class="kw">let </span>vb: Vec&lt;Vec&lt;u8&gt;&gt; = <span class="macro">vec!</span>[<span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], <span class="macro">vec!</span>[<span class="number">255</span>]];
 
         <span class="kw">let </span>vb_ser = ser_bytearray_vec(<span class="kw-2">&amp;</span>vb, vb.len(), <span class="number">10</span>).unwrap();
-        <span class="comment">// Expected:
-        // L: 2, 0, 0, 0 == 2 as u32 (little endian)
-        // V1L: 3 as u8
-        // V1 values: 1, 2, 3
-        // V2L: 1 as u8
-        // V2 values: 255
-        </span><span class="macro">assert_eq!</span>(vb_ser, [<span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">255</span>]);
+        <span class="macro">assert_eq!</span>(vb_ser, [<span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">255</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_ser_edge_cases() {
-        <span class="comment">// Serializing some values with one as an empty vec
+        <span class="comment">// FIXME: should we support theses edge cases or bail?
+
         </span><span class="kw">let </span>vb: Vec&lt;Vec&lt;u8&gt;&gt; = <span class="macro">vec!</span>[<span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], <span class="macro">vec!</span>[]];
 
         <span class="kw">let </span>vb_ser = ser_bytearray_vec(<span class="kw-2">&amp;</span>vb, vb.len(), <span class="number">10</span>).unwrap();
-        <span class="comment">// Expected:
-        // L: 2, 0, 0, 0 == 2 as u32 (little endian)
-        // V1L: 3 as u8
-        // V1 values: 1, 2, 3 (little endian)
-        // V2L: 0 as u8
-        // V2 values: None
-        </span><span class="macro">assert_eq!</span>(vb_ser, [<span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">0</span>]);
+        <span class="macro">assert_eq!</span>(vb_ser, [<span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">0</span>]);
 
-        <span class="comment">// Serializing with invalid max_length
-        </span><span class="kw">let </span>vb_ser = ser_bytearray_vec(<span class="kw-2">&amp;</span>vb, vb.len(), <span class="number">1</span>);
+        <span class="kw">let </span>vb_ser = ser_bytearray_vec(<span class="kw-2">&amp;</span>vb, vb.len(), <span class="number">1</span>);
         <span class="macro">assert!</span>(vb_ser.is_err());
 
-        <span class="comment">// Serializing an empty vec
-        </span><span class="kw">let </span>vb: Vec&lt;Vec&lt;u8&gt;&gt; = <span class="macro">vec!</span>[];
+        <span class="kw">let </span>vb: Vec&lt;Vec&lt;u8&gt;&gt; = <span class="macro">vec!</span>[];
         <span class="kw">let </span>vb_ser = ser_bytearray_vec(<span class="kw-2">&amp;</span>vb, vb.len(), <span class="number">10</span>).unwrap();
         <span class="kw">let </span>empty_vec: Vec&lt;u8&gt; = <span class="macro">vec!</span>[];
         <span class="macro">assert_eq!</span>(vb_ser, empty_vec);
 
-        <span class="comment">// A huge vec to serialize
+        <span class="comment">// A really big vec to serialize
         </span><span class="kw">let </span>vb: Vec&lt;Vec&lt;u8&gt;&gt; = (<span class="number">0</span>..=u8::MAX)
             .cycle()
             .take(u16::MAX <span class="kw">as </span>usize)
