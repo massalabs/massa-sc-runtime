@@ -455,7 +455,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn increment_recursion_counter(&self) -> Result<()>;
 
     fn decrement_recursion_counter(&self) -> Result<()>;
-  
+
     fn get_interface_version(&self) -> Result<u32>;
 
     /// Prepare the execution of a module at the given address and transfer a
