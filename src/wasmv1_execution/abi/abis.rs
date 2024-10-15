@@ -162,6 +162,7 @@ fn abi_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, W
                 &req.function_arg,
                 remaining_gas,
                 handler.get_gas_costs().clone(),
+                handler.get_condom_limits().clone(),
             )
             .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
             interface.decrement_recursion_counter().map_err(|e| {
@@ -217,6 +218,7 @@ fn abi_local_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<
                 &req.function_arg,
                 remaining_gas,
                 handler.get_gas_costs().clone(),
+                handler.get_condom_limits().clone(),
             )
             .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
             interface.decrement_recursion_counter().map_err(|e| {
@@ -1043,6 +1045,7 @@ fn abi_local_execution(
                 &req.function_arg,
                 remaining_gas,
                 handler.get_gas_costs().clone(),
+                handler.get_condom_limits().clone(),
             ) {
                 Ok(response) => {
                     interface.decrement_recursion_counter().map_err(|e| {

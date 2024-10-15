@@ -166,18 +166,37 @@ impl Clone for Box<dyn Interface> {
     }
 }
 
+#[derive(Clone, Debug, Default)]
+pub struct CondomLimits {
+    pub max_exports: Option<usize>,
+    pub max_functions: Option<usize>,
+    pub max_signature_len: Option<usize>,
+    pub max_name_len: Option<usize>,
+    pub max_imports_len: Option<usize>,
+    pub max_table_initializers_len: Option<usize>,
+    pub max_passive_elements_len: Option<usize>,
+    pub max_passive_data_len: Option<usize>,
+    pub max_global_initializers_len: Option<usize>,
+    pub max_function_names_len: Option<usize>,
+    pub max_tables_count: Option<usize>,
+    pub max_memories_len: Option<usize>,
+    pub max_globals_len: Option<usize>,
+    pub max_custom_sections_len: Option<usize>,
+    pub max_custom_sections_data_len: Option<usize>,
+}
+
 #[derive(Clone, Debug)]
 pub struct GasCosts {
     pub(crate) abi_costs: HashMap<String, u64>,
-    pub(crate) operator_cost: u64,
     pub(crate) launch_cost: u64,
+    pub(crate) operator_cost: u64,
     pub cl_compilation_cost: u64,
     pub sp_compilation_cost: u64,
     pub max_instance_cost: u64,
 }
 
 impl GasCosts {
-    pub fn new(abi_cost_file: PathBuf, wasm_abi_file: PathBuf) -> Result<Self> {
+    pub fn new(abi_cost_file: PathBuf) -> Result<Self> {
         let abi_cost_file = std::fs::read_to_string(abi_cost_file)?;
         let mut abi_costs: HashMap<String, u64> = serde_json::from_str(&abi_cost_file)?;
         abi_costs.iter_mut().for_each(|(_, v)| {
@@ -188,10 +207,11 @@ impl GasCosts {
                 *v -= unit_digit;
             }
         });
-        let wasm_abi_file = std::fs::read_to_string(wasm_abi_file)?;
-        let wasm_costs: HashMap<String, u64> = serde_json::from_str(&wasm_abi_file)?;
         Ok(Self {
-            operator_cost: wasm_costs.values().copied().sum::<u64>() / wasm_costs.len() as u64,
+            // Note: Use a constant = 23 here in order to not break compatibility with previous Massa node version
+            //       The gas calibration for wasm operators is very incomplete for now and should be reworked
+            //       See: https://github.com/massalabs/gas-calibration/issues/9
+            operator_cost: 23,
             launch_cost: *abi_costs
                 .get("launch")
                 .ok_or_else(|| anyhow!("launch cost not found in ABI gas cost file."))?,
@@ -207,82 +227,220 @@ impl GasCosts {
             abi_costs,
         })
     }
+
+    #[cfg(any(test, feature = "gas_calibration", feature = "testing"))]
+    pub fn get_abi_costs(&self) -> &HashMap<String, u64> {
+        &self.abi_costs
+    }
+
+    #[cfg(any(test, feature = "gas_calibration", feature = "testing"))]
+    /// Insert into hashmap - return None if already there
+    fn try_insert(h: &mut HashMap<String, u64>, k: String, v: u64) {
+        // Note: use try_insert when not an experimental feature anymore
+        // https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.try_insert
+        if let Some(_) = h.insert(k.clone(), v) {
+            // Insert return old value if the key was already there
+            panic!("Key {} already in hashmap", k);
+        }
+    }
 }
 
 #[cfg(any(test, feature = "gas_calibration", feature = "testing"))]
 impl Default for GasCosts {
     fn default() -> Self {
-        let mut abi_costs = HashMap::new();
-        abi_costs.insert(String::from("assembly_script_address_from_public_key"), 147);
-        abi_costs.insert(String::from("assembly_script_validate_address"), 4);
-        abi_costs.insert(String::from("assembly_script_append_data"), 162);
-        abi_costs.insert(String::from("assembly_script_append_data_for"), 200);
-        abi_costs.insert(String::from("assembly_script_call"), 30466);
-        abi_costs.insert(String::from("assembly_script_create_sc"), 160);
-        abi_costs.insert(String::from("assembly_script_delete_data"), 78);
-        abi_costs.insert(String::from("assembly_script_delete_data_for"), 120);
-        abi_costs.insert(String::from("assembly_script_generate_event"), 36);
-        abi_costs.insert(String::from("assembly_script_get_balance"), 4);
-        abi_costs.insert(String::from("assembly_script_get_balance_for"), 41);
-        abi_costs.insert(String::from("assembly_script_get_call_coins"), 9);
-        abi_costs.insert(String::from("assembly_script_get_call_stack"), 56);
-        abi_costs.insert(String::from("assembly_script_get_current_slot"), 9);
-        abi_costs.insert(String::from("assembly_script_get_data"), 85);
-        abi_costs.insert(String::from("assembly_script_get_data_for"), 139);
-        abi_costs.insert(String::from("assembly_script_get_keys"), 26);
-        abi_costs.insert(String::from("assembly_script_get_keys_for"), 48);
-        abi_costs.insert(String::from("assembly_script_get_op_data"), 71);
-        abi_costs.insert(String::from("assembly_script_get_op_keys"), 138);
-        abi_costs.insert(String::from("assembly_script_get_op_keys_prefix"), 138);
-        abi_costs.insert(String::from("assembly_script_get_owned_addresses"), 52);
-        abi_costs.insert(String::from("assembly_script_get_remaining_gas"), 7);
-        abi_costs.insert(String::from("assembly_script_get_time"), 4);
-        abi_costs.insert(String::from("assembly_script_has_data"), 69);
-        abi_costs.insert(String::from("assembly_script_has_data_for"), 115);
-        abi_costs.insert(String::from("assembly_script_has_op_key"), 78);
-        abi_costs.insert(String::from("assembly_script_hash"), 83);
-        abi_costs.insert(String::from("assembly_script_hash_sha256"), 83);
-        abi_costs.insert(String::from("assembly_script_keccak256_hash"), 83);
-        abi_costs.insert(String::from("assembly_script_print"), 35);
-        abi_costs.insert(String::from("assembly_script_send_message"), 316);
-        abi_costs.insert(String::from("assembly_script_get_origin_operation_id"), 200);
-        abi_costs.insert(String::from("assembly_script_set_bytecode"), 74);
-        abi_costs.insert(String::from("assembly_script_set_bytecode_for"), 129);
-        abi_costs.insert(String::from("assembly_script_set_data"), 158);
-        abi_costs.insert(String::from("assembly_script_set_data_for"), 165);
-        abi_costs.insert(String::from("assembly_script_signature_verify"), 98);
-        abi_costs.insert(String::from("assembly_script_evm_signature_verify"), 264);
-        abi_costs.insert(
+        let mut h = HashMap::new();
+        // Note: use try_insert to notify devs for duplicated abi/gas_costs
+        //       this will panic in unit tests
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_address_from_public_key"),
+            147,
+        );
+        GasCosts::try_insert(&mut h, String::from("assembly_script_validate_address"), 4);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_append_data"), 162);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_append_data_for"), 200);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_create_sc"), 160);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_delete_data"), 78);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_delete_data_for"), 120);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_generate_event"), 36);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_balance"), 4);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_balance_for"), 41);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_call_coins"), 9);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_call_stack"), 56);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_data"), 85);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_data_for"), 139);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_keys"), 26);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_keys_for"), 48);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_op_data"), 71);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_op_keys"), 138);
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_get_op_keys_prefix"),
+            138,
+        );
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_get_owned_addresses"),
+            52,
+        );
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_remaining_gas"), 7);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_time"), 4);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_has_data"), 69);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_has_data_for"), 115);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_has_op_key"), 78);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_hash"), 83);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_hash_sha256"), 83);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_keccak256_hash"), 83);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_print"), 35);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_send_message"), 316);
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_get_origin_operation_id"),
+            200,
+        );
+        GasCosts::try_insert(&mut h, String::from("assembly_script_set_bytecode"), 74);
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_set_bytecode_for"),
+            129,
+        );
+        GasCosts::try_insert(&mut h, String::from("assembly_script_set_data"), 158);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_set_data_for"), 165);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_signature_verify"), 98);
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_evm_signature_verify"),
+            264,
+        );
+        GasCosts::try_insert(
+            &mut h,
             String::from("assembly_script_evm_get_address_from_pubkey"),
             11,
         );
-        abi_costs.insert(
+        GasCosts::try_insert(
+            &mut h,
             String::from("assembly_script_evm_get_pubkey_from_signature"),
             11,
         );
-        abi_costs.insert(String::from("assembly_script_is_address_eoa"), 11);
-        abi_costs.insert(String::from("assembly_script_transfer_coins"), 62);
-        abi_costs.insert(String::from("assembly_script_transfer_coins_for"), 102);
-        abi_costs.insert(String::from("assembly_script_unsafe_random"), 11);
-        abi_costs.insert(String::from("assembly_script_call"), 11);
-        abi_costs.insert(String::from("assembly_script_local_call"), 11);
-        abi_costs.insert(String::from("assembly_script_local_execution"), 11);
-        abi_costs.insert(String::from("assembly_script_get_bytecode"), 11);
-        abi_costs.insert(String::from("assembly_script_get_bytecode_for"), 11);
-        abi_costs.insert(String::from("assembly_script_caller_has_write_access"), 11);
-        abi_costs.insert(String::from("assembly_script_function_exists"), 11);
-        abi_costs.insert(String::from("assembly_script_seed"), 11);
-        abi_costs.insert(String::from("assembly_script_abort"), 11);
-        abi_costs.insert(String::from("assembly_script_date_now"), 11);
-        abi_costs.insert(String::from("assembly_script_console_log"), 36); // same cost as for generate_event
-        abi_costs.insert(String::from("assembly_script_console_info"), 36);
-        abi_costs.insert(String::from("assembly_script_console_debug"), 36);
-        abi_costs.insert(String::from("assembly_script_console_warn"), 36);
-        abi_costs.insert(String::from("assembly_script_console_error"), 36);
-        abi_costs.insert(String::from("assembly_script_trace"), 36);
-        abi_costs.insert(String::from("assembly_script_chain_id"), 9);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_is_address_eoa"), 11);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_transfer_coins"), 62);
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_transfer_coins_for"),
+            102,
+        );
+        GasCosts::try_insert(&mut h, String::from("assembly_script_unsafe_random"), 11);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_call"), 11);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_local_call"), 11);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_local_execution"), 11);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_bytecode"), 11);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_get_bytecode_for"), 11);
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_caller_has_write_access"),
+            11,
+        );
+        GasCosts::try_insert(&mut h, String::from("assembly_script_function_exists"), 11);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_seed"), 11);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_abort"), 11);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_date_now"), 11);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_console_log"), 36); // same cost as for generate_event
+        GasCosts::try_insert(&mut h, String::from("assembly_script_console_info"), 36);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_console_debug"), 36);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_console_warn"), 36);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_console_error"), 36);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_trace"), 36);
+        GasCosts::try_insert(&mut h, String::from("assembly_script_chain_id"), 9);
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_get_current_period"),
+            157,
+        );
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_get_current_thread"),
+            154,
+        );
+
+        // abi v1
+        GasCosts::try_insert(&mut h, String::from("abi_get_address_version"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_call"), 30);
+        GasCosts::try_insert(
+            &mut h,
+            String::from("abi_checked_scalar_div_native_time"),
+            30,
+        );
+        GasCosts::try_insert(&mut h, String::from("abi_check_signature"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_local_call"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_compare_address"), 30);
+        GasCosts::try_insert(&mut h, String::from("sp_compilation"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_append_ds_value"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_delete_ds_entry"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_address_from_public_key"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_bytes_to_base58_check"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_hash_blake3"), 30);
+        GasCosts::try_insert(
+            &mut h,
+            String::from("abi_evm_get_pubkey_from_signature"),
+            30,
+        );
+        GasCosts::try_insert(&mut h, String::from("abi_get_remaining_gas"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_add_native_amount"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_base58_check_to_bytes"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_set_bytecode"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_call_coins"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_chain_id"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_abort"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_checked_div_native_time"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_address_category"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_send_async_message"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_check_address"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_sub_native_amount"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_scalar_mul_native_amount"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_bytecode"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_op_keys"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_native_amount_to_string"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_hash_sha256"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_native_amount_from_string"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_create_sc"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_origin_operation_id"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_pubkey_version"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_is_address_eoa"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_evm_get_address_from_pubkey"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_ds_value"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_scalar_div_rem_native_amount"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_signature_version"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_unsafe_random"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_compare_pub_key"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_generate_event"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_verify_signature"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_checked_sub_native_time"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_native_time"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_owned_addresses"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_check_pubkey"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_compare_native_amount"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_compare_native_time"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_balance"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_set_ds_value"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_ds_keys"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_op_data"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_ds_entry_exists"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_div_rem_native_amount"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_evm_verify_signature"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_check_native_amount"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_transfer_coins"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_hash_keccak256"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_current_slot"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_checked_add_native_time"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_op_entry_exists"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_function_exists"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_get_call_stack"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_caller_has_write_access"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_local_execution"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_checked_mul_native_time"), 30);
+
         Self {
-            abi_costs,
+            abi_costs: h,
             operator_cost: 1,
             launch_cost: 10_000,
             sp_compilation_cost: 314_000_000,
@@ -297,6 +455,8 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn increment_recursion_counter(&self) -> Result<()>;
 
     fn decrement_recursion_counter(&self) -> Result<()>;
+  
+    fn get_interface_version(&self) -> Result<u32>;
 
     /// Prepare the execution of a module at the given address and transfer a
     /// given amount of coins
