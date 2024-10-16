@@ -18,6 +18,16 @@ impl InterfaceClone for TestInterface {
 }
 
 impl Interface for TestInterface {
+    fn increment_recursion_counter(&self) -> Result<()> {
+        println!("Increment recursion counter");
+        Ok(())
+    }
+
+    fn decrement_recursion_counter(&self) -> Result<()> {
+        println!("Decrement recursion counter");
+        Ok(())
+    }
+
     fn init_call(&self, address: &str, raw_coins: u64) -> Result<Vec<u8>> {
         println!("Init call to {}, with {} coins", address, raw_coins);
         Ok(vec![])
