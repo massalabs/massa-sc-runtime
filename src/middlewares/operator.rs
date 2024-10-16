@@ -1535,18 +1535,6 @@ pub fn operator_field_str<'a>(op: &'a Operator) -> &'a str {
         Operator::I8x16RelaxedSwizzle => {
             stringify!(I8x16RelaxedSwizzle)
         }
-        Operator::I32x4RelaxedTruncSatF32x4S => {
-            stringify!(I32x4RelaxedTruncSatF32x4S)
-        }
-        Operator::I32x4RelaxedTruncSatF32x4U => {
-            stringify!(I32x4RelaxedTruncSatF32x4U)
-        }
-        Operator::I32x4RelaxedTruncSatF64x2SZero => {
-            stringify!(I32x4RelaxedTruncSatF64x2SZero)
-        }
-        Operator::I32x4RelaxedTruncSatF64x2UZero => {
-            stringify!(I32x4RelaxedTruncSatF64x2UZero)
-        }
         Operator::F32x4RelaxedMin => {
             stringify!(F32x4RelaxedMin)
         }
@@ -1561,20 +1549,61 @@ pub fn operator_field_str<'a>(op: &'a Operator) -> &'a str {
         }
         Operator::I8x16AvgrU => stringify!(I8x16AvgrU),
         Operator::I16x8AvgrU => stringify!(I16x8AvgrU),
-        Operator::F32x4RelaxedFma => stringify!(F32x4RelaxedFma),
-        Operator::F32x4RelaxedFnma => stringify!(F32x4RelaxedFnma),
-        Operator::F64x2RelaxedFma => stringify!(F64x2RelaxedFma),
-        Operator::F64x2RelaxedFnma => stringify!(F64x2RelaxedFnma),
         Operator::I8x16RelaxedLaneselect => stringify!(I8x16RelaxedLaneselect),
         Operator::I16x8RelaxedLaneselect => stringify!(I16x8RelaxedLaneselect),
         Operator::I32x4RelaxedLaneselect => stringify!(I32x4RelaxedLaneselect),
         Operator::I64x2RelaxedLaneselect => stringify!(I64x2RelaxedLaneselect),
         Operator::I16x8RelaxedQ15mulrS => stringify!(I16x8RelaxedQ15mulrS),
-        Operator::I16x8DotI8x16I7x16S => stringify!(I16x8DotI8x16I7x16S),
-        Operator::I32x4DotI8x16I7x16AddS => stringify!(I32x4DotI8x16I7x16AddS),
-        Operator::F32x4RelaxedDotBf16x8AddF32x4 => {
-            stringify!(F32x4RelaxedDotBf16x8AddF32x4)
-        }
+        Operator::TryTable { .. } => stringify!(TryTable),
+        Operator::ThrowRef => stringify!(ThrowRef),
+        Operator::RefEq => stringify!(RefEq),
+        Operator::StructNew { .. } => stringify!(StructNew),
+        Operator::StructNewDefault { .. } => stringify!(StructNewDefault),
+        Operator::StructGet { .. } => stringify!(StructGet),
+        Operator::StructGetS { .. } => stringify!(StructGetS),
+        Operator::StructGetU { .. } => stringify!(StructGetU),
+        Operator::StructSet { .. } => stringify!(StructSet),
+        Operator::ArrayNew { .. } => stringify!(ArrayNew),
+        Operator::ArrayNewDefault { .. } => stringify!(ArrayNewDefault),
+        Operator::ArrayNewFixed { .. } => stringify!(ArrayNewFixed),
+        Operator::ArrayNewData { .. } => stringify!(ArrayNewData),
+        Operator::ArrayNewElem { .. } => stringify!(ArrayNewElem),
+        Operator::ArrayGet { .. } => stringify!(ArrayGet),
+        Operator::ArrayGetS { .. } => stringify!(ArrayGetS),
+        Operator::ArrayGetU { .. } => stringify!(ArrayGetU),
+        Operator::ArraySet { .. } => stringify!(ArraySet),
+        Operator::ArrayLen => stringify!(ArrayLen),
+        Operator::ArrayFill { .. } => stringify!(ArrayFill),
+        Operator::ArrayCopy { .. } => stringify!(ArrayCopy),
+        Operator::ArrayInitData { .. } => stringify!(ArrayInitData),
+        Operator::ArrayInitElem { .. } => stringify!(ArrayInitElem),
+        Operator::RefTestNonNull { .. } => stringify!(RefTestNonNull),
+        Operator::RefTestNullable { .. } => stringify!(RefTestNullable),
+        Operator::RefCastNonNull { .. } => stringify!(RefCastNonNull),
+        Operator::RefCastNullable { .. } => stringify!(RefCastNullable),
+        Operator::BrOnCast { .. } => stringify!(BrOnCast),
+        Operator::BrOnCastFail { .. } => stringify!(BrOnCastFail),
+        Operator::AnyConvertExtern => stringify!(AnyConvertExtern),
+        Operator::ExternConvertAny => stringify!(ExternConvertAny),
+        Operator::RefI31 => stringify!(RefI31),
+        Operator::I31GetS => stringify!(I31GetS),
+        Operator::I31GetU => stringify!(I31GetU),
+        Operator::MemoryDiscard { .. } => stringify!(MemoryDiscard),
+        Operator::I32x4RelaxedTruncF32x4S => stringify!(I32x4RelaxedTruncF32x4S),
+        Operator::I32x4RelaxedTruncF32x4U => stringify!(I32x4RelaxedTruncF32x4U),
+        Operator::I32x4RelaxedTruncF64x2SZero => stringify!(I32x4RelaxedTruncF64x2SZero),
+        Operator::I32x4RelaxedTruncF64x2UZero => stringify!(I32x4RelaxedTruncF64x2UZero),
+        Operator::F32x4RelaxedMadd => stringify!(F32x4RelaxedMadd),
+        Operator::F32x4RelaxedNmadd => stringify!(F32x4RelaxedNmadd),
+        Operator::F64x2RelaxedMadd => stringify!(F64x2RelaxedMadd),
+        Operator::F64x2RelaxedNmadd => stringify!(F64x2RelaxedNmadd),
+        Operator::I16x8RelaxedDotI8x16I7x16S => stringify!(I16x8RelaxedDotI8x16I7x16S),
+        Operator::I32x4RelaxedDotI8x16I7x16AddS => stringify!(I32x4RelaxedDotI8x16I7x16AddS),
+        Operator::CallRef { .. } => stringify!(CallRef),
+        Operator::ReturnCallRef { .. } => stringify!(ReturnCallRef),
+        Operator::RefAsNonNull => stringify!(RefAsNonNull),
+        Operator::BrOnNull { .. } => stringify!(BrOnNull),
+        Operator::BrOnNonNull { .. } => stringify!(BrOnNonNull),
     }
 }
 

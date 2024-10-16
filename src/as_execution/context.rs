@@ -1,7 +1,7 @@
 use super::abi::*;
 use super::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 use crate::types::Response;
-use crate::{GasCosts, Interface};
+use crate::{CondomLimits, GasCosts, Interface};
 use anyhow::{bail, Result};
 use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
 use wasmer::{
@@ -26,9 +26,10 @@ impl ASContext {
         interface: &dyn Interface,
         binary_module: Module,
         gas_costs: GasCosts,
+        condom_limits: CondomLimits,
     ) -> Self {
         Self {
-            env: ASEnv::new(interface, gas_costs),
+            env: ASEnv::new(interface, gas_costs, condom_limits),
             module: binary_module,
         }
     }

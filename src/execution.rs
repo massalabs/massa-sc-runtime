@@ -1,10 +1,10 @@
 use crate::as_execution::{exec_as_module, ASModule};
 use crate::error::VMResult;
 use crate::middlewares::gas_calibration::GasCalibrationResult;
-use crate::settings;
 use crate::types::{Interface, Response};
 use crate::wasmv1_execution::{exec_wasmv1_module, WasmV1Module};
 use crate::GasCosts;
+use crate::{settings, CondomLimits};
 use anyhow::{anyhow, Result};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
@@ -35,7 +35,12 @@ impl RuntimeModule {
     /// * (0): legacy AssemblyScript module
     /// * (1): new agnostic module
     /// * (_): unsupported module
-    pub fn new(bytecode: &[u8], gas_costs: GasCosts, compiler: Compiler) -> Result<Self> {
+    pub fn new(
+        bytecode: &[u8],
+        gas_costs: GasCosts,
+        compiler: Compiler,
+        condom_limits: CondomLimits,
+    ) -> Result<Self> {
         if bytecode.len() <= 2 {
             return Err(anyhow!("Too small bytecode"));
         }
@@ -54,6 +59,7 @@ impl RuntimeModule {
                 gas_costs.max_instance_cost,
                 gas_costs,
                 compiler,
+                condom_limits,
             )?)),
             RuntimeModuleId::WasmV1ModuleId => {
                 // Safe to use [1..] as we checked the bytecode length
@@ -63,6 +69,7 @@ impl RuntimeModule {
                     gas_costs.max_instance_cost,
                     gas_costs,
                     compiler,
+                    condom_limits,
                 )
                 .map_err(|err| anyhow!("Failed to compile WasmV1 module: {}", err))?;
                 Ok(Self::WasmV1Module(res))
@@ -95,7 +102,12 @@ impl RuntimeModule {
     }
 
     /// Deserialize a RuntimeModule
-    pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
+    pub fn deserialize(
+        ser_module: &[u8],
+        limit: u64,
+        gas_costs: GasCosts,
+        condom_limits: CondomLimits,
+    ) -> Result<Self> {
         let module_id = ser_module
             .first()
             .map(|&id| RuntimeModuleId::try_from(id))
@@ -103,10 +115,10 @@ impl RuntimeModule {
 
         match module_id {
             Some(RuntimeModuleId::ASModuleId) => Ok(RuntimeModule::ASModule(
-                ASModule::deserialize(&ser_module[1..], limit, gas_costs)?,
+                ASModule::deserialize(&ser_module[1..], limit, gas_costs, condom_limits)?,
             )),
             Some(RuntimeModuleId::WasmV1ModuleId) => Ok(RuntimeModule::WasmV1Module(
-                WasmV1Module::deserialize(&ser_module[1..], limit, gas_costs)?,
+                WasmV1Module::deserialize(&ser_module[1..], limit, gas_costs, condom_limits)?,
             )),
             None => Err(anyhow!("Empty bytecode")),
         }
@@ -130,15 +142,28 @@ pub(crate) fn exec(
     param: &[u8],
     limit: u64,
     gas_costs: GasCosts,
+    condom_limits: CondomLimits,
 ) -> VMResult<(Response, Option<GasCalibrationResult>)> {
     let response = match rt_module {
-        RuntimeModule::ASModule(module) => {
-            exec_as_module(interface, module, function, param, limit, gas_costs)?
-        }
-        RuntimeModule::WasmV1Module(module) => {
-            exec_wasmv1_module(interface, module, function, param, limit, gas_costs)
-                .map_err(|err| anyhow!("Failed to execute WasmV1 module: {}", err.to_string()))?
-        }
+        RuntimeModule::ASModule(module) => exec_as_module(
+            interface,
+            module,
+            function,
+            param,
+            limit,
+            gas_costs,
+            condom_limits,
+        )?,
+        RuntimeModule::WasmV1Module(module) => exec_wasmv1_module(
+            interface,
+            module,
+            function,
+            param,
+            limit,
+            gas_costs,
+            condom_limits,
+        )
+        .map_err(|err| anyhow!("Failed to execute WasmV1 module: {}", err.to_string()))?,
     };
     Ok(response)
 }
@@ -161,8 +186,18 @@ pub fn run_main(
     rt_module: RuntimeModule,
     limit: u64,
     gas_costs: GasCosts,
+    condom_limits: CondomLimits,
 ) -> VMResult<Response> {
-    Ok(exec(interface, rt_module, settings::MAIN, b"", limit, gas_costs)?.0)
+    Ok(exec(
+        interface,
+        rt_module,
+        settings::MAIN,
+        b"",
+        limit,
+        gas_costs,
+        condom_limits,
+    )?
+    .0)
 }
 
 /// Library Input, take a `module` wasm built with the massa environment,
@@ -183,8 +218,18 @@ pub fn run_function(
     param: &[u8],
     limit: u64,
     gas_costs: GasCosts,
+    condom_limits: CondomLimits,
 ) -> VMResult<Response> {
-    Ok(exec(interface, rt_module, function, param, limit, gas_costs)?.0)
+    Ok(exec(
+        interface,
+        rt_module,
+        function,
+        param,
+        limit,
+        gas_costs,
+        condom_limits,
+    )?
+    .0)
 }
 
 /// Same as run_main but return a GasCalibrationResult
@@ -195,6 +240,7 @@ pub fn run_main_gc(
     param: &[u8],
     limit: u64,
     gas_costs: GasCosts,
+    condom_limits: CondomLimits,
 ) -> VMResult<GasCalibrationResult> {
     Ok(exec(
         interface,
@@ -203,6 +249,7 @@ pub fn run_main_gc(
         param,
         limit,
         gas_costs,
+        condom_limits,
     )?
     .1
     .unwrap())
@@ -216,7 +263,14 @@ fn test_serialize_deserialize() {
     // ASModule
     {
         let module = RuntimeModule::ASModule(
-            ASModule::new(bytecode, 0, GasCosts::default(), Compiler::CL).unwrap(),
+            ASModule::new(
+                bytecode,
+                0,
+                GasCosts::default(),
+                Compiler::CL,
+                CondomLimits::default(),
+            )
+            .unwrap(),
         );
 
         let serialized = module.serialize().unwrap();
@@ -225,10 +279,15 @@ fn test_serialize_deserialize() {
             RuntimeModuleId::ASModuleId as u8
         );
 
-        let serialized2 = RuntimeModule::deserialize(&serialized, 0, GasCosts::default())
-            .unwrap()
-            .serialize()
-            .unwrap();
+        let serialized2 = RuntimeModule::deserialize(
+            &serialized,
+            0,
+            GasCosts::default(),
+            CondomLimits::default(),
+        )
+        .unwrap()
+        .serialize()
+        .unwrap();
 
         assert_eq!(serialized, serialized2);
     }
@@ -236,7 +295,14 @@ fn test_serialize_deserialize() {
     // WasmV1Module
     {
         let module = RuntimeModule::WasmV1Module(
-            WasmV1Module::compile(bytecode, 0, GasCosts::default(), Compiler::CL).unwrap(),
+            WasmV1Module::compile(
+                bytecode,
+                0,
+                GasCosts::default(),
+                Compiler::CL,
+                CondomLimits::default(),
+            )
+            .unwrap(),
         );
 
         let serialized = module.serialize().unwrap();
@@ -245,10 +311,15 @@ fn test_serialize_deserialize() {
             RuntimeModuleId::WasmV1ModuleId as u8
         );
 
-        let serialized2 = RuntimeModule::deserialize(&serialized, 0, GasCosts::default())
-            .unwrap()
-            .serialize()
-            .unwrap();
+        let serialized2 = RuntimeModule::deserialize(
+            &serialized,
+            0,
+            GasCosts::default(),
+            CondomLimits::default(),
+        )
+        .unwrap()
+        .serialize()
+        .unwrap();
 
         assert_eq!(serialized, serialized2);
     }
