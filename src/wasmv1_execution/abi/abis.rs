@@ -1026,6 +1026,7 @@ fn abi_get_deferred_call_quote(
             match interface.get_deferred_call_quote(
                 (target_slot.period, target_slot.thread as u8),
                 req.max_gas,
+                req.params_size,
             ) {
                 Ok((available, mut price)) => {
                     if !available {

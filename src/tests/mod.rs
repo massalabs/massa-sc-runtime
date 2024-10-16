@@ -814,10 +814,11 @@ impl Interface for TestInterface {
         &self,
         target_slot: (u64, u8),
         gas_limit: u64,
+        params_size: u64,
     ) -> Result<(bool, u64)> {
         println!(
-            "get_asc_call_fee: target_slot: {:?}, gas_limit: {}",
-            target_slot, gas_limit
+            "get_asc_call_fee: target_slot: {:?}, gas_limit: {}, params_size: {}",
+            target_slot, gas_limit, params_size
         );
         Ok((true, 0))
     }

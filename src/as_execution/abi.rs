@@ -1538,6 +1538,7 @@ pub(crate) fn assembly_script_get_deferred_call_quote(
     deferred_call_period: i64,
     deferred_call_thread: i32,
     max_gas: i64,
+    params_size: i64,
 ) -> ABIResult<u64> {
     let env = get_env(&ctx)?;
     sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
@@ -1554,9 +1555,14 @@ pub(crate) fn assembly_script_get_deferred_call_quote(
         Ok(g) => g,
         Err(_) => abi_bail!("negative max gas"),
     };
-    let (available, mut price) = env
-        .get_interface()
-        .get_deferred_call_quote(asc_slot, max_gas as u64)?;
+
+    let params_size: u64 = match params_size.try_into() {
+        Ok(p) => p,
+        Err(_) => abi_bail!("negative params size"),
+    };
+    let (available, mut price) =
+        env.get_interface()
+            .get_deferred_call_quote(asc_slot, max_gas, params_size)?;
     if !available {
         price = 0;
     }

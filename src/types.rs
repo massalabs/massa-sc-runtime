@@ -582,6 +582,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
         &self,
         target_slot: (u64, u8),
         gas_limit: u64,
+        params_size: u64,
     ) -> Result<(bool, u64)>;
 
     // Register a new deferred call and return his id
