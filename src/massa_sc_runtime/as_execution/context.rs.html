@@ -288,13 +288,10 @@
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
 <a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">super</span>::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 <span class="kw">use </span><span class="kw">crate</span>::types::Response;
-<span class="kw">use crate</span>::{GasCosts, Interface};
+<span class="kw">use crate</span>::{CondomLimits, GasCosts, Interface};
 <span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>as_ffi_bindings::{BufferPtr, Read <span class="kw">as </span>ASRead, Write <span class="kw">as </span>ASWrite};
 <span class="kw">use </span>wasmer::{
@@ -319,9 +316,10 @@
         interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
         binary_module: Module,
         gas_costs: GasCosts,
+        condom_limits: CondomLimits,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            env: ASEnv::new(interface, gas_costs),
+            env: ASEnv::new(interface, gas_costs, condom_limits),
             module: binary_module,
         }
     }
@@ -574,10 +572,6 @@
                 <span class="string">&quot;assembly_script_caller_has_write_access&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_caller_has_write_access),
                 <span class="string">&quot;assembly_script_function_exists&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_function_exists),
                 <span class="string">&quot;assembly_script_chain_id&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_chain_id),
-                <span class="string">&quot;assembly_script_get_deferred_call_quote&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_deferred_call_quote),
-                <span class="string">&quot;assembly_script_deferred_call_register&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_register),
-                <span class="string">&quot;assembly_script_deferred_call_exists&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_exists),
-                <span class="string">&quot;assembly_script_deferred_call_cancel&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_cancel),
             },
         };
 
