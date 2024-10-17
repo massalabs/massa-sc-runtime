@@ -341,6 +341,26 @@ impl Default for GasCosts {
             11,
         );
         GasCosts::try_insert(&mut h, String::from("assembly_script_function_exists"), 11);
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_get_deferred_call_quote"),
+            11,
+        );
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_deferred_call_register"),
+            11,
+        );
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_deferred_call_exists"),
+            11,
+        );
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_deferred_call_cancel"),
+            11,
+        );
         GasCosts::try_insert(&mut h, String::from("assembly_script_seed"), 11);
         GasCosts::try_insert(&mut h, String::from("assembly_script_abort"), 11);
         GasCosts::try_insert(&mut h, String::from("assembly_script_date_now"), 11);
