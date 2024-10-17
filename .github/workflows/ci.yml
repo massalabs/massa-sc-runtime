@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, staging, trying ]
   pull_request:
-    branches: [ main, 'testnet_*' ]
+    branches: [ main, 'next_breaking_update' ]
   merge_group:
     branches: [ main ]
 

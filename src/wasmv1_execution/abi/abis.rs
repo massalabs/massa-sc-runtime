@@ -156,6 +156,9 @@ fn abi_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, W
             let remaining_gas = handler.get_remaining_gas();
             let interface = handler.exec_env.get_interface();
             let module = helper_get_module(interface, bytecode, remaining_gas)?;
+            interface.increment_recursion_counter().map_err(|e| {
+                WasmV1Error::RuntimeError(format!("Could not increment recursion counter: {}", e))
+            })?;
             let response = crate::execution::run_function(
                 interface,
                 module,
@@ -163,8 +166,12 @@ fn abi_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, W
                 &req.function_arg,
                 remaining_gas,
                 handler.get_gas_costs().clone(),
+                handler.get_condom_limits().clone(),
             )
             .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
+            interface.decrement_recursion_counter().map_err(|e| {
+                WasmV1Error::RuntimeError(format!("Could not decrement recursion counter: {}", e))
+            })?;
             handler.set_remaining_gas(response.remaining_gas);
             let interface = handler.exec_env.get_interface();
             interface.finish_call().map_err(|err| {
@@ -205,7 +212,9 @@ fn abi_local_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<
             let remaining_gas = handler.get_remaining_gas();
             let interface = handler.exec_env.get_interface();
             let module = helper_get_module(interface, bytecode.clone(), remaining_gas)?;
-
+            interface.increment_recursion_counter().map_err(|e| {
+                WasmV1Error::RuntimeError(format!("Could not increment recursion counter: {}", e))
+            })?;
             let response = crate::execution::run_function(
                 interface,
                 module,
@@ -213,8 +222,12 @@ fn abi_local_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<
                 &req.function_arg,
                 remaining_gas,
                 handler.get_gas_costs().clone(),
+                handler.get_condom_limits().clone(),
             )
             .map_err(|err| WasmV1Error::RuntimeError(format!("Could not run function: {}", err)))?;
+            interface.decrement_recursion_counter().map_err(|e| {
+                WasmV1Error::RuntimeError(format!("Could not decrement recursion counter: {}", e))
+            })?;
             handler.set_remaining_gas(response.remaining_gas);
 
             #[cfg(feature = "execution-trace")]
@@ -1179,6 +1192,9 @@ fn abi_local_execution(
             let module = helper_get_tmp_module(handler, req.bytecode.clone(), remaining_gas)?;
 
             let interface = handler.exec_env.get_interface();
+            interface.increment_recursion_counter().map_err(|e| {
+                WasmV1Error::RuntimeError(format!("Could not increment recursion counter: {}", e))
+            })?;
             match crate::execution::run_function(
                 interface,
                 module,
@@ -1186,8 +1202,15 @@ fn abi_local_execution(
                 &req.function_arg,
                 remaining_gas,
                 handler.get_gas_costs().clone(),
+                handler.get_condom_limits().clone(),
             ) {
                 Ok(response) => {
+                    interface.decrement_recursion_counter().map_err(|e| {
+                        WasmV1Error::RuntimeError(format!(
+                            "Could not decrement recursion counter: {}",
+                            e
+                        ))
+                    })?;
                     handler.set_remaining_gas(response.remaining_gas);
 
                     #[cfg(feature = "execution-trace")]

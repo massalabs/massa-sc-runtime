@@ -1978,6 +1978,9 @@ fn alloc_string_array(ctx: &mut FunctionEnvMut<ASEnv>, vec: &[String]) -> ABIRes
 /// Flatten a Vec<Vec<u8>> (or anything that can be turned into an iterator) to
 /// a Vec<u8> with the format: L (32 bits LE) V1_L (8 bits) V1 (8bits * V1_L),
 /// V2_L ... VN (8 bits * VN_L)
+/// Edge cases:
+/// Serializing an empty vec![] will return an empty vec![] and not [0, 0, 0, 0]
+/// See also unit tests: test_ser_edge_cases
 fn ser_bytearray_vec<'a, I>(data: I, data_len: usize, max_length: usize) -> ABIResult<Vec<u8>>
 where
     I: IntoIterator<Item = &'a Vec<u8>>,
@@ -2032,27 +2035,40 @@ mod tests {
         let vb: Vec<Vec<u8>> = vec![vec![1, 2, 3], vec![255]];
 
         let vb_ser = ser_bytearray_vec(&vb, vb.len(), 10).unwrap();
+        // Expected:
+        // L: 2, 0, 0, 0 == 2 as u32 (little endian)
+        // V1L: 3 as u8
+        // V1 values: 1, 2, 3
+        // V2L: 1 as u8
+        // V2 values: 255
         assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 1, 255]);
     }
 
     #[test]
     fn test_ser_edge_cases() {
-        // FIXME: should we support theses edge cases or bail?
-
+        // Serializing some values with one as an empty vec
         let vb: Vec<Vec<u8>> = vec![vec![1, 2, 3], vec![]];
 
         let vb_ser = ser_bytearray_vec(&vb, vb.len(), 10).unwrap();
+        // Expected:
+        // L: 2, 0, 0, 0 == 2 as u32 (little endian)
+        // V1L: 3 as u8
+        // V1 values: 1, 2, 3 (little endian)
+        // V2L: 0 as u8
+        // V2 values: None
         assert_eq!(vb_ser, [2, 0, 0, 0, 3, 1, 2, 3, 0]);
 
+        // Serializing with invalid max_length
         let vb_ser = ser_bytearray_vec(&vb, vb.len(), 1);
         assert!(vb_ser.is_err());
 
+        // Serializing an empty vec
         let vb: Vec<Vec<u8>> = vec![];
         let vb_ser = ser_bytearray_vec(&vb, vb.len(), 10).unwrap();
         let empty_vec: Vec<u8> = vec![];
         assert_eq!(vb_ser, empty_vec);
 
-        // A really big vec to serialize
+        // A huge vec to serialize
         let vb: Vec<Vec<u8>> = (0..=u8::MAX)
             .cycle()
             .take(u16::MAX as usize)

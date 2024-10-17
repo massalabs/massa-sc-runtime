@@ -38,6 +38,8 @@ pub(crate) fn call_module(
             )))
         })?;
 
+    interface.increment_recursion_counter()?;
+
     let resp = crate::execution::run_function(
         &*interface,
         module,
@@ -45,10 +47,13 @@ pub(crate) fn call_module(
         param,
         remaining_gas,
         env.get_gas_costs(),
+        env.get_condom_limits(),
     )?;
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.remaining_gas)?;
     }
+
+    interface.decrement_recursion_counter()?;
     env.get_interface().finish_call()?;
     Ok(resp)
 }
@@ -72,6 +77,8 @@ pub(crate) fn local_call(
         interface.get_module(bytecode, remaining_gas)?
     };
 
+    interface.increment_recursion_counter()?;
+
     let resp = crate::execution::run_function(
         &*interface,
         module,
@@ -79,7 +86,11 @@ pub(crate) fn local_call(
         param,
         remaining_gas,
         gas_costs,
+        env.get_condom_limits(),
     )?;
+
+    interface.decrement_recursion_counter()?;
+
     if cfg!(not(feature = "gas_calibration")) {
         set_remaining_points(&env, ctx, resp.remaining_gas)?;
     }

@@ -30,8 +30,10 @@ impl ModuleMiddleware for Dumper {
         Box::new(FunctionDumper {})
     }
 
-    fn transform_module_info(&self, _module_info: &mut ModuleInfo) {
+    fn transform_module_info(&self, _module_info: &mut ModuleInfo) -> Result<(), MiddlewareError> {
         println!("Transform module info...");
+
+        Ok(())
     }
 }
 

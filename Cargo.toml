@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
-as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", tag = "v0.5.5" }
+as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", branch = "feature/update_wasmer_4_3_4" }
 base64 = "=0.21"
 chrono = { version = "=0.4", features = ["clock"], default-features = false }
 displaydoc = "0.2"
@@ -15,8 +15,8 @@ massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", rev 
 more-asserts = "0.3"
 num_enum = "0.7"
 parking_lot = "0.12"
-prost = "=0.12"
-prost-types = "=0.12"
+prost = "=0.13"
+prost-types = "=0.13"
 rand = "=0.8"
 # for gas_calibration middleware
 regex = "1"
@@ -27,15 +27,19 @@ sha2 = "=0.10.8"
 sha3 = "=0.10.8"
 thiserror = "1.0"
 tracing = "0.1"
-wasmer = { version = "=4.2.4", features = ["static-artifact-create"] }
-wasmer-compiler-cranelift = "=4.2.4"
-wasmer-compiler-singlepass = "=4.2.4"
-wasmer-middlewares = "=4.2.4"
-wasmer-types = "=4.2.4"
+wasmer = { version = "=4.3.6", features = ["static-artifact-create"] }
+wasmer-compiler-cranelift = "=4.3.6"
+wasmer-compiler-singlepass = "=4.3.6"
+wasmer-middlewares = "=4.3.6"
+wasmer-types = "=4.3.6"
 rust_decimal = { version = "1.32", default-features = false, optional = true }
 
 [dev-dependencies]
 bs58 = { version = "=0.5.0", features = ["check"] }
+sysinfo = "0.31"
+num-format = { version = "0.4.4", features = ["with-system-locale"] }
+# winapi dep for num-format dependency to compile, see from: https://github.com/bcmyers/num-format/issues/43
+winapi = { version="0.3.9", features=["errhandlingapi"] }
 
 [build-dependencies]
 serde = "=1.0"
