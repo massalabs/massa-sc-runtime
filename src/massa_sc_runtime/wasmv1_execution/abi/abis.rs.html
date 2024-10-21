@@ -2985,7 +2985,7 @@
                             exec_env.trace.push(AbiTrace {
                                 name: <span class="macro">function_name!</span>().to_string(),
                                 params,
-                                return_value: AbiTraceType::String(call_id),
+                                return_value: AbiTraceType::String(call_id.clone()),
                                 sub_calls: <span class="prelude-val">None</span>,
                             });
                         }
