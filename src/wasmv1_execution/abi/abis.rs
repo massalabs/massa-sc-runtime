@@ -1006,7 +1006,7 @@ fn abi_deferred_call_register(
                             exec_env.trace.push(AbiTrace {
                                 name: function_name!().to_string(),
                                 params,
-                                return_value: AbiTraceType::String(call_id),
+                                return_value: AbiTraceType::String(call_id.clone()),
                                 sub_calls: None,
                             });
                         }
