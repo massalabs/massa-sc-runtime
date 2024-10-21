@@ -2923,7 +2923,7 @@
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                     <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
                     </span>{
-                        <span class="kw">let </span>params = <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(req.call_id)];
+                        <span class="kw">let </span>params = <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(call_id)];
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                             exec_env.trace.push(AbiTrace {
                                 name: <span class="macro">function_name!</span>().to_string(),
