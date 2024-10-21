@@ -944,7 +944,7 @@ fn abi_deferred_call_cancel(
                 Ok(_) => {
                     #[cfg(feature = "execution-trace")]
                     {
-                        let params = vec![into_trace_value!(req.call_id)];
+                        let params = vec![into_trace_value!(call_id)];
                         if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                             exec_env.trace.push(AbiTrace {
                                 name: function_name!().to_string(),
