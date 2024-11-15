@@ -38,6 +38,7 @@ pub struct ASEnv {
     param_size_map: HashMap<String, Option<Global>>,
     #[cfg(feature = "execution-trace")]
     pub trace: Vec<AbiTrace>,
+    execution_component_version: u32,
 }
 
 impl ASEnv {
@@ -57,6 +58,7 @@ impl ASEnv {
             condom_limits,
             #[cfg(feature = "execution-trace")]
             trace: Default::default(),
+            execution_component_version: interface.get_interface_version().unwrap_or(0),
         }
     }
     pub fn get_interface(&self) -> Box<dyn Interface> {
@@ -86,6 +88,9 @@ impl Metered for ASEnv {
     fn get_condom_limits(&self) -> CondomLimits {
         self.condom_limits.clone()
     }
+    fn get_execution_component_version(&self) -> u32 {
+        self.execution_component_version
+    }
 }
 
 /// Trait describing a metered object.
@@ -97,6 +102,7 @@ pub(crate) trait Metered {
     fn get_gc_param(&self, name: &str) -> Option<&Global>;
     fn get_gas_costs(&self) -> GasCosts;
     fn get_condom_limits(&self) -> CondomLimits;
+    fn get_execution_component_version(&self) -> u32;
 }
 
 /// Get remaining metering points.
@@ -182,6 +188,20 @@ pub(crate) fn sub_remaining_gas_abi(
     store: &mut impl AsStoreMut,
     abi_name: &str,
 ) -> ABIResult<()> {
+    let execution_component_version = env.get_execution_component_version();
+    let previously_missing_abis = vec![
+        "assembly_script_console_log",
+        "assembly_script_console_info",
+        "assembly_script_console_debug",
+        "assembly_script_console_warn",
+        "assembly_script_console_error",
+        "assembly_script_trace",
+    ];
+    if execution_component_version == 0 && previously_missing_abis.contains(&abi_name) {
+        return Err(super::ABIError::RuntimeError(wasmer::RuntimeError::new(
+            format!("Failed to get gas for {} ABI", abi_name),
+        )));
+    }
     sub_remaining_gas(
         env,
         store,
