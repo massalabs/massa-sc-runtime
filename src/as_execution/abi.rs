@@ -1544,13 +1544,13 @@ pub fn assembly_script_abort(
     line: i32,
     col: i32,
 ) -> ABIResult<()> {
-    let memory = ctx
+    let Some(memory) = ctx
         .data()
         .get_ffi_env()
         .memory
-        .as_ref()
-        .expect("Failed to get memory on env")
-        .clone();
+        .as_ref() else {
+        abi_bail!("aborting failed to get memory on env")
+    };
     let message_ = message
         .read(&memory, &ctx)
         .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
