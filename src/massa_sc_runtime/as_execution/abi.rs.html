@@ -1928,10 +1928,6 @@
 <a href="#1928" id="1928">1928</a>
 <a href="#1929" id="1929">1929</a>
 <a href="#1930" id="1930">1930</a>
-<a href="#1931" id="1931">1931</a>
-<a href="#1932" id="1932">1932</a>
-<a href="#1933" id="1933">1933</a>
-<a href="#1934" id="1934">1934</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -3478,13 +3474,9 @@
     line: i32,
     col: i32,
 ) -&gt; ABIResult&lt;()&gt; {
-    <span class="kw">let </span>memory = ctx
-        .data()
-        .get_ffi_env()
-        .memory
-        .as_ref()
-        .expect(<span class="string">&quot;Failed to get memory on env&quot;</span>)
-        .clone();
+    <span class="kw">let </span><span class="prelude-val">Some</span>(memory) = ctx.data().get_ffi_env().memory.as_ref() <span class="kw">else </span>{
+        <span class="macro">abi_bail!</span>(<span class="string">&quot;aborting failed to get memory in env&quot;</span>)
+    };
     <span class="kw">let </span>message_ = message
         .read(<span class="kw-2">&amp;</span>memory, <span class="kw-2">&amp;</span>ctx)
         .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
