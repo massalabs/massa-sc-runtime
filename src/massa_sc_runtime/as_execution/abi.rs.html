@@ -3458,9 +3458,9 @@
     line: i32,
     col: i32,
 ) -&gt; ABIResult&lt;()&gt; {
-    <span class="kw">let </span><span class="prelude-val">Some</span>(memory) = ctx.data().get_ffi_env().memory.as_ref() <span class="kw">else </span>{
-        <span class="macro">abi_bail!</span>(<span class="string">&quot;aborting failed to get memory in env&quot;</span>)
-    };
+    <span class="kw">let </span>env = ctx.data();
+    <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
+
     <span class="kw">let </span>message_ = message
         .read(<span class="kw-2">&amp;</span>memory, <span class="kw-2">&amp;</span>ctx)
         .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
