@@ -287,11 +287,10 @@
 <a href="#287" id="287">287</a>
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">super</span>::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 <span class="kw">use </span><span class="kw">crate</span>::types::Response;
-<span class="kw">use crate</span>::{CondomLimits, GasCosts, Interface};
+<span class="kw">use crate</span>::{GasCosts, Interface};
 <span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>as_ffi_bindings::{BufferPtr, Read <span class="kw">as </span>ASRead, Write <span class="kw">as </span>ASWrite};
 <span class="kw">use </span>wasmer::{
@@ -316,10 +315,9 @@
         interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface,
         binary_module: Module,
         gas_costs: GasCosts,
-        condom_limits: CondomLimits,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            env: ASEnv::new(interface, gas_costs, condom_limits),
+            env: ASEnv::new(interface, gas_costs),
             module: binary_module,
         }
     }
