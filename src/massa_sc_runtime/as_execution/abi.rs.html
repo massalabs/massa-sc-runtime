@@ -3478,10 +3478,10 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
 
     <span class="kw">let </span>message_ = message
-        .read(<span class="kw-2">&amp;</span>memory, <span class="kw-2">&amp;</span>ctx)
+        .read(memory, <span class="kw-2">&amp;</span>ctx)
         .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
     <span class="kw">let </span>filename_ = filename
-        .read(<span class="kw-2">&amp;</span>memory, <span class="kw-2">&amp;</span>ctx)
+        .read(memory, <span class="kw-2">&amp;</span>ctx)
         .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
 
     <span class="kw">if </span>message_.is_err() || filename_.is_err() {
