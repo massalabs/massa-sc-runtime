@@ -1548,10 +1548,10 @@ pub fn assembly_script_abort(
     let memory = get_memory!(env);
 
     let message_ = message
-        .read(&memory, &ctx)
+        .read(memory, &ctx)
         .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
     let filename_ = filename
-        .read(&memory, &ctx)
+        .read(memory, &ctx)
         .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
 
     if message_.is_err() || filename_.is_err() {
