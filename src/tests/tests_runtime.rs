@@ -920,6 +920,53 @@ fn test_class_id() {
     assert_eq!(array_class_id, 4);
 }
 
+#[test]
+#[serial]
+fn test_abort_does_not_panic() {
+    // AS source code for reference
+    // ```ts
+    //import { u256 } from 'as-bignum/assembly';
+    //const test = u256.from<string>('1982982');
+    //export function main(_args: StaticArray<u8>): void {
+    //}
+    // ```
+    // The above code fails in the start method, causing wasmer to abort the
+    // initialization of the module, hence returning memory as None that caused
+    // a panic
+
+    let interface: Box<dyn Interface> = Box::new(TestInterface);
+    let bytecode = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/abort_crash.wasm"
+    ));
+
+    let module = ASModule::new(
+        bytecode,
+        100_000,
+        GasCosts::default(),
+        Compiler::SP,
+    )
+    .unwrap();
+    let mut store = Store::new(module._engine);
+    let mut context = ASContext::new(
+        &*interface,
+        module.binary_module,
+        GasCosts::default(),
+    );
+    let create_vm_instance_and_init_env = context.create_vm_instance_and_init_env(&mut store);
+    match create_vm_instance_and_init_env {
+        Ok(_) => {
+            panic!("Expected an error")
+        }
+        Err(e) => {
+            assert_eq!(
+                e.to_string(),
+                "RuntimeError: Runtime error: AssemblyScript memory is missing from the environment"
+            )
+        }
+    }
+}
+
 #[cfg(feature = "execution-trace")]
 #[test]
 #[serial]
