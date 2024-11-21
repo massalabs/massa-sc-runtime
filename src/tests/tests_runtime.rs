@@ -940,19 +940,9 @@ fn test_abort_does_not_panic() {
         "/wasm/abort_crash.wasm"
     ));
 
-    let module = ASModule::new(
-        bytecode,
-        100_000,
-        GasCosts::default(),
-        Compiler::SP,
-    )
-    .unwrap();
+    let module = ASModule::new(bytecode, 100_000, GasCosts::default(), Compiler::SP).unwrap();
     let mut store = Store::new(module._engine);
-    let mut context = ASContext::new(
-        &*interface,
-        module.binary_module,
-        GasCosts::default(),
-    );
+    let mut context = ASContext::new(&*interface, module.binary_module, GasCosts::default());
     let create_vm_instance_and_init_env = context.create_vm_instance_and_init_env(&mut store);
     match create_vm_instance_and_init_env {
         Ok(_) => {
