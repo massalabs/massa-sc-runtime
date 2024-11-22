@@ -54,7 +54,7 @@ impl ModuleMiddleware for GasCalibration {
         })
     }
 
-    fn transform_module_info(&self, module_info: &mut ModuleInfo) {
+    fn transform_module_info(&self, module_info: &mut ModuleInfo) -> Result<(), MiddlewareError> {
         let current = Instant::now();
 
         let mut global_indexes = self.global_indexes.lock().unwrap();
@@ -171,7 +171,9 @@ impl ModuleMiddleware for GasCalibration {
         // println!("Time elapsed in {}() is: {:?}", "transform_module_info",
         // duration);
 
-        *global_indexes = Some(indexes)
+        *global_indexes = Some(indexes);
+
+        Ok(())
     }
 }
 

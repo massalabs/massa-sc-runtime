@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use super::{ffi::Ffi, WasmV1Error};
-use crate::types::Interface;
 use crate::GasCosts;
+use crate::{types::Interface, CondomLimits};
 use parking_lot::Mutex;
 use wasmer::{AsStoreMut, AsStoreRef, Imports, Instance, InstantiationError, TypedFunction};
 use wasmer_middlewares::metering::{self, MeteringPoints};
@@ -27,6 +27,9 @@ pub struct ExecutionEnv {
     ffi: Ffi,
     /// Gas cost of instance creation
     init_gas_cost: u64,
+    /// Maximum number of exports
+    condom_limits: CondomLimits,
+
     #[cfg(feature = "execution-trace")]
     pub trace: Vec<AbiTrace>,
 }
@@ -40,6 +43,7 @@ impl ExecutionEnv {
         interface: &dyn Interface,
         gas_costs: GasCosts,
         import_object: &Imports,
+        condom_limits: CondomLimits,
     ) -> Result<Self, WasmV1Error> {
         // Create the instance
         let instance = match Instance::new(store, &module.binary_module, import_object) {
@@ -92,6 +96,7 @@ impl ExecutionEnv {
             instance,
             ffi,
             init_gas_cost,
+            condom_limits,
             #[cfg(feature = "execution-trace")]
             trace: Default::default(),
         })
@@ -196,6 +201,11 @@ impl ExecutionEnv {
     /// Get gas costs.
     pub fn get_gas_costs(&self) -> &GasCosts {
         &self.gas_costs
+    }
+
+    /// Get the condom limits.
+    pub fn get_condom_limits(&self) -> &CondomLimits {
+        &self.condom_limits
     }
 
     /// Get the memory maximum size in bytes
