@@ -344,22 +344,22 @@ impl Default for GasCosts {
         GasCosts::try_insert(
             &mut h,
             String::from("assembly_script_get_deferred_call_quote"),
-            11,
+            244,
         );
         GasCosts::try_insert(
             &mut h,
             String::from("assembly_script_deferred_call_register"),
-            11,
+            530,
         );
         GasCosts::try_insert(
             &mut h,
             String::from("assembly_script_deferred_call_exists"),
-            11,
+            1316,
         );
         GasCosts::try_insert(
             &mut h,
             String::from("assembly_script_deferred_call_cancel"),
-            11,
+            833,
         );
         GasCosts::try_insert(&mut h, String::from("assembly_script_seed"), 11);
         GasCosts::try_insert(&mut h, String::from("assembly_script_abort"), 11);
@@ -458,6 +458,10 @@ impl Default for GasCosts {
         GasCosts::try_insert(&mut h, String::from("abi_caller_has_write_access"), 30);
         GasCosts::try_insert(&mut h, String::from("abi_local_execution"), 30);
         GasCosts::try_insert(&mut h, String::from("abi_checked_mul_native_time"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_deferred_call_cancel"), 750);
+        GasCosts::try_insert(&mut h, String::from("abi_deferred_call_exists"), 443);
+        GasCosts::try_insert(&mut h, String::from("abi_deferred_call_register"), 745);
+        GasCosts::try_insert(&mut h, String::from("abi_get_deferred_call_quote"), 416);
 
         Self {
             abi_costs: h,
