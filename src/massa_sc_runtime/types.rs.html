@@ -904,6 +904,10 @@
 <a href="#904" id="904">904</a>
 <a href="#905" id="905">905</a>
 <a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{anyhow, bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
@@ -1250,22 +1254,22 @@
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
             String::from(<span class="string">&quot;assembly_script_get_deferred_call_quote&quot;</span>),
-            <span class="number">11</span>,
+            <span class="number">244</span>,
         );
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
             String::from(<span class="string">&quot;assembly_script_deferred_call_register&quot;</span>),
-            <span class="number">11</span>,
+            <span class="number">530</span>,
         );
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
             String::from(<span class="string">&quot;assembly_script_deferred_call_exists&quot;</span>),
-            <span class="number">11</span>,
+            <span class="number">1316</span>,
         );
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
             String::from(<span class="string">&quot;assembly_script_deferred_call_cancel&quot;</span>),
-            <span class="number">11</span>,
+            <span class="number">833</span>,
         );
         GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_seed&quot;</span>), <span class="number">11</span>);
         GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_abort&quot;</span>), <span class="number">11</span>);
@@ -1364,6 +1368,10 @@
         GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_caller_has_write_access&quot;</span>), <span class="number">30</span>);
         GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_local_execution&quot;</span>), <span class="number">30</span>);
         GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_checked_mul_native_time&quot;</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_deferred_call_cancel&quot;</span>), <span class="number">750</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_deferred_call_exists&quot;</span>), <span class="number">443</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_deferred_call_register&quot;</span>), <span class="number">745</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_deferred_call_quote&quot;</span>), <span class="number">416</span>);
 
         <span class="self">Self </span>{
             abi_costs: h,
