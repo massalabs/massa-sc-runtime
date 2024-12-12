@@ -1,7 +1,7 @@
 use super::abi::*;
 use super::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
 use crate::types::Response;
-use crate::{GasCosts, Interface};
+use crate::{CondomLimits, GasCosts, Interface};
 use anyhow::{bail, Result};
 use as_ffi_bindings::{BufferPtr, Read as ASRead, Write as ASWrite};
 use wasmer::{
@@ -26,9 +26,10 @@ impl ASContext {
         interface: &dyn Interface,
         binary_module: Module,
         gas_costs: GasCosts,
+        condom_limits: CondomLimits,
     ) -> Self {
         Self {
-            env: ASEnv::new(interface, gas_costs),
+            env: ASEnv::new(interface, gas_costs, condom_limits),
             module: binary_module,
         }
     }
@@ -281,6 +282,10 @@ impl ASContext {
                 "assembly_script_caller_has_write_access" => Function::new_typed_with_env(store, &fenv, assembly_script_caller_has_write_access),
                 "assembly_script_function_exists" => Function::new_typed_with_env(store, &fenv, assembly_script_function_exists),
                 "assembly_script_chain_id" => Function::new_typed_with_env(store, &fenv, assembly_script_chain_id),
+                "assembly_script_get_deferred_call_quote" => Function::new_typed_with_env(store, &fenv, assembly_script_get_deferred_call_quote),
+                "assembly_script_deferred_call_register" => Function::new_typed_with_env(store, &fenv, assembly_script_deferred_call_register),
+                "assembly_script_deferred_call_exists" => Function::new_typed_with_env(store, &fenv, assembly_script_deferred_call_exists),
+                "assembly_script_deferred_call_cancel" => Function::new_typed_with_env(store, &fenv, assembly_script_deferred_call_cancel),
             },
         };
 

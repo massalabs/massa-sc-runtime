@@ -6,16 +6,21 @@ mod error;
 
 use crate::error::{exec_bail, VMResult};
 use crate::execution::Compiler;
+use crate::middlewares::condom::CondomMiddleware;
 use crate::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
 use crate::middlewares::{dumper::Dumper, gas_calibration::GasCalibration};
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
-use crate::{GasCosts, Interface, Response};
+use crate::{CondomLimits, GasCosts, Interface, Response};
 use anyhow::Result;
 use std::sync::Arc;
 use wasmer::NativeEngineExt;
-use wasmer::{wasmparser::Operator, BaseTunables, Engine, EngineBuilder, Pages, Target};
-use wasmer::{CompilerConfig, Cranelift, Features, Module, Store};
+use wasmer::{sys::Features, CompilerConfig, Cranelift, Module, Store};
+use wasmer::{
+    sys::{BaseTunables, EngineBuilder},
+    wasmparser::Operator,
+    Engine, Pages, Target,
+};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::metering::MeteringPoints;
 use wasmer_middlewares::{metering, Metering};
@@ -39,10 +44,11 @@ impl ASModule {
         limit: u64,
         gas_costs: GasCosts,
         compiler: Compiler,
+        condom_limits: CondomLimits,
     ) -> Result<Self> {
         let engine = match compiler {
-            Compiler::CL => init_cl_engine(limit, gas_costs),
-            Compiler::SP => init_sp_engine(limit, gas_costs),
+            Compiler::CL => init_cl_engine(limit, gas_costs, condom_limits),
+            Compiler::SP => init_sp_engine(limit, gas_costs, condom_limits),
         };
         Ok(Self {
             binary_module: Module::new(&engine, bytecode)?,
@@ -61,9 +67,14 @@ impl ASModule {
         }
     }
 
-    pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
+    pub fn deserialize(
+        ser_module: &[u8],
+        limit: u64,
+        gas_costs: GasCosts,
+        condom_limits: CondomLimits,
+    ) -> Result<Self> {
         // Deserialization is only meant for Cranelift modules
-        let engine = init_cl_engine(limit, gas_costs);
+        let engine = init_cl_engine(limit, gas_costs, condom_limits);
         let store = Store::new(engine.clone());
         // Unsafe because code injection is possible
         // That's not an issue because we only deserialize modules we have
@@ -111,7 +122,11 @@ const FEATURES: Features = Features {
     extended_const: false,  // experimental
 };
 
-pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
+pub(crate) fn init_sp_engine(
+    limit: u64,
+    gas_costs: GasCosts,
+    condom_limits: CondomLimits,
+) -> Engine {
     // Singlepass is used to compile arbitrary bytecode.
     //
     // Reference:
@@ -120,6 +135,9 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
 
     // Canonicalize NaN
     compiler_config.canonicalize_nans(true);
+
+    // Add condom middleware
+    compiler_config.push_middleware(Arc::new(CondomMiddleware::new(condom_limits)));
 
     if cfg!(feature = "gas_calibration") {
         // Add gas calibration middleware
@@ -145,7 +163,11 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     engine
 }
 
-pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
+pub(crate) fn init_cl_engine(
+    limit: u64,
+    gas_costs: GasCosts,
+    condom_limits: CondomLimits,
+) -> Engine {
     // Cranelift is used to compile bytecode that will be cached.
     //
     // Reference:
@@ -154,6 +176,9 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
 
     // Canonicalize NaN
     compiler_config.canonicalize_nans(true);
+
+    // Add condom middleware
+    compiler_config.push_middleware(Arc::new(CondomMiddleware::new(condom_limits)));
 
     if cfg!(feature = "gas_calibration") {
         // Add gas calibration middleware
@@ -203,13 +228,19 @@ pub(crate) fn exec_as_module(
     param: &[u8],
     limit: u64,
     gas_costs: GasCosts,
+    condom_limits: CondomLimits,
 ) -> VMResult<(Response, Option<GasCalibrationResult>)> {
     let engine = match as_module.compiler {
-        Compiler::CL => init_cl_engine(limit, gas_costs.clone()),
-        Compiler::SP => init_sp_engine(limit, gas_costs.clone()),
+        Compiler::CL => init_cl_engine(limit, gas_costs.clone(), condom_limits.clone()),
+        Compiler::SP => init_sp_engine(limit, gas_costs.clone(), condom_limits.clone()),
     };
     let mut store = Store::new(engine);
-    let mut context = ASContext::new(interface, as_module.binary_module, gas_costs);
+    let mut context = ASContext::new(
+        interface,
+        as_module.binary_module,
+        gas_costs,
+        condom_limits.clone(),
+    );
 
     // save the gas remaining before sub-execution: used by readonly execution
     interface.save_gas_remaining_before_subexecution(limit);
