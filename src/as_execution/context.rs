@@ -282,6 +282,10 @@ impl ASContext {
                 "assembly_script_caller_has_write_access" => Function::new_typed_with_env(store, &fenv, assembly_script_caller_has_write_access),
                 "assembly_script_function_exists" => Function::new_typed_with_env(store, &fenv, assembly_script_function_exists),
                 "assembly_script_chain_id" => Function::new_typed_with_env(store, &fenv, assembly_script_chain_id),
+                "assembly_script_get_deferred_call_quote" => Function::new_typed_with_env(store, &fenv, assembly_script_get_deferred_call_quote),
+                "assembly_script_deferred_call_register" => Function::new_typed_with_env(store, &fenv, assembly_script_deferred_call_register),
+                "assembly_script_deferred_call_exists" => Function::new_typed_with_env(store, &fenv, assembly_script_deferred_call_exists),
+                "assembly_script_deferred_call_cancel" => Function::new_typed_with_env(store, &fenv, assembly_script_deferred_call_cancel),
             },
         };
 

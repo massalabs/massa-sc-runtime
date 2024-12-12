@@ -80,6 +80,10 @@ pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imp
         "abi_compare_native_time" => abi_compare_native_time,
         "abi_compare_pub_key" => abi_compare_pub_key,
         "abi_create_sc" => abi_create_sc,
+        "abi_deferred_call_cancel" => abi_deferred_call_cancel,
+        "abi_get_deferred_call_quote" => abi_get_deferred_call_quote,
+        "abi_deferred_call_exists" => abi_deferred_call_exists,
+        "abi_deferred_call_register" => abi_deferred_call_register,
         "abi_delete_ds_entry" => abi_delete_ds_entry,
         "abi_div_rem_native_amount" => abi_div_rem_native_amount,
         "abi_ds_entry_exists" => abi_ds_entry_exists,
@@ -916,6 +920,159 @@ fn abi_get_native_time(
                 Ok(time) => {
                     resp_ok!(GetNativeTimeResult, { time: Some(NativeTime { milliseconds: time }) })
                 }
+            }
+        },
+    )
+}
+
+#[named]
+fn abi_deferred_call_cancel(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        function_name!(),
+        store_env,
+        arg_offset,
+        |handler, req: DeferredCallCancelRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Some(call_id) = req.call_id else {
+                return resp_err!("Call ID is required");
+            };
+
+            let interface: &dyn Interface = handler.exec_env.get_interface();
+            match interface.deferred_call_cancel(&call_id) {
+                Ok(_) => {
+                    #[cfg(feature = "execution-trace")]
+                    {
+                        let params = vec![into_trace_value!(call_id)];
+                        if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
+                            exec_env.trace.push(AbiTrace {
+                                name: function_name!().to_string(),
+                                params,
+                                return_value: AbiTraceType::None,
+                                sub_calls: None,
+                            });
+                        }
+                    }
+
+                    resp_ok!(DeferredCallCancelResult, {})
+                }
+                Err(e) => resp_err!(e),
+            }
+        },
+    )
+}
+
+#[named]
+fn abi_deferred_call_register(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        function_name!(),
+        store_env,
+        arg_offset,
+        |handler, req: DeferredCallRegisterRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Some(target_slot) = req.target_slot else {
+                return resp_err!("Target slot is required");
+            };
+
+            let Ok(target_thread): Result<u8, _> = target_slot.thread.try_into() else {
+                return resp_err!("Invalid target thread");
+            };
+
+            let interface = handler.exec_env.get_interface();
+            match interface.deferred_call_register(
+                &req.target_address,
+                &req.target_function,
+                (target_slot.period, target_thread),
+                req.max_gas,
+                &req.params,
+                req.coins,
+            ) {
+                Ok(call_id) => {
+                    #[cfg(feature = "execution-trace")]
+                    {
+                        let params = vec![
+                            into_trace_value!(req.target_address),
+                            into_trace_value!(req.target_function),
+                            into_trace_value!(target_slot.period),
+                            into_trace_value!(target_slot.thread),
+                            into_trace_value!(req.max_gas),
+                            into_trace_value!(req.coins),
+                            into_trace_value!(req.params),
+                        ];
+                        if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
+                            exec_env.trace.push(AbiTrace {
+                                name: function_name!().to_string(),
+                                params,
+                                return_value: AbiTraceType::String(call_id.clone()),
+                                sub_calls: None,
+                            });
+                        }
+                    }
+
+                    resp_ok!(DeferredCallRegisterResult, {call_id: Some(call_id)})
+                }
+                Err(e) => resp_err!(e),
+            }
+        },
+    )
+}
+
+#[named]
+fn abi_get_deferred_call_quote(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        function_name!(),
+        store_env,
+        arg_offset,
+        |handler, req: DeferredCallQuoteRequest| -> Result<AbiResponse, WasmV1Error> {
+            let interface = handler.exec_env.get_interface();
+
+            let Some(target_slot) = req.target_slot else {
+                return resp_err!("Target slot is required");
+            };
+
+            match interface.get_deferred_call_quote(
+                (target_slot.period, target_slot.thread as u8),
+                req.max_gas,
+                req.params_size,
+            ) {
+                Ok((available, mut price)) => {
+                    if !available {
+                        price = 0;
+                    }
+                    resp_ok!(DeferredCallQuoteResult, { available, cost: price })
+                }
+                Err(e) => resp_err!(e),
+            }
+        },
+    )
+}
+
+#[named]
+fn abi_deferred_call_exists(
+    store_env: FunctionEnvMut<ABIEnv>,
+    arg_offset: i32,
+) -> Result<i32, WasmV1Error> {
+    handle_abi(
+        function_name!(),
+        store_env,
+        arg_offset,
+        |handler, req: DeferredCallExistsRequest| -> Result<AbiResponse, WasmV1Error> {
+            let Some(call_id) = req.call_id else {
+                return resp_err!("Call ID is required");
+            };
+
+            let interface = handler.exec_env.get_interface();
+            match interface.deferred_call_exists(&call_id) {
+                Ok(exists) => {
+                    resp_ok!(DeferredCallExistsResult, { call_exists: exists })
+                }
+                Err(e) => resp_err!(e),
             }
         },
     )

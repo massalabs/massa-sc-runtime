@@ -341,6 +341,26 @@ impl Default for GasCosts {
             11,
         );
         GasCosts::try_insert(&mut h, String::from("assembly_script_function_exists"), 11);
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_get_deferred_call_quote"),
+            244,
+        );
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_deferred_call_register"),
+            530,
+        );
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_deferred_call_exists"),
+            1316,
+        );
+        GasCosts::try_insert(
+            &mut h,
+            String::from("assembly_script_deferred_call_cancel"),
+            833,
+        );
         GasCosts::try_insert(&mut h, String::from("assembly_script_seed"), 11);
         GasCosts::try_insert(&mut h, String::from("assembly_script_abort"), 11);
         GasCosts::try_insert(&mut h, String::from("assembly_script_date_now"), 11);
@@ -438,6 +458,10 @@ impl Default for GasCosts {
         GasCosts::try_insert(&mut h, String::from("abi_caller_has_write_access"), 30);
         GasCosts::try_insert(&mut h, String::from("abi_local_execution"), 30);
         GasCosts::try_insert(&mut h, String::from("abi_checked_mul_native_time"), 30);
+        GasCosts::try_insert(&mut h, String::from("abi_deferred_call_cancel"), 750);
+        GasCosts::try_insert(&mut h, String::from("abi_deferred_call_exists"), 443);
+        GasCosts::try_insert(&mut h, String::from("abi_deferred_call_register"), 745);
+        GasCosts::try_insert(&mut h, String::from("abi_get_deferred_call_quote"), 416);
 
         Self {
             abi_costs: h,
@@ -736,6 +760,31 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     // Return the current chain id
     fn chain_id(&self) -> Result<u64>;
+
+    // Return a boolean that determine if there is place in this slot and an amount of fee needed to take the space
+    fn get_deferred_call_quote(
+        &self,
+        target_slot: (u64, u8),
+        gas_limit: u64,
+        params_size: u64,
+    ) -> Result<(bool, u64)>;
+
+    // Register a new deferred call and return his id
+    fn deferred_call_register(
+        &self,
+        target_addr: &str,
+        target_func: &str,
+        target_slot: (u64, u8),
+        max_gas: u64,
+        params: &[u8],
+        coins: u64,
+    ) -> Result<String>;
+
+    // Return true if the current deferred call exists
+    fn deferred_call_exists(&self, id: &str) -> Result<bool>;
+
+    // Cancel a deferred call (will return the coins)
+    fn deferred_call_cancel(&self, id: &str) -> Result<()>;
 
     fn native_amount_from_str_wasmv1(&self, amount: &str) -> Result<NativeAmount>;
 

@@ -11,8 +11,7 @@ chrono = { version = "=0.4", features = ["clock"], default-features = false }
 displaydoc = "0.2"
 function_name = "0.3"
 loupe = "0.1"
-massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", branch = "mainnet_2_3" }
-# massa-proto-rs = { path = "../massa-proto-rs" }
+massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", rev = "b5267178eaf266ec724691d7de163e4c34343416" }
 more-asserts = "0.3"
 num_enum = "0.7"
 parking_lot = "0.12"
@@ -40,7 +39,7 @@ bs58 = { version = "=0.5.0", features = ["check"] }
 sysinfo = "0.31"
 num-format = { version = "0.4.4", features = ["with-system-locale"] }
 # winapi dep for num-format dependency to compile, see from: https://github.com/bcmyers/num-format/issues/43
-winapi = { version="0.3.9", features=["errhandlingapi"] }
+winapi = { version = "0.3.9", features = ["errhandlingapi"] }
 
 [build-dependencies]
 serde = "=1.0"

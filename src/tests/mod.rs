@@ -836,6 +836,45 @@ impl Interface for TestInterface {
     fn save_gas_remaining_before_subexecution(&self, gas_used_until: u64) {
         println!("save_gas_remaining_before_subexecution: {}", gas_used_until);
     }
+
+    fn get_deferred_call_quote(
+        &self,
+        target_slot: (u64, u8),
+        gas_limit: u64,
+        params_size: u64,
+    ) -> Result<(bool, u64)> {
+        println!(
+            "get_asc_call_fee: target_slot: {:?}, gas_limit: {}, params_size: {}",
+            target_slot, gas_limit, params_size
+        );
+        Ok((true, 0))
+    }
+
+    fn deferred_call_register(
+        &self,
+        target_addr: &str,
+        target_func: &str,
+        target_slot: (u64, u8),
+        max_gas: u64,
+        params: &[u8],
+        coins: u64,
+    ) -> Result<String> {
+        println!(
+            "asc_call_register: target_slot: {:?}, target_addr: {}, target_func: {}, params: {:?}, coins: {}, max_gas: {}",
+            target_slot, target_addr, target_func, params, coins, max_gas
+        );
+        Ok("sample_test_id".to_string())
+    }
+
+    fn deferred_call_exists(&self, id: &str) -> Result<bool> {
+        println!("asc_call_exists: id: {:?}", id);
+        Ok(true)
+    }
+
+    fn deferred_call_cancel(&self, id: &str) -> Result<()> {
+        println!("asc_call_cancel: id: {:?}", id);
+        Ok(())
+    }
 }
 
 #[cfg(feature = "gas_calibration")]
