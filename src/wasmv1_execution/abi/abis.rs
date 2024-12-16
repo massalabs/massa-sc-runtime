@@ -43,7 +43,11 @@ macro_rules! resp_ok {
 }
 
 /// Register all ABIs to a store
-pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imports {
+pub fn register_abis(
+    store: &mut impl AsStoreMut,
+    shared_abi_env: ABIEnv,
+    interface_version: u32,
+) -> Imports {
     let fn_env = FunctionEnv::new(store, shared_abi_env);
 
     // helper macro to ease the construction of the imports
@@ -57,7 +61,7 @@ pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imp
         };
     }
 
-    abis!(
+    let mut imports = abis!(
         "abi_abort" => abi_abort,
         "abi_add_native_amount" => abi_add_native_amount,
         "abi_address_from_public_key" => abi_address_from_public_key,
@@ -80,10 +84,6 @@ pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imp
         "abi_compare_native_time" => abi_compare_native_time,
         "abi_compare_pub_key" => abi_compare_pub_key,
         "abi_create_sc" => abi_create_sc,
-        "abi_deferred_call_cancel" => abi_deferred_call_cancel,
-        "abi_get_deferred_call_quote" => abi_get_deferred_call_quote,
-        "abi_deferred_call_exists" => abi_deferred_call_exists,
-        "abi_deferred_call_register" => abi_deferred_call_register,
         "abi_delete_ds_entry" => abi_delete_ds_entry,
         "abi_div_rem_native_amount" => abi_div_rem_native_amount,
         "abi_ds_entry_exists" => abi_ds_entry_exists,
@@ -128,7 +128,21 @@ pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imp
         "abi_evm_get_pubkey_from_signature" => abi_evm_get_pubkey_from_signature,
         "abi_is_address_eoa" => abi_is_address_eoa,
         "abi_chain_id" => abi_chain_id
-    )
+    );
+
+    if interface_version > 0 {
+        imports.extend(
+            abis!(
+                "abi_deferred_call_cancel" => abi_deferred_call_cancel,
+                "abi_get_deferred_call_quote" => abi_get_deferred_call_quote,
+                "abi_deferred_call_exists" => abi_deferred_call_exists,
+                "abi_deferred_call_register" => abi_deferred_call_register
+            )
+            .into_iter(),
+        );
+    }
+
+    imports
 }
 
 /// Call another smart contract
