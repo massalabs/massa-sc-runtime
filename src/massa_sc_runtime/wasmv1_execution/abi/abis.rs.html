@@ -1977,6 +1977,20 @@
 <a href="#1977" id="1977">1977</a>
 <a href="#1978" id="1978">1978</a>
 <a href="#1979" id="1979">1979</a>
+<a href="#1980" id="1980">1980</a>
+<a href="#1981" id="1981">1981</a>
+<a href="#1982" id="1982">1982</a>
+<a href="#1983" id="1983">1983</a>
+<a href="#1984" id="1984">1984</a>
+<a href="#1985" id="1985">1985</a>
+<a href="#1986" id="1986">1986</a>
+<a href="#1987" id="1987">1987</a>
+<a href="#1988" id="1988">1988</a>
+<a href="#1989" id="1989">1989</a>
+<a href="#1990" id="1990">1990</a>
+<a href="#1991" id="1991">1991</a>
+<a href="#1992" id="1992">1992</a>
+<a href="#1993" id="1993">1993</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{
     <span class="kw">super</span>::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
@@ -2022,7 +2036,11 @@
 }
 
 <span class="doccomment">/// Register all ABIs to a store
-</span><span class="kw">pub fn </span>register_abis(store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut, shared_abi_env: ABIEnv) -&gt; Imports {
+</span><span class="kw">pub fn </span>register_abis(
+    store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
+    shared_abi_env: ABIEnv,
+    interface_version: u32,
+) -&gt; Imports {
     <span class="kw">let </span>fn_env = FunctionEnv::new(store, shared_abi_env);
 
     <span class="comment">// helper macro to ease the construction of the imports
@@ -2036,7 +2054,7 @@
         };
     }
 
-    <span class="macro">abis!</span>(
+    <span class="kw">let </span><span class="kw-2">mut </span>imports = <span class="macro">abis!</span>(
         <span class="string">&quot;abi_abort&quot; </span>=&gt; abi_abort,
         <span class="string">&quot;abi_add_native_amount&quot; </span>=&gt; abi_add_native_amount,
         <span class="string">&quot;abi_address_from_public_key&quot; </span>=&gt; abi_address_from_public_key,
@@ -2059,10 +2077,6 @@
         <span class="string">&quot;abi_compare_native_time&quot; </span>=&gt; abi_compare_native_time,
         <span class="string">&quot;abi_compare_pub_key&quot; </span>=&gt; abi_compare_pub_key,
         <span class="string">&quot;abi_create_sc&quot; </span>=&gt; abi_create_sc,
-        <span class="string">&quot;abi_deferred_call_cancel&quot; </span>=&gt; abi_deferred_call_cancel,
-        <span class="string">&quot;abi_get_deferred_call_quote&quot; </span>=&gt; abi_get_deferred_call_quote,
-        <span class="string">&quot;abi_deferred_call_exists&quot; </span>=&gt; abi_deferred_call_exists,
-        <span class="string">&quot;abi_deferred_call_register&quot; </span>=&gt; abi_deferred_call_register,
         <span class="string">&quot;abi_delete_ds_entry&quot; </span>=&gt; abi_delete_ds_entry,
         <span class="string">&quot;abi_div_rem_native_amount&quot; </span>=&gt; abi_div_rem_native_amount,
         <span class="string">&quot;abi_ds_entry_exists&quot; </span>=&gt; abi_ds_entry_exists,
@@ -2107,7 +2121,21 @@
         <span class="string">&quot;abi_evm_get_pubkey_from_signature&quot; </span>=&gt; abi_evm_get_pubkey_from_signature,
         <span class="string">&quot;abi_is_address_eoa&quot; </span>=&gt; abi_is_address_eoa,
         <span class="string">&quot;abi_chain_id&quot; </span>=&gt; abi_chain_id
-    )
+    );
+
+    <span class="kw">if </span>interface_version &gt; <span class="number">0 </span>{
+        imports.extend(
+            <span class="macro">abis!</span>(
+                <span class="string">&quot;abi_deferred_call_cancel&quot; </span>=&gt; abi_deferred_call_cancel,
+                <span class="string">&quot;abi_get_deferred_call_quote&quot; </span>=&gt; abi_get_deferred_call_quote,
+                <span class="string">&quot;abi_deferred_call_exists&quot; </span>=&gt; abi_deferred_call_exists,
+                <span class="string">&quot;abi_deferred_call_register&quot; </span>=&gt; abi_deferred_call_register
+            )
+            .into_iter(),
+        );
+    }
+
+    imports
 }
 
 <span class="doccomment">/// Call another smart contract
