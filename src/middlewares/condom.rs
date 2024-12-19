@@ -965,20 +965,7 @@ mod tests {
     #[test]
     fn test_condom_middleware_exceeds_custom_sections_limit_max() {
         // NOTE:
-        // custom section can't be generated in wat
-        // external tools are needed.
-        // - first `wat2wasm simple.wat -o simple-name.wasm --debug-names` add a
-        //   `name` custom section useful for debugging.
-        // - then `https://wasmer.io/liftm/wasm-custom-section` allows to add
-        //   other custom sections.
-        //
-        // current example contains:
-        // wasm-custom-section simple-custom-section.wasm list
-        // Section `name` (21 bytes)
-        // Section `1` (2 bytes)
-        // Section `2` (2 bytes)
-        // Section `3` (2 bytes)
-        // Section `3` (11 bytes)
+        // simple-custom-section.wasm can be generated in massa-unit-test-src repository
 
         let condom_limits = CondomLimits {
             max_custom_sections_len: Some(2),
@@ -1013,20 +1000,7 @@ mod tests {
     #[test]
     fn test_condom_middleware_exceeds_custom_sections_data_limit_max() {
         // NOTE:
-        // custom section can't be generated in wat
-        // external tools are needed.
-        // - first `wat2wasm simple.wat -o simple-name.wasm --debug-names` add a
-        //   `name` custom section useful for debugging.
-        // - then `https://wasmer.io/liftm/wasm-custom-section` allows to add
-        //   other custom sections.
-        //
-        // current example contains:
-        // wasm-custom-section simple-custom-section.wasm list
-        // Section `name` (21 bytes)
-        // Section `1` (2 bytes)
-        // Section `2` (2 bytes)
-        // Section `3` (2 bytes)
-        // Section `3` (11 bytes)
+        // simple-custom-section.wasm can be generated in massa-unit-test-src repository
 
         let condom_limits = CondomLimits {
             max_custom_sections_data_len: Some(9),
