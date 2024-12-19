@@ -6,20 +6,25 @@ mod ffi;
 use self::env::{ABIEnv, ExecutionEnv};
 use crate::error::VMResult;
 use crate::execution::Compiler;
+use crate::middlewares::condom::CondomMiddleware;
 use crate::middlewares::gas_calibration::{
     get_gas_calibration_result, GasCalibration, GasCalibrationResult,
 };
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
-use crate::{GasCosts, Interface, Response, VMError};
+use crate::{CondomLimits, GasCosts, Interface, Response, VMError};
 use abi::*;
 use anyhow::Result;
 pub(crate) use error::*;
 use parking_lot::Mutex;
 use std::sync::Arc;
 use wasmer::NativeEngineExt;
-use wasmer::{wasmparser::Operator, BaseTunables, EngineBuilder, Pages, Target};
-use wasmer::{CompilerConfig, Cranelift, Engine, Features, Module, Store};
+use wasmer::{sys::Features, CompilerConfig, Cranelift, Engine, Module, Store};
+use wasmer::{
+    sys::{BaseTunables, EngineBuilder},
+    wasmparser::Operator,
+    Pages, Target,
+};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
 
@@ -39,10 +44,11 @@ impl WasmV1Module {
         limit: u64,
         gas_costs: GasCosts,
         compiler: Compiler,
+        condom_limits: CondomLimits,
     ) -> Result<Self, WasmV1Error> {
         let engine = match compiler {
-            Compiler::CL => init_cl_engine(limit, gas_costs),
-            Compiler::SP => init_sp_engine(limit, gas_costs),
+            Compiler::CL => init_cl_engine(limit, gas_costs, condom_limits),
+            Compiler::SP => init_sp_engine(limit, gas_costs, condom_limits),
         };
         let binary_module = match Module::new(&engine, bytecode) {
             Ok(module) => module,
@@ -76,9 +82,14 @@ impl WasmV1Module {
     }
 
     /// Deserialize a module
-    pub fn deserialize(ser_module: &[u8], limit: u64, gas_costs: GasCosts) -> Result<Self> {
+    pub fn deserialize(
+        ser_module: &[u8],
+        limit: u64,
+        gas_costs: GasCosts,
+        condom_limits: CondomLimits,
+    ) -> Result<Self> {
         // Deserialization is only meant for Cranelift modules
-        let engine = init_cl_engine(limit, gas_costs);
+        let engine = init_cl_engine(limit, gas_costs, condom_limits);
         let store = Store::new(engine.clone());
         // Unsafe because code injection is possible
         // That's not an issue because we only deserialize modules we have
@@ -129,7 +140,11 @@ const FEATURES: Features = Features {
     extended_const: false,  // experimental
 };
 
-pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
+pub(crate) fn init_sp_engine(
+    limit: u64,
+    gas_costs: GasCosts,
+    condom_limits: CondomLimits,
+) -> Engine {
     // Singlepass is used to compile arbitrary bytecode.
     //
     // Reference:
@@ -138,7 +153,7 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
 
     // Canonicalize NaN
     compiler_config.canonicalize_nans(true);
-    add_middleware(&mut compiler_config, limit, gas_costs);
+    add_middleware(&mut compiler_config, limit, gas_costs, condom_limits);
 
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
@@ -152,7 +167,11 @@ pub(crate) fn init_sp_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     engine
 }
 
-pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
+pub(crate) fn init_cl_engine(
+    limit: u64,
+    gas_costs: GasCosts,
+    condom_limits: CondomLimits,
+) -> Engine {
     // Cranelift is used to compile bytecode that will be cached.
     //
     // Reference:
@@ -161,7 +180,7 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
 
     // Canonicalize NaN
     compiler_config.canonicalize_nans(true);
-    add_middleware(&mut compiler_config, limit, gas_costs);
+    add_middleware(&mut compiler_config, limit, gas_costs, condom_limits);
 
     let base = BaseTunables::for_target(&Target::default());
     let tunables = LimitingTunables::new(base, Pages(max_number_of_pages()));
@@ -175,10 +194,18 @@ pub(crate) fn init_cl_engine(limit: u64, gas_costs: GasCosts) -> Engine {
     engine
 }
 
-fn add_middleware<T>(compiler_config: &mut T, limit: u64, gas_costs: GasCosts)
-where
+fn add_middleware<T>(
+    compiler_config: &mut T,
+    limit: u64,
+    gas_costs: GasCosts,
+    condom_limits: CondomLimits,
+) where
     T: CompilerConfig,
 {
+    // Add condom middleware
+    let condom_middleware = Arc::new(CondomMiddleware::new(condom_limits));
+    compiler_config.push_middleware(condom_middleware);
+
     if cfg!(feature = "gas_calibration") {
         // Add gas calibration middleware
         let gas_calibration = Arc::new(GasCalibration::new());
@@ -199,30 +226,40 @@ pub(crate) fn exec_wasmv1_module(
     param: &[u8],
     gas_limit: u64,
     gas_costs: GasCosts,
+    condom_limits: CondomLimits,
 ) -> VMResult<(Response, Option<GasCalibrationResult>)> {
     // Init store
     let engine = match module.compiler {
-        Compiler::CL => init_cl_engine(gas_limit, gas_costs.clone()),
-        Compiler::SP => init_sp_engine(gas_limit, gas_costs.clone()),
+        Compiler::CL => init_cl_engine(gas_limit, gas_costs.clone(), condom_limits.clone()),
+        Compiler::SP => init_sp_engine(gas_limit, gas_costs.clone(), condom_limits.clone()),
     };
     let mut store = Store::new(engine);
 
     // Create the ABI imports and pass them an empty environment for now
     let shared_abi_env: ABIEnv = Arc::new(Mutex::new(None));
-    let import_object = register_abis(&mut store, shared_abi_env.clone());
+
+    let interface_version = interface.get_interface_version().unwrap_or(0);
+
+    let import_object = register_abis(&mut store, shared_abi_env.clone(), interface_version);
 
     // save the gas remaining before subexecution: used by readonly execution
     interface.save_gas_remaining_before_subexecution(gas_limit);
 
     // Create an instance of the execution environment.
-    let execution_env =
-        ExecutionEnv::create_instance(&mut store, &module, interface, gas_costs, &import_object)
-            .map_err(|err| {
-                VMError::InstanceError(format!(
-                    "Failed to create instance of execution environment: {}",
-                    err
-                ))
-            })?;
+    let execution_env = ExecutionEnv::create_instance(
+        &mut store,
+        &module,
+        interface,
+        gas_costs,
+        &import_object,
+        condom_limits,
+    )
+    .map_err(|err| {
+        VMError::InstanceError(format!(
+            "Failed to create instance of execution environment: {}",
+            err
+        ))
+    })?;
 
     // Get gas cost of instance creation
     let init_gas_cost = execution_env.get_init_gas_cost();
