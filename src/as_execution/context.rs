@@ -89,6 +89,8 @@ impl ASContext {
                 bail!("Not enough gas to launch the virtual machine")
             }
             set_remaining_points(&self.env, store, remaining_gas - metering_initial_cost)?;
+
+            println!(">>>>> Remaining gas after init: {}", remaining_gas - metering_initial_cost);
         }
         // Now can exec
         let wasm_func = instance.exports.get_function(function)?;
@@ -110,6 +112,8 @@ impl ASContext {
                     } else {
                         get_remaining_points(&self.env, store)
                     };
+
+                    println!(">>>>> Remaining gas after main: {:?}", remaining_gas);
 
                     return Ok(Response {
                         ret: Vec::new(), // main return empty vec
@@ -135,13 +139,15 @@ impl ASContext {
                 } else {
                     get_remaining_points(&self.env, store)
                 };
-                Ok(Response {
+                let response = Response {
                     ret,
                     remaining_gas: remaining_gas?,
                     init_gas_cost: 0,
                     #[cfg(feature = "execution-trace")]
                     trace: Default::default(),
-                })
+                };
+                println!(">>>> Response: {:?}", response);
+                Ok(response)
             }
             Err(error) => bail!(error),
         }
