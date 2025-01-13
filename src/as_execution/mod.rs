@@ -13,6 +13,7 @@ use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::{CondomLimits, GasCosts, Interface, Response};
 use anyhow::Result;
+use tracing::field::debug;
 use std::sync::Arc;
 use wasmer::NativeEngineExt;
 use wasmer::{sys::Features, CompilerConfig, Cranelift, Module, Store};
@@ -230,6 +231,9 @@ pub(crate) fn exec_as_module(
     gas_costs: GasCosts,
     condom_limits: CondomLimits,
 ) -> VMResult<(Response, Option<GasCalibrationResult>)> {
+    println!(">>>>>>>> A => {:?}", limit);
+    println!(">>>>>>>> B => {:?}", gas_costs);
+
     let engine = match as_module.compiler {
         Compiler::CL => init_cl_engine(limit, gas_costs.clone(), condom_limits.clone()),
         Compiler::SP => init_sp_engine(limit, gas_costs.clone(), condom_limits.clone()),
@@ -247,8 +251,9 @@ pub(crate) fn exec_as_module(
 
     let (instance, _fenv, init_rem_points) = context.create_vm_instance_and_init_env(&mut store)?;
     let init_cost = as_module.initial_limit.saturating_sub(init_rem_points);
-
+    println!(">>>>>>>> C => {:?}", init_cost);
     if cfg!(not(feature = "gas_calibration")) {
+        println!(">>>>>>>> D => {:?}", limit.saturating_sub(init_cost));
         metering::set_remaining_points(&mut store, &instance, limit.saturating_sub(init_cost));
     }
 
@@ -265,6 +270,8 @@ pub(crate) fn exec_as_module(
             {
                 response.trace = _fenv.as_ref(&store).trace.clone();
             }
+
+            println!(">>>>>>>> E => {:?}", response);
 
             Ok((response, gc_result))
         }
