@@ -230,6 +230,19 @@ impl GasCosts {
 
     #[cfg(any(test, feature = "gas_calibration", feature = "testing"))]
     pub fn get_abi_costs(&self) -> &HashMap<String, u64> {
+
+        #[cfg(test)]
+        println!("Massa-sc-runtime: cfg(test) is ENABLED");
+        #[cfg(not(test))]
+        println!("Massa-sc-runtime: cfg(test) is DISABLED");
+        #[cfg(feature = "gas_calibration")]
+        println!("Massa-sc-runtime: cfg(test) is ENABLED");
+        #[cfg(not(feature = "gas_calibration"))]
+        println!("Massa-sc-runtime: cfg(test) is DISABLED");
+        #[cfg(feature = "testing")]
+        println!("Massa-sc-runtime: cfg(test) is ENABLED");
+        #[cfg(not(feature = "testing"))]
+        println!("Massa-sc-runtime: cfg(test) is DISABLED");
         &self.abi_costs
     }
 
