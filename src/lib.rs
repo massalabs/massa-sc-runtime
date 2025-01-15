@@ -12,6 +12,13 @@ pub use execution::{run_function, run_main};
 pub use execution::{Compiler, RuntimeModule};
 pub use types::*;
 
+pub fn print_feat() {
+    #[cfg(feature = "gas_calibration")]
+    println!("Massa-sc-runtime - Running WITH gas_calibration feature");
+    #[cfg(not(feature = "gas_calibration"))]
+    println!("Massa-sc-runtime - Running WITHOUT gas_calibration feature");
+}
+
 #[cfg(feature = "gas_calibration")]
 pub use execution::run_main_gc;
 #[cfg(feature = "gas_calibration")]
