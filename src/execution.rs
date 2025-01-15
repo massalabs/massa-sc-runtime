@@ -41,6 +41,12 @@ impl RuntimeModule {
         compiler: Compiler,
         condom_limits: CondomLimits,
     ) -> Result<Self> {
+
+        #[cfg(feature = "gas_calibration")]
+        println!("Massa-sc-runtime - Running WITH gas_calibration feature");
+        #[cfg(not(feature = "gas_calibration"))]
+        println!("Massa-sc-runtime - Running WITHOUT gas_calibration feature");
+
         if bytecode.len() <= 2 {
             return Err(anyhow!("Too small bytecode"));
         }
