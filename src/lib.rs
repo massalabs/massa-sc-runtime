@@ -24,7 +24,7 @@ pub fn print_feats() {
     #[cfg(feature = "testing")]
     println!("Massa-sc-runtime print_feats: cfg(testing) is ENABLED");
     #[cfg(not(feature = "testing"))]
-    println!("Massa-sc-runtime: cfg(testing) is DISABLED");
+    println!("Massa-sc-runtime print_feats: cfg(testing) is DISABLED");
 }
 
 #[cfg(feature = "gas_calibration")]

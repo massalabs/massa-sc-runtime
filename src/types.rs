@@ -235,14 +235,17 @@ impl GasCosts {
         println!("Massa-sc-runtime: cfg(test) is ENABLED");
         #[cfg(not(test))]
         println!("Massa-sc-runtime: cfg(test) is DISABLED");
+
         #[cfg(feature = "gas_calibration")]
-        println!("Massa-sc-runtime: cfg(test) is ENABLED");
+        println!("Massa-sc-runtime: cfg(gas_calibration) is ENABLED");
         #[cfg(not(feature = "gas_calibration"))]
-        println!("Massa-sc-runtime: cfg(test) is DISABLED");
+        println!("Massa-sc-runtime: cfg(gas_calibration) is DISABLED");
+
         #[cfg(feature = "testing")]
-        println!("Massa-sc-runtime: cfg(test) is ENABLED");
+        println!("Massa-sc-runtime: cfg(testing) is ENABLED");
         #[cfg(not(feature = "testing"))]
-        println!("Massa-sc-runtime: cfg(test) is DISABLED");
+        println!("Massa-sc-runtime: cfg(testing) is DISABLED");
+
         &self.abi_costs
     }
 
