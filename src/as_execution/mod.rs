@@ -285,6 +285,8 @@ pub(crate) fn exec_as_module(
             if cfg!(feature = "gas_calibration") {
                 exec_bail!(err, init_cost)
             } else {
+                // some error need to be handled carefully (depth error)
+                // hence we match on the error type to handle specific cases
                 match err {
                     VMError::DepthError(e) => Err(VMError::DepthError(e)),
                     _ => {
@@ -292,8 +294,6 @@ pub(crate) fn exec_as_module(
                         // should have an error.
                         match metering::get_remaining_points(&mut store, &instance) {
                             MeteringPoints::Remaining(..) => {
-                                dbg!();
-                                println!("bail for err `{}`", err);
                                 exec_bail!(err, init_cost)
                             }
                             MeteringPoints::Exhausted => {
