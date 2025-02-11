@@ -1,4 +1,3 @@
-use anyhow::{anyhow, bail, Result};
 use massa_proto_rs::massa::model::v1::{
     AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
 };
@@ -9,6 +8,48 @@ use std::{
 };
 
 use crate::execution::RuntimeModule;
+
+use displaydoc::Display;
+use thiserror::Error;
+
+#[derive(Error, Display, Debug)]
+pub enum InterfaceError {
+    /// IO error: {0}
+    IoError(#[from] std::io::Error),
+    /// Utf8 error: {0}
+    Utf8Error(#[from] std::str::Utf8Error),
+    /// Serde error: {0}
+    SerdeError(#[from] serde_json::Error),
+    /// Gas calibration error {0}
+    GasCalibrationError(String),
+    /// Interface generic error {0}
+    GenericError(String),
+    /// Interface depth error {0}
+    DepthError(String),
+}
+pub type Result<T, E = InterfaceError> = core::result::Result<T, E>;
+
+impl From<&str> for InterfaceError {
+    fn from(msg: &str) -> Self {
+        Self::GenericError(msg.to_owned())
+    }
+}
+
+impl From<String> for InterfaceError {
+    fn from(msg: String) -> Self {
+        Self::GenericError(msg)
+    }
+}
+
+#[macro_export]
+macro_rules! bail {
+    ($msg:literal $(,)?) => {
+        return Err(InterfaceError::GenericError($msg.to_string()))
+    };
+    ($fmt:expr, $($arg:tt)*) => {
+        return Err(InterfaceError::GenericError(format!($fmt, $($arg)*)))
+    };
+}
 
 #[cfg(feature = "execution-trace")]
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -212,18 +253,24 @@ impl GasCosts {
             //       The gas calibration for wasm operators is very incomplete for now and should be reworked
             //       See: https://github.com/massalabs/gas-calibration/issues/9
             operator_cost: 23,
-            launch_cost: *abi_costs
-                .get("launch")
-                .ok_or_else(|| anyhow!("launch cost not found in ABI gas cost file."))?,
-            cl_compilation_cost: *abi_costs
-                .get("cl_compilation")
-                .ok_or_else(|| anyhow!("cl_compilation cost not found in ABI gas cost file."))?,
-            sp_compilation_cost: *abi_costs
-                .get("sp_compilation")
-                .ok_or_else(|| anyhow!("sp_compilation cost not found in ABI gas cost file."))?,
-            max_instance_cost: *abi_costs
-                .get("max_instance")
-                .ok_or_else(|| anyhow!("max_instance cost not found in ABI gas cost file."))?,
+            launch_cost: *abi_costs.get("launch").ok_or_else(|| {
+                InterfaceError::GasCalibrationError("launch cost not found in ABI gas cost file.".into())
+            })?,
+            cl_compilation_cost: *abi_costs.get("cl_compilation").ok_or_else(|| {
+                InterfaceError::GasCalibrationError(
+                    "cl_compilation cost not found in ABI gas cost file.".into(),
+                )
+            })?,
+            sp_compilation_cost: *abi_costs.get("sp_compilation").ok_or_else(|| {
+                InterfaceError::GasCalibrationError(
+                    "sp_compilation cost not found in ABI gas cost file.".into(),
+                )
+            })?,
+            max_instance_cost: *abi_costs.get("max_instance").ok_or_else(|| {
+                InterfaceError::GasCalibrationError(
+                    "max_instance cost not found in ABI gas cost file.".into(),
+                )
+            })?,
             abi_costs,
         })
     }
@@ -526,7 +573,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Get the amount of coins that have been made available for use by the
     /// caller of the currently executing code.
     fn get_call_coins(&self) -> Result<u64> {
-        bail!("unimplemented function get_call_coins_for in interface")
+        Err(InterfaceError::GenericError(
+            "unimplemented function get_call_coins_for in interface".into(),
+        ))
     }
 
     /// Get the native amount of coins that have been made available for use by

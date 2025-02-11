@@ -131,15 +131,12 @@ pub fn register_abis(
     );
 
     if interface_version > 0 {
-        imports.extend(
-            abis!(
-                "abi_deferred_call_cancel" => abi_deferred_call_cancel,
-                "abi_get_deferred_call_quote" => abi_get_deferred_call_quote,
-                "abi_deferred_call_exists" => abi_deferred_call_exists,
-                "abi_deferred_call_register" => abi_deferred_call_register
-            )
-            .into_iter(),
-        );
+        imports.extend(&abis!(
+            "abi_deferred_call_cancel" => abi_deferred_call_cancel,
+            "abi_get_deferred_call_quote" => abi_get_deferred_call_quote,
+            "abi_deferred_call_exists" => abi_deferred_call_exists,
+            "abi_deferred_call_register" => abi_deferred_call_register
+        ));
     }
 
     imports

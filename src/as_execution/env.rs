@@ -189,7 +189,7 @@ pub(crate) fn sub_remaining_gas_abi(
     abi_name: &str,
 ) -> ABIResult<()> {
     let execution_component_version = env.get_execution_component_version();
-    let previously_missing_abis = vec![
+    let previously_missing_abis = [
         "assembly_script_console_log",
         "assembly_script_console_info",
         "assembly_script_console_debug",
@@ -198,9 +198,10 @@ pub(crate) fn sub_remaining_gas_abi(
         "assembly_script_trace",
     ];
     if execution_component_version == 0 && previously_missing_abis.contains(&abi_name) {
-        return Err(super::ABIError::RuntimeError(wasmer::RuntimeError::new(
-            format!("Failed to get gas for {} ABI", abi_name),
-        )));
+        return Err(super::ABIError::RuntimeError(
+            wasmer::RuntimeError::new(format!("Failed to get gas for {} ABI", abi_name))
+                .to_string(),
+        ));
     }
     sub_remaining_gas(
         env,

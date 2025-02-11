@@ -3,8 +3,8 @@ use crate::error::VMResult;
 use crate::middlewares::gas_calibration::GasCalibrationResult;
 use crate::types::{Interface, Response};
 use crate::wasmv1_execution::{exec_wasmv1_module, WasmV1Module};
-use crate::GasCosts;
 use crate::{settings, CondomLimits};
+use crate::{GasCosts, VMError};
 use anyhow::{anyhow, Result};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
@@ -163,7 +163,12 @@ pub(crate) fn exec(
             gas_costs,
             condom_limits,
         )
-        .map_err(|err| anyhow!("Failed to execute WasmV1 module: {}", err.to_string()))?,
+        .map_err(|err| {
+            VMError::InstanceError(format!(
+                "Failed to execute WasmV1 module: {}",
+                err
+            ))
+        })?,
     };
     Ok(response)
 }

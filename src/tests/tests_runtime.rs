@@ -1223,7 +1223,7 @@ fn test_features_disabled() {
             // println!("Error: {}", e);
             assert!(e
                 .to_string()
-                .starts_with("Validation error: SIMD support is not enabled"));
+                .starts_with("VM instance error: Validation error: SIMD support is not enabled"));
         }
         _ => panic!("Failed to run use_builtins.wasm"),
     }
@@ -1239,7 +1239,7 @@ fn test_features_disabled() {
             // println!("Error: {}", e);
             assert!(e
                 .to_string()
-                .starts_with("Validation error: threads support is not enabled"));
+                .starts_with("VM instance error: Validation error: threads support is not enabled"));
         }
         _ => panic!("Failed to run use_builtins.wasm"),
     }
@@ -1379,7 +1379,7 @@ fn test_abort_does_not_panic() {
         Err(e) => {
             assert_eq!(
                 e.to_string(),
-                "RuntimeError: Runtime error: AssemblyScript memory is missing from the environment"
+                "VM instance error: RuntimeError: Runtime error: AssemblyScript memory is missing from the environment"
             )
         }
     }
