@@ -324,13 +324,15 @@
 <a href="#324" id="324">324</a>
 <a href="#325" id="325">325</a>
 <a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::as_execution::{exec_as_module, ASModule};
 <span class="kw">use </span><span class="kw">crate</span>::error::VMResult;
 <span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::GasCalibrationResult;
 <span class="kw">use </span><span class="kw">crate</span>::types::{Interface, Response};
 <span class="kw">use </span><span class="kw">crate</span>::wasmv1_execution::{exec_wasmv1_module, WasmV1Module};
-<span class="kw">use </span><span class="kw">crate</span>::GasCosts;
 <span class="kw">use crate</span>::{settings, CondomLimits};
+<span class="kw">use crate</span>::{GasCosts, VMError};
 <span class="kw">use </span>anyhow::{anyhow, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>num_enum::{IntoPrimitive, TryFromPrimitive};
 
@@ -489,7 +491,9 @@
             gas_costs,
             condom_limits,
         )
-        .map_err(|err| <span class="macro">anyhow!</span>(<span class="string">&quot;Failed to execute WasmV1 module: {}&quot;</span>, err.to_string()))<span class="question-mark">?</span>,
+        .map_err(|err| {
+            VMError::InstanceError(<span class="macro">format!</span>(<span class="string">&quot;Failed to execute WasmV1 module: {}&quot;</span>, err))
+        })<span class="question-mark">?</span>,
     };
     <span class="prelude-val">Ok</span>(response)
 }
