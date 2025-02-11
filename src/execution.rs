@@ -164,10 +164,7 @@ pub(crate) fn exec(
             condom_limits,
         )
         .map_err(|err| {
-            VMError::InstanceError(format!(
-                "Failed to execute WasmV1 module: {}",
-                err
-            ))
+            VMError::InstanceError(format!("Failed to execute WasmV1 module: {}", err))
         })?,
     };
     Ok(response)

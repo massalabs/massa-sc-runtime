@@ -254,7 +254,9 @@ impl GasCosts {
             //       See: https://github.com/massalabs/gas-calibration/issues/9
             operator_cost: 23,
             launch_cost: *abi_costs.get("launch").ok_or_else(|| {
-                InterfaceError::GasCalibrationError("launch cost not found in ABI gas cost file.".into())
+                InterfaceError::GasCalibrationError(
+                    "launch cost not found in ABI gas cost file.".into(),
+                )
             })?,
             cl_compilation_cost: *abi_costs.get("cl_compilation").ok_or_else(|| {
                 InterfaceError::GasCalibrationError(
