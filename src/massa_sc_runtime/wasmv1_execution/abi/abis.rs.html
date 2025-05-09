@@ -1988,6 +1988,9 @@
 <a href="#1988" id="1988">1988</a>
 <a href="#1989" id="1989">1989</a>
 <a href="#1990" id="1990">1990</a>
+<a href="#1991" id="1991">1991</a>
+<a href="#1992" id="1992">1992</a>
+<a href="#1993" id="1993">1993</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{
     <span class="kw">super</span>::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
@@ -2121,12 +2124,15 @@
     );
 
     <span class="kw">if </span>interface_version &gt; <span class="number">0 </span>{
-        imports.extend(<span class="kw-2">&amp;</span><span class="macro">abis!</span>(
-            <span class="string">&quot;abi_deferred_call_cancel&quot; </span>=&gt; abi_deferred_call_cancel,
-            <span class="string">&quot;abi_get_deferred_call_quote&quot; </span>=&gt; abi_get_deferred_call_quote,
-            <span class="string">&quot;abi_deferred_call_exists&quot; </span>=&gt; abi_deferred_call_exists,
-            <span class="string">&quot;abi_deferred_call_register&quot; </span>=&gt; abi_deferred_call_register
-        ));
+        imports.extend(
+            <span class="macro">abis!</span>(
+                <span class="string">&quot;abi_deferred_call_cancel&quot; </span>=&gt; abi_deferred_call_cancel,
+                <span class="string">&quot;abi_get_deferred_call_quote&quot; </span>=&gt; abi_get_deferred_call_quote,
+                <span class="string">&quot;abi_deferred_call_exists&quot; </span>=&gt; abi_deferred_call_exists,
+                <span class="string">&quot;abi_deferred_call_register&quot; </span>=&gt; abi_deferred_call_register
+            )
+            .into_iter(),
+        );
     }
 
     imports

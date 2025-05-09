@@ -301,9 +301,9 @@
 <a href="#301" id="301">301</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">super</span>::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
-<span class="kw">use </span><span class="kw">crate</span>::error::{vm_bail, VMResult};
 <span class="kw">use </span><span class="kw">crate</span>::types::Response;
 <span class="kw">use crate</span>::{CondomLimits, GasCosts, Interface};
+<span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>as_ffi_bindings::{BufferPtr, Read <span class="kw">as </span>ASRead, Write <span class="kw">as </span>ASWrite};
 <span class="kw">use </span>wasmer::{
     imports, Function, FunctionEnv, Imports, Instance, InstantiationError, Module, Store, Value,
@@ -339,7 +339,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_vm_instance_and_init_env(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         store: <span class="kw-2">&amp;mut </span>Store,
-    ) -&gt; VMResult&lt;(Instance, FunctionEnv&lt;ASEnv&gt;, u64)&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(Instance, FunctionEnv&lt;ASEnv&gt;, u64)&gt; {
         <span class="kw">let </span>(imports, <span class="kw-2">mut </span>fenv) = <span class="self">self</span>.resolver(store);
         <span class="kw">match </span>Instance::new(store, <span class="kw-2">&amp;</span><span class="self">self</span>.module, <span class="kw-2">&amp;</span>imports) {
             <span class="prelude-val">Ok</span>(instance) =&gt; {
@@ -366,7 +366,7 @@
                 </span><span class="kw">if let </span>InstantiationError::Start(<span class="kw-2">ref </span>e) = err {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = e.clone().to_trap() {
                         <span class="kw">if </span>trap == TrapCode::UnreachableCodeReached &amp;&amp; e.trace().is_empty() {
-                            <span class="macro">vm_bail!</span>(<span class="string">&quot;Not enough gas, limit reached at initialization&quot;</span>);
+                            <span class="macro">bail!</span>(<span class="string">&quot;Not enough gas, limit reached at initialization&quot;</span>);
                         }
                     }
                 }
@@ -381,13 +381,13 @@
         instance: <span class="kw-2">&amp;</span>Instance,
         function: <span class="kw-2">&amp;</span>str,
         param: <span class="kw-2">&amp;</span>[u8],
-    ) -&gt; VMResult&lt;Response&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Response&gt; {
         <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
             <span class="comment">// Sub initial metering cost
             </span><span class="kw">let </span>metering_initial_cost = <span class="self">self</span>.env.get_gas_costs().launch_cost;
             <span class="kw">let </span>remaining_gas = get_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env, store)<span class="question-mark">?</span>;
             <span class="kw">if </span>metering_initial_cost &gt; remaining_gas {
-                <span class="macro">vm_bail!</span>(<span class="string">&quot;Not enough gas to launch the virtual machine&quot;</span>)
+                <span class="macro">bail!</span>(<span class="string">&quot;Not enough gas to launch the virtual machine&quot;</span>)
             }
             set_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env, store, remaining_gas - metering_initial_cost)<span class="question-mark">?</span>;
         }
@@ -400,7 +400,7 @@
             <span class="kw">let </span>param_ptr = <span class="kw-2">*</span>BufferPtr::alloc(<span class="kw-2">&amp;</span>param.to_vec(), <span class="self">self</span>.env.get_ffi_env(), store)<span class="question-mark">?</span>;
             wasm_func.call(store, <span class="kw-2">&amp;</span>[Value::I32(param_ptr.offset() <span class="kw">as </span>i32)])
         } <span class="kw">else </span>{
-            <span class="macro">vm_bail!</span>(<span class="string">&quot;Unexpected number of parameters in the function called&quot;</span>)
+            <span class="macro">bail!</span>(<span class="string">&quot;Unexpected number of parameters in the function called&quot;</span>)
         };
 
         <span class="kw">match </span>res {
@@ -426,7 +426,7 @@
                         <span class="kw">let </span>memory = instance.exports.get_memory(<span class="string">&quot;memory&quot;</span>)<span class="question-mark">?</span>;
                         buffer_ptr.read(memory, store)<span class="question-mark">?
                     </span>} <span class="kw">else </span>{
-                        <span class="macro">vm_bail!</span>(<span class="string">&quot;Execution wasn&#39;t in capacity to read the return value&quot;</span>)
+                        <span class="macro">bail!</span>(<span class="string">&quot;Execution wasn&#39;t in capacity to read the return value&quot;</span>)
                     }
                 } <span class="kw">else </span>{
                     Vec::new()
@@ -444,7 +444,7 @@
                     </span>trace: Default::default(),
                 })
             }
-            <span class="prelude-val">Err</span>(error) =&gt; <span class="prelude-val">Err</span>(error.into()),
+            <span class="prelude-val">Err</span>(error) =&gt; <span class="macro">bail!</span>(error),
         }
     }
 
@@ -453,7 +453,7 @@
         store: <span class="kw-2">&amp;mut </span>Store,
         instance: <span class="kw-2">&amp;</span>Instance,
         fenv: <span class="kw-2">&amp;mut </span>FunctionEnv&lt;ASEnv&gt;,
-    ) -&gt; VMResult&lt;()&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>memory = instance.exports.get_memory(<span class="string">&quot;memory&quot;</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// NOTE: only add functions (__new, ...) if these exists in wasm/wat
@@ -589,12 +589,12 @@
         };
 
         <span class="kw">if </span>version &gt; <span class="number">0 </span>{
-            imports.extend(<span class="kw-2">&amp;</span><span class="macro">imports! </span>{<span class="string">&quot;massa&quot; </span>=&gt; {
+            imports.extend(<span class="macro">imports! </span>{<span class="string">&quot;massa&quot; </span>=&gt; {
                 <span class="string">&quot;assembly_script_get_deferred_call_quote&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_deferred_call_quote),
                 <span class="string">&quot;assembly_script_deferred_call_register&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_register),
                 <span class="string">&quot;assembly_script_deferred_call_exists&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_exists),
                 <span class="string">&quot;assembly_script_deferred_call_cancel&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_cancel),
-            }});
+            }}.into_iter());
         }
 
         (imports, fenv)
