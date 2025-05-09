@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/middlewares/condom.rs`."><title>condom.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.1 (a28077b28 2023-12-04)" data-channel="1.74.1" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/middlewares/condom.rs`."><title>condom.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1298,9 +1298,9 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>CondomMiddleware {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;CondomMiddleware&quot;</span>)
-            .field(<span class="string">&quot;limits&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.limits)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"CondomMiddleware"</span>)
+            .field(<span class="string">"limits"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.limits)
             .finish()
     }
 }
@@ -1313,8 +1313,8 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_exports) = <span class="self">self</span>.limits.max_exports {
             <span class="kw">if </span>module_info.exports.len() &gt; max_exports {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                    <span class="string">&quot;CondomMiddleware&quot;</span>,
-                    <span class="string">&quot;The WASM file has too many exports. Blocked to prevent compile-time memory bloat&quot;</span>,
+                    <span class="string">"CondomMiddleware"</span>,
+                    <span class="string">"The WASM file has too many exports. Blocked to prevent compile-time memory bloat"</span>,
                 ));
             }
         }
@@ -1323,8 +1323,8 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_functions) = <span class="self">self</span>.limits.max_functions {
             <span class="kw">if </span>module_info.functions.len() &gt; max_functions {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                    <span class="string">&quot;CondomMiddleware&quot;</span>,
-                    <span class="string">&quot;The WASM file has too many functions. Blocked to prevent compile-time memory bloat&quot;</span>,
+                    <span class="string">"CondomMiddleware"</span>,
+                    <span class="string">"The WASM file has too many functions. Blocked to prevent compile-time memory bloat"</span>,
                 ));
             }
         }
@@ -1340,8 +1340,8 @@
             <span class="kw">for </span>signature <span class="kw">in </span>module_info.signatures.values() {
                 <span class="kw">if </span>signature.params().len() + signature.results().len() &gt; max_signature_len {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                        <span class="string">&quot;CondomMiddleware&quot;</span>,
-                        <span class="string">&quot;The WASM file contains a function with too many parameters and return values. Blocked to prevent compile-time memory bloat&quot;</span>,
+                        <span class="string">"CondomMiddleware"</span>,
+                        <span class="string">"The WASM file contains a function with too many parameters and return values. Blocked to prevent compile-time memory bloat"</span>,
                     ));
                 }
             }
@@ -1353,8 +1353,8 @@
                 <span class="kw">if </span>name.len() &gt; max_name_len {
                     <span class="macro">dbg!</span>(max_name_len, name.len());
                     <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                        <span class="string">&quot;CondomMiddleware&quot;</span>,
-                        <span class="string">&quot;The WASM file has a too long name. Blocked to prevent compile-time memory bloat&quot;</span>,
+                        <span class="string">"CondomMiddleware"</span>,
+                        <span class="string">"The WASM file has a too long name. Blocked to prevent compile-time memory bloat"</span>,
                     ));
                 }
             }
@@ -1364,8 +1364,8 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_imports) = <span class="self">self</span>.limits.max_imports_len {
             <span class="kw">if </span>module_info.imports.len() &gt; max_imports {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                    <span class="string">&quot;CondomMiddleware&quot;</span>,
-                    <span class="string">&quot;The WASM file has too many imports. Blocked to prevent compile-time memory bloat&quot;</span>,
+                    <span class="string">"CondomMiddleware"</span>,
+                    <span class="string">"The WASM file has too many imports. Blocked to prevent compile-time memory bloat"</span>,
                 ));
             }
         }
@@ -1374,8 +1374,8 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_table_initializers) = <span class="self">self</span>.limits.max_table_initializers_len {
             <span class="kw">if </span>module_info.table_initializers.len() &gt; max_table_initializers {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                    <span class="string">&quot;CondomMiddleware&quot;</span>,
-                    <span class="string">&quot;The WASM file has too many table initializers. Blocked to prevent compile-time memory bloat&quot;</span>,
+                    <span class="string">"CondomMiddleware"</span>,
+                    <span class="string">"The WASM file has too many table initializers. Blocked to prevent compile-time memory bloat"</span>,
                 ));
             }
         }
@@ -1384,8 +1384,8 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_passive_elements) = <span class="self">self</span>.limits.max_passive_elements_len {
             <span class="kw">if </span>module_info.passive_elements.len() &gt; max_passive_elements {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                    <span class="string">&quot;CondomMiddleware&quot;</span>,
-                    <span class="string">&quot;The WASM file has too many passive elements. Blocked to prevent compile-time memory bloat&quot;</span>,
+                    <span class="string">"CondomMiddleware"</span>,
+                    <span class="string">"The WASM file has too many passive elements. Blocked to prevent compile-time memory bloat"</span>,
                 ));
             }
         }
@@ -1394,8 +1394,8 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_passive_data) = <span class="self">self</span>.limits.max_passive_data_len {
             <span class="kw">if </span>module_info.passive_data.len() &gt; max_passive_data {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                    <span class="string">&quot;CondomMiddleware&quot;</span>,
-                    <span class="string">&quot;The WASM file has too many passive data. Blocked to prevent compile-time memory bloat&quot;</span>,
+                    <span class="string">"CondomMiddleware"</span>,
+                    <span class="string">"The WASM file has too many passive data. Blocked to prevent compile-time memory bloat"</span>,
                 ));
             }
         }
@@ -1404,8 +1404,8 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_global_initializers) = <span class="self">self</span>.limits.max_global_initializers_len {
             <span class="kw">if </span>module_info.global_initializers.len() &gt; max_global_initializers {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                    <span class="string">&quot;CondomMiddleware&quot;</span>,
-                    <span class="macro">format!</span>(<span class="string">&quot;The WASM file has too many global initializers (contains; {} limit: {}). Blocked to prevent compile-time memory bloat&quot;</span>,
+                    <span class="string">"CondomMiddleware"</span>,
+                    <span class="macro">format!</span>(<span class="string">"The WASM file has too many global initializers (contains; {} limit: {}). Blocked to prevent compile-time memory bloat"</span>,
                         module_info.global_initializers.len(),
                         max_global_initializers,
                     ),
@@ -1418,8 +1418,8 @@
             <span class="kw">for </span>(<span class="kw">_</span>, f_name) <span class="kw">in </span>module_info.function_names.iter() {
                 <span class="kw">if </span>f_name.len() &gt; max_function_names {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                        <span class="string">&quot;CondomMiddleware&quot;</span>,
-                        <span class="macro">format!</span>(<span class="string">&quot;The WASM file has too long function names ({} is {}). Blocked to prevent compile-time memory bloat&quot;</span>,
+                        <span class="string">"CondomMiddleware"</span>,
+                        <span class="macro">format!</span>(<span class="string">"The WASM file has too long function names ({} is {}). Blocked to prevent compile-time memory bloat"</span>,
                             f_name,
                             f_name.len()),
                 ));
@@ -1431,8 +1431,8 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_tables) = <span class="self">self</span>.limits.max_tables_count {
             <span class="kw">if </span>module_info.tables.len() &gt; max_tables {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                    <span class="string">&quot;CondomMiddleware&quot;</span>,
-                    <span class="macro">format!</span>(<span class="string">&quot;The WASM file has too many tables (contains: {} limit: {}). Blocked to prevent compile-time memory bloat&quot;</span>,
+                    <span class="string">"CondomMiddleware"</span>,
+                    <span class="macro">format!</span>(<span class="string">"The WASM file has too many tables (contains: {} limit: {}). Blocked to prevent compile-time memory bloat"</span>,
                     module_info.tables.len(),
                     max_tables,
                     ),
@@ -1444,8 +1444,8 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_memories) = <span class="self">self</span>.limits.max_memories_len {
             <span class="kw">if </span>module_info.memories.len() &gt; max_memories {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                    <span class="string">&quot;CondomMiddleware&quot;</span>,
-                    <span class="string">&quot;The WASM file has too many memories. Blocked to prevent compile-time memory bloat&quot;</span>,
+                    <span class="string">"CondomMiddleware"</span>,
+                    <span class="string">"The WASM file has too many memories. Blocked to prevent compile-time memory bloat"</span>,
                 ));
             }
         }
@@ -1454,8 +1454,8 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_globals) = <span class="self">self</span>.limits.max_globals_len {
             <span class="kw">if </span>module_info.globals.len() &gt; max_globals {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                    <span class="string">&quot;CondomMiddleware&quot;</span>,
-                    <span class="macro">format!</span>(<span class="string">&quot;The WASM file has too many globals (contains: {}, limit: {}). Blocked to prevent compile-time memory bloat&quot;</span>,
+                    <span class="string">"CondomMiddleware"</span>,
+                    <span class="macro">format!</span>(<span class="string">"The WASM file has too many globals (contains: {}, limit: {}). Blocked to prevent compile-time memory bloat"</span>,
                         module_info.globals.len(),
                         max_globals
                     )
@@ -1468,8 +1468,8 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_custom_sections) = <span class="self">self</span>.limits.max_custom_sections_len {
             <span class="kw">if </span>module_info.custom_sections.len() &gt; max_custom_sections {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                    <span class="string">&quot;CondomMiddleware&quot;</span>,
-                    <span class="string">&quot;The WASM file has too many custom sections. Blocked to prevent compile-time memory bloat&quot;</span>,
+                    <span class="string">"CondomMiddleware"</span>,
+                    <span class="string">"The WASM file has too many custom sections. Blocked to prevent compile-time memory bloat"</span>,
                 ));
             }
         }
@@ -1482,11 +1482,11 @@
                         .custom_sections
                         .get_index(idx.as_u32() <span class="kw">as </span>usize)
                         .map(|(name, <span class="kw">_</span>)| name.to_owned())
-                        .unwrap_or(<span class="string">&quot;Unknown section&quot;</span>.to_string());
+                        .unwrap_or(<span class="string">"Unknown section"</span>.to_string());
 
                     <span class="kw">return </span><span class="prelude-val">Err</span>(MiddlewareError::new(
-                        <span class="string">&quot;CondomMiddleware&quot;</span>,
-                        <span class="macro">format!</span>(<span class="string">&quot;The WASM file custom section {:?} named &#39;{}&#39; with size {} is too big (limit: {}). Blocked to prevent compile-time memory bloat&quot;</span>,
+                        <span class="string">"CondomMiddleware"</span>,
+                        <span class="macro">format!</span>(<span class="string">"The WASM file custom section {:?} named '{}' with size {} is too big (limit: {}). Blocked to prevent compile-time memory bloat"</span>,
                             idx,
                             section_name,
                             data.len(),
@@ -1502,7 +1502,7 @@
 
     <span class="doccomment">/// Generates a `FunctionMiddleware` for a given function.
     </span><span class="kw">fn </span>generate_function_middleware(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: LocalFunctionIndex) -&gt; Box&lt;<span class="kw">dyn </span>FunctionMiddleware&gt; {
-        <span class="comment">// This middleware doesn&#39;t need to modify functions, so we return a no-op middleware.
+        <span class="comment">// This middleware doesn't need to modify functions, so we return a no-op middleware.
         </span>Box::new(NoOpFunctionMiddleware)
     }
 }
@@ -1511,16 +1511,16 @@
 </span><span class="kw">struct </span>NoOpFunctionMiddleware;
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>NoOpFunctionMiddleware {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;NoOpFunctionMiddleware&quot;</span>).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"NoOpFunctionMiddleware"</span>).finish()
     }
 }
 
 <span class="kw">impl </span>FunctionMiddleware <span class="kw">for </span>NoOpFunctionMiddleware {
-    <span class="kw">fn </span>feed&lt;<span class="lifetime">&#39;a</span>&gt;(
+    <span class="kw">fn </span>feed&lt;<span class="lifetime">'a</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        operator: wasmer::wasmparser::Operator&lt;<span class="lifetime">&#39;a</span>&gt;,
-        state: <span class="kw-2">&amp;mut </span>MiddlewareReaderState&lt;<span class="lifetime">&#39;a</span>&gt;,
+        operator: wasmer::wasmparser::Operator&lt;<span class="lifetime">'a</span>&gt;,
+        state: <span class="kw-2">&amp;mut </span>MiddlewareReaderState&lt;<span class="lifetime">'a</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), MiddlewareError&gt; {
         state.push_operator(operator);
         <span class="prelude-val">Ok</span>(())
@@ -1537,13 +1537,13 @@
 
     <span class="kw">fn </span>bytecode_within_limits() -&gt; Vec&lt;u8&gt; {
         wat2wasm(
-            <span class="string">br#&quot;
+            <span class="string">br#"
             (module
-                (func (export &quot;f1&quot;) (result i32) (i32.const 1))
-                (func (export &quot;f2&quot;) (result i32) (i32.const 2))
-                (global (export &quot;g1&quot;) i32 (i32.const 0))
+                (func (export "f1") (result i32) (i32.const 1))
+                (func (export "f2") (result i32) (i32.const 2))
+                (global (export "g1") i32 (i32.const 0))
             )
-            &quot;#</span>,
+            "#</span>,
         )
         .unwrap()
         .into()
@@ -1551,205 +1551,205 @@
 
     <span class="kw">fn </span>bytecode_exceeding_exports_limits() -&gt; Vec&lt;u8&gt; {
         wat2wasm(
-            <span class="string">br#&quot;
+            <span class="string">br#"
             (module
-                (func (export &quot;f1&quot;) (result i32) (i32.const 1))
-                (func (export &quot;f2&quot;) (result i32) (i32.const 2))
-                (func (export &quot;f3&quot;) (result i32) (i32.const 3))
-                (global (export &quot;g1&quot;) i32 (i32.const 0))
-                (global (export &quot;g2&quot;) i32 (i32.const 0))
+                (func (export "f1") (result i32) (i32.const 1))
+                (func (export "f2") (result i32) (i32.const 2))
+                (func (export "f3") (result i32) (i32.const 3))
+                (global (export "g1") i32 (i32.const 0))
+                (global (export "g2") i32 (i32.const 0))
             )
-            &quot;#</span>,
+            "#</span>,
         )
         .unwrap()
         .into()
     }
 
     <span class="kw">fn </span>generate_wasm_bloated_with_functions(nb_fn: usize) -&gt; Vec&lt;u8&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">&quot;(module\n&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">"(module\n"</span>);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..=nb_fn {
-            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  (func (result i32) (i32.const {}))\n&quot;</span>, i));
+            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"  (func (result i32) (i32.const {}))\n"</span>, i));
         }
-        wasm_code.push(<span class="string">&#39;)&#39;</span>);
+        wasm_code.push(<span class="string">')'</span>);
         wat2wasm(wasm_code.as_bytes()).unwrap().into()
     }
 
     <span class="kw">fn </span>generate_wasm_bloated_with_args(nb_args: usize) -&gt; Vec&lt;u8&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">&quot;(module\n&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">"(module\n"</span>);
 
         <span class="kw">if </span>nb_args == <span class="number">0 </span>{
-            wasm_code.push_str(<span class="string">&quot;  (func $f (result i32) (i32.const 0))\n&quot;</span>);
+            wasm_code.push_str(<span class="string">"  (func $f (result i32) (i32.const 0))\n"</span>);
         } <span class="kw">else </span>{
-            wasm_code.push_str(<span class="string">&quot;  (func $f (param&quot;</span>);
+            wasm_code.push_str(<span class="string">"  (func $f (param"</span>);
             <span class="kw">for _ in </span><span class="number">1</span>..nb_args {
-                wasm_code.push_str(<span class="string">&quot; i32 &quot;</span>);
+                wasm_code.push_str(<span class="string">" i32 "</span>);
             }
-            wasm_code.push_str(<span class="string">&quot;) (result i32)\n&quot;</span>);
-            wasm_code.push_str(<span class="string">&quot;    local.get 0\n&quot;</span>);
+            wasm_code.push_str(<span class="string">") (result i32)\n"</span>);
+            wasm_code.push_str(<span class="string">"    local.get 0\n"</span>);
         }
 
-        wasm_code.push_str(<span class="string">&quot;  )\n)&quot;</span>);
+        wasm_code.push_str(<span class="string">"  )\n)"</span>);
 
         wat2wasm(wasm_code.as_bytes()).unwrap().into()
     }
 
     <span class="kw">fn </span>generate_wasm_bloated_with_table_initializers(table_size: usize) -&gt; Vec&lt;u8&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">&quot;(module\n&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">"(module\n"</span>);
 
-        wasm_code.push_str(<span class="string">&quot;  (func $f (result i32) (i32.const 42))\n&quot;</span>);
-        wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  (table {} funcref)\n&quot;</span>, table_size));
+        wasm_code.push_str(<span class="string">"  (func $f (result i32) (i32.const 42))\n"</span>);
+        wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"  (table {} funcref)\n"</span>, table_size));
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..table_size {
-            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  (elem (i32.const {}) $f)\n&quot;</span>, i));
+            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"  (elem (i32.const {}) $f)\n"</span>, i));
         }
-        wasm_code.push(<span class="string">&#39;)&#39;</span>);
+        wasm_code.push(<span class="string">')'</span>);
 
         wat2wasm(wasm_code.as_bytes()).unwrap().into()
     }
 
     <span class="kw">fn </span>generate_wasm_bloated_with_variable_passive_elements(passive_count: usize) -&gt; Vec&lt;u8&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">&quot;(module\n&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">"(module\n"</span>);
 
-        wasm_code.push_str(<span class="string">&quot;  (func $f (result i32) (i32.const 42))\n&quot;</span>);
+        wasm_code.push_str(<span class="string">"  (func $f (result i32) (i32.const 42))\n"</span>);
 
         <span class="kw">for _ in </span><span class="number">0</span>..passive_count {
-            wasm_code.push_str(<span class="string">&quot;  (elem func $f)\n&quot;</span>);
+            wasm_code.push_str(<span class="string">"  (elem func $f)\n"</span>);
         }
 
-        wasm_code.push(<span class="string">&#39;)&#39;</span>);
+        wasm_code.push(<span class="string">')'</span>);
 
         wat2wasm(wasm_code.as_bytes()).unwrap().into()
     }
 
     <span class="kw">fn </span>generate_wasm_with_variable_passive_data(data_size: usize) -&gt; Vec&lt;u8&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">&quot;(module\n&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">"(module\n"</span>);
 
-        wasm_code.push_str(<span class="string">&quot;  (memory $m 1)\n&quot;</span>);
+        wasm_code.push_str(<span class="string">"  (memory $m 1)\n"</span>);
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..data_size {
-            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;(data $d{} \&quot;Hello, World!\&quot;)\n&quot;</span>, i));
+            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"(data $d{} \"Hello, World!\")\n"</span>, i));
         }
 
-        wasm_code.push_str(<span class="string">&quot;)\n&quot;</span>);
+        wasm_code.push_str(<span class="string">")\n"</span>);
 
         wat2wasm(wasm_code.as_bytes()).unwrap().into()
     }
 
     <span class="kw">fn </span>generate_wasm_with_global_initializers(data_size: usize) -&gt; Vec&lt;u8&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">&quot;(module\n&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">"(module\n"</span>);
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..data_size {
             wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;(global $g{} (export \&quot;g{}\&quot;) i32 (i32.const 42))\n&quot;</span>,
+                <span class="string">"(global $g{} (export \"g{}\") i32 (i32.const 42))\n"</span>,
                 i, i
             ));
         }
 
-        wasm_code.push_str(<span class="string">&quot;)\n&quot;</span>);
+        wasm_code.push_str(<span class="string">")\n"</span>);
 
         wat2wasm(wasm_code.as_bytes()).unwrap().into()
     }
 
     <span class="kw">fn </span>generate_wasm_with_function_names(data_size: usize) -&gt; Vec&lt;u8&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">&quot;(module\n&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">"(module\n"</span>);
 
-        <span class="kw">let </span>fn_name = <span class="string">&quot;f&quot;</span>.repeat(data_size);
+        <span class="kw">let </span>fn_name = <span class="string">"f"</span>.repeat(data_size);
 
         wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">&quot;(func ${} (result i32) (i32.const 42))\n&quot;</span>,
+            <span class="string">"(func ${} (result i32) (i32.const 42))\n"</span>,
             fn_name
         ));
 
-        wasm_code.push_str(<span class="string">&quot;)\n&quot;</span>);
+        wasm_code.push_str(<span class="string">")\n"</span>);
 
         wat2wasm(wasm_code.as_bytes()).unwrap().into()
     }
 
     <span class="kw">fn </span>generate_wasm_bloated_with_tables(table_count: usize) -&gt; Vec&lt;u8&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">&quot;(module\n&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">"(module\n"</span>);
 
         <span class="kw">for _ in </span><span class="number">0</span>..table_count {
-            wasm_code.push_str(<span class="string">&quot;  (table 1 funcref)\n&quot;</span>);
+            wasm_code.push_str(<span class="string">"  (table 1 funcref)\n"</span>);
         }
-        wasm_code.push(<span class="string">&#39;)&#39;</span>);
+        wasm_code.push(<span class="string">')'</span>);
 
         wat2wasm(wasm_code.as_bytes()).unwrap().into()
     }
 
     <span class="kw">fn </span>generate_wasm_bloated_with_memories(memories_count: usize) -&gt; Vec&lt;u8&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">&quot;(module\n&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">"(module\n"</span>);
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..memories_count {
             wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;  (import \&quot;m{}\&quot; \&quot;memory{}\&quot; (memory 1))\n&quot;</span>,
+                <span class="string">"  (import \"m{}\" \"memory{}\" (memory 1))\n"</span>,
                 i, i
             ));
         }
-        wasm_code.push(<span class="string">&#39;)&#39;</span>);
+        wasm_code.push(<span class="string">')'</span>);
 
         wat2wasm(wasm_code.as_bytes()).unwrap().into()
     }
 
     <span class="kw">fn </span>generate_wasm_bloated_with_globals(globals_count: usize) -&gt; Vec&lt;u8&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">&quot;(module\n&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">"(module\n"</span>);
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..globals_count {
-            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;(global $g{} (mut i32) (i32.const 10))&quot;</span>, i));
+            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"(global $g{} (mut i32) (i32.const 10))"</span>, i));
         }
-        wasm_code.push(<span class="string">&#39;)&#39;</span>);
+        wasm_code.push(<span class="string">')'</span>);
 
         wat2wasm(wasm_code.as_bytes()).unwrap().into()
     }
 
     <span class="kw">fn </span>generate_wasm_with_multiple_returns(nb_returns: usize) -&gt; Vec&lt;u8&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">&quot;(module\n&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">"(module\n"</span>);
 
         <span class="kw">if </span>nb_returns == <span class="number">0 </span>{
-            wasm_code.push_str(<span class="string">&quot;  (func $f (result))\n&quot;</span>);
+            wasm_code.push_str(<span class="string">"  (func $f (result))\n"</span>);
         } <span class="kw">else </span>{
-            wasm_code.push_str(<span class="string">&quot;  (func $f (result&quot;</span>);
+            wasm_code.push_str(<span class="string">"  (func $f (result"</span>);
             <span class="kw">for _ in </span><span class="number">0</span>..nb_returns {
-                wasm_code.push_str(<span class="string">&quot; i32&quot;</span>);
+                wasm_code.push_str(<span class="string">" i32"</span>);
             }
-            wasm_code.push_str(<span class="string">&quot;)\n&quot;</span>);
+            wasm_code.push_str(<span class="string">")\n"</span>);
 
             <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..nb_returns {
-                wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;    i32.const {}\n&quot;</span>, i));
+                wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"    i32.const {}\n"</span>, i));
             }
 
-            wasm_code.push_str(<span class="string">&quot;  )\n&quot;</span>);
+            wasm_code.push_str(<span class="string">"  )\n"</span>);
         }
 
-        wasm_code.push(<span class="string">&#39;)&#39;</span>);
+        wasm_code.push(<span class="string">')'</span>);
 
         wat2wasm(wasm_code.as_bytes()).unwrap().into()
     }
 
     <span class="kw">fn </span>generate_wasm_with_local_vars(nb_locals: usize) -&gt; Vec&lt;u8&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">&quot;(module\n&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">"(module\n"</span>);
 
-        wasm_code.push_str(<span class="string">&quot;  (func $f (result i32)\n&quot;</span>);
+        wasm_code.push_str(<span class="string">"  (func $f (result i32)\n"</span>);
 
         <span class="kw">if </span>nb_locals &gt; <span class="number">0 </span>{
-            wasm_code.push_str(<span class="string">&quot;    (local&quot;</span>);
+            wasm_code.push_str(<span class="string">"    (local"</span>);
             <span class="kw">for _ in </span><span class="number">0</span>..nb_locals {
-                wasm_code.push_str(<span class="string">&quot; i32&quot;</span>);
+                wasm_code.push_str(<span class="string">" i32"</span>);
             }
-            wasm_code.push_str(<span class="string">&quot;)\n&quot;</span>);
+            wasm_code.push_str(<span class="string">")\n"</span>);
         }
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..nb_locals {
-            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;    i32.const 0\n    local.set {}\n&quot;</span>, i));
+            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"    i32.const 0\n    local.set {}\n"</span>, i));
         }
 
         <span class="kw">if </span>nb_locals &gt; <span class="number">0 </span>{
-            wasm_code.push_str(<span class="string">&quot;    local.get 0\n&quot;</span>);
+            wasm_code.push_str(<span class="string">"    local.get 0\n"</span>);
         } <span class="kw">else </span>{
-            wasm_code.push_str(<span class="string">&quot;    i32.const 0\n&quot;</span>);
+            wasm_code.push_str(<span class="string">"    i32.const 0\n"</span>);
         }
 
-        wasm_code.push_str(<span class="string">&quot;  )\n&quot;</span>);
-        wasm_code.push(<span class="string">&#39;)&#39;</span>);
+        wasm_code.push_str(<span class="string">"  )\n"</span>);
+        wasm_code.push(<span class="string">')'</span>);
 
         wat2wasm(wasm_code.as_bytes()).unwrap().into()
     }
@@ -1769,7 +1769,7 @@
 
         <span class="macro">assert!</span>(module_result.is_err());
         <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-            <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too many exports&quot;</span>));
+            <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too many exports"</span>));
         }
     }
 
@@ -1781,7 +1781,7 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(process) = system.process(pid) {
             <span class="prelude-val">Ok</span>(process.memory())
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<span class="string">&quot;Proccess not found&quot;</span>.to_string())
+            <span class="prelude-val">Err</span>(<span class="string">"Proccess not found"</span>.to_string())
         }
     }
 
@@ -1807,7 +1807,7 @@
 
             <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
             <span class="macro">println!</span>(
-                <span class="string">&quot;functions {:&gt;8} memory usage: {:&gt;12}o &quot;</span>,
+                <span class="string">"functions {:&gt;8} memory usage: {:&gt;12}o "</span>,
                 function_count,
                 memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
             );
@@ -1815,7 +1815,7 @@
             <span class="kw">if </span>memory_usage &gt; MEMORY_LIMIT_1GB || module_result.is_err() {
                 <span class="macro">assert!</span>(module_result.is_err());
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too many functions&quot;</span>));
+                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too many functions"</span>));
                 }
                 <span class="kw">break</span>;
             }
@@ -1844,7 +1844,7 @@
 
             <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
             <span class="macro">println!</span>(
-                <span class="string">&quot;args {:&gt;4} memory usage: {:&gt;12}o &quot;</span>,
+                <span class="string">"args {:&gt;4} memory usage: {:&gt;12}o "</span>,
                 arg_count,
                 memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
             );
@@ -1852,7 +1852,7 @@
             <span class="kw">if </span>memory_usage &gt; MEMORY_LIMIT_1GB || module_result.is_err() {
                 <span class="macro">assert!</span>(module_result.is_err());
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too many parameters&quot;</span>));
+                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too many parameters"</span>));
                 }
                 <span class="kw">break</span>;
             }
@@ -1879,7 +1879,7 @@
 
             <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
             <span class="macro">println!</span>(
-                <span class="string">&quot;args {:&gt;4} memory usage: {:&gt;12}o &quot;</span>,
+                <span class="string">"args {:&gt;4} memory usage: {:&gt;12}o "</span>,
                 arg_count,
                 memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
             );
@@ -1887,7 +1887,7 @@
             <span class="kw">if </span>memory_usage &gt; MEMORY_LIMIT_1GB || module_result.is_err() {
                 <span class="macro">assert!</span>(module_result.is_err());
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too many parameters&quot;</span>));
+                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too many parameters"</span>));
                 }
                 <span class="kw">break</span>;
             }
@@ -1918,7 +1918,7 @@
 
             <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
             <span class="macro">println!</span>(
-                <span class="string">&quot;Initializers {:&gt;6} memory usage: {:&gt;12}o &quot;</span>,
+                <span class="string">"Initializers {:&gt;6} memory usage: {:&gt;12}o "</span>,
                 ini_count,
                 memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
             );
@@ -1926,7 +1926,7 @@
             <span class="kw">if </span>memory_usage &gt; MEMORY_LIMIT_1GB || module_result.is_err() {
                 <span class="macro">assert!</span>(module_result.is_err());
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too many table initializers&quot;</span>));
+                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too many table initializers"</span>));
                 }
                 <span class="kw">break</span>;
             }
@@ -1957,7 +1957,7 @@
 
             <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
             <span class="macro">println!</span>(
-                <span class="string">&quot;Passive elements {:&gt;6} memory usage: {:&gt;12}o &quot;</span>,
+                <span class="string">"Passive elements {:&gt;6} memory usage: {:&gt;12}o "</span>,
                 ini_count,
                 memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
             );
@@ -1965,7 +1965,7 @@
             <span class="kw">if </span>memory_usage &gt; MEMORY_LIMIT_1GB || module_result.is_err() {
                 <span class="macro">assert!</span>(module_result.is_err());
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too many passive elements&quot;</span>));
+                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too many passive elements"</span>));
                 }
                 <span class="kw">break</span>;
             }
@@ -1994,7 +1994,7 @@
 
             <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
             <span class="macro">println!</span>(
-                <span class="string">&quot;Passive data {:&gt;6} memory usage: {:&gt;12}o &quot;</span>,
+                <span class="string">"Passive data {:&gt;6} memory usage: {:&gt;12}o "</span>,
                 ini_count,
                 memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
             );
@@ -2002,7 +2002,7 @@
             <span class="kw">if </span>memory_usage &gt; MEMORY_LIMIT_1GB || module_result.is_err() {
                 <span class="macro">assert!</span>(module_result.is_err());
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too many passive data&quot;</span>));
+                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too many passive data"</span>));
                 }
                 <span class="kw">break</span>;
             }
@@ -2031,7 +2031,7 @@
 
             <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
             <span class="macro">println!</span>(
-                <span class="string">&quot;Global initializers {:&gt;6} memory usage: {:&gt;12}o &quot;</span>,
+                <span class="string">"Global initializers {:&gt;6} memory usage: {:&gt;12}o "</span>,
                 ini_count,
                 memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
             );
@@ -2039,7 +2039,7 @@
             <span class="kw">if </span>memory_usage &gt; MEMORY_LIMIT_1GB || module_result.is_err() {
                 <span class="macro">assert!</span>(module_result.is_err());
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too many global initializers&quot;</span>));
+                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too many global initializers"</span>));
                 }
                 <span class="kw">break</span>;
             }
@@ -2068,7 +2068,7 @@
 
             <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
             <span class="macro">println!</span>(
-                <span class="string">&quot;Function names {:&gt;8} memory usage: {:&gt;12}o &quot;</span>,
+                <span class="string">"Function names {:&gt;8} memory usage: {:&gt;12}o "</span>,
                 fn_name_count,
                 memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
             );
@@ -2076,7 +2076,7 @@
             <span class="kw">if </span>memory_usage &gt; MEMORY_LIMIT_1GB || module_result.is_err() {
                 <span class="macro">assert!</span>(module_result.is_err());
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too long function names&quot;</span>));
+                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too long function names"</span>));
                 }
                 <span class="kw">break</span>;
             }
@@ -2104,7 +2104,7 @@
 
             <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
             <span class="macro">println!</span>(
-                <span class="string">&quot;Table count {:&gt;6} memory usage: {:&gt;12}o &quot;</span>,
+                <span class="string">"Table count {:&gt;6} memory usage: {:&gt;12}o "</span>,
                 table_count,
                 memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
             );
@@ -2112,7 +2112,7 @@
             <span class="kw">if </span>memory_usage &gt; MEMORY_LIMIT_1GB || module_result.is_err() {
                 <span class="macro">assert!</span>(module_result.is_err());
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too many tables&quot;</span>));
+                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too many tables"</span>));
                 }
                 <span class="kw">break</span>;
             }
@@ -2144,7 +2144,7 @@
 
             <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
             <span class="macro">println!</span>(
-                <span class="string">&quot;Memory count {:&gt;6} memory usage: {:&gt;12}o &quot;</span>,
+                <span class="string">"Memory count {:&gt;6} memory usage: {:&gt;12}o "</span>,
                 memory_count,
                 memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
             );
@@ -2152,7 +2152,7 @@
             <span class="kw">if </span>memory_usage &gt; MEMORY_LIMIT_1GB || module_result.is_err() {
                 <span class="macro">assert!</span>(module_result.is_err());
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too many memories&quot;</span>));
+                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too many memories"</span>));
                 }
                 <span class="kw">break</span>;
             }
@@ -2180,7 +2180,7 @@
 
             <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
             <span class="macro">println!</span>(
-                <span class="string">&quot;Global count {:&gt;6} memory usage: {:&gt;12}o &quot;</span>,
+                <span class="string">"Global count {:&gt;6} memory usage: {:&gt;12}o "</span>,
                 memory_count,
                 memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
             );
@@ -2188,7 +2188,7 @@
             <span class="kw">if </span>memory_usage &gt; MEMORY_LIMIT_1GB || module_result.is_err() {
                 <span class="macro">assert!</span>(module_result.is_err());
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too many globals&quot;</span>));
+                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too many globals"</span>));
                 }
                 <span class="kw">break</span>;
             }
@@ -2198,7 +2198,7 @@
     }
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_condom_middleware_exceeds_function_locales_limit_max() {
-        <span class="comment">// NOTE: can&#39;t find a way to set limit for locals. We are currently
+        <span class="comment">// NOTE: can't find a way to set limit for locals. We are currently
         // relying on the wasmpaser limit that is set to 50_000 locales
         // (https://github.com/bytecodealliance/wasm-tools/blob/610b7aacdb41f129b8dda3f04785934105bd6791/crates/wasmprinter/src/lib.rs#L20)
         // This should do the trick as
@@ -2220,7 +2220,7 @@
 
             <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
             <span class="macro">println!</span>(
-                <span class="string">&quot;Locals count {:&gt;6} memory usage: {:&gt;12}o &quot;</span>,
+                <span class="string">"Locals count {:&gt;6} memory usage: {:&gt;12}o "</span>,
                 memory_count,
                 memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
             );
@@ -2229,7 +2229,7 @@
                 <span class="macro">assert!</span>(module_result.is_err());
                 <span class="comment">// dbg!(&amp;module_result);
                 </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too many locals&quot;</span>));
+                    <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too many locals"</span>));
                 }
                 <span class="kw">break</span>;
             }
@@ -2254,21 +2254,21 @@
 
         <span class="kw">let </span>store = Store::new(EngineBuilder::new(compiler_config));
         <span class="kw">let </span>wasm = <span class="macro">include_bytes!</span>(<span class="macro">concat!</span>(
-            <span class="macro">env!</span>(<span class="string">&quot;CARGO_MANIFEST_DIR&quot;</span>),
-            <span class="string">&quot;/wasm/simple-custom-section.wasm&quot;
+            <span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>),
+            <span class="string">"/wasm/simple-custom-section.wasm"
         </span>));
         <span class="kw">let </span>module_result = Module::new(<span class="kw-2">&amp;</span>store, wasm);
 
         <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
         <span class="macro">println!</span>(
-            <span class="string">&quot;Memory usage: {:&gt;12}o &quot;</span>,
+            <span class="string">"Memory usage: {:&gt;12}o "</span>,
             memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
         );
 
         <span class="kw">if </span>memory_usage &gt; MEMORY_LIMIT_1GB || module_result.is_err() {
             <span class="macro">assert!</span>(module_result.is_err());
             <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;too many custom sections&quot;</span>));
+                <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"too many custom sections"</span>));
             }
         }
     }
@@ -2289,21 +2289,21 @@
 
         <span class="kw">let </span>store = Store::new(EngineBuilder::new(compiler_config));
         <span class="kw">let </span>wasm = <span class="macro">include_bytes!</span>(<span class="macro">concat!</span>(
-            <span class="macro">env!</span>(<span class="string">&quot;CARGO_MANIFEST_DIR&quot;</span>),
-            <span class="string">&quot;/wasm/simple-custom-section.wasm&quot;
+            <span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>),
+            <span class="string">"/wasm/simple-custom-section.wasm"
         </span>));
         <span class="kw">let </span>module_result = Module::new(<span class="kw-2">&amp;</span>store, wasm);
 
         <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
         <span class="macro">println!</span>(
-            <span class="string">&quot;Memory usage: {:&gt;12}o &quot;</span>,
+            <span class="string">"Memory usage: {:&gt;12}o "</span>,
             memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
         );
 
         <span class="kw">if </span>memory_usage &gt; MEMORY_LIMIT_1GB || module_result.is_err() {
             <span class="macro">assert!</span>(module_result.is_err());
             <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;is too big&quot;</span>));
+                <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"is too big"</span>));
             }
         }
     }
@@ -2340,7 +2340,7 @@
                     .map(|<span class="kw">_</span>| rng.sample(Alphanumeric) <span class="kw">as </span>char)
                     .collect();
 
-                <span class="comment">// Ajouter la chaîne générée à l&#39;ensemble
+                <span class="comment">// Ajouter la chaîne générée à l'ensemble
                 </span>unique_strings.insert(random_string);
             }
 
@@ -2348,109 +2348,109 @@
         }
         <span class="kw">let </span>fn_names = gen_fn_names(nb_fn, fn_name_len);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">&quot;(module\n&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>wasm_code = String::from(<span class="string">"(module\n"</span>);
 
         <span class="comment">// import mem
-        </span>wasm_code.push_str(<span class="string">&quot;;; import memory\n&quot;</span>);
-        wasm_code.push_str(<span class="string">&quot;  (import \&quot;env\&quot; \&quot;memory\&quot; (memory 1 10))\n&quot;</span>);
-        wasm_code.push(<span class="string">&#39;\n&#39;</span>);
+        </span>wasm_code.push_str(<span class="string">";; import memory\n"</span>);
+        wasm_code.push_str(<span class="string">"  (import \"env\" \"memory\" (memory 1 10))\n"</span>);
+        wasm_code.push(<span class="string">'\n'</span>);
 
         <span class="comment">// import fn
-        </span>wasm_code.push_str(<span class="string">&quot;;; import functions\n&quot;</span>);
+        </span>wasm_code.push_str(<span class="string">";; import functions\n"</span>);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..nb_imports_fn {
             wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;  (import \&quot;env\&quot; \&quot;external_fn{}\&quot; (func (param i32 i32) (result i32)))\n&quot;</span>,
+                <span class="string">"  (import \"env\" \"external_fn{}\" (func (param i32 i32) (result i32)))\n"</span>,
                 i
             ));
         }
-        wasm_code.push(<span class="string">&#39;\n&#39;</span>);
+        wasm_code.push(<span class="string">'\n'</span>);
 
         <span class="comment">// passive data
-        </span>wasm_code.push_str(<span class="string">&quot;;; passive data\n&quot;</span>);
+        </span>wasm_code.push_str(<span class="string">";; passive data\n"</span>);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..nb_passive_data {
-            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;(data $d{} \&quot;Hello, World!\&quot;)\n&quot;</span>, i));
+            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"(data $d{} \"Hello, World!\")\n"</span>, i));
         }
-        wasm_code.push(<span class="string">&#39;\n&#39;</span>);
+        wasm_code.push(<span class="string">'\n'</span>);
 
         <span class="comment">// global initializers
-        </span>wasm_code.push_str(<span class="string">&quot;;; global initializers\n&quot;</span>);
+        </span>wasm_code.push_str(<span class="string">";; global initializers\n"</span>);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..nb_global_ini {
-            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;(global $g{} i32 (i32.const 42))\n&quot;</span>, i,));
+            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"(global $g{} i32 (i32.const 42))\n"</span>, i,));
         }
-        wasm_code.push(<span class="string">&#39;\n&#39;</span>);
+        wasm_code.push(<span class="string">'\n'</span>);
 
         <span class="comment">// table
-        </span>wasm_code.push_str(<span class="string">&quot;;; table\n&quot;</span>);
+        </span>wasm_code.push_str(<span class="string">";; table\n"</span>);
         <span class="kw">for _ in </span><span class="number">0</span>..nb_tables {
-            wasm_code.push_str(<span class="string">&quot;  (table 1 funcref)\n&quot;</span>);
+            wasm_code.push_str(<span class="string">"  (table 1 funcref)\n"</span>);
         }
-        wasm_code.push(<span class="string">&#39;\n&#39;</span>);
+        wasm_code.push(<span class="string">'\n'</span>);
 
         <span class="comment">// decl fn
-        </span>wasm_code.push_str(<span class="string">&quot;;; declare functions\n&quot;</span>);
+        </span>wasm_code.push_str(<span class="string">";; declare functions\n"</span>);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..nb_fn {
-            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  (func ${} (param&quot;</span>, fn_names.get(i).unwrap()));
+            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"  (func ${} (param"</span>, fn_names.get(i).unwrap()));
 
             <span class="kw">for _ in </span><span class="number">0</span>..nb_params {
-                wasm_code.push_str(<span class="string">&quot; i32&quot;</span>);
+                wasm_code.push_str(<span class="string">" i32"</span>);
             }
-            wasm_code.push_str(<span class="string">&quot;) (result&quot;</span>);
+            wasm_code.push_str(<span class="string">") (result"</span>);
 
             <span class="kw">for _ in </span><span class="number">0</span>..nb_return_values {
-                wasm_code.push_str(<span class="string">&quot; i32&quot;</span>);
+                wasm_code.push_str(<span class="string">" i32"</span>);
             }
-            wasm_code.push_str(<span class="string">&quot;)\n&quot;</span>);
+            wasm_code.push_str(<span class="string">")\n"</span>);
 
             <span class="kw">for _ in </span><span class="number">0</span>..nb_locals {
-                wasm_code.push_str(<span class="string">&quot;    (local i32)\n&quot;</span>);
+                wasm_code.push_str(<span class="string">"    (local i32)\n"</span>);
             }
 
-            wasm_code.push_str(<span class="string">&quot;    (block (result&quot;</span>);
+            wasm_code.push_str(<span class="string">"    (block (result"</span>);
             <span class="kw">for _ in </span><span class="number">0</span>..nb_return_values {
-                wasm_code.push_str(<span class="string">&quot; i32&quot;</span>);
+                wasm_code.push_str(<span class="string">" i32"</span>);
             }
-            wasm_code.push_str(<span class="string">&quot;)\n&quot;</span>);
+            wasm_code.push_str(<span class="string">")\n"</span>);
 
             <span class="kw">for _ in </span><span class="number">0</span>..nb_return_values {
-                wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;      i32.const {}\n&quot;</span>, i));
+                wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"      i32.const {}\n"</span>, i));
             }
 
-            wasm_code.push_str(<span class="string">&quot;    )\n  )\n&quot;</span>);
+            wasm_code.push_str(<span class="string">"    )\n  )\n"</span>);
         }
-        wasm_code.push(<span class="string">&#39;\n&#39;</span>);
+        wasm_code.push(<span class="string">'\n'</span>);
 
         <span class="comment">// export fn
-        </span>wasm_code.push_str(<span class="string">&quot;;; export functions\n&quot;</span>);
+        </span>wasm_code.push_str(<span class="string">";; export functions\n"</span>);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..nb_exports_fn {
             wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;  (export \&quot;fn_{}\&quot; (func ${}))\n&quot;</span>,
+                <span class="string">"  (export \"fn_{}\" (func ${}))\n"</span>,
                 i,
                 fn_names.get(i).unwrap()
             ));
         }
-        wasm_code.push(<span class="string">&#39;\n&#39;</span>);
+        wasm_code.push(<span class="string">'\n'</span>);
 
         <span class="comment">// table initializer
-        </span>wasm_code.push_str(<span class="string">&quot;;; table initializers\n&quot;</span>);
-        wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  (table {} funcref)\n&quot;</span>, nb_table_ini));
+        </span>wasm_code.push_str(<span class="string">";; table initializers\n"</span>);
+        wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"  (table {} funcref)\n"</span>, nb_table_ini));
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..nb_table_ini {
             wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;    (elem (i32.const {}) ${})\n&quot;</span>,
+                <span class="string">"    (elem (i32.const {}) ${})\n"</span>,
                 i,
                 fn_names.get(i).unwrap()
             ));
         }
-        wasm_code.push(<span class="string">&#39;\n&#39;</span>);
+        wasm_code.push(<span class="string">'\n'</span>);
 
         <span class="comment">// passive elements
-        </span>wasm_code.push_str(<span class="string">&quot;;; passive elements\n&quot;</span>);
+        </span>wasm_code.push_str(<span class="string">";; passive elements\n"</span>);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..nb_passive_elm {
-            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  (elem func ${})\n&quot;</span>, fn_names.get(i).unwrap()));
+            wasm_code.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"  (elem func ${})\n"</span>, fn_names.get(i).unwrap()));
         }
 
-        wasm_code.push(<span class="string">&#39;)&#39;</span>);
+        wasm_code.push(<span class="string">')'</span>);
 
-        std::fs::write(<span class="string">&quot;calibrate.wat&quot;</span>, <span class="kw-2">&amp;</span>wasm_code).unwrap();
+        std::fs::write(<span class="string">"calibrate.wat"</span>, <span class="kw-2">&amp;</span>wasm_code).unwrap();
 
         wat2wasm(wasm_code.as_bytes()).unwrap().into()
     }
@@ -2517,11 +2517,11 @@
         <span class="kw">let </span>start_time = Instant::now();
         <span class="kw">let </span>module_result = Module::new(<span class="kw-2">&amp;</span>store, wasm_bytes);
         <span class="kw">let </span>compilation_duration = Instant::now().duration_since(start_time);
-        <span class="macro">println!</span>(<span class="string">&quot;Module creation took: {:?}&quot;</span>, compilation_duration);
+        <span class="macro">println!</span>(<span class="string">"Module creation took: {:?}"</span>, compilation_duration);
 
         <span class="kw">let </span>memory_usage = get_memory_usage().unwrap();
         <span class="macro">println!</span>(
-            <span class="string">&quot;Memory usage: {:&gt;12}o &quot;</span>,
+            <span class="string">"Memory usage: {:&gt;12}o "</span>,
             memory_usage.to_formatted_string(<span class="kw-2">&amp;</span>SystemLocale::default().unwrap()),
         );
 
@@ -2529,7 +2529,7 @@
             <span class="macro">dbg!</span>(<span class="kw-2">&amp;</span>module_result);
             <span class="macro">assert!</span>(module_result.is_err());
             <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = module_result {
-                <span class="macro">assert!</span>(e.to_string().contains(<span class="string">&quot;is too big&quot;</span>));
+                <span class="macro">assert!</span>(e.to_string().contains(<span class="string">"is too big"</span>));
             }
         }
     }

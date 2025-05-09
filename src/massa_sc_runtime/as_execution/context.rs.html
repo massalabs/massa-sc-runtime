@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/as_execution/context.rs`."><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.1 (a28077b28 2023-12-04)" data-channel="1.74.1" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/as_execution/context.rs`."><title>context.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -344,7 +344,7 @@
         <span class="kw">match </span>Instance::new(store, <span class="kw-2">&amp;</span><span class="self">self</span>.module, <span class="kw-2">&amp;</span>imports) {
             <span class="prelude-val">Ok</span>(instance) =&gt; {
                 <span class="self">self</span>.init_with_instance(store, <span class="kw-2">&amp;</span>instance, <span class="kw-2">&amp;mut </span>fenv)<span class="question-mark">?</span>;
-                <span class="kw">let </span>post_init_points = <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+                <span class="kw">let </span>post_init_points = <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
                     <span class="kw">if let </span>MeteringPoints::Remaining(points) =
                         metering::get_remaining_points(store, <span class="kw-2">&amp;</span>instance)
                     {
@@ -366,7 +366,7 @@
                 </span><span class="kw">if let </span>InstantiationError::Start(<span class="kw-2">ref </span>e) = err {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(trap) = e.clone().to_trap() {
                         <span class="kw">if </span>trap == TrapCode::UnreachableCodeReached &amp;&amp; e.trace().is_empty() {
-                            <span class="macro">bail!</span>(<span class="string">&quot;Not enough gas, limit reached at initialization&quot;</span>);
+                            <span class="macro">bail!</span>(<span class="string">"Not enough gas, limit reached at initialization"</span>);
                         }
                     }
                 }
@@ -382,12 +382,12 @@
         function: <span class="kw-2">&amp;</span>str,
         param: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Response&gt; {
-        <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+        <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
             <span class="comment">// Sub initial metering cost
             </span><span class="kw">let </span>metering_initial_cost = <span class="self">self</span>.env.get_gas_costs().launch_cost;
             <span class="kw">let </span>remaining_gas = get_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env, store)<span class="question-mark">?</span>;
             <span class="kw">if </span>metering_initial_cost &gt; remaining_gas {
-                <span class="macro">bail!</span>(<span class="string">&quot;Not enough gas to launch the virtual machine&quot;</span>)
+                <span class="macro">bail!</span>(<span class="string">"Not enough gas to launch the virtual machine"</span>)
             }
             set_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env, store, remaining_gas - metering_initial_cost)<span class="question-mark">?</span>;
         }
@@ -400,13 +400,13 @@
             <span class="kw">let </span>param_ptr = <span class="kw-2">*</span>BufferPtr::alloc(<span class="kw-2">&amp;</span>param.to_vec(), <span class="self">self</span>.env.get_ffi_env(), store)<span class="question-mark">?</span>;
             wasm_func.call(store, <span class="kw-2">&amp;</span>[Value::I32(param_ptr.offset() <span class="kw">as </span>i32)])
         } <span class="kw">else </span>{
-            <span class="macro">bail!</span>(<span class="string">&quot;Unexpected number of parameters in the function called&quot;</span>)
+            <span class="macro">bail!</span>(<span class="string">"Unexpected number of parameters in the function called"</span>)
         };
 
         <span class="kw">match </span>res {
             <span class="prelude-val">Ok</span>(value) =&gt; {
                 <span class="kw">if </span>function.eq(<span class="kw">crate</span>::settings::MAIN) {
-                    <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
+                    <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"gas_calibration"</span>) {
                         <span class="prelude-val">Ok</span>(<span class="number">0_u64</span>)
                     } <span class="kw">else </span>{
                         get_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env, store)
@@ -416,22 +416,22 @@
                         ret: Vec::new(), <span class="comment">// main return empty vec
                         </span>remaining_gas: remaining_gas<span class="question-mark">?</span>,
                         init_gas_cost: <span class="number">0</span>,
-                        <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+                        <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
                         </span>trace: Default::default(),
                     });
                 }
                 <span class="kw">let </span>ret = <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = value.first() {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = offset.i32() {
                         <span class="kw">let </span>buffer_ptr = BufferPtr::new(offset <span class="kw">as </span>u32);
-                        <span class="kw">let </span>memory = instance.exports.get_memory(<span class="string">&quot;memory&quot;</span>)<span class="question-mark">?</span>;
+                        <span class="kw">let </span>memory = instance.exports.get_memory(<span class="string">"memory"</span>)<span class="question-mark">?</span>;
                         buffer_ptr.read(memory, store)<span class="question-mark">?
                     </span>} <span class="kw">else </span>{
-                        <span class="macro">bail!</span>(<span class="string">&quot;Execution wasn&#39;t in capacity to read the return value&quot;</span>)
+                        <span class="macro">bail!</span>(<span class="string">"Execution wasn't in capacity to read the return value"</span>)
                     }
                 } <span class="kw">else </span>{
                     Vec::new()
                 };
-                <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
+                <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"gas_calibration"</span>) {
                     <span class="prelude-val">Ok</span>(<span class="number">0_u64</span>)
                 } <span class="kw">else </span>{
                     get_remaining_points(<span class="kw-2">&amp;</span><span class="self">self</span>.env, store)
@@ -440,7 +440,7 @@
                     ret,
                     remaining_gas: remaining_gas<span class="question-mark">?</span>,
                     init_gas_cost: <span class="number">0</span>,
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
                     </span>trace: Default::default(),
                 })
             }
@@ -454,25 +454,25 @@
         instance: <span class="kw-2">&amp;</span>Instance,
         fenv: <span class="kw-2">&amp;mut </span>FunctionEnv&lt;ASEnv&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>memory = instance.exports.get_memory(<span class="string">&quot;memory&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>memory = instance.exports.get_memory(<span class="string">"memory"</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// NOTE: only add functions (__new, ...) if these exists in wasm/wat
         // files       so we can still exec some very basic wat files
         </span><span class="kw">let </span>fn_new = instance
             .exports
-            .get_typed_function::&lt;(i32, i32), i32&gt;(<span class="kw-2">&amp;</span>store, <span class="string">&quot;__new&quot;</span>)
+            .get_typed_function::&lt;(i32, i32), i32&gt;(<span class="kw-2">&amp;</span>store, <span class="string">"__new"</span>)
             .ok();
         <span class="kw">let </span>fn_pin = instance
             .exports
-            .get_typed_function::&lt;i32, i32&gt;(<span class="kw-2">&amp;</span>store, <span class="string">&quot;__pin&quot;</span>)
+            .get_typed_function::&lt;i32, i32&gt;(<span class="kw-2">&amp;</span>store, <span class="string">"__pin"</span>)
             .ok();
         <span class="kw">let </span>fn_unpin = instance
             .exports
-            .get_typed_function::&lt;i32, ()&gt;(<span class="kw-2">&amp;</span>store, <span class="string">&quot;__unpin&quot;</span>)
+            .get_typed_function::&lt;i32, ()&gt;(<span class="kw-2">&amp;</span>store, <span class="string">"__unpin"</span>)
             .ok();
         <span class="kw">let </span>fn_collect = instance
             .exports
-            .get_typed_function::&lt;(), ()&gt;(<span class="kw-2">&amp;</span>store, <span class="string">&quot;__collect&quot;</span>)
+            .get_typed_function::&lt;(), ()&gt;(<span class="kw-2">&amp;</span>store, <span class="string">"__collect"</span>)
             .ok();
 
         fenv.as_mut(store).get_ffi_env_as_mut().init_with(
@@ -493,15 +493,15 @@
         );
 
         <span class="comment">// Metering counters
-        </span><span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+        </span><span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
             <span class="kw">let </span>g_1 = instance
                 .exports
-                .get_global(<span class="string">&quot;wasmer_metering_remaining_points&quot;</span>)<span class="question-mark">?
+                .get_global(<span class="string">"wasmer_metering_remaining_points"</span>)<span class="question-mark">?
                 </span>.clone();
             fenv.as_mut(store).remaining_points = <span class="prelude-val">Some</span>(g_1.clone());
             <span class="kw">let </span>g_2 = instance
                 .exports
-                .get_global(<span class="string">&quot;wasmer_metering_points_exhausted&quot;</span>)<span class="question-mark">?
+                .get_global(<span class="string">"wasmer_metering_points_exhausted"</span>)<span class="question-mark">?
                 </span>.clone();
             fenv.as_mut(store).exhausted_points = <span class="prelude-val">Some</span>(g_2.clone());
 
@@ -517,83 +517,83 @@
 
         <span class="kw">let </span>version = <span class="self">self</span>.env.interface.get_interface_version().unwrap_or(<span class="number">0</span>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>imports = <span class="macro">imports! </span>{
-            <span class="string">&quot;env&quot; </span>=&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>imports = <span class="macro">imports!</span> {
+            <span class="string">"env" </span>=&gt; {
                 <span class="comment">// Needed by WASM generated by AssemblyScript
-                </span><span class="string">&quot;abort&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_abort),
-                <span class="string">&quot;seed&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_seed),
-                <span class="string">&quot;Date.now&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_date_now),
-                <span class="string">&quot;console.log&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_log),
-                <span class="string">&quot;console.info&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_info),
-                <span class="string">&quot;console.warn&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_warn),
-                <span class="string">&quot;console.error&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_error),
-                <span class="string">&quot;console.debug&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_debug),
-                <span class="string">&quot;trace&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_trace),
-                <span class="string">&quot;process.exit&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_process_exit),
+                </span><span class="string">"abort" </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_abort),
+                <span class="string">"seed" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_seed),
+                <span class="string">"Date.now" </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_date_now),
+                <span class="string">"console.log" </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_log),
+                <span class="string">"console.info" </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_info),
+                <span class="string">"console.warn" </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_warn),
+                <span class="string">"console.error" </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_error),
+                <span class="string">"console.debug" </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_console_debug),
+                <span class="string">"trace" </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_trace),
+                <span class="string">"process.exit" </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_process_exit),
             },
-            <span class="string">&quot;massa&quot; </span>=&gt; {
-                <span class="string">&quot;assembly_script_print&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_print),
-                <span class="string">&quot;assembly_script_call&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_call),
-                <span class="string">&quot;assembly_script_get_remaining_gas&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_remaining_gas),
-                <span class="string">&quot;assembly_script_create_sc&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_create_sc),
-                <span class="string">&quot;assembly_script_set_data&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_set_data),
-                <span class="string">&quot;assembly_script_set_data_for&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_set_data_for),
-                <span class="string">&quot;assembly_script_get_data&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_data),
-                <span class="string">&quot;assembly_script_get_data_for&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_data_for),
-                <span class="string">&quot;assembly_script_delete_data&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_delete_data),
-                <span class="string">&quot;assembly_script_delete_data_for&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_delete_data_for),
-                <span class="string">&quot;assembly_script_append_data&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_append_data),
-                <span class="string">&quot;assembly_script_append_data_for&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_append_data_for),
-                <span class="string">&quot;assembly_script_has_data&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_has_data),
-                <span class="string">&quot;assembly_script_has_data_for&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_has_data_for),
-                <span class="string">&quot;assembly_script_get_owned_addresses&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_owned_addresses),
-                <span class="string">&quot;assembly_script_get_call_stack&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_call_stack),
-                <span class="string">&quot;assembly_script_generate_event&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_generate_event),
-                <span class="string">&quot;assembly_script_transfer_coins&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_transfer_coins),
-                <span class="string">&quot;assembly_script_transfer_coins_for&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_transfer_coins_for),
-                <span class="string">&quot;assembly_script_get_balance&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_balance),
-                <span class="string">&quot;assembly_script_get_balance_for&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_balance_for),
-                <span class="string">&quot;assembly_script_hash&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_hash),
-                <span class="string">&quot;assembly_script_hash_sha256&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_hash_sha256),
-                <span class="string">&quot;assembly_script_keccak256_hash&quot; </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_keccak256_hash),
-                <span class="string">&quot;assembly_script_signature_verify&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_signature_verify),
-                <span class="string">&quot;assembly_script_evm_signature_verify&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_evm_signature_verify),
-                <span class="string">&quot;assembly_script_evm_get_address_from_pubkey&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_evm_get_address_from_pubkey),
-                <span class="string">&quot;assembly_script_evm_get_pubkey_from_signature&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_evm_get_pubkey_from_signature),
-                <span class="string">&quot;assembly_script_is_address_eoa&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_is_address_eoa),
-                <span class="string">&quot;assembly_script_address_from_public_key&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_address_from_public_key),
-                <span class="string">&quot;assembly_script_validate_address&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_validate_address),
-                <span class="string">&quot;assembly_script_unsafe_random&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_unsafe_random),
-                <span class="string">&quot;assembly_script_get_call_coins&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_call_coins),
-                <span class="string">&quot;assembly_script_get_time&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_time),
-                <span class="string">&quot;assembly_script_send_message&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_send_message),
-                <span class="string">&quot;assembly_script_get_origin_operation_id&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_origin_operation_id),
-                <span class="string">&quot;assembly_script_get_current_period&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_current_period),
-                <span class="string">&quot;assembly_script_get_current_thread&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_current_thread),
-                <span class="string">&quot;assembly_script_set_bytecode&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_set_bytecode),
-                <span class="string">&quot;assembly_script_set_bytecode_for&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_set_bytecode_for),
-                <span class="string">&quot;assembly_script_get_op_keys&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_op_keys),
-                <span class="string">&quot;assembly_script_get_op_keys_prefix&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_op_keys_prefix),
-                <span class="string">&quot;assembly_script_get_keys&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_keys),
-                <span class="string">&quot;assembly_script_get_keys_for&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_keys_for),
-                <span class="string">&quot;assembly_script_has_op_key&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_has_op_key),
-                <span class="string">&quot;assembly_script_get_op_data&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_op_data),
-                <span class="string">&quot;assembly_script_get_bytecode&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_bytecode),
-                <span class="string">&quot;assembly_script_get_bytecode_for&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_bytecode_for),
-                <span class="string">&quot;assembly_script_local_call&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_local_call),
-                <span class="string">&quot;assembly_script_local_execution&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_local_execution),
-                <span class="string">&quot;assembly_script_caller_has_write_access&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_caller_has_write_access),
-                <span class="string">&quot;assembly_script_function_exists&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_function_exists),
-                <span class="string">&quot;assembly_script_chain_id&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_chain_id),
+            <span class="string">"massa" </span>=&gt; {
+                <span class="string">"assembly_script_print" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_print),
+                <span class="string">"assembly_script_call" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_call),
+                <span class="string">"assembly_script_get_remaining_gas" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_remaining_gas),
+                <span class="string">"assembly_script_create_sc" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_create_sc),
+                <span class="string">"assembly_script_set_data" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_set_data),
+                <span class="string">"assembly_script_set_data_for" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_set_data_for),
+                <span class="string">"assembly_script_get_data" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_data),
+                <span class="string">"assembly_script_get_data_for" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_data_for),
+                <span class="string">"assembly_script_delete_data" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_delete_data),
+                <span class="string">"assembly_script_delete_data_for" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_delete_data_for),
+                <span class="string">"assembly_script_append_data" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_append_data),
+                <span class="string">"assembly_script_append_data_for" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_append_data_for),
+                <span class="string">"assembly_script_has_data" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_has_data),
+                <span class="string">"assembly_script_has_data_for" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_has_data_for),
+                <span class="string">"assembly_script_get_owned_addresses" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_owned_addresses),
+                <span class="string">"assembly_script_get_call_stack" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_call_stack),
+                <span class="string">"assembly_script_generate_event" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_generate_event),
+                <span class="string">"assembly_script_transfer_coins" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_transfer_coins),
+                <span class="string">"assembly_script_transfer_coins_for" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_transfer_coins_for),
+                <span class="string">"assembly_script_get_balance" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_balance),
+                <span class="string">"assembly_script_get_balance_for" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_balance_for),
+                <span class="string">"assembly_script_hash" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_hash),
+                <span class="string">"assembly_script_hash_sha256" </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_hash_sha256),
+                <span class="string">"assembly_script_keccak256_hash" </span>=&gt;  Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_keccak256_hash),
+                <span class="string">"assembly_script_signature_verify" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_signature_verify),
+                <span class="string">"assembly_script_evm_signature_verify" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_evm_signature_verify),
+                <span class="string">"assembly_script_evm_get_address_from_pubkey" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_evm_get_address_from_pubkey),
+                <span class="string">"assembly_script_evm_get_pubkey_from_signature" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_evm_get_pubkey_from_signature),
+                <span class="string">"assembly_script_is_address_eoa" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_is_address_eoa),
+                <span class="string">"assembly_script_address_from_public_key" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_address_from_public_key),
+                <span class="string">"assembly_script_validate_address" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_validate_address),
+                <span class="string">"assembly_script_unsafe_random" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_unsafe_random),
+                <span class="string">"assembly_script_get_call_coins" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_call_coins),
+                <span class="string">"assembly_script_get_time" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_time),
+                <span class="string">"assembly_script_send_message" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_send_message),
+                <span class="string">"assembly_script_get_origin_operation_id" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_origin_operation_id),
+                <span class="string">"assembly_script_get_current_period" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_current_period),
+                <span class="string">"assembly_script_get_current_thread" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_current_thread),
+                <span class="string">"assembly_script_set_bytecode" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_set_bytecode),
+                <span class="string">"assembly_script_set_bytecode_for" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_set_bytecode_for),
+                <span class="string">"assembly_script_get_op_keys" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_op_keys),
+                <span class="string">"assembly_script_get_op_keys_prefix" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_op_keys_prefix),
+                <span class="string">"assembly_script_get_keys" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_keys),
+                <span class="string">"assembly_script_get_keys_for" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_keys_for),
+                <span class="string">"assembly_script_has_op_key" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_has_op_key),
+                <span class="string">"assembly_script_get_op_data" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_op_data),
+                <span class="string">"assembly_script_get_bytecode" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_bytecode),
+                <span class="string">"assembly_script_get_bytecode_for" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_bytecode_for),
+                <span class="string">"assembly_script_local_call" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_local_call),
+                <span class="string">"assembly_script_local_execution" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_local_execution),
+                <span class="string">"assembly_script_caller_has_write_access" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_caller_has_write_access),
+                <span class="string">"assembly_script_function_exists" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_function_exists),
+                <span class="string">"assembly_script_chain_id" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_chain_id),
             },
         };
 
         <span class="kw">if </span>version &gt; <span class="number">0 </span>{
-            imports.extend(<span class="kw-2">&amp;</span><span class="macro">imports! </span>{<span class="string">&quot;massa&quot; </span>=&gt; {
-                <span class="string">&quot;assembly_script_get_deferred_call_quote&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_deferred_call_quote),
-                <span class="string">&quot;assembly_script_deferred_call_register&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_register),
-                <span class="string">&quot;assembly_script_deferred_call_exists&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_exists),
-                <span class="string">&quot;assembly_script_deferred_call_cancel&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_cancel),
+            imports.extend(<span class="kw-2">&amp;</span><span class="macro">imports!</span> {<span class="string">"massa" </span>=&gt; {
+                <span class="string">"assembly_script_get_deferred_call_quote" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_deferred_call_quote),
+                <span class="string">"assembly_script_deferred_call_register" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_register),
+                <span class="string">"assembly_script_deferred_call_exists" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_exists),
+                <span class="string">"assembly_script_deferred_call_cancel" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_cancel),
             }});
         }
 

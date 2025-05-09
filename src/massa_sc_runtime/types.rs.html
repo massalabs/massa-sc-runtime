@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/types.rs`."><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.1 (a28077b28 2023-12-04)" data-channel="1.74.1" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/types.rs`."><title>types.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -920,9 +920,9 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::execution::RuntimeModule;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 #[derive(Debug, Clone, PartialEq, Serialize)]
-#[serde(tag = <span class="string">&quot;type&quot;</span>, content = <span class="string">&quot;value&quot;</span>, rename_all = <span class="string">&quot;camelCase&quot;</span>)]
+#[serde(tag = <span class="string">"type"</span>, content = <span class="string">"value"</span>, rename_all = <span class="string">"camelCase"</span>)]
 </span><span class="kw">pub enum </span>AbiTraceType {
     <span class="prelude-val">None</span>,
     Bool(bool),
@@ -939,83 +939,83 @@
     Slot((u64, u8)),
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">impl </span>From&lt;bool&gt; <span class="kw">for </span>AbiTraceType {
     <span class="kw">fn </span>from(v: bool) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Bool(v)
     }
 }
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">impl </span>From&lt;u8&gt; <span class="kw">for </span>AbiTraceType {
     <span class="kw">fn </span>from(v: u8) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::U8(v)
     }
 }
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">impl </span>From&lt;i32&gt; <span class="kw">for </span>AbiTraceType {
     <span class="kw">fn </span>from(v: i32) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::I32(v)
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">impl </span>From&lt;u32&gt; <span class="kw">for </span>AbiTraceType {
     <span class="kw">fn </span>from(v: u32) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::U32(v)
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">impl </span>From&lt;i64&gt; <span class="kw">for </span>AbiTraceType {
     <span class="kw">fn </span>from(v: i64) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::I64(v)
     }
 }
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">impl </span>From&lt;u64&gt; <span class="kw">for </span>AbiTraceType {
     <span class="kw">fn </span>from(v: u64) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::U64(v)
     }
 }
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">impl </span>From&lt;f64&gt; <span class="kw">for </span>AbiTraceType {
     <span class="kw">fn </span>from(v: f64) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::F64(v)
     }
 }
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">impl </span>From&lt;Vec&lt;u8&gt;&gt; <span class="kw">for </span>AbiTraceType {
     <span class="kw">fn </span>from(v: Vec&lt;u8&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::ByteArray(v)
     }
 }
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">impl </span>From&lt;Vec&lt;Vec&lt;u8&gt;&gt;&gt; <span class="kw">for </span>AbiTraceType {
     <span class="kw">fn </span>from(v: Vec&lt;Vec&lt;u8&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::ByteArrays(v)
     }
 }
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>AbiTraceType {
     <span class="kw">fn </span>from(v: String) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::String(v)
     }
 }
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">impl </span>From&lt;Vec&lt;String&gt;&gt; <span class="kw">for </span>AbiTraceType {
     <span class="kw">fn </span>from(v: Vec&lt;String&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Strings(v)
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">impl </span>From&lt;(u64, u8)&gt; <span class="kw">for </span>AbiTraceType {
     <span class="kw">fn </span>from(v: (u64, u8)) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Slot(v)
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 #[derive(Debug, Clone, PartialEq, Serialize)]
 </span><span class="kw">pub struct </span>AbiTraceValue {
     <span class="kw">pub </span>name: String,
@@ -1023,7 +1023,7 @@
     </span><span class="kw">pub </span>value: AbiTraceType,
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">impl</span>&lt;T&gt; From&lt;(<span class="kw-2">&amp;</span>str, T)&gt; <span class="kw">for </span>AbiTraceValue
 <span class="kw">where
     </span>T: Into&lt;AbiTraceType&gt;,
@@ -1036,15 +1036,15 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 #[macro_export]
-</span><span class="macro">macro_rules! </span>into_trace_value {
+</span><span class="macro">macro_rules!</span> into_trace_value {
     (<span class="macro-nonterminal">$a</span>: expr) =&gt; {{
         (<span class="macro">stringify!</span>(<span class="macro-nonterminal">$a</span>), <span class="macro-nonterminal">$a</span>).into()
     }};
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 #[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>AbiTrace {
     <span class="kw">pub </span>name: String,
@@ -1053,7 +1053,7 @@
     <span class="kw">pub </span>sub_calls: <span class="prelude-ty">Option</span>&lt;Vec&lt;AbiTrace&gt;&gt;,
 }
 
-<span class="doccomment">/// That&#39;s what is returned when a module is executed correctly since the end
+<span class="doccomment">/// That's what is returned when a module is executed correctly since the end
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Response {
     <span class="doccomment">/// returned value from the module call
@@ -1062,7 +1062,7 @@
     </span><span class="kw">pub </span>remaining_gas: u64,
     <span class="doccomment">/// number of gas required for the instance creation
     </span><span class="kw">pub </span>init_gas_cost: u64,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span><span class="kw">pub </span>trace: Vec&lt;AbiTrace&gt;,
 }
 
@@ -1123,39 +1123,39 @@
             //       See: https://github.com/massalabs/gas-calibration/issues/9
             </span>operator_cost: <span class="number">23</span>,
             launch_cost: <span class="kw-2">*</span>abi_costs
-                .get(<span class="string">&quot;launch&quot;</span>)
-                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;launch cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
+                .get(<span class="string">"launch"</span>)
+                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">"launch cost not found in ABI gas cost file."</span>))<span class="question-mark">?</span>,
             cl_compilation_cost: <span class="kw-2">*</span>abi_costs
-                .get(<span class="string">&quot;cl_compilation&quot;</span>)
-                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;cl_compilation cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
+                .get(<span class="string">"cl_compilation"</span>)
+                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">"cl_compilation cost not found in ABI gas cost file."</span>))<span class="question-mark">?</span>,
             sp_compilation_cost: <span class="kw-2">*</span>abi_costs
-                .get(<span class="string">&quot;sp_compilation&quot;</span>)
-                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;sp_compilation cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
+                .get(<span class="string">"sp_compilation"</span>)
+                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">"sp_compilation cost not found in ABI gas cost file."</span>))<span class="question-mark">?</span>,
             max_instance_cost: <span class="kw-2">*</span>abi_costs
-                .get(<span class="string">&quot;max_instance&quot;</span>)
-                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;max_instance cost not found in ABI gas cost file.&quot;</span>))<span class="question-mark">?</span>,
+                .get(<span class="string">"max_instance"</span>)
+                .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">"max_instance cost not found in ABI gas cost file."</span>))<span class="question-mark">?</span>,
             abi_costs,
         })
     }
 
-    <span class="attr">#[cfg(any(test, feature = <span class="string">&quot;gas_calibration&quot;</span>, feature = <span class="string">&quot;testing&quot;</span>))]
+    <span class="attr">#[cfg(any(test, feature = <span class="string">"gas_calibration"</span>, feature = <span class="string">"testing"</span>))]
     </span><span class="kw">pub fn </span>get_abi_costs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HashMap&lt;String, u64&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.abi_costs
     }
 
-    <span class="attr">#[cfg(any(test, feature = <span class="string">&quot;gas_calibration&quot;</span>, feature = <span class="string">&quot;testing&quot;</span>))]
+    <span class="attr">#[cfg(any(test, feature = <span class="string">"gas_calibration"</span>, feature = <span class="string">"testing"</span>))]
     </span><span class="doccomment">/// Insert into hashmap - return None if already there
     </span><span class="kw">fn </span>try_insert(h: <span class="kw-2">&amp;mut </span>HashMap&lt;String, u64&gt;, k: String, v: u64) {
         <span class="comment">// Note: use try_insert when not an experimental feature anymore
         // https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.try_insert
         </span><span class="kw">if </span>h.insert(k.clone(), v).is_some() {
             <span class="comment">// Insert return old value if the key was already there
-            </span><span class="macro">panic!</span>(<span class="string">&quot;Key {} already in hashmap&quot;</span>, k);
+            </span><span class="macro">panic!</span>(<span class="string">"Key {} already in hashmap"</span>, k);
         }
     }
 }
 
-<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;gas_calibration&quot;</span>, feature = <span class="string">&quot;testing&quot;</span>))]
+<span class="attr">#[cfg(any(test, feature = <span class="string">"gas_calibration"</span>, feature = <span class="string">"testing"</span>))]
 </span><span class="kw">impl </span>Default <span class="kw">for </span>GasCosts {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>h = HashMap::new();
@@ -1163,215 +1163,215 @@
         //       this will panic in unit tests
         </span>GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_address_from_public_key&quot;</span>),
+            String::from(<span class="string">"assembly_script_address_from_public_key"</span>),
             <span class="number">147</span>,
         );
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_validate_address&quot;</span>), <span class="number">4</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_append_data&quot;</span>), <span class="number">162</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_append_data_for&quot;</span>), <span class="number">200</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_create_sc&quot;</span>), <span class="number">160</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_delete_data&quot;</span>), <span class="number">78</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_delete_data_for&quot;</span>), <span class="number">120</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_generate_event&quot;</span>), <span class="number">36</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_balance&quot;</span>), <span class="number">4</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_balance_for&quot;</span>), <span class="number">41</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_call_coins&quot;</span>), <span class="number">9</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_call_stack&quot;</span>), <span class="number">56</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_data&quot;</span>), <span class="number">85</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_data_for&quot;</span>), <span class="number">139</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_keys&quot;</span>), <span class="number">26</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_keys_for&quot;</span>), <span class="number">48</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_op_data&quot;</span>), <span class="number">71</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_op_keys&quot;</span>), <span class="number">138</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_validate_address"</span>), <span class="number">4</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_append_data"</span>), <span class="number">162</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_append_data_for"</span>), <span class="number">200</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_create_sc"</span>), <span class="number">160</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_delete_data"</span>), <span class="number">78</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_delete_data_for"</span>), <span class="number">120</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_generate_event"</span>), <span class="number">36</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_balance"</span>), <span class="number">4</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_balance_for"</span>), <span class="number">41</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_call_coins"</span>), <span class="number">9</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_call_stack"</span>), <span class="number">56</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_data"</span>), <span class="number">85</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_data_for"</span>), <span class="number">139</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_keys"</span>), <span class="number">26</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_keys_for"</span>), <span class="number">48</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_op_data"</span>), <span class="number">71</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_op_keys"</span>), <span class="number">138</span>);
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_get_op_keys_prefix&quot;</span>),
+            String::from(<span class="string">"assembly_script_get_op_keys_prefix"</span>),
             <span class="number">138</span>,
         );
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_get_owned_addresses&quot;</span>),
+            String::from(<span class="string">"assembly_script_get_owned_addresses"</span>),
             <span class="number">52</span>,
         );
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_remaining_gas&quot;</span>), <span class="number">7</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_time&quot;</span>), <span class="number">4</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_has_data&quot;</span>), <span class="number">69</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_has_data_for&quot;</span>), <span class="number">115</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_has_op_key&quot;</span>), <span class="number">78</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_hash&quot;</span>), <span class="number">83</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_hash_sha256&quot;</span>), <span class="number">83</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_keccak256_hash&quot;</span>), <span class="number">83</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_print&quot;</span>), <span class="number">35</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_send_message&quot;</span>), <span class="number">316</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_remaining_gas"</span>), <span class="number">7</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_time"</span>), <span class="number">4</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_has_data"</span>), <span class="number">69</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_has_data_for"</span>), <span class="number">115</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_has_op_key"</span>), <span class="number">78</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_hash"</span>), <span class="number">83</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_hash_sha256"</span>), <span class="number">83</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_keccak256_hash"</span>), <span class="number">83</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_print"</span>), <span class="number">35</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_send_message"</span>), <span class="number">316</span>);
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_get_origin_operation_id&quot;</span>),
+            String::from(<span class="string">"assembly_script_get_origin_operation_id"</span>),
             <span class="number">200</span>,
         );
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_set_bytecode&quot;</span>), <span class="number">74</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_set_bytecode"</span>), <span class="number">74</span>);
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_set_bytecode_for&quot;</span>),
+            String::from(<span class="string">"assembly_script_set_bytecode_for"</span>),
             <span class="number">129</span>,
         );
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_set_data&quot;</span>), <span class="number">158</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_set_data_for&quot;</span>), <span class="number">165</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_signature_verify&quot;</span>), <span class="number">98</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_set_data"</span>), <span class="number">158</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_set_data_for"</span>), <span class="number">165</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_signature_verify"</span>), <span class="number">98</span>);
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_evm_signature_verify&quot;</span>),
+            String::from(<span class="string">"assembly_script_evm_signature_verify"</span>),
             <span class="number">264</span>,
         );
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_evm_get_address_from_pubkey&quot;</span>),
+            String::from(<span class="string">"assembly_script_evm_get_address_from_pubkey"</span>),
             <span class="number">11</span>,
         );
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_evm_get_pubkey_from_signature&quot;</span>),
+            String::from(<span class="string">"assembly_script_evm_get_pubkey_from_signature"</span>),
             <span class="number">11</span>,
         );
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_is_address_eoa&quot;</span>), <span class="number">11</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_transfer_coins&quot;</span>), <span class="number">62</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_is_address_eoa"</span>), <span class="number">11</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_transfer_coins"</span>), <span class="number">62</span>);
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_transfer_coins_for&quot;</span>),
+            String::from(<span class="string">"assembly_script_transfer_coins_for"</span>),
             <span class="number">102</span>,
         );
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_unsafe_random&quot;</span>), <span class="number">11</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_call&quot;</span>), <span class="number">11</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_local_call&quot;</span>), <span class="number">11</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_local_execution&quot;</span>), <span class="number">11</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_bytecode&quot;</span>), <span class="number">11</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_get_bytecode_for&quot;</span>), <span class="number">11</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_unsafe_random"</span>), <span class="number">11</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_call"</span>), <span class="number">11</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_local_call"</span>), <span class="number">11</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_local_execution"</span>), <span class="number">11</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_bytecode"</span>), <span class="number">11</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_get_bytecode_for"</span>), <span class="number">11</span>);
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_caller_has_write_access&quot;</span>),
+            String::from(<span class="string">"assembly_script_caller_has_write_access"</span>),
             <span class="number">11</span>,
         );
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_function_exists&quot;</span>), <span class="number">11</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_function_exists"</span>), <span class="number">11</span>);
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_get_deferred_call_quote&quot;</span>),
+            String::from(<span class="string">"assembly_script_get_deferred_call_quote"</span>),
             <span class="number">244</span>,
         );
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_deferred_call_register&quot;</span>),
+            String::from(<span class="string">"assembly_script_deferred_call_register"</span>),
             <span class="number">530</span>,
         );
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_deferred_call_exists&quot;</span>),
+            String::from(<span class="string">"assembly_script_deferred_call_exists"</span>),
             <span class="number">1316</span>,
         );
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_deferred_call_cancel&quot;</span>),
+            String::from(<span class="string">"assembly_script_deferred_call_cancel"</span>),
             <span class="number">833</span>,
         );
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_seed&quot;</span>), <span class="number">11</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_abort&quot;</span>), <span class="number">11</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_date_now&quot;</span>), <span class="number">11</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_console_log&quot;</span>), <span class="number">36</span>); <span class="comment">// same cost as for generate_event
-        </span>GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_console_info&quot;</span>), <span class="number">36</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_console_debug&quot;</span>), <span class="number">36</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_console_warn&quot;</span>), <span class="number">36</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_console_error&quot;</span>), <span class="number">36</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_trace&quot;</span>), <span class="number">36</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;assembly_script_chain_id&quot;</span>), <span class="number">9</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_seed"</span>), <span class="number">11</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_abort"</span>), <span class="number">11</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_date_now"</span>), <span class="number">11</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_console_log"</span>), <span class="number">36</span>); <span class="comment">// same cost as for generate_event
+        </span>GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_console_info"</span>), <span class="number">36</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_console_debug"</span>), <span class="number">36</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_console_warn"</span>), <span class="number">36</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_console_error"</span>), <span class="number">36</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_trace"</span>), <span class="number">36</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"assembly_script_chain_id"</span>), <span class="number">9</span>);
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_get_current_period&quot;</span>),
+            String::from(<span class="string">"assembly_script_get_current_period"</span>),
             <span class="number">157</span>,
         );
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;assembly_script_get_current_thread&quot;</span>),
+            String::from(<span class="string">"assembly_script_get_current_thread"</span>),
             <span class="number">154</span>,
         );
 
         <span class="comment">// abi v1
-        </span>GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_address_version&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_call&quot;</span>), <span class="number">30</span>);
+        </span>GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_address_version"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_call"</span>), <span class="number">30</span>);
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;abi_checked_scalar_div_native_time&quot;</span>),
+            String::from(<span class="string">"abi_checked_scalar_div_native_time"</span>),
             <span class="number">30</span>,
         );
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_check_signature&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_local_call&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_compare_address&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;sp_compilation&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_append_ds_value&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_delete_ds_entry&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_address_from_public_key&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_bytes_to_base58_check&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_hash_blake3&quot;</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_check_signature"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_local_call"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_compare_address"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"sp_compilation"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_append_ds_value"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_delete_ds_entry"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_address_from_public_key"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_bytes_to_base58_check"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_hash_blake3"</span>), <span class="number">30</span>);
         GasCosts::try_insert(
             <span class="kw-2">&amp;mut </span>h,
-            String::from(<span class="string">&quot;abi_evm_get_pubkey_from_signature&quot;</span>),
+            String::from(<span class="string">"abi_evm_get_pubkey_from_signature"</span>),
             <span class="number">30</span>,
         );
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_remaining_gas&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_add_native_amount&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_base58_check_to_bytes&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_set_bytecode&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_call_coins&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_chain_id&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_abort&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_checked_div_native_time&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_address_category&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_send_async_message&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_check_address&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_sub_native_amount&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_scalar_mul_native_amount&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_bytecode&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_op_keys&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_native_amount_to_string&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_hash_sha256&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_native_amount_from_string&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_create_sc&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_origin_operation_id&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_pubkey_version&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_is_address_eoa&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_evm_get_address_from_pubkey&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_ds_value&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_scalar_div_rem_native_amount&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_signature_version&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_unsafe_random&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_compare_pub_key&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_generate_event&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_verify_signature&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_checked_sub_native_time&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_native_time&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_owned_addresses&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_check_pubkey&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_compare_native_amount&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_compare_native_time&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_balance&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_set_ds_value&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_ds_keys&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_op_data&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_ds_entry_exists&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_div_rem_native_amount&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_evm_verify_signature&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_check_native_amount&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_transfer_coins&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_hash_keccak256&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_current_slot&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_checked_add_native_time&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_op_entry_exists&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_function_exists&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_call_stack&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_caller_has_write_access&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_local_execution&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_checked_mul_native_time&quot;</span>), <span class="number">30</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_deferred_call_cancel&quot;</span>), <span class="number">750</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_deferred_call_exists&quot;</span>), <span class="number">443</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_deferred_call_register&quot;</span>), <span class="number">745</span>);
-        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">&quot;abi_get_deferred_call_quote&quot;</span>), <span class="number">416</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_remaining_gas"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_add_native_amount"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_base58_check_to_bytes"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_set_bytecode"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_call_coins"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_chain_id"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_abort"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_checked_div_native_time"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_address_category"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_send_async_message"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_check_address"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_sub_native_amount"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_scalar_mul_native_amount"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_bytecode"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_op_keys"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_native_amount_to_string"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_hash_sha256"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_native_amount_from_string"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_create_sc"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_origin_operation_id"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_pubkey_version"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_is_address_eoa"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_evm_get_address_from_pubkey"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_ds_value"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_scalar_div_rem_native_amount"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_signature_version"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_unsafe_random"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_compare_pub_key"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_generate_event"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_verify_signature"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_checked_sub_native_time"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_native_time"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_owned_addresses"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_check_pubkey"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_compare_native_amount"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_compare_native_time"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_balance"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_set_ds_value"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_ds_keys"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_op_data"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_ds_entry_exists"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_div_rem_native_amount"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_evm_verify_signature"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_check_native_amount"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_transfer_coins"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_hash_keccak256"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_current_slot"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_checked_add_native_time"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_op_entry_exists"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_function_exists"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_call_stack"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_caller_has_write_access"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_local_execution"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_checked_mul_native_time"</span>), <span class="number">30</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_deferred_call_cancel"</span>), <span class="number">750</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_deferred_call_exists"</span>), <span class="number">443</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_deferred_call_register"</span>), <span class="number">745</span>);
+        GasCosts::try_insert(<span class="kw-2">&amp;mut </span>h, String::from(<span class="string">"abi_get_deferred_call_quote"</span>), <span class="number">416</span>);
 
         <span class="self">Self </span>{
             abi_costs: h,
@@ -1436,7 +1436,7 @@
     <span class="doccomment">/// Get the amount of coins that have been made available for use by the
     /// caller of the currently executing code.
     </span><span class="kw">fn </span>get_call_coins(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
-        <span class="macro">bail!</span>(<span class="string">&quot;unimplemented function get_call_coins_for in interface&quot;</span>)
+        <span class="macro">bail!</span>(<span class="string">"unimplemented function get_call_coins_for in interface"</span>)
     }
 
     <span class="doccomment">/// Get the native amount of coins that have been made available for use by

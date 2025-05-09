@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/middlewares/gas_calibration.rs`."><title>gas_calibration.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.1 (a28077b28 2023-12-04)" data-channel="1.74.1" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/middlewares/gas_calibration.rs`."><title>gas_calibration.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -448,8 +448,8 @@
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>GasCalibration {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;GasCalibration&quot;</span>).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"GasCalibration"</span>).finish()
     }
 }
 
@@ -468,10 +468,10 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>global_indexes = <span class="self">self</span>.global_indexes.lock().unwrap();
         <span class="kw">if </span>global_indexes.is_some() {
-            <span class="macro">panic!</span>(<span class="string">&quot;GasCalibration::transform_module_info: Attempting to use a `GasCalibration` middleware from multiple modules.&quot;</span>);
+            <span class="macro">panic!</span>(<span class="string">"GasCalibration::transform_module_info: Attempting to use a `GasCalibration` middleware from multiple modules."</span>);
         }
 
-        <span class="comment">// println!(&quot;{:?}&quot;, global_indexes.transform_module_info_ms);
+        <span class="comment">// println!("{:?}", global_indexes.transform_module_info_ms);
 
         </span><span class="kw">let </span><span class="kw-2">mut </span>indexes = GasCalibrationGlobalIndexes {
             imports_call_map: Default::default(),
@@ -486,9 +486,9 @@
             <span class="kw">let </span>index = import_key.import_idx;
 
             <span class="comment">// -&gt; env.abort OR massa.assembly_script_print
-            </span><span class="kw">let </span>function_fullname = <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, module_name, function_name);
+            </span><span class="kw">let </span>function_fullname = <span class="macro">format!</span>(<span class="string">"{}.{}"</span>, module_name, function_name);
 
-            <span class="comment">// Append a global for this &#39;imports&#39; (== abi call) and initialize
+            <span class="comment">// Append a global for this 'imports' (== abi call) and initialize
             // it.
             </span><span class="kw">let </span>global_index = module_info
                 .globals
@@ -497,7 +497,7 @@
                 .global_initializers
                 .push(GlobalInit::I64Const(<span class="number">0</span>));
             module_info.exports.insert(
-                <span class="macro">format!</span>(<span class="string">&quot;wgc_abi_{}&quot;</span>, function_fullname),
+                <span class="macro">format!</span>(<span class="string">"wgc_abi_{}"</span>, function_fullname),
                 ExportIndex::Global(global_index),
             );
 
@@ -505,13 +505,13 @@
                 .imports_call_map
                 .insert(index, (function_fullname.clone(), global_index));
 
-            <span class="comment">// Append a global per param size per &#39;imports&#39; (== abi call)
+            <span class="comment">// Append a global per param size per 'imports' (== abi call)
             </span><span class="kw">let </span>function_sig = <span class="kw">if let </span>ImportIndex::Function(f) = import_index {
                 module_info.functions.get(<span class="kw-2">*</span>f).unwrap_or_else(|| {
-                    <span class="macro">panic!</span>(<span class="string">&quot;Cannot get function signature for {}&quot;</span>, function_name)
+                    <span class="macro">panic!</span>(<span class="string">"Cannot get function signature for {}"</span>, function_name)
                 })
             } <span class="kw">else </span>{
-                <span class="macro">panic!</span>(<span class="string">&quot;ImportIndex is not a function??&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"ImportIndex is not a function??"</span>);
             };
             <span class="kw">let </span>function_type = module_info.signatures.get(<span class="kw-2">*</span>function_sig).unwrap();
             <span class="kw">let </span>param_count = function_type.params().len();
@@ -525,7 +525,7 @@
                     .push(GlobalInit::I64Const(<span class="number">0</span>));
 
                 module_info.exports.insert(
-                    <span class="macro">format!</span>(<span class="string">&quot;wgc_ps_{}:{}&quot;</span>, function_fullname, i),
+                    <span class="macro">format!</span>(<span class="string">"wgc_ps_{}:{}"</span>, function_fullname, i),
                     ExportIndex::Global(global_index),
                 );
 
@@ -542,7 +542,7 @@
                 .global_initializers
                 .push(GlobalInit::I64Const(<span class="number">0</span>));
             module_info.exports.insert(
-                <span class="macro">format!</span>(<span class="string">&quot;wgc_op_{}&quot;</span>, op_name),
+                <span class="macro">format!</span>(<span class="string">"wgc_op_{}"</span>, op_name),
                 ExportIndex::Global(global_index),
             );
 
@@ -551,16 +551,16 @@
                 .insert((<span class="kw-2">*</span>op_name).to_string(), global_index);
         }
 
-        <span class="comment">// println!(&quot;module info function names: {:?}&quot;,
-        // module_info.function_names); println!(&quot;module info exports:
-        // {:?}&quot;, module_info.exports); println!(&quot;module info imports:
-        // {:?}&quot;, module_info.imports); println!(&quot;module info functions:
-        // {:?}&quot;, module_info.functions); println!(&quot;module info num
-        // imported functions: {:?}&quot;, module_info.num_imported_functions);
-        // println!(&quot;module info start function: {:?}&quot;,
-        // module_info.start_function); println!(&quot;module info passive
-        // elements: {:?}&quot;, module_info.passive_elements);
-        // println!(&quot;module info signatures: {:?}&quot;, module_info.signatures);
+        <span class="comment">// println!("module info function names: {:?}",
+        // module_info.function_names); println!("module info exports:
+        // {:?}", module_info.exports); println!("module info imports:
+        // {:?}", module_info.imports); println!("module info functions:
+        // {:?}", module_info.functions); println!("module info num
+        // imported functions: {:?}", module_info.num_imported_functions);
+        // println!("module info start function: {:?}",
+        // module_info.start_function); println!("module info passive
+        // elements: {:?}", module_info.passive_elements);
+        // println!("module info signatures: {:?}", module_info.signatures);
 
         // Append a global variable for time elapsed of this function.
         // Note: transform_module_info can take quite some time and thus we need
@@ -572,12 +572,12 @@
             .global_initializers
             .push(GlobalInit::F64Const(current.elapsed().as_secs_f64()));
         module_info.exports.insert(
-            String::from(<span class="string">&quot;wgc_elapsed_transform_module_info&quot;</span>),
+            String::from(<span class="string">"wgc_elapsed_transform_module_info"</span>),
             ExportIndex::Global(global_index),
         );
 
         <span class="comment">// indexes.transform_module_info_ms += duration.as_millis() as f64;
-        // println!(&quot;Time elapsed in {}() is: {:?}&quot;, &quot;transform_module_info&quot;,
+        // println!("Time elapsed in {}() is: {:?}", "transform_module_info",
         // duration);
 
         </span><span class="kw-2">*</span>global_indexes = <span class="prelude-val">Some</span>(indexes);
@@ -587,25 +587,25 @@
 }
 
 <span class="kw">impl </span>FunctionMiddleware <span class="kw">for </span>FunctionGasCalibration {
-    <span class="kw">fn </span>feed&lt;<span class="lifetime">&#39;a</span>&gt;(
+    <span class="kw">fn </span>feed&lt;<span class="lifetime">'a</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        operator: Operator&lt;<span class="lifetime">&#39;a</span>&gt;,
-        state: <span class="kw-2">&amp;mut </span>MiddlewareReaderState&lt;<span class="lifetime">&#39;a</span>&gt;,
+        operator: Operator&lt;<span class="lifetime">'a</span>&gt;,
+        state: <span class="kw-2">&amp;mut </span>MiddlewareReaderState&lt;<span class="lifetime">'a</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), MiddlewareError&gt; {
         <span class="comment">// let current = Instant::now();
 
-        // println!(&quot;Operator: {:?}&quot;, operator);
+        // println!("Operator: {:?}", operator);
         </span>state.push_operator(operator.clone());
 
         <span class="kw">if let </span>Operator::Call { function_index } = operator {
             <span class="comment">// let f = self.global_indexes.imports_call_map.get(&amp;
-            // function_index).unwrap(); println!(&quot;Operator::Call
-            // {:?}&quot;, f);
+            // function_index).unwrap(); println!("Operator::Call
+            // {:?}", f);
 
             // state.push_operator(operator);
 
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(index) = <span class="self">self</span>.global_indexes.imports_call_map.get(<span class="kw-2">&amp;</span>function_index) {
-                <span class="comment">// println!(&quot;Found function index: {}&quot;, function_index);
+                <span class="comment">// println!("Found function index: {}", function_index);
                 </span>state.extend(<span class="kw-2">&amp;</span>[
                     <span class="comment">// incr function call counter
                     </span>Operator::GlobalGet {
@@ -618,16 +618,16 @@
                     },
                 ]);
             } <span class="kw">else </span>{
-                <span class="comment">// Note: here we are skipping call to &#39;local function&#39;
+                <span class="comment">// Note: here we are skipping call to 'local function'
                 // For instance, getOpKeys() use derOpKeys() (local) +
                 // get_op_keys() (abi) Uncomment the line
-                // &#39;println!(&quot;...&quot;, module_info.functions);&#39; to view the list of
+                // 'println!("...", module_info.functions);' to view the list of
                 // all functions (import + local)
                 // Note2: Signature of function (e.g. arguments types + return
-                // type) can be seen with: println!(&quot;...&quot;,
+                // type) can be seen with: println!("...",
                 // module_info.signatures);
 
-                // println!(&quot;Skipping unknown function index: {}&quot;,
+                // println!("Skipping unknown function index: {}",
                 // function_index);
             </span>}
         }
@@ -639,8 +639,8 @@
             .get(op_name)
             .ok_or_else(|| {
                 MiddlewareError::new(
-                    <span class="string">&quot;GasCalibration&quot;</span>,
-                    <span class="macro">format!</span>(<span class="string">&quot;Unable to get index for op: {}&quot;</span>, op_name),
+                    <span class="string">"GasCalibration"</span>,
+                    <span class="macro">format!</span>(<span class="string">"Unable to get index for op: {}"</span>, op_name),
                 )
             })<span class="question-mark">?</span>;
 
@@ -656,7 +656,7 @@
         ]);
 
         <span class="comment">// let duration = current.elapsed();
-        // println!(&quot;Time elapsed in {}() is: {:?}&quot;, &quot;feed&quot;, duration);
+        // println!("Time elapsed in {}() is: {:?}", "feed", duration);
 
         </span><span class="prelude-val">Ok</span>(())
     }
@@ -668,7 +668,7 @@
     <span class="kw">pub </span>timers: HashMap&lt;String, f64&gt;,
 }
 
-<span class="comment">// #[cfg(feature = &quot;gas_calibration&quot;)]
+<span class="comment">// #[cfg(feature = "gas_calibration")]
 </span><span class="kw">pub fn </span>get_gas_calibration_result(
     instance: <span class="kw-2">&amp;</span>Instance,
     store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
@@ -680,10 +680,10 @@
         timers: Default::default(),
     };
     <span class="kw">let </span>patterns = [
-        <span class="string">r&quot;wgc_abi_([\w\.]+)&quot;</span>,
-        <span class="string">r&quot;wgc_op_([\w]+)&quot;</span>,
-        <span class="string">r&quot;wgc_ps_([\w\.:]+)&quot;</span>,
-        <span class="string">r&quot;wgc_elapsed_([\w\._]+)&quot;</span>,
+        <span class="string">r"wgc_abi_([\w\.]+)"</span>,
+        <span class="string">r"wgc_op_([\w]+)"</span>,
+        <span class="string">r"wgc_ps_([\w\.:]+)"</span>,
+        <span class="string">r"wgc_elapsed_([\w\._]+)"</span>,
     ];
     <span class="comment">// Must not fail
     </span><span class="kw">let </span>set = RegexSet::new(patterns).unwrap();
@@ -728,7 +728,7 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(cap) = rgx_iter.next() {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(abi_func_name) = cap.get(<span class="number">1</span>) {
                         result.counters.insert(
-                            <span class="macro">format!</span>(<span class="string">&quot;Abi:call:{}&quot;</span>, abi_func_name.as_str()),
+                            <span class="macro">format!</span>(<span class="string">"Abi:call:{}"</span>, abi_func_name.as_str()),
                             counter_value.unwrap() <span class="kw">as </span>u64,
                         );
                     }
@@ -741,7 +741,7 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(cap) = rgx_iter.next() {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(op_name) = cap.get(<span class="number">1</span>) {
                         result.counters.insert(
-                            <span class="macro">format!</span>(<span class="string">&quot;Wasm:{}&quot;</span>, op_name.as_str()),
+                            <span class="macro">format!</span>(<span class="string">"Wasm:{}"</span>, op_name.as_str()),
                             counter_value.unwrap() <span class="kw">as </span>u64,
                         );
                     }
@@ -754,7 +754,7 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(cap) = rgx_iter.next() {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(op_name) = cap.get(<span class="number">1</span>) {
                         result.counters.insert(
-                            <span class="macro">format!</span>(<span class="string">&quot;Abi:ps:{}&quot;</span>, op_name.as_str()),
+                            <span class="macro">format!</span>(<span class="string">"Abi:ps:{}"</span>, op_name.as_str()),
                             counter_value.unwrap() <span class="kw">as </span>u64,
                         );
                     }
@@ -768,23 +768,23 @@
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(fn_name) = cap.get(<span class="number">1</span>) {
                         result
                             .timers
-                            .insert(<span class="macro">format!</span>(<span class="string">&quot;Time:{}&quot;</span>, fn_name.as_str()), timer_value.unwrap());
+                            .insert(<span class="macro">format!</span>(<span class="string">"Time:{}"</span>, fn_name.as_str()), timer_value.unwrap());
                     }
                 }
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="macro">println!</span>(<span class="string">&quot;Unhandled export name: {}&quot;</span>, export_name);
+                <span class="macro">println!</span>(<span class="string">"Unhandled export name: {}"</span>, export_name);
             }
         }
     }
 
     <span class="kw">let </span>duration = current.elapsed();
     result.timers.insert(
-        String::from(<span class="string">&quot;Time:gas_calibration_result&quot;</span>),
+        String::from(<span class="string">"Time:gas_calibration_result"</span>),
         duration.as_secs_f64(),
     );
 
-    <span class="comment">// println!(&quot;Time elapsed in {}() is: {:?}&quot;, &quot;gas_calibration_result&quot;,
+    <span class="comment">// println!("Time elapsed in {}() is: {:?}", "gas_calibration_result",
     // duration);
 
     </span>result
@@ -797,23 +797,23 @@
 // param_len: usize,
 // is_str: bool,
 // ) {
-// println!(&quot;Calling param_size_update: {} {}&quot;, function_name, param_len);
-// let function_full_name = format!(&quot;wgc_ps_{}&quot;, function_name);
+// println!("Calling param_size_update: {} {}", function_name, param_len);
+// let function_full_name = format!("wgc_ps_{}", function_name);
 // let global_ref = env
 // .get_gc_param(&amp;function_full_name)
-// .unwrap_or_else(|| panic!(&quot;Unable to find counter for {}&quot;,
+// .unwrap_or_else(|| panic!("Unable to find counter for {}",
 // function_full_name)); Cannot fail as the middleware define it as i64
 // let v: i64 = global_ref
 // .get(store)
 // .try_into()
-// .expect(&quot;Unable to convert global ref to i64&quot;);
+// .expect("Unable to convert global ref to i64");
 //
 // AssemblyScript use utf-16 string so we need to mult by 2
 // let s = v + match is_str {
 // true =&gt; (param_len * 2) as i64,
 // false =&gt; param_len as i64,
 // };
-// let error_msg = format!(&quot;Unable to set global {:?} with value: {}&quot;,
+// let error_msg = format!("Unable to set global {:?} with value: {}",
 // global_ref, s); global_ref.set(store, s.into()).expect(&amp;error_msg);
 // }
 </span></code></pre></div></section></main></body></html>

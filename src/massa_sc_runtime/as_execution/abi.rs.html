@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/as_execution/abi.rs`."><title>abi.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.1 (a28077b28 2023-12-04)" data-channel="1.74.1" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/as_execution/abi.rs`."><title>abi.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2096,7 +2096,7 @@
 
 <span class="kw">use </span><span class="kw">super</span>::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
 <span class="kw">use </span><span class="kw">crate</span>::settings;
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">use crate</span>::{
     into_trace_value,
     types::{AbiTrace, AbiTraceType},
@@ -2105,11 +2105,11 @@
 <span class="kw">use </span><span class="kw">super</span>::common::{call_module, create_sc, function_exists, local_call};
 <span class="kw">use </span><span class="kw">super</span>::error::{abi_bail, ABIResult};
 
-<span class="macro">macro_rules! </span>get_memory {
+<span class="macro">macro_rules!</span> get_memory {
     (<span class="macro-nonterminal">$env</span>:ident) =&gt; {
         <span class="kw">match </span><span class="macro-nonterminal">$env</span>.get_ffi_env().memory.as_ref() {
             <span class="prelude-val">Some</span>(mem) =&gt; mem,
-            <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;AssemblyScript memory is missing from the environment&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">"AssemblyScript memory is missing from the environment"</span>),
         }
     };
 }
@@ -2121,7 +2121,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_env(ctx: <span class="kw-2">&amp;</span>FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;ASEnv&gt; {
     <span class="kw">let </span>env = ctx.data().clone();
     <span class="kw">if </span>!(env.abi_enabled.load(std::sync::atomic::Ordering::Relaxed)) {
-        <span class="macro">abi_bail!</span>(<span class="string">&quot;ABI calls are not available during instantiation&quot;</span>);
+        <span class="macro">abi_bail!</span>(<span class="string">"ABI calls are not available during instantiation"</span>);
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(env)
     }
@@ -2134,7 +2134,7 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>res = env.get_interface().get_call_coins()<span class="question-mark">? </span><span class="kw">as </span>i64;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -2155,18 +2155,18 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">if </span>raw_amount.is_negative() {
-        <span class="macro">abi_bail!</span>(<span class="string">&quot;Negative raw amount.&quot;</span>);
+        <span class="macro">abi_bail!</span>(<span class="string">"Negative raw amount."</span>);
     }
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>to_address = read_string(memory, <span class="kw-2">&amp;</span>ctx, to_address)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, to_address.len(), true);
     // }
     </span>env.get_interface()
         .transfer_coins(<span class="kw-2">&amp;</span>to_address, raw_amount <span class="kw">as </span>u64)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>{
         <span class="kw">let </span>call_stack = env.get_interface().get_call_stack();
         <span class="comment">// TODO: check if this is always correct (with nested of nested call?)
@@ -2174,7 +2174,7 @@
             .unwrap_or_default()
             .last()
             .cloned()
-            .unwrap_or_else(|| <span class="string">&quot;&quot;</span>.to_string());
+            .unwrap_or_else(|| <span class="string">""</span>.to_string());
 
         ctx.data_mut().trace.push(AbiTrace {
             name: <span class="macro">function_name!</span>().to_string(),
@@ -2201,21 +2201,21 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">if </span>raw_amount.is_negative() {
-        <span class="macro">abi_bail!</span>(<span class="string">&quot;Negative raw amount.&quot;</span>);
+        <span class="macro">abi_bail!</span>(<span class="string">"Negative raw amount."</span>);
     }
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>from_address = read_string(memory, <span class="kw-2">&amp;</span>ctx, from_address)<span class="question-mark">?</span>;
     <span class="kw">let </span>to_address = read_string(memory, <span class="kw-2">&amp;</span>ctx, to_address)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, from_address.len(), true);
-    //     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
+    //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, to_address.len(), true);
     // }
     </span>env.get_interface()
         .transfer_coins_for(<span class="kw-2">&amp;</span>from_address, <span class="kw-2">&amp;</span>to_address, raw_amount <span class="kw">as </span>u64)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
@@ -2234,7 +2234,7 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>res = env.get_interface().get_balance()<span class="question-mark">? </span><span class="kw">as </span>i64;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -2254,12 +2254,12 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
     // }
     </span><span class="kw">let </span>res = env.get_interface().get_balance_for(<span class="kw-2">&amp;</span>address)<span class="question-mark">? </span><span class="kw">as </span>i64;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address)],
@@ -2287,22 +2287,22 @@
     <span class="kw">let </span>param = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, param)<span class="question-mark">?</span>;
 
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
-    //     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
+    //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, function.len(), true);
-    //     let fname = format!(&quot;massa.{}:2&quot;, function_name!());
+    //     let fname = format!("massa.{}:2", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, param.len(), true);
     // }
 
     </span><span class="kw">let </span>response = call_module(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>address, <span class="kw-2">&amp;</span>function, <span class="kw-2">&amp;</span>param, call_coins)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
-            (<span class="string">&quot;address&quot;</span>, address.clone()).into(),
-            (<span class="string">&quot;function&quot;</span>, function.clone()).into(),
+            (<span class="string">"address"</span>, address.clone()).into(),
+            (<span class="string">"function"</span>, function.clone()).into(),
             <span class="macro">into_trace_value!</span>(param),
             <span class="macro">into_trace_value!</span>(call_coins),
         ],
@@ -2312,7 +2312,7 @@
     <span class="kw">match </span>BufferPtr::alloc(<span class="kw-2">&amp;</span>response.ret, env.get_ffi_env(), <span class="kw-2">&amp;mut </span>ctx) {
         <span class="prelude-val">Ok</span>(ret) =&gt; <span class="prelude-val">Ok</span>(ret.offset() <span class="kw">as </span>i32),
         <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="macro">format!</span>(
-            <span class="string">&quot;Cannot allocate response in call {}::{}&quot;</span>,
+            <span class="string">"Cannot allocate response in call {}::{}"</span>,
             address, function
         )),
     }
@@ -2323,7 +2323,7 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>res = get_remaining_points(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx)<span class="question-mark">? </span><span class="kw">as </span>i64;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -2345,13 +2345,13 @@
     <span class="kw">let </span>message = read_string(memory, <span class="kw-2">&amp;</span>ctx, arg)<span class="question-mark">?</span>;
 
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, message.len(), true);
     // }
 
     </span>env.get_interface().print(<span class="kw-2">&amp;</span>message)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(message)],
@@ -2373,7 +2373,7 @@
                 ser_bytearray_vec(<span class="kw-2">&amp;</span>keys, keys.len(), settings::max_op_datastore_entry_count())<span class="question-mark">?</span>;
             <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>fmt_keys)<span class="question-mark">?</span>.offset();
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
             </span>ctx.data_mut().trace.push(AbiTrace {
                 name: <span class="macro">function_name!</span>().to_string(),
                 params: <span class="macro">vec!</span>[],
@@ -2407,7 +2407,7 @@
                 ser_bytearray_vec(<span class="kw-2">&amp;</span>keys, keys.len(), settings::max_op_datastore_entry_count())<span class="question-mark">?</span>;
             <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>fmt_keys)<span class="question-mark">?</span>.offset();
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
             </span>ctx.data_mut().trace.push(AbiTrace {
                 name: <span class="macro">function_name!</span>().to_string(),
                 params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(prefix)],
@@ -2431,8 +2431,8 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>key_bytes = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key_bytes.len(), true);
     // }
 
@@ -2440,11 +2440,11 @@
         <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">abi_bail!</span>(err),
         <span class="prelude-val">Ok</span>(b) =&gt; {
             <span class="comment">// https://doc.rust-lang.org/reference/types/boolean.html
-            // &#39;true&#39; is explicitly defined as: 0x01 while &#39;false&#39; is: 0x00
+            // 'true' is explicitly defined as: 0x01 while 'false' is: 0x00
             </span><span class="kw">let </span>b_vec: Vec&lt;u8&gt; = <span class="macro">vec!</span>[b <span class="kw">as </span>u8];
             <span class="kw">let </span>a = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>b_vec)<span class="question-mark">?</span>.offset();
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
             </span>ctx.data_mut().trace.push(AbiTrace {
                 name: <span class="macro">function_name!</span>().to_string(),
                 params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key_bytes)],
@@ -2468,14 +2468,14 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>key_bytes = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key_bytes.len(), true);
     // }
     </span><span class="kw">let </span>data = env.get_interface().get_op_data(<span class="kw-2">&amp;</span>key_bytes)<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key_bytes)],
@@ -2497,14 +2497,14 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>bytecode: Vec&lt;u8&gt; = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, bytecode)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, bytecode.len(), true);
     // }
     </span><span class="kw">let </span>address = create_sc(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>bytecode)<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = StringPtr::alloc(<span class="kw-2">&amp;</span>address, env.get_ffi_env(), <span class="kw-2">&amp;mut </span>ctx)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(bytecode)],
@@ -2522,13 +2522,13 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>bytes = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, value)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, value.len(), true);
     // }
     </span><span class="kw">let </span>hash = env.get_interface().hash(<span class="kw-2">&amp;</span>bytes)<span class="question-mark">?</span>.to_vec();
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>hash)<span class="question-mark">?</span>.offset();
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(bytes)],
@@ -2551,7 +2551,7 @@
     <span class="kw">let </span>hash = env.get_interface().hash_keccak256(<span class="kw-2">&amp;</span>bytes)<span class="question-mark">?</span>.to_vec();
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>hash)<span class="question-mark">?</span>.offset();
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(bytes)],
@@ -2581,7 +2581,7 @@
     <span class="kw">let </span>fmt_keys = ser_bytearray_vec(<span class="kw-2">&amp;</span>keys, keys.len(), settings::max_datastore_entry_count())<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>fmt_keys)<span class="question-mark">?</span>.offset();
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(prefix)],
@@ -2612,7 +2612,7 @@
     <span class="kw">let </span>fmt_keys = ser_bytearray_vec(<span class="kw-2">&amp;</span>keys, keys.len(), settings::max_datastore_entry_count())<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>fmt_keys)<span class="question-mark">?</span>.offset();
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address), <span class="macro">into_trace_value!</span>(prefix)],
@@ -2637,25 +2637,25 @@
     <span class="kw">let </span>value = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, value)<span class="question-mark">?</span>;
 
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
+    // if cfg!(feature = "gas_calibration") {
     //     param_size_update(
     //         &amp;env,
     //         &amp;mut ctx,
-    //         &quot;massa.assembly_script_set_data:0&quot;,
+    //         "massa.assembly_script_set_data:0",
     //         key.len(),
     //         false,
     //     );
     //     param_size_update(
     //         &amp;env,
     //         &amp;mut ctx,
-    //         &quot;massa.assembly_script_set_data:1&quot;,
+    //         "massa.assembly_script_set_data:1",
     //         value.len(),
     //         false,
     //     );
     // }
 
     </span>env.get_interface().raw_set_data(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span>value)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key), <span class="macro">into_trace_value!</span>(value)],
@@ -2679,14 +2679,14 @@
     <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="kw">let </span>value = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, value)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key.len(), true);
-    //     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
+    //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, value.len(), true);
     // }
     </span>env.get_interface().raw_append_data(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span>value)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key), <span class="macro">into_trace_value!</span>(value)],
@@ -2704,13 +2704,13 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key.len(), true);
     // }
     </span><span class="kw">let </span>data = env.get_interface().raw_get_data(<span class="kw-2">&amp;</span>key)<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key)],
@@ -2728,12 +2728,12 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key.len(), true);
     // }
     </span><span class="kw">let </span>res = env.get_interface().has_data(<span class="kw-2">&amp;</span>key)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key)],
@@ -2755,12 +2755,12 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key.len(), true);
     // }
     </span>env.get_interface().raw_delete_data(<span class="kw-2">&amp;</span>key)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(key)],
@@ -2786,17 +2786,17 @@
     <span class="kw">let </span>value = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, value)<span class="question-mark">?</span>;
     <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
-    //     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
+    //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key.len(), true);
-    //     let fname = format!(&quot;massa.{}:2&quot;, function_name!());
+    //     let fname = format!("massa.{}:2", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, value.len(), true);
     // }
     </span>env.get_interface()
         .raw_set_data_for(<span class="kw-2">&amp;</span>address, <span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span>value)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
@@ -2826,17 +2826,17 @@
     <span class="kw">let </span>value = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, value)<span class="question-mark">?</span>;
     <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
-    //     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
+    //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key.len(), true);
-    //     let fname = format!(&quot;massa.{}:2&quot;, function_name!());
+    //     let fname = format!("massa.{}:2", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, value.len(), true);
     // }
     </span>env.get_interface()
         .raw_append_data_for(<span class="kw-2">&amp;</span>address, <span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span>value)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
@@ -2864,16 +2864,16 @@
     <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
-    //     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
+    //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key.len(), true);
     // }
 
     </span><span class="kw">let </span>data = env.get_interface().raw_get_data_for(<span class="kw-2">&amp;</span>address, <span class="kw-2">&amp;</span>key)<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address), <span class="macro">into_trace_value!</span>(key)],
@@ -2897,14 +2897,14 @@
     <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
-    //     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
+    //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key.len(), true);
     // }
     </span>env.get_interface().raw_delete_data_for(<span class="kw-2">&amp;</span>address, <span class="kw-2">&amp;</span>key)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address), <span class="macro">into_trace_value!</span>(key)],
@@ -2926,14 +2926,14 @@
     <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, key)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
-    //     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
+    //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, key.len(), true);
     // }
     </span><span class="kw">let </span>res = env.get_interface().has_data_for(<span class="kw-2">&amp;</span>address, <span class="kw-2">&amp;</span>key)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address), <span class="macro">into_trace_value!</span>(key)],
@@ -2953,7 +2953,7 @@
     <span class="comment">// prevent data.clone() when enabling execution-trace
     </span><span class="attr">#[allow(clippy::let_and_return)]
     </span><span class="kw">let </span>ptr = alloc_string_array(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>data);
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -2971,7 +2971,7 @@
     <span class="comment">// prevent data.clone() when enabling execution-trace
     </span><span class="attr">#[allow(clippy::let_and_return)]
     </span><span class="kw">let </span>ptr = alloc_string_array(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>data);
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -2991,12 +2991,12 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>event = read_string(memory, <span class="kw-2">&amp;</span>ctx, event)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, event.len(), true);
     // }
     </span>env.get_interface().generate_event(event.clone())<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(event)],
@@ -3022,18 +3022,18 @@
     <span class="kw">let </span>signature = read_string(memory, <span class="kw-2">&amp;</span>ctx, signature)<span class="question-mark">?</span>;
     <span class="kw">let </span>public_key = read_string(memory, <span class="kw-2">&amp;</span>ctx, public_key)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, data.len(), true);
-    //     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
+    //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, signature.len(), true);
-    //     let fname = format!(&quot;massa.{}:2&quot;, function_name!());
+    //     let fname = format!("massa.{}:2", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, public_key.len(), true);
     // }
     </span><span class="kw">let </span>res = env
         .get_interface()
         .signature_verify(data.as_bytes(), <span class="kw-2">&amp;</span>signature, <span class="kw-2">&amp;</span>public_key)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
@@ -3065,7 +3065,7 @@
     <span class="kw">let </span>res = env
         .get_interface()
         .evm_signature_verify(<span class="kw-2">&amp;</span>data, <span class="kw-2">&amp;</span>signature, <span class="kw-2">&amp;</span>public_key)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
@@ -3093,7 +3093,7 @@
         .get_interface()
         .evm_get_address_from_pubkey(<span class="kw-2">&amp;</span>public_key)<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>address)<span class="question-mark">?</span>.offset();
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(public_key)],
@@ -3119,7 +3119,7 @@
         .get_interface()
         .evm_get_pubkey_from_signature(<span class="kw-2">&amp;</span>data, <span class="kw-2">&amp;</span>signature)<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>public_key)<span class="question-mark">?</span>.offset();
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(data), <span class="macro">into_trace_value!</span>(signature)],
@@ -3140,7 +3140,7 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="kw">let </span>res = env.get_interface().is_address_eoa(<span class="kw-2">&amp;</span>address)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address)],
@@ -3161,13 +3161,13 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>public_key = read_string(memory, <span class="kw-2">&amp;</span>ctx, public_key)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, public_key.len(), true);
     // }
     </span><span class="kw">let </span>addr = env.get_interface().address_from_public_key(<span class="kw-2">&amp;</span>public_key)<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_string(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>addr)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(public_key)],
@@ -3188,7 +3188,7 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="kw">let </span>res = env.get_interface().validate_address(<span class="kw-2">&amp;</span>address)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address)],
@@ -3204,7 +3204,7 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>res = env.get_interface().unsafe_random()<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -3220,7 +3220,7 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>res = env.get_interface().get_time()<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -3255,43 +3255,43 @@
         validity_start_thread.try_into(),
     ) {
         (<span class="prelude-val">Ok</span>(p), <span class="prelude-val">Ok</span>(t)) =&gt; (p, t),
-        (<span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative validity start period&quot;</span>),
-        (<span class="kw">_</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;invalid validity start thread&quot;</span>),
+        (<span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">"negative validity start period"</span>),
+        (<span class="kw">_</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="macro">abi_bail!</span>(<span class="string">"invalid validity start thread"</span>),
     };
     <span class="kw">let </span>validity_end: (u64, u8) = <span class="kw">match </span>(
         validity_end_period.try_into(),
         validity_end_thread.try_into(),
     ) {
         (<span class="prelude-val">Ok</span>(p), <span class="prelude-val">Ok</span>(t)) =&gt; (p, t),
-        (<span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative validity end period&quot;</span>),
-        (<span class="kw">_</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;invalid validity end thread&quot;</span>),
+        (<span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">"negative validity end period"</span>),
+        (<span class="kw">_</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="macro">abi_bail!</span>(<span class="string">"invalid validity end thread"</span>),
     };
     <span class="kw">if </span>max_gas.is_negative() {
-        <span class="macro">abi_bail!</span>(<span class="string">&quot;negative max gas&quot;</span>);
+        <span class="macro">abi_bail!</span>(<span class="string">"negative max gas"</span>);
     }
     <span class="kw">if </span>raw_fee.is_negative() {
-        <span class="macro">abi_bail!</span>(<span class="string">&quot;negative raw_fee&quot;</span>);
+        <span class="macro">abi_bail!</span>(<span class="string">"negative raw_fee"</span>);
     }
     <span class="kw">if </span>raw_coins.is_negative() {
-        <span class="macro">abi_bail!</span>(<span class="string">&quot;negative coins&quot;</span>)
+        <span class="macro">abi_bail!</span>(<span class="string">"negative coins"</span>)
     }
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>target_address = read_string(memory, <span class="kw-2">&amp;</span>ctx, target_address)<span class="question-mark">?</span>;
     <span class="kw">let </span>target_handler = read_string(memory, <span class="kw-2">&amp;</span>ctx, target_handler)<span class="question-mark">?</span>;
     <span class="kw">let </span>data = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, data)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, target_address.len(),
-    // true);     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
+    // true);     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, target_handler.len(),
-    // true);     let fname = format!(&quot;massa.{}:2&quot;, function_name!());
+    // true);     let fname = format!("massa.{}:2", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, data.len(), true);
     // }
     </span><span class="kw">let </span>filter_address_string = read_string(memory, <span class="kw-2">&amp;</span>ctx, filter_address)<span class="question-mark">?</span>;
     <span class="kw">let </span>key = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, filter_datastore_key)<span class="question-mark">?</span>;
     <span class="kw">let </span>filter = <span class="kw">match </span>(filter_address_string.as_str(), key.as_slice()) {
-        (<span class="string">&quot;&quot;</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+        (<span class="string">""</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         (addr, <span class="kw-2">&amp;</span>[]) =&gt; <span class="prelude-val">Some</span>((addr, <span class="prelude-val">None</span>)),
         (addr, key) =&gt; <span class="prelude-val">Some</span>((addr, <span class="prelude-val">Some</span>(key))),
     };
@@ -3308,7 +3308,7 @@
         filter,
     )<span class="question-mark">?</span>;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
@@ -3344,7 +3344,7 @@
         .get_origin_operation_id()<span class="question-mark">?
         </span>.unwrap_or_default();
     <span class="kw">let </span>ptr = pointer_from_string(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>operation_id)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -3360,7 +3360,7 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>current_period = env.get_interface().get_current_period()<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -3376,7 +3376,7 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>current_thread = env.get_interface().get_current_thread()<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -3399,15 +3399,15 @@
     <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="kw">let </span>bytecode_raw = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, bytecode)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, address.len(), true);
-    //     let fname = format!(&quot;massa.{}:1&quot;, function_name!());
+    //     let fname = format!("massa.{}:1", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, bytecode_raw.len(), true);
     // }
     </span>env.get_interface()
         .raw_set_bytecode_for(<span class="kw-2">&amp;</span>address, <span class="kw-2">&amp;</span>bytecode_raw)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address), <span class="macro">into_trace_value!</span>(bytecode_raw)],
@@ -3428,12 +3428,12 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>bytecode_raw = read_buffer(memory, <span class="kw-2">&amp;</span>ctx, bytecode)<span class="question-mark">?</span>;
     <span class="comment">// Do not remove this. It could be used for gas_calibration in future.
-    // if cfg!(feature = &quot;gas_calibration&quot;) {
-    //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+    // if cfg!(feature = "gas_calibration") {
+    //     let fname = format!("massa.{}:0", function_name!());
     //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, bytecode_raw.len(), true);
     // }
     </span>env.get_interface().raw_set_bytecode(<span class="kw-2">&amp;</span>bytecode_raw)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(bytecode_raw)],
@@ -3450,7 +3450,7 @@
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>data = env.get_interface().raw_get_bytecode()<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -3472,7 +3472,7 @@
     <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="kw">let </span>data = env.get_interface().raw_get_bytecode_for(<span class="kw-2">&amp;</span>address)<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_bytearray(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address)],
@@ -3501,11 +3501,11 @@
     <span class="kw">let </span>res = <span class="kw">match </span>BufferPtr::alloc(<span class="kw-2">&amp;</span>response.ret, env.get_ffi_env(), <span class="kw-2">&amp;mut </span>ctx) {
         <span class="prelude-val">Ok</span>(ret) =&gt; <span class="prelude-val">Ok</span>(ret.offset() <span class="kw">as </span>i32),
         <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="macro">format!</span>(
-            <span class="string">&quot;Cannot allocate response in local call of {}&quot;</span>,
+            <span class="string">"Cannot allocate response in local call of {}"</span>,
             function
         )),
     };
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
@@ -3541,11 +3541,11 @@
     <span class="kw">let </span>res = <span class="kw">match </span>BufferPtr::alloc(<span class="kw-2">&amp;</span>response.ret, env.get_ffi_env(), <span class="kw-2">&amp;mut </span>ctx) {
         <span class="prelude-val">Ok</span>(ret) =&gt; <span class="prelude-val">Ok</span>(ret.offset() <span class="kw">as </span>i32),
         <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="macro">format!</span>(
-            <span class="string">&quot;Cannot allocate response in local call of {}&quot;</span>,
+            <span class="string">"Cannot allocate response in local call of {}"</span>,
             function
         )),
     };
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
@@ -3566,7 +3566,7 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>has_write_access = env.get_interface().caller_has_write_access()<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -3589,7 +3589,7 @@
     <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
     <span class="kw">let </span>function = read_string(memory, <span class="kw-2">&amp;</span>ctx, function)<span class="question-mark">?</span>;
     <span class="kw">let </span>function_exists = function_exists(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>address, <span class="kw-2">&amp;</span>function)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(address), <span class="macro">into_trace_value!</span>(function)],
@@ -3605,7 +3605,7 @@
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>chain_id = env.get_interface().chain_id()<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -3631,18 +3631,18 @@
         deferred_call_thread.try_into(),
     ) {
         (<span class="prelude-val">Ok</span>(p), <span class="prelude-val">Ok</span>(t)) =&gt; (p, t),
-        (<span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative validity end period&quot;</span>),
-        (<span class="kw">_</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;invalid validity end thread&quot;</span>),
+        (<span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">"negative validity end period"</span>),
+        (<span class="kw">_</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="macro">abi_bail!</span>(<span class="string">"invalid validity end thread"</span>),
     };
 
     <span class="kw">let </span>max_gas: u64 = <span class="kw">match </span>max_gas.try_into() {
         <span class="prelude-val">Ok</span>(g) =&gt; g,
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative max gas&quot;</span>),
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">"negative max gas"</span>),
     };
 
     <span class="kw">let </span>params_size: u64 = <span class="kw">match </span>params_size.try_into() {
         <span class="prelude-val">Ok</span>(p) =&gt; p,
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative params size&quot;</span>),
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">"negative params size"</span>),
     };
     <span class="kw">let </span>(available, <span class="kw-2">mut </span>price) =
         env.get_interface()
@@ -3650,7 +3650,7 @@
     <span class="kw">if </span>!available {
         price = <span class="number">0</span>;
     }
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
@@ -3681,18 +3681,18 @@
     sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     <span class="kw">let </span>asc_target_slot: (u64, u8) = <span class="kw">match </span>(target_period.try_into(), target_thread.try_into()) {
         (<span class="prelude-val">Ok</span>(p), <span class="prelude-val">Ok</span>(t)) =&gt; (p, t),
-        (<span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative validity end period&quot;</span>),
-        (<span class="kw">_</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;invalid validity end thread&quot;</span>),
+        (<span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">"negative validity end period"</span>),
+        (<span class="kw">_</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="macro">abi_bail!</span>(<span class="string">"invalid validity end thread"</span>),
     };
 
     <span class="kw">let </span>max_gas: u64 = <span class="kw">match </span>max_gas.try_into() {
         <span class="prelude-val">Ok</span>(g) =&gt; g,
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative max gas&quot;</span>),
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">"negative max gas"</span>),
     };
 
     <span class="kw">let </span>raw_coins: u64 = <span class="kw">match </span>raw_coins.try_into() {
         <span class="prelude-val">Ok</span>(c) =&gt; c,
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;negative coins&quot;</span>),
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">"negative coins"</span>),
     };
 
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
@@ -3708,7 +3708,7 @@
         raw_coins <span class="kw">as </span>u64,
     )<span class="question-mark">?</span>;
     <span class="kw">let </span>ptr = pointer_from_string(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>response)<span class="question-mark">?</span>.offset() <span class="kw">as </span>i32;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
@@ -3737,7 +3737,7 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>asc_id = read_string(memory, <span class="kw-2">&amp;</span>ctx, deferred_id)<span class="question-mark">?</span>;
     <span class="kw">let </span>exists = env.get_interface().deferred_call_exists(<span class="kw-2">&amp;</span>asc_id)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(asc_id)],
@@ -3758,7 +3758,7 @@
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>deferred_id = read_string(memory, <span class="kw-2">&amp;</span>ctx, deferred_call_id)<span class="question-mark">?</span>;
     env.get_interface().deferred_call_cancel(<span class="kw-2">&amp;</span>deferred_id)<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(deferred_id)],
@@ -3793,9 +3793,9 @@
         .map_err(|e| wasmer::RuntimeError::new(e.to_string()));
 
     <span class="kw">if </span>message_.is_err() || filename_.is_err() {
-        <span class="macro">abi_bail!</span>(<span class="string">&quot;aborting failed to load message or filename&quot;</span>)
+        <span class="macro">abi_bail!</span>(<span class="string">"aborting failed to load message or filename"</span>)
     }
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[
@@ -3808,7 +3808,7 @@
         sub_calls: <span class="prelude-val">None</span>,
     });
     <span class="macro">abi_bail!</span>(<span class="macro">format!</span>(
-        <span class="string">&quot;error: {} at {}:{} col: {}&quot;</span>,
+        <span class="string">"error: {} at {}:{} col: {}"</span>,
         message_.unwrap(),
         filename_.unwrap(),
         line,
@@ -3820,14 +3820,14 @@
 </span><span class="attr">#[named]
 </span><span class="kw">pub fn </span>assembly_script_seed(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;f64&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
-    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
         sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     }
     <span class="kw">let </span>seed = <span class="kw">match </span>env.interface.unsafe_random_f64() {
         <span class="prelude-val">Ok</span>(ret) =&gt; ret,
-        <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;failed to get random from interface&quot;</span>),
+        <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">"failed to get random from interface"</span>),
     };
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -3841,15 +3841,15 @@
 </span><span class="attr">#[named]
 </span><span class="kw">pub fn </span>assembly_script_date_now(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;f64&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
-    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
         sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     }
     <span class="kw">let </span>utime = <span class="kw">match </span>env.interface.get_time() {
         <span class="prelude-val">Ok</span>(time) =&gt; time,
-        <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;failed to get time from interface&quot;</span>),
+        <span class="kw">_ </span>=&gt; <span class="macro">abi_bail!</span>(<span class="string">"failed to get time from interface"</span>),
     };
     <span class="kw">let </span>ret = utime <span class="kw">as </span>f64;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[],
@@ -3866,11 +3866,11 @@
     message: StringPtr,
 ) -&gt; ABIResult&lt;()&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
-    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
         sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     }
 
-    assembly_script_console(ctx, message, <span class="string">&quot;LOG&quot;</span>)
+    assembly_script_console(ctx, message, <span class="string">"LOG"</span>)
 }
 
 <span class="doccomment">/// Assembly script builtin `console.info()`.
@@ -3880,10 +3880,10 @@
     message: StringPtr,
 ) -&gt; ABIResult&lt;()&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
-    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
         sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     }
-    assembly_script_console(ctx, message, <span class="string">&quot;INFO&quot;</span>)
+    assembly_script_console(ctx, message, <span class="string">"INFO"</span>)
 }
 
 <span class="doccomment">/// Assembly script builtin `console.warn()`.
@@ -3893,10 +3893,10 @@
     message: StringPtr,
 ) -&gt; ABIResult&lt;()&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
-    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
         sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     }
-    assembly_script_console(ctx, message, <span class="string">&quot;WARN&quot;</span>)
+    assembly_script_console(ctx, message, <span class="string">"WARN"</span>)
 }
 
 <span class="doccomment">/// Assembly script builtin `console.debug()`.
@@ -3906,11 +3906,11 @@
     message: StringPtr,
 ) -&gt; ABIResult&lt;()&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
-    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
         sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     }
 
-    assembly_script_console(ctx, message, <span class="string">&quot;DEBUG&quot;</span>)
+    assembly_script_console(ctx, message, <span class="string">"DEBUG"</span>)
 }
 
 <span class="doccomment">/// Assembly script builtin `console.error()`.
@@ -3920,10 +3920,10 @@
     message: StringPtr,
 ) -&gt; ABIResult&lt;()&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
-    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
         sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     }
-    assembly_script_console(ctx, message, <span class="string">&quot;ERROR&quot;</span>)
+    assembly_script_console(ctx, message, <span class="string">"ERROR"</span>)
 }
 
 <span class="doccomment">/// Assembly script console functions
@@ -3942,15 +3942,15 @@
         .get_ffi_env()
         .memory
         .as_ref()
-        .expect(<span class="string">&quot;Failed to get memory on env&quot;</span>)
+        .expect(<span class="string">"Failed to get memory on env"</span>)
         .clone();
     <span class="kw">let </span>message = prefix
         .to_string()
-        .add(<span class="string">&quot; | &quot;</span>)
+        .add(<span class="string">" | "</span>)
         .add(<span class="kw-2">&amp;</span>message.read(<span class="kw-2">&amp;</span>memory, <span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>);
 
     env.get_interface().generate_event(message.clone())<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(message)],
@@ -3974,7 +3974,7 @@
     a4: f64,
 ) -&gt; ABIResult&lt;()&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
-    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;gas_calibration&quot;</span>)) {
+    <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
         sub_remaining_gas_abi(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, <span class="macro">function_name!</span>())<span class="question-mark">?</span>;
     }
 
@@ -3983,21 +3983,21 @@
         .get_ffi_env()
         .memory
         .as_ref()
-        .expect(<span class="string">&quot;Failed to get memory on env&quot;</span>)
+        .expect(<span class="string">"Failed to get memory on env"</span>)
         .clone();
 
     <span class="kw">let </span>message = message.read(<span class="kw-2">&amp;</span>memory, <span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>message_for_event = <span class="kw">match </span>n {
-        <span class="number">1 </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;msg: {}, a0: {}&quot;</span>, message, a0),
-        <span class="number">2 </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;msg: {}, a0: {}, a1: {}&quot;</span>, message, a0, a1),
-        <span class="number">3 </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;msg: {}, a0: {}, a1: {}, a2: {}&quot;</span>, message, a0, a1, a2),
+        <span class="number">1 </span>=&gt; <span class="macro">format!</span>(<span class="string">"msg: {}, a0: {}"</span>, message, a0),
+        <span class="number">2 </span>=&gt; <span class="macro">format!</span>(<span class="string">"msg: {}, a0: {}, a1: {}"</span>, message, a0, a1),
+        <span class="number">3 </span>=&gt; <span class="macro">format!</span>(<span class="string">"msg: {}, a0: {}, a1: {}, a2: {}"</span>, message, a0, a1, a2),
         <span class="number">4 </span>=&gt; <span class="macro">format!</span>(
-            <span class="string">&quot;msg: {}, a0: {}, a1: {}, a2: {}, a3: {}&quot;</span>,
+            <span class="string">"msg: {}, a0: {}, a1: {}, a2: {}, a3: {}"</span>,
             message, a0, a1, a2, a3
         ),
         <span class="number">5 </span>=&gt; <span class="macro">format!</span>(
-            <span class="string">&quot;msg: {}, a0: {}, a1: {}, a2: {}, a3: {}, a4: {}&quot;</span>,
+            <span class="string">"msg: {}, a0: {}, a1: {}, a2: {}, a3: {}, a4: {}"</span>,
             message, a0, a1, a2, a3, a4
         ),
         <span class="kw">_ </span>=&gt; message, <span class="comment">// Should we warn here or return an error?
@@ -4005,7 +4005,7 @@
 
     env.get_interface()
         .generate_event(message_for_event.clone())<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
     </span>ctx.data_mut().trace.push(AbiTrace {
         name: <span class="macro">function_name!</span>().to_string(),
         params: <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(message_for_event)],
@@ -4017,7 +4017,7 @@
 
 <span class="doccomment">/// Assembly script builtin `process.exit()`.
 </span><span class="kw">pub fn </span>assembly_script_process_exit(_ctx: FunctionEnvMut&lt;ASEnv&gt;, exit_code: i32) -&gt; ABIResult&lt;()&gt; {
-    <span class="macro">abi_bail!</span>(<span class="macro">format!</span>(<span class="string">&quot;exit with code: {}&quot;</span>, exit_code));
+    <span class="macro">abi_bail!</span>(<span class="macro">format!</span>(<span class="string">"exit with code: {}"</span>, exit_code));
 }
 
 <span class="doccomment">/// Tooling, return a StringPtr allocated from a String
@@ -4061,16 +4061,16 @@
 /// Edge cases:
 /// Serializing an empty vec![] will return an empty vec![] and not [0, 0, 0, 0]
 /// See also unit tests: test_ser_edge_cases
-</span><span class="kw">fn </span>ser_bytearray_vec&lt;<span class="lifetime">&#39;a</span>, I&gt;(data: I, data_len: usize, max_length: usize) -&gt; ABIResult&lt;Vec&lt;u8&gt;&gt;
+</span><span class="kw">fn </span>ser_bytearray_vec&lt;<span class="lifetime">'a</span>, I&gt;(data: I, data_len: usize, max_length: usize) -&gt; ABIResult&lt;Vec&lt;u8&gt;&gt;
 <span class="kw">where
-    </span>I: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Vec&lt;u8&gt;&gt;,
+    </span>I: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Vec&lt;u8&gt;&gt;,
 {
     <span class="kw">if </span>data_len == <span class="number">0 </span>{
         <span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new());
     }
 
     <span class="kw">if </span>data_len &gt; max_length {
-        <span class="macro">abi_bail!</span>(<span class="string">&quot;Too many entries in the datastore&quot;</span>);
+        <span class="macro">abi_bail!</span>(<span class="string">"Too many entries in the datastore"</span>);
     }
 
     <span class="comment">// pre alloc with max capacity
@@ -4082,7 +4082,7 @@
     <span class="kw">for </span>key <span class="kw">in </span>data.into_iter() {
         <span class="kw">let </span>k_len = <span class="kw">match </span>u8::try_from(key.len()) {
             <span class="prelude-val">Ok</span>(l) =&gt; l,
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">&quot;Some Datastore keys are too long&quot;</span>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">abi_bail!</span>(<span class="string">"Some Datastore keys are too long"</span>),
         };
         buffer.push(k_len);
         buffer.extend_from_slice(<span class="kw-2">&amp;</span>key[..]);

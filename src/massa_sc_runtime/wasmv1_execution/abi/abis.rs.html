@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/wasmv1_execution/abi/abis.rs`."><title>abis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.1 (a28077b28 2023-12-04)" data-channel="1.74.1" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../massa_sc_runtime/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/wasmv1_execution/abi/abis.rs`."><title>abis.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="massa_sc_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2000,16 +2000,16 @@
 <span class="kw">use </span>wasmer::{imports, AsStoreMut, Function, FunctionEnv, FunctionEnvMut, Imports};
 
 <span class="kw">use </span><span class="kw">crate</span>::Interface;
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">use crate</span>::{into_trace_value, AbiTrace, AbiTraceType};
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">use </span>rust_decimal::prelude::ToPrimitive;
-<span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
 </span><span class="kw">use </span>rust_decimal::Decimal;
 
 <span class="comment">// This macro ease the construction of the Error variant of the response to an
 // ABI call.
-</span><span class="macro">macro_rules! </span>resp_err {
+</span><span class="macro">macro_rules!</span> resp_err {
     (<span class="macro-nonterminal">$err</span>:expr) =&gt; {
         <span class="prelude-val">Ok</span>(AbiResponse {
             resp: <span class="prelude-val">Some</span>(abi_response::Resp::Error(proto::Error {
@@ -2020,7 +2020,7 @@
 }
 
 <span class="comment">// Same as resp_err but for the ok variant of the response.
-</span><span class="macro">macro_rules! </span>resp_ok {
+</span><span class="macro">macro_rules!</span> resp_ok {
     (<span class="macro-nonterminal">$result</span>:tt, { $(<span class="macro-nonterminal">$field</span>:ident $(: <span class="macro-nonterminal">$value</span>:expr)<span class="question-mark">?</span>),* $(,)<span class="question-mark">? </span>}) =&gt; {
         <span class="prelude-val">Ok</span>(AbiResponse {
             resp: <span class="prelude-val">Some</span>(abi_response::Resp::Res(RespResult {
@@ -2041,10 +2041,10 @@
     <span class="kw">let </span>fn_env = FunctionEnv::new(store, shared_abi_env);
 
     <span class="comment">// helper macro to ease the construction of the imports
-    </span><span class="macro">macro_rules! </span>abis {
+    </span><span class="macro">macro_rules!</span> abis {
         ($(<span class="macro-nonterminal">$name</span>:expr =&gt; <span class="macro-nonterminal">$func</span>:ident),<span class="kw-2">*</span>) =&gt; {
-            <span class="macro">imports! </span>{
-                <span class="string">&quot;massa&quot; </span>=&gt; {
+            <span class="macro">imports!</span> {
+                <span class="string">"massa" </span>=&gt; {
                     $( <span class="macro-nonterminal">$name </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fn_env, <span class="macro-nonterminal">$func</span>) ),*
                 }
             }
@@ -2052,80 +2052,80 @@
     }
 
     <span class="kw">let </span><span class="kw-2">mut </span>imports = <span class="macro">abis!</span>(
-        <span class="string">&quot;abi_abort&quot; </span>=&gt; abi_abort,
-        <span class="string">&quot;abi_add_native_amount&quot; </span>=&gt; abi_add_native_amount,
-        <span class="string">&quot;abi_address_from_public_key&quot; </span>=&gt; abi_address_from_public_key,
-        <span class="string">&quot;abi_append_ds_value&quot; </span>=&gt; abi_append_ds_value,
-        <span class="string">&quot;abi_base58_check_to_bytes&quot; </span>=&gt; abi_base58_check_to_bytes,
-        <span class="string">&quot;abi_bytes_to_base58_check&quot; </span>=&gt; abi_bytes_to_base58_check,
-        <span class="string">&quot;abi_call&quot; </span>=&gt; abi_call,
-        <span class="string">&quot;abi_caller_has_write_access&quot; </span>=&gt; abi_caller_has_write_access,
-        <span class="string">&quot;abi_check_address&quot; </span>=&gt; abi_check_address,
-        <span class="string">&quot;abi_check_native_amount&quot; </span>=&gt; abi_check_native_amount,
-        <span class="string">&quot;abi_check_pubkey&quot; </span>=&gt; abi_check_pubkey,
-        <span class="string">&quot;abi_check_signature&quot; </span>=&gt; abi_check_signature,
-        <span class="string">&quot;abi_checked_add_native_time&quot; </span>=&gt; abi_checked_add_native_time,
-        <span class="string">&quot;abi_checked_div_native_time&quot; </span>=&gt; abi_checked_div_native_time,
-        <span class="string">&quot;abi_checked_mul_native_time&quot; </span>=&gt; abi_checked_mul_native_time,
-        <span class="string">&quot;abi_checked_scalar_div_native_time&quot; </span>=&gt; abi_checked_scalar_div_native_time,
-        <span class="string">&quot;abi_checked_sub_native_time&quot; </span>=&gt; abi_checked_sub_native_time,
-        <span class="string">&quot;abi_compare_address&quot; </span>=&gt; abi_compare_address,
-        <span class="string">&quot;abi_compare_native_amount&quot; </span>=&gt; abi_compare_native_amount,
-        <span class="string">&quot;abi_compare_native_time&quot; </span>=&gt; abi_compare_native_time,
-        <span class="string">&quot;abi_compare_pub_key&quot; </span>=&gt; abi_compare_pub_key,
-        <span class="string">&quot;abi_create_sc&quot; </span>=&gt; abi_create_sc,
-        <span class="string">&quot;abi_delete_ds_entry&quot; </span>=&gt; abi_delete_ds_entry,
-        <span class="string">&quot;abi_div_rem_native_amount&quot; </span>=&gt; abi_div_rem_native_amount,
-        <span class="string">&quot;abi_ds_entry_exists&quot; </span>=&gt; abi_ds_entry_exists,
-        <span class="string">&quot;abi_function_exists&quot; </span>=&gt; abi_function_exists,
-        <span class="string">&quot;abi_generate_event&quot; </span>=&gt; abi_generate_event,
-        <span class="string">&quot;abi_get_address_category&quot; </span>=&gt; abi_get_address_category,
-        <span class="string">&quot;abi_get_address_version&quot; </span>=&gt; abi_get_address_version,
-        <span class="string">&quot;abi_get_balance&quot; </span>=&gt; abi_get_balance,
-        <span class="string">&quot;abi_get_bytecode&quot; </span>=&gt; abi_get_bytecode,
-        <span class="string">&quot;abi_get_call_coins&quot; </span>=&gt; abi_get_call_coins,
-        <span class="string">&quot;abi_get_call_stack&quot; </span>=&gt; abi_get_call_stack,
-        <span class="string">&quot;abi_get_current_slot&quot; </span>=&gt; abi_get_current_slot,
-        <span class="string">&quot;abi_get_ds_keys&quot; </span>=&gt; abi_get_ds_keys,
-        <span class="string">&quot;abi_get_ds_value&quot; </span>=&gt; abi_get_ds_value,
-        <span class="string">&quot;abi_get_native_time&quot; </span>=&gt; abi_get_native_time,
-        <span class="string">&quot;abi_get_op_data&quot; </span>=&gt; abi_get_op_data,
-        <span class="string">&quot;abi_get_op_keys&quot; </span>=&gt; abi_get_op_keys,
-        <span class="string">&quot;abi_get_origin_operation_id&quot; </span>=&gt; abi_get_origin_operation_id,
-        <span class="string">&quot;abi_get_owned_addresses&quot; </span>=&gt; abi_get_owned_addresses,
-        <span class="string">&quot;abi_get_pubkey_version&quot; </span>=&gt; abi_get_pubkey_version,
-        <span class="string">&quot;abi_get_remaining_gas&quot; </span>=&gt; abi_get_remaining_gas,
-        <span class="string">&quot;abi_get_signature_version&quot; </span>=&gt; abi_get_signature_version,
-        <span class="string">&quot;abi_op_entry_exists&quot; </span>=&gt; abi_op_entry_exists,
-        <span class="string">&quot;abi_hash_blake3&quot; </span>=&gt; abi_hash_blake3,
-        <span class="string">&quot;abi_hash_keccak256&quot; </span>=&gt; abi_hash_keccak256,
-        <span class="string">&quot;abi_hash_sha256&quot; </span>=&gt; abi_hash_sha256,
-        <span class="string">&quot;abi_local_call&quot; </span>=&gt; abi_local_call,
-        <span class="string">&quot;abi_local_execution&quot; </span>=&gt; abi_local_execution,
-        <span class="string">&quot;abi_native_amount_from_string&quot; </span>=&gt; abi_native_amount_from_string,
-        <span class="string">&quot;abi_native_amount_to_string&quot; </span>=&gt; abi_native_amount_to_string,
-        <span class="string">&quot;abi_scalar_div_rem_native_amount&quot; </span>=&gt; abi_scalar_div_rem_native_amount,
-        <span class="string">&quot;abi_scalar_mul_native_amount&quot; </span>=&gt; abi_scalar_mul_native_amount,
-        <span class="string">&quot;abi_send_async_message&quot; </span>=&gt; abi_send_async_message,
-        <span class="string">&quot;abi_set_bytecode&quot; </span>=&gt; abi_set_bytecode,
-        <span class="string">&quot;abi_set_ds_value&quot; </span>=&gt; abi_set_ds_value,
-        <span class="string">&quot;abi_sub_native_amount&quot; </span>=&gt; abi_sub_native_amount,
-        <span class="string">&quot;abi_transfer_coins&quot; </span>=&gt; abi_transfer_coins,
-        <span class="string">&quot;abi_unsafe_random&quot; </span>=&gt; abi_unsafe_random,
-        <span class="string">&quot;abi_verify_signature&quot; </span>=&gt; abi_verify_signature,
-        <span class="string">&quot;abi_evm_verify_signature&quot; </span>=&gt; abi_evm_verify_signature,
-        <span class="string">&quot;abi_evm_get_address_from_pubkey&quot; </span>=&gt; abi_evm_get_address_from_pubkey,
-        <span class="string">&quot;abi_evm_get_pubkey_from_signature&quot; </span>=&gt; abi_evm_get_pubkey_from_signature,
-        <span class="string">&quot;abi_is_address_eoa&quot; </span>=&gt; abi_is_address_eoa,
-        <span class="string">&quot;abi_chain_id&quot; </span>=&gt; abi_chain_id
+        <span class="string">"abi_abort" </span>=&gt; abi_abort,
+        <span class="string">"abi_add_native_amount" </span>=&gt; abi_add_native_amount,
+        <span class="string">"abi_address_from_public_key" </span>=&gt; abi_address_from_public_key,
+        <span class="string">"abi_append_ds_value" </span>=&gt; abi_append_ds_value,
+        <span class="string">"abi_base58_check_to_bytes" </span>=&gt; abi_base58_check_to_bytes,
+        <span class="string">"abi_bytes_to_base58_check" </span>=&gt; abi_bytes_to_base58_check,
+        <span class="string">"abi_call" </span>=&gt; abi_call,
+        <span class="string">"abi_caller_has_write_access" </span>=&gt; abi_caller_has_write_access,
+        <span class="string">"abi_check_address" </span>=&gt; abi_check_address,
+        <span class="string">"abi_check_native_amount" </span>=&gt; abi_check_native_amount,
+        <span class="string">"abi_check_pubkey" </span>=&gt; abi_check_pubkey,
+        <span class="string">"abi_check_signature" </span>=&gt; abi_check_signature,
+        <span class="string">"abi_checked_add_native_time" </span>=&gt; abi_checked_add_native_time,
+        <span class="string">"abi_checked_div_native_time" </span>=&gt; abi_checked_div_native_time,
+        <span class="string">"abi_checked_mul_native_time" </span>=&gt; abi_checked_mul_native_time,
+        <span class="string">"abi_checked_scalar_div_native_time" </span>=&gt; abi_checked_scalar_div_native_time,
+        <span class="string">"abi_checked_sub_native_time" </span>=&gt; abi_checked_sub_native_time,
+        <span class="string">"abi_compare_address" </span>=&gt; abi_compare_address,
+        <span class="string">"abi_compare_native_amount" </span>=&gt; abi_compare_native_amount,
+        <span class="string">"abi_compare_native_time" </span>=&gt; abi_compare_native_time,
+        <span class="string">"abi_compare_pub_key" </span>=&gt; abi_compare_pub_key,
+        <span class="string">"abi_create_sc" </span>=&gt; abi_create_sc,
+        <span class="string">"abi_delete_ds_entry" </span>=&gt; abi_delete_ds_entry,
+        <span class="string">"abi_div_rem_native_amount" </span>=&gt; abi_div_rem_native_amount,
+        <span class="string">"abi_ds_entry_exists" </span>=&gt; abi_ds_entry_exists,
+        <span class="string">"abi_function_exists" </span>=&gt; abi_function_exists,
+        <span class="string">"abi_generate_event" </span>=&gt; abi_generate_event,
+        <span class="string">"abi_get_address_category" </span>=&gt; abi_get_address_category,
+        <span class="string">"abi_get_address_version" </span>=&gt; abi_get_address_version,
+        <span class="string">"abi_get_balance" </span>=&gt; abi_get_balance,
+        <span class="string">"abi_get_bytecode" </span>=&gt; abi_get_bytecode,
+        <span class="string">"abi_get_call_coins" </span>=&gt; abi_get_call_coins,
+        <span class="string">"abi_get_call_stack" </span>=&gt; abi_get_call_stack,
+        <span class="string">"abi_get_current_slot" </span>=&gt; abi_get_current_slot,
+        <span class="string">"abi_get_ds_keys" </span>=&gt; abi_get_ds_keys,
+        <span class="string">"abi_get_ds_value" </span>=&gt; abi_get_ds_value,
+        <span class="string">"abi_get_native_time" </span>=&gt; abi_get_native_time,
+        <span class="string">"abi_get_op_data" </span>=&gt; abi_get_op_data,
+        <span class="string">"abi_get_op_keys" </span>=&gt; abi_get_op_keys,
+        <span class="string">"abi_get_origin_operation_id" </span>=&gt; abi_get_origin_operation_id,
+        <span class="string">"abi_get_owned_addresses" </span>=&gt; abi_get_owned_addresses,
+        <span class="string">"abi_get_pubkey_version" </span>=&gt; abi_get_pubkey_version,
+        <span class="string">"abi_get_remaining_gas" </span>=&gt; abi_get_remaining_gas,
+        <span class="string">"abi_get_signature_version" </span>=&gt; abi_get_signature_version,
+        <span class="string">"abi_op_entry_exists" </span>=&gt; abi_op_entry_exists,
+        <span class="string">"abi_hash_blake3" </span>=&gt; abi_hash_blake3,
+        <span class="string">"abi_hash_keccak256" </span>=&gt; abi_hash_keccak256,
+        <span class="string">"abi_hash_sha256" </span>=&gt; abi_hash_sha256,
+        <span class="string">"abi_local_call" </span>=&gt; abi_local_call,
+        <span class="string">"abi_local_execution" </span>=&gt; abi_local_execution,
+        <span class="string">"abi_native_amount_from_string" </span>=&gt; abi_native_amount_from_string,
+        <span class="string">"abi_native_amount_to_string" </span>=&gt; abi_native_amount_to_string,
+        <span class="string">"abi_scalar_div_rem_native_amount" </span>=&gt; abi_scalar_div_rem_native_amount,
+        <span class="string">"abi_scalar_mul_native_amount" </span>=&gt; abi_scalar_mul_native_amount,
+        <span class="string">"abi_send_async_message" </span>=&gt; abi_send_async_message,
+        <span class="string">"abi_set_bytecode" </span>=&gt; abi_set_bytecode,
+        <span class="string">"abi_set_ds_value" </span>=&gt; abi_set_ds_value,
+        <span class="string">"abi_sub_native_amount" </span>=&gt; abi_sub_native_amount,
+        <span class="string">"abi_transfer_coins" </span>=&gt; abi_transfer_coins,
+        <span class="string">"abi_unsafe_random" </span>=&gt; abi_unsafe_random,
+        <span class="string">"abi_verify_signature" </span>=&gt; abi_verify_signature,
+        <span class="string">"abi_evm_verify_signature" </span>=&gt; abi_evm_verify_signature,
+        <span class="string">"abi_evm_get_address_from_pubkey" </span>=&gt; abi_evm_get_address_from_pubkey,
+        <span class="string">"abi_evm_get_pubkey_from_signature" </span>=&gt; abi_evm_get_pubkey_from_signature,
+        <span class="string">"abi_is_address_eoa" </span>=&gt; abi_is_address_eoa,
+        <span class="string">"abi_chain_id" </span>=&gt; abi_chain_id
     );
 
     <span class="kw">if </span>interface_version &gt; <span class="number">0 </span>{
         imports.extend(<span class="kw-2">&amp;</span><span class="macro">abis!</span>(
-            <span class="string">&quot;abi_deferred_call_cancel&quot; </span>=&gt; abi_deferred_call_cancel,
-            <span class="string">&quot;abi_get_deferred_call_quote&quot; </span>=&gt; abi_get_deferred_call_quote,
-            <span class="string">&quot;abi_deferred_call_exists&quot; </span>=&gt; abi_deferred_call_exists,
-            <span class="string">&quot;abi_deferred_call_register&quot; </span>=&gt; abi_deferred_call_register
+            <span class="string">"abi_deferred_call_cancel" </span>=&gt; abi_deferred_call_cancel,
+            <span class="string">"abi_get_deferred_call_quote" </span>=&gt; abi_get_deferred_call_quote,
+            <span class="string">"abi_deferred_call_exists" </span>=&gt; abi_deferred_call_exists,
+            <span class="string">"abi_deferred_call_register" </span>=&gt; abi_deferred_call_register
         ));
     }
 
@@ -2142,9 +2142,9 @@
         |handler, req: CallRequest| {
             <span class="kw">let </span>amount = req
                 .call_coins
-                .ok_or_else(|| WasmV1Error::RuntimeError(<span class="string">&quot;No coins provided&quot;</span>.into()))<span class="question-mark">?</span>;
+                .ok_or_else(|| WasmV1Error::RuntimeError(<span class="string">"No coins provided"</span>.into()))<span class="question-mark">?</span>;
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
             </span><span class="kw">let </span>amount_ = Decimal::try_from_i128_with_scale(amount.mantissa <span class="kw">as </span>i128, amount.scale)
                 .unwrap_or_default();
 
@@ -2152,13 +2152,13 @@
             <span class="kw">let </span>bytecode = interface
                 .init_call_wasmv1(<span class="kw-2">&amp;</span>req.target_sc_address, amount)
                 .map_err(|err| {
-                    WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not init call: {}&quot;</span>, err))
+                    WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Could not init call: {}"</span>, err))
                 })<span class="question-mark">?</span>;
             <span class="kw">let </span>remaining_gas = handler.get_remaining_gas();
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">let </span>module = helper_get_module(interface, bytecode, remaining_gas)<span class="question-mark">?</span>;
             interface.increment_recursion_counter().map_err(|e| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not increment recursion counter: {}&quot;</span>, e))
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Could not increment recursion counter: {}"</span>, e))
             })<span class="question-mark">?</span>;
             <span class="kw">let </span>response = <span class="kw">crate</span>::execution::run_function(
                 interface,
@@ -2169,17 +2169,17 @@
                 handler.get_gas_costs().clone(),
                 handler.get_condom_limits().clone(),
             )
-            .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not run function: {}&quot;</span>, err)))<span class="question-mark">?</span>;
+            .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Could not run function: {}"</span>, err)))<span class="question-mark">?</span>;
             interface.decrement_recursion_counter().map_err(|e| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not decrement recursion counter: {}&quot;</span>, e))
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Could not decrement recursion counter: {}"</span>, e))
             })<span class="question-mark">?</span>;
             handler.set_remaining_gas(response.remaining_gas);
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             interface.finish_call().map_err(|err| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not finish call: {}&quot;</span>, err))
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Could not finish call: {}"</span>, err))
             })<span class="question-mark">?</span>;
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
             </span>{
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                     exec_env.trace.push(AbiTrace {
@@ -2214,7 +2214,7 @@
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">let </span>module = helper_get_module(interface, bytecode.clone(), remaining_gas)<span class="question-mark">?</span>;
             interface.increment_recursion_counter().map_err(|e| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not increment recursion counter: {}&quot;</span>, e))
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Could not increment recursion counter: {}"</span>, e))
             })<span class="question-mark">?</span>;
             <span class="kw">let </span>response = <span class="kw">crate</span>::execution::run_function(
                 interface,
@@ -2225,13 +2225,13 @@
                 handler.get_gas_costs().clone(),
                 handler.get_condom_limits().clone(),
             )
-            .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not run function: {}&quot;</span>, err)))<span class="question-mark">?</span>;
+            .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Could not run function: {}"</span>, err)))<span class="question-mark">?</span>;
             interface.decrement_recursion_counter().map_err(|e| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not decrement recursion counter: {}&quot;</span>, e))
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Could not decrement recursion counter: {}"</span>, e))
             })<span class="question-mark">?</span>;
             handler.set_remaining_gas(response.remaining_gas);
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
             </span>{
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                     exec_env.trace.push(AbiTrace {
@@ -2283,8 +2283,8 @@
         arg_offset,
         |handler, _req: GetCurrentSlotRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="comment">// Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = &quot;gas_calibration&quot;) {
-            //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+            // future. if cfg!(feature = "gas_calibration") {
+            //     let fname = format!("massa.{}:0", function_name!());
             //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, to_address.len(),
             // true); }
 
@@ -2308,8 +2308,8 @@
         arg_offset,
         |handler, req: HashBlake3Request| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="comment">// Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = &quot;gas_calibration&quot;) {
-            //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+            // future. if cfg!(feature = "gas_calibration") {
+            //     let fname = format!("massa.{}:0", function_name!());
             //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, to_address.len(),
             // true); }
 
@@ -2333,8 +2333,8 @@
         arg_offset,
         |handler, req: HashSha256Request| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="comment">// Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = &quot;gas_calibration&quot;) {
-            //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+            // future. if cfg!(feature = "gas_calibration") {
+            //     let fname = format!("massa.{}:0", function_name!());
             //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, to_address.len(),
             // true); }
 
@@ -2359,8 +2359,8 @@
         arg_offset,
         |handler, req: Keccak256Request| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="comment">// Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = &quot;gas_calibration&quot;) {
-            //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+            // future. if cfg!(feature = "gas_calibration") {
+            //     let fname = format!("massa.{}:0", function_name!());
             //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, to_address.len(),
             // true); }
 
@@ -2385,16 +2385,16 @@
         arg_offset,
         |handler, req: TransferCoinsRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(amount) = req.amount_to_transfer <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No coins provided&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No coins provided"</span>);
             };
 
             <span class="comment">// Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = &quot;gas_calibration&quot;) {
-            //     let fname = format!(&quot;massa.{}:0&quot;, function_name!());
+            // future. if cfg!(feature = "gas_calibration") {
+            //     let fname = format!("massa.{}:0", function_name!());
             //     param_size_update(&amp;env, &amp;mut ctx, &amp;fname, to_address.len(),
             // true); }
 
-            </span><span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+            </span><span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
             </span><span class="kw">let </span>amount_ = Decimal::try_from_i128_with_scale(amount.mantissa <span class="kw">as </span>i128, amount.scale)
                 .unwrap_or_default();
 
@@ -2406,12 +2406,12 @@
                 req.sender_address.clone(),
             ) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
                     </span>{
                         <span class="comment">// Build parameters
                         </span><span class="kw">let </span><span class="kw-2">mut </span>params = <span class="macro">vec!</span>[
-                            (<span class="string">&quot;target_address&quot;</span>, req.target_address).into(),
-                            (<span class="string">&quot;amount&quot;</span>, amount_.to_i64().unwrap_or_default()).into(),
+                            (<span class="string">"target_address"</span>, req.target_address).into(),
+                            (<span class="string">"amount"</span>, amount_.to_i64().unwrap_or_default()).into(),
                         ];
 
                         <span class="kw">let </span>sender_address = <span class="kw">match </span>req.sender_address {
@@ -2455,7 +2455,7 @@
         |handler, req: GenerateEventRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             interface.generate_event_wasmv1(req.event).map_err(|err| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Failed to generate event: {}&quot;</span>, err))
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Failed to generate event: {}"</span>, err))
             })<span class="question-mark">?</span>;
 
             <span class="macro">resp_ok!</span>(GenerateEventResult, {})
@@ -2471,7 +2471,7 @@
         store_env,
         arg_offset,
         |_handler, req: Vec&lt;u8&gt;| -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, WasmV1Error&gt; {
-            <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;Guest program abort: {}&quot;</span>, String::from_utf8_lossy(<span class="kw-2">&amp;</span>req));
+            <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">"Guest program abort: {}"</span>, String::from_utf8_lossy(<span class="kw-2">&amp;</span>req));
 
             <span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(msg))
         },
@@ -2712,7 +2712,7 @@
                     <span class="macro">resp_ok!</span>(EvmVerifySigResult, { is_verified })
                 }
                 <span class="kw">_ </span>=&gt; {
-                    <span class="macro">resp_err!</span>(<span class="string">&quot;EVM signature verification failed&quot;</span>)
+                    <span class="macro">resp_err!</span>(<span class="string">"EVM signature verification failed"</span>)
                 }
             }
         },
@@ -2870,7 +2870,7 @@
         arg_offset,
         |handler, req: UnsafeRandomRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">if </span>req.num_bytes <span class="kw">as </span>u64 &gt; handler.get_max_mem_size() {
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Requested random bytes exceed the maximum memory size&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Requested random bytes exceed the maximum memory size"</span>);
             }
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
 
@@ -2937,13 +2937,13 @@
         arg_offset,
         |handler, req: DeferredCallCancelRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(call_id) = req.call_id <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Call ID is required&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Call ID is required"</span>);
             };
 
             <span class="kw">let </span>interface: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.deferred_call_cancel(<span class="kw-2">&amp;</span>call_id) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
                     </span>{
                         <span class="kw">let </span>params = <span class="macro">vec!</span>[<span class="macro">into_trace_value!</span>(call_id)];
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(exec_env) = handler.store_env.data_mut().lock().as_mut() {
@@ -2975,11 +2975,11 @@
         arg_offset,
         |handler, req: DeferredCallRegisterRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(target_slot) = req.target_slot <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Target slot is required&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Target slot is required"</span>);
             };
 
             <span class="kw">let </span><span class="prelude-val">Ok</span>(target_thread): <span class="prelude-ty">Result</span>&lt;u8, <span class="kw">_</span>&gt; = target_slot.thread.try_into() <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Invalid target thread&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Invalid target thread"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -2992,7 +2992,7 @@
                 req.coins,
             ) {
                 <span class="prelude-val">Ok</span>(call_id) =&gt; {
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
                     </span>{
                         <span class="kw">let </span>params = <span class="macro">vec!</span>[
                             <span class="macro">into_trace_value!</span>(req.target_address),
@@ -3034,7 +3034,7 @@
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
 
             <span class="kw">let </span><span class="prelude-val">Some</span>(target_slot) = req.target_slot <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Target slot is required&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Target slot is required"</span>);
             };
 
             <span class="kw">match </span>interface.get_deferred_call_quote(
@@ -3065,7 +3065,7 @@
         arg_offset,
         |handler, req: DeferredCallExistsRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(call_id) = req.call_id <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Call ID is required&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Call ID is required"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -3090,16 +3090,16 @@
         arg_offset,
         |handler, req: SendAsyncMessageRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(start) = req.validity_start <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Validity start slot is required&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Validity start slot is required"</span>);
             };
             <span class="kw">let </span><span class="prelude-val">Some</span>(end) = req.validity_end <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Validity end slot is required&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Validity end slot is required"</span>);
             };
             <span class="kw">let </span><span class="prelude-val">Ok</span>(start_thread): <span class="prelude-ty">Result</span>&lt;u8, <span class="kw">_</span>&gt; = start.thread.try_into() <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Invalid start thread&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Invalid start thread"</span>);
             };
             <span class="kw">let </span><span class="prelude-val">Ok</span>(end_thread): <span class="prelude-ty">Result</span>&lt;u8, <span class="kw">_</span>&gt; = end.thread.try_into() <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Invalid end thread&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Invalid end thread"</span>);
             };
 
             <span class="kw">let </span>filter: <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>str, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;)&gt; = req
@@ -3120,7 +3120,7 @@
                 filter,
             ) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
                     </span>{
                         <span class="kw">let </span>filter_key = filter.unwrap_or_default().<span class="number">1</span>.unwrap_or_default().to_vec();
                         <span class="kw">let </span>filter = filter.unwrap_or_default().<span class="number">0</span>.to_string();
@@ -3194,7 +3194,7 @@
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             interface.increment_recursion_counter().map_err(|e| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not increment recursion counter: {}&quot;</span>, e))
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Could not increment recursion counter: {}"</span>, e))
             })<span class="question-mark">?</span>;
             <span class="kw">match </span><span class="kw">crate</span>::execution::run_function(
                 interface,
@@ -3208,13 +3208,13 @@
                 <span class="prelude-val">Ok</span>(response) =&gt; {
                     interface.decrement_recursion_counter().map_err(|e| {
                         WasmV1Error::RuntimeError(<span class="macro">format!</span>(
-                            <span class="string">&quot;Could not decrement recursion counter: {}&quot;</span>,
+                            <span class="string">"Could not decrement recursion counter: {}"</span>,
                             e
                         ))
                     })<span class="question-mark">?</span>;
                     handler.set_remaining_gas(response.remaining_gas);
 
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;execution-trace&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
                     </span>{
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                             exec_env.trace.push(AbiTrace {
@@ -3272,10 +3272,10 @@
         arg_offset,
         |handler, req: FunctionExistsRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Ok</span>(bytecode) = helper_get_bytecode(handler, req.target_sc_address) <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No SC found at the given address&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No SC found at the given address"</span>);
             };
 
-            <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;gas_calibration&quot;</span>) {
+            <span class="kw">let </span>remaining_gas = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"gas_calibration"</span>) {
                 u64::MAX
             } <span class="kw">else </span>{
                 handler.get_remaining_gas()
@@ -3302,7 +3302,7 @@
     <span class="kw">let </span>interface = handler.exec_env.get_interface();
     <span class="kw">let </span>bytecode = interface.raw_get_bytecode_for(<span class="kw-2">&amp;</span>address).map_err(|err| {
         WasmV1Error::RuntimeError(<span class="macro">format!</span>(
-            <span class="string">&quot;Could not get bytecode for address: {}: {}&quot;</span>,
+            <span class="string">"Could not get bytecode for address: {}: {}"</span>,
             address, err
         ))
     })<span class="question-mark">?</span>;
@@ -3318,7 +3318,7 @@
     <span class="comment">// let interface = handler.exec_env.get_interface();
     </span>interface
         .get_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)
-        .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not get module: {}&quot;</span>, err)))
+        .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Could not get module: {}"</span>, err)))
 }
 
 <span class="kw">fn </span>helper_get_tmp_module(
@@ -3329,7 +3329,7 @@
     <span class="kw">let </span>interface = handler.exec_env.get_interface();
     interface
         .get_tmp_module(<span class="kw-2">&amp;</span>bytecode, remaining_gas)
-        .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">&quot;Could not get module: {}&quot;</span>, err)))
+        .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Could not get module: {}"</span>, err)))
 }
 
 <span class="attr">#[named]
@@ -3343,7 +3343,7 @@
         arg_offset,
         |handler, req: CheckNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(amount) = req.to_check <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No amount to check&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No amount to check"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -3368,10 +3368,10 @@
         arg_offset,
         |handler, req: AddNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(amount1) = req.amount1 <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No amount1&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No amount1"</span>);
             };
             <span class="kw">let </span><span class="prelude-val">Some</span>(amount2) = req.amount2 <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No amount2&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No amount2"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -3396,10 +3396,10 @@
         arg_offset,
         |handler, req: SubNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(left) = req.left <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No left amount&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No left amount"</span>);
             };
             <span class="kw">let </span><span class="prelude-val">Some</span>(right) = req.right <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No right amount&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No right amount"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -3424,7 +3424,7 @@
         arg_offset,
         |handler, req: ScalarMulNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(amount) = req.amount <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No amount&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No amount"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -3449,7 +3449,7 @@
         arg_offset,
         |handler, req: ScalarDivRemNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(dividend) = req.dividend <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No dividend&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No dividend"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -3475,10 +3475,10 @@
         arg_offset,
         |handler, req: DivRemNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(dividend) = req.dividend <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No dividend&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No dividend"</span>);
             };
             <span class="kw">let </span><span class="prelude-val">Some</span>(divisor) = req.divisor <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No divisor&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No divisor"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -3504,7 +3504,7 @@
         arg_offset,
         |handler, req: NativeAmountToStringRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(amount) = req.to_convert <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No amount to convert&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No amount to convert"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -3530,7 +3530,7 @@
         |handler, req: NativeAmountFromStringRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">let </span><span class="prelude-val">Ok</span>(amount) = interface.native_amount_from_str_wasmv1(<span class="kw-2">&amp;</span>req.to_convert) <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Invalid amount&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Invalid amount"</span>);
             };
 
             <span class="macro">resp_ok!</span>(NativeAmountFromStringResult, { converted_amount: <span class="prelude-val">Some</span>(amount) })
@@ -3606,7 +3606,7 @@
         arg_offset,
         |handler, req: CompareNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>(<span class="prelude-val">Some</span>(left), <span class="prelude-val">Some</span>(right)) = (req.left, req.right) <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Either left or right argument is none&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Either left or right argument is none"</span>);
             };
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.compare_native_amount_wasmv1(<span class="kw-2">&amp;</span>left, <span class="kw-2">&amp;</span>right) {
@@ -3630,7 +3630,7 @@
         arg_offset,
         |handler, req: CompareNativeTimeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>(<span class="prelude-val">Some</span>(left), <span class="prelude-val">Some</span>(right)) = (req.left, req.right) <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;Either left or right argument is none&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Either left or right argument is none"</span>);
             };
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.compare_native_time_wasmv1(<span class="kw-2">&amp;</span>left, <span class="kw-2">&amp;</span>right) {
@@ -3812,10 +3812,10 @@
         arg_offset,
         |handler, req: CheckedAddNativeTimeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(time1) = req.left <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No time1&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No time1"</span>);
             };
             <span class="kw">let </span><span class="prelude-val">Some</span>(time2) = req.right <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No time2&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No time2"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -3840,10 +3840,10 @@
         arg_offset,
         |handler, req: CheckedSubNativeTimeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(left) = req.left <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No left time&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No left time"</span>);
             };
             <span class="kw">let </span><span class="prelude-val">Some</span>(right) = req.right <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No right time&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No right time"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -3868,7 +3868,7 @@
         arg_offset,
         |handler, req: CheckedScalarMulNativeTimeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(time) = req.time <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No time&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No time"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -3893,7 +3893,7 @@
         arg_offset,
         |handler, req: CheckedScalarDivRemNativeTimeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(dividend) = req.dividend <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No dividend&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No dividend"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -3919,10 +3919,10 @@
         arg_offset,
         |handler, req: CheckedDivRemNativeTimeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(dividend) = req.dividend <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No dividend&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No dividend"</span>);
             };
             <span class="kw">let </span><span class="prelude-val">Some</span>(divisor) = req.divisor <span class="kw">else </span>{
-                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">&quot;No divisor&quot;</span>);
+                <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No divisor"</span>);
             };
 
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
