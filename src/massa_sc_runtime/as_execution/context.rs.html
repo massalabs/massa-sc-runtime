@@ -589,12 +589,12 @@
         };
 
         <span class="kw">if </span>version &gt; <span class="number">0 </span>{
-            imports.extend(<span class="macro">imports! </span>{<span class="string">&quot;massa&quot; </span>=&gt; {
+            imports.extend(<span class="kw-2">&amp;</span><span class="macro">imports! </span>{<span class="string">&quot;massa&quot; </span>=&gt; {
                 <span class="string">&quot;assembly_script_get_deferred_call_quote&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_deferred_call_quote),
                 <span class="string">&quot;assembly_script_deferred_call_register&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_register),
                 <span class="string">&quot;assembly_script_deferred_call_exists&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_exists),
                 <span class="string">&quot;assembly_script_deferred_call_cancel&quot; </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_cancel),
-            }}.into_iter());
+            }});
         }
 
         (imports, fenv)

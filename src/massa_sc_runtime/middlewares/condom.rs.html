@@ -1273,6 +1273,7 @@
 <a href="#1273" id="1273">1273</a>
 <a href="#1274" id="1274">1274</a>
 <a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// An entry-point protection middleware that prevents malicious WASM files from reaching the compilation step.
 </span><span class="kw">use </span>std::fmt;
 <span class="kw">use </span>wasmer::{
@@ -2307,7 +2308,8 @@
         }
     }
 
-    <span class="kw">fn </span>generate_wasm_calibrate(
+    <span class="attr">#[allow(clippy::too_many_arguments)]
+    </span><span class="kw">fn </span>generate_wasm_calibrate(
         nb_fn: usize,
         fn_name_len: usize,
         nb_params: usize,
