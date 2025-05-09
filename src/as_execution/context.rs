@@ -288,12 +288,12 @@ impl ASContext {
         };
 
         if version > 0 {
-            imports.extend(imports! {"massa" => {
+            imports.extend(&imports! {"massa" => {
                 "assembly_script_get_deferred_call_quote" => Function::new_typed_with_env(store, &fenv, assembly_script_get_deferred_call_quote),
                 "assembly_script_deferred_call_register" => Function::new_typed_with_env(store, &fenv, assembly_script_deferred_call_register),
                 "assembly_script_deferred_call_exists" => Function::new_typed_with_env(store, &fenv, assembly_script_deferred_call_exists),
                 "assembly_script_deferred_call_cancel" => Function::new_typed_with_env(store, &fenv, assembly_script_deferred_call_cancel),
-            }}.into_iter());
+            }});
         }
 
         (imports, fenv)

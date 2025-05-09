@@ -35,6 +35,7 @@ pub struct ASEnv {
     /// Maximum number of exports
     condom_limits: CondomLimits,
     /// Initially added for gas calibration but unused at the moment.
+    #[allow(dead_code)]
     param_size_map: HashMap<String, Option<Global>>,
     #[cfg(feature = "execution-trace")]
     pub trace: Vec<AbiTrace>,
@@ -99,6 +100,7 @@ impl Metered for ASEnv {
 pub(crate) trait Metered {
     fn get_exhausted_points(&self) -> Option<&Global>;
     fn get_remaining_points(&self) -> Option<&Global>;
+    #[allow(dead_code)]
     fn get_gc_param(&self, name: &str) -> Option<&Global>;
     fn get_gas_costs(&self) -> GasCosts;
     fn get_condom_limits(&self) -> CondomLimits;
@@ -189,7 +191,7 @@ pub(crate) fn sub_remaining_gas_abi(
     abi_name: &str,
 ) -> ABIResult<()> {
     let execution_component_version = env.get_execution_component_version();
-    let previously_missing_abis = vec![
+    let previously_missing_abis = [
         "assembly_script_console_log",
         "assembly_script_console_info",
         "assembly_script_console_debug",

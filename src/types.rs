@@ -238,7 +238,7 @@ impl GasCosts {
     fn try_insert(h: &mut HashMap<String, u64>, k: String, v: u64) {
         // Note: use try_insert when not an experimental feature anymore
         // https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.try_insert
-        if let Some(_) = h.insert(k.clone(), v) {
+        if h.insert(k.clone(), v).is_some() {
             // Insert return old value if the key was already there
             panic!("Key {} already in hashmap", k);
         }
