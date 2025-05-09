@@ -1,5 +1,5 @@
 use super::super::env::{ABIEnv, ExecutionEnv};
-use crate::{wasmv1_execution::WasmV1Error, GasCosts};
+use crate::{wasmv1_execution::WasmV1Error, CondomLimits, GasCosts};
 use std::io::Cursor;
 use wasmer::FunctionEnvMut;
 
@@ -178,6 +178,11 @@ impl<'a, 'b> ABIHandler<'a, 'b> {
             .abi_costs
             .get(abi_name)
             .unwrap_or(&0)
+    }
+
+    /// Get condom limits
+    pub fn get_condom_limits(&self) -> &CondomLimits {
+        self.exec_env.get_condom_limits()
     }
 
     /// Get the memory maximum size in bytes

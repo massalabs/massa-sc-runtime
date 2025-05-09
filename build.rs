@@ -71,7 +71,8 @@ fn git_clone(target_path: &PathBuf) {
 
 #[cfg(feature = "build-wasm")]
 fn npm_install(target_path: &PathBuf) {
-    env::set_current_dir(target_path).expect(&format!("Failed to cd to {}", target_path.display()));
+    env::set_current_dir(target_path)
+        .unwrap_or_else(|_| panic!("Failed to cd to {}", target_path.display()));
 
     let npm_path = which("npm").expect("npm not found in PATH");
 
@@ -104,7 +105,7 @@ fn build_wasm() {
             .arg("run")
             .arg(rule)
             .output()
-            .expect(&format!("Failed to execute npm run {} script", rule));
+            .unwrap_or_else(|_| panic!("Failed to execute npm run {} script", rule));
     }
 }
 
@@ -113,14 +114,12 @@ fn copy_wasm(target_path: PathBuf, cargo_dir: &&Path) {
     let build_dir = target_path.join("build");
     let wasm_dir = cargo_dir.join("wasm");
     if let Ok(entries) = fs::read_dir(&build_dir) {
-        for entry in entries {
-            if let Ok(entry) = entry {
-                let path = entry.path();
-                if path.is_file() && path.extension().unwrap_or_default() == "wasm_add" {
-                    let file_name = path.file_name().unwrap();
-                    let destination_path = wasm_dir.join(file_name);
-                    fs::copy(&path, &destination_path).expect("Failed to copy the WASM file");
-                }
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_file() && path.extension().unwrap_or_default() == "wasm_add" {
+                let file_name = path.file_name().unwrap();
+                let destination_path = wasm_dir.join(file_name);
+                fs::copy(&path, &destination_path).expect("Failed to copy the WASM file");
             }
         }
     }

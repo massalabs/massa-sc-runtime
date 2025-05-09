@@ -1,5 +1,5 @@
 use super::{abi_bail, ABIResult};
-use crate::types::Interface;
+use crate::{types::Interface, CondomLimits};
 
 #[cfg(feature = "execution-trace")]
 use crate::types::AbiTrace;
@@ -32,14 +32,22 @@ pub struct ASEnv {
     pub exhausted_points: Option<Global>,
     /// Gas costs of different execution operations.
     gas_costs: GasCosts,
+    /// Maximum number of exports
+    condom_limits: CondomLimits,
     /// Initially added for gas calibration but unused at the moment.
+    #[allow(dead_code)]
     param_size_map: HashMap<String, Option<Global>>,
     #[cfg(feature = "execution-trace")]
     pub trace: Vec<AbiTrace>,
+    execution_component_version: u32,
 }
 
 impl ASEnv {
-    pub fn new(interface: &dyn Interface, gas_costs: GasCosts) -> Self {
+    pub fn new(
+        interface: &dyn Interface,
+        gas_costs: GasCosts,
+        condom_limits: CondomLimits,
+    ) -> Self {
         Self {
             ffi_env: Default::default(),
             abi_enabled: Arc::new(AtomicBool::new(false)),
@@ -48,8 +56,10 @@ impl ASEnv {
             remaining_points: None,
             exhausted_points: None,
             param_size_map: Default::default(),
+            condom_limits,
             #[cfg(feature = "execution-trace")]
             trace: Default::default(),
+            execution_component_version: interface.get_interface_version().unwrap_or(0),
         }
     }
     pub fn get_interface(&self) -> Box<dyn Interface> {
@@ -76,6 +86,12 @@ impl Metered for ASEnv {
     fn get_gas_costs(&self) -> GasCosts {
         self.gas_costs.clone()
     }
+    fn get_condom_limits(&self) -> CondomLimits {
+        self.condom_limits.clone()
+    }
+    fn get_execution_component_version(&self) -> u32 {
+        self.execution_component_version
+    }
 }
 
 /// Trait describing a metered object.
@@ -84,8 +100,11 @@ impl Metered for ASEnv {
 pub(crate) trait Metered {
     fn get_exhausted_points(&self) -> Option<&Global>;
     fn get_remaining_points(&self) -> Option<&Global>;
+    #[allow(dead_code)]
     fn get_gc_param(&self, name: &str) -> Option<&Global>;
     fn get_gas_costs(&self) -> GasCosts;
+    fn get_condom_limits(&self) -> CondomLimits;
+    fn get_execution_component_version(&self) -> u32;
 }
 
 /// Get remaining metering points.
@@ -171,6 +190,20 @@ pub(crate) fn sub_remaining_gas_abi(
     store: &mut impl AsStoreMut,
     abi_name: &str,
 ) -> ABIResult<()> {
+    let execution_component_version = env.get_execution_component_version();
+    let previously_missing_abis = [
+        "assembly_script_console_log",
+        "assembly_script_console_info",
+        "assembly_script_console_debug",
+        "assembly_script_console_warn",
+        "assembly_script_console_error",
+        "assembly_script_trace",
+    ];
+    if execution_component_version == 0 && previously_missing_abis.contains(&abi_name) {
+        return Err(super::ABIError::RuntimeError(wasmer::RuntimeError::new(
+            format!("Failed to get gas for {} ABI", abi_name),
+        )));
+    }
     sub_remaining_gas(
         env,
         store,
