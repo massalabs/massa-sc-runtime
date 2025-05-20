@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
-as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", branch = "feature/update_wasmer_4_3_4" }
+as-ffi-bindings = { git = "https://github.com/massalabs/as-ffi-bindings.git", tag = "v0.5.6" }
 base64 = "=0.21"
 chrono = { version = "=0.4", features = ["clock"], default-features = false }
 displaydoc = "0.2"

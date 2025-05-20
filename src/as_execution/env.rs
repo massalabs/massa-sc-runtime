@@ -35,6 +35,7 @@ pub struct ASEnv {
     /// Maximum number of exports
     condom_limits: CondomLimits,
     /// Initially added for gas calibration but unused at the moment.
+    #[allow(dead_code)]
     param_size_map: HashMap<String, Option<Global>>,
     #[cfg(feature = "execution-trace")]
     pub trace: Vec<AbiTrace>,
@@ -99,6 +100,7 @@ impl Metered for ASEnv {
 pub(crate) trait Metered {
     fn get_exhausted_points(&self) -> Option<&Global>;
     fn get_remaining_points(&self) -> Option<&Global>;
+    #[allow(dead_code)]
     fn get_gc_param(&self, name: &str) -> Option<&Global>;
     fn get_gas_costs(&self) -> GasCosts;
     fn get_condom_limits(&self) -> CondomLimits;

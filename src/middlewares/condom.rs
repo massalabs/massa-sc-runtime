@@ -1032,6 +1032,7 @@ mod tests {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn generate_wasm_calibrate(
         nb_fn: usize,
         fn_name_len: usize,
