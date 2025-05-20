@@ -287,32 +287,57 @@
 <a href="#287" id="287">287</a>
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>context;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>env;
 <span class="kw">mod </span>error;
 
-<span class="kw">use </span><span class="kw">crate</span>::error::{exec_bail, VMResult};
-<span class="kw">use </span><span class="kw">crate</span>::execution::Compiler;
-<span class="kw">use </span><span class="kw">crate</span>::middlewares::condom::CondomMiddleware;
-<span class="kw">use </span><span class="kw">crate</span>::middlewares::gas_calibration::{get_gas_calibration_result, GasCalibrationResult};
-<span class="kw">use </span><span class="kw">crate</span>::middlewares::{dumper::Dumper, gas_calibration::GasCalibration};
-<span class="kw">use </span><span class="kw">crate</span>::settings::max_number_of_pages;
-<span class="kw">use </span><span class="kw">crate</span>::tunable_memory::LimitingTunables;
-<span class="kw">use crate</span>::{CondomLimits, GasCosts, Interface, Response};
-<span class="kw">use </span>anyhow::Result;
+<span class="kw">use crate</span>::{
+    error::{exec_bail, VMResult},
+    execution::Compiler,
+    middlewares::{
+        condom::CondomMiddleware,
+        dumper::Dumper,
+        gas_calibration::{get_gas_calibration_result, GasCalibration, GasCalibrationResult},
+    },
+    settings::max_number_of_pages,
+    tunable_memory::LimitingTunables,
+    CondomLimits, GasCosts, Interface, Response, VMError,
+};
 <span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>wasmer::NativeEngineExt;
-<span class="kw">use </span>wasmer::{sys::Features, CompilerConfig, Cranelift, Module, Store};
 <span class="kw">use </span>wasmer::{
-    sys::{BaseTunables, EngineBuilder},
+    sys::{BaseTunables, EngineBuilder, Features},
     wasmparser::Operator,
-    Engine, Pages, Target,
+    CompilerConfig, Cranelift, Engine, Module, NativeEngineExt, Pages, Store, Target,
 };
 <span class="kw">use </span>wasmer_compiler_singlepass::Singlepass;
-<span class="kw">use </span>wasmer_middlewares::metering::MeteringPoints;
-<span class="kw">use </span>wasmer_middlewares::{metering, Metering};
+<span class="kw">use </span>wasmer_middlewares::{
+    metering::{<span class="self">self</span>, MeteringPoints},
+    Metering,
+};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>context::<span class="kw-2">*</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>error::<span class="kw-2">*</span>;
@@ -334,22 +359,27 @@
         gas_costs: GasCosts,
         compiler: Compiler,
         condom_limits: CondomLimits,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    ) -&gt; VMResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>engine = <span class="kw">match </span>compiler {
             Compiler::CL =&gt; init_cl_engine(limit, gas_costs, condom_limits),
             Compiler::SP =&gt; init_sp_engine(limit, gas_costs, condom_limits),
         };
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
-            binary_module: Module::new(<span class="kw-2">&amp;</span>engine, bytecode)<span class="question-mark">?</span>,
+            binary_module: Module::new(<span class="kw-2">&amp;</span>engine, bytecode)
+                .map_err(|e| VMError::InstanceError(e.to_string()))<span class="question-mark">?</span>,
             initial_limit: limit,
             compiler,
             _engine: engine,
         })
     }
 
-    <span class="kw">pub fn </span>serialize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt; {
+    <span class="kw">pub fn </span>serialize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VMResult&lt;Vec&lt;u8&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.compiler {
-            Compiler::CL =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.binary_module.serialize()<span class="question-mark">?</span>.to_vec()),
+            Compiler::CL =&gt; <span class="prelude-val">Ok</span>(<span class="self">self
+                </span>.binary_module
+                .serialize()
+                .map_err(|e| VMError::InstanceError(e.to_string()))<span class="question-mark">?
+                </span>.to_vec()),
             Compiler::SP =&gt; {
                 <span class="macro">panic!</span>(<span class="string">"cannot serialize a module compiled with Singlepass"</span>)
             }
@@ -361,14 +391,17 @@
         limit: u64,
         gas_costs: GasCosts,
         condom_limits: CondomLimits,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+    ) -&gt; VMResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// Deserialization is only meant for Cranelift modules
         </span><span class="kw">let </span>engine = init_cl_engine(limit, gas_costs, condom_limits);
         <span class="kw">let </span>store = Store::new(engine.clone());
         <span class="comment">// Unsafe because code injection is possible
         // That's not an issue because we only deserialize modules we have
         // serialized by ourselves before
-        </span><span class="kw">let </span>module = <span class="kw">unsafe </span>{ Module::deserialize(<span class="kw-2">&amp;</span>store, ser_module)<span class="question-mark">? </span>};
+        </span><span class="kw">let </span>module = <span class="kw">unsafe </span>{
+            Module::deserialize(<span class="kw-2">&amp;</span>store, ser_module)
+                .map_err(|e| VMError::InstanceError(e.to_string()))<span class="question-mark">?
+        </span>};
         <span class="prelude-val">Ok</span>(ASModule {
             binary_module: module,
             initial_limit: limit,
@@ -534,7 +567,9 @@
     <span class="comment">// save the gas remaining before sub-execution: used by readonly execution
     </span>interface.save_gas_remaining_before_subexecution(limit);
 
-    <span class="kw">let </span>(instance, _fenv, init_rem_points) = context.create_vm_instance_and_init_env(<span class="kw-2">&amp;mut </span>store)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(instance, _fenv, init_rem_points) = context
+        .create_vm_instance_and_init_env(<span class="kw-2">&amp;mut </span>store)
+        .map_err(|e| VMError::InstanceError(e.to_string()))<span class="question-mark">?</span>;
     <span class="kw">let </span>init_cost = as_module.initial_limit.saturating_sub(init_rem_points);
 
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
@@ -561,15 +596,24 @@
             <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"gas_calibration"</span>) {
                 <span class="macro">exec_bail!</span>(err, init_cost)
             } <span class="kw">else </span>{
-                <span class="comment">// Because the last needed more than the remaining points, we
-                // should have an error.
-                </span><span class="kw">match </span>metering::get_remaining_points(<span class="kw-2">&amp;mut </span>store, <span class="kw-2">&amp;</span>instance) {
-                    MeteringPoints::Remaining(..) =&gt; <span class="macro">exec_bail!</span>(err, init_cost),
-                    MeteringPoints::Exhausted =&gt; {
-                        <span class="macro">exec_bail!</span>(
-                            <span class="macro">format!</span>(<span class="string">"Not enough gas, limit reached at: {function}"</span>),
-                            init_cost
-                        )
+                <span class="comment">// some error need to be handled carefully (depth error)
+                // hence we match on the error type to handle specific cases
+                </span><span class="kw">match </span>err {
+                    VMError::DepthError(e) =&gt; <span class="prelude-val">Err</span>(VMError::DepthError(e)),
+                    <span class="kw">_ </span>=&gt; {
+                        <span class="comment">// Because the last needed more than the remaining points, we
+                        // should have an error.
+                        </span><span class="kw">match </span>metering::get_remaining_points(<span class="kw-2">&amp;mut </span>store, <span class="kw-2">&amp;</span>instance) {
+                            MeteringPoints::Remaining(..) =&gt; {
+                                <span class="macro">exec_bail!</span>(err, init_cost)
+                            }
+                            MeteringPoints::Exhausted =&gt; {
+                                <span class="macro">exec_bail!</span>(
+                                    <span class="macro">format!</span>(<span class="string">"Not enough gas, limit reached at: {function}"</span>),
+                                    init_cost
+                                )
+                            }
+                        }
                     }
                 }
             }
