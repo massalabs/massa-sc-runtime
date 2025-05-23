@@ -46,7 +46,6 @@ macro_rules! resp_ok {
 pub fn register_abis(
     store: &mut impl AsStoreMut,
     shared_abi_env: ABIEnv,
-    interface_version: u32,
 ) -> Imports {
     let fn_env = FunctionEnv::new(store, shared_abi_env);
 
@@ -127,17 +126,12 @@ pub fn register_abis(
         "abi_evm_get_address_from_pubkey" => abi_evm_get_address_from_pubkey,
         "abi_evm_get_pubkey_from_signature" => abi_evm_get_pubkey_from_signature,
         "abi_is_address_eoa" => abi_is_address_eoa,
-        "abi_chain_id" => abi_chain_id
+        "abi_chain_id" => abi_chain_id,
+        "abi_deferred_call_cancel" => abi_deferred_call_cancel,
+        "abi_get_deferred_call_quote" => abi_get_deferred_call_quote,
+        "abi_deferred_call_exists" => abi_deferred_call_exists,
+        "abi_deferred_call_register" => abi_deferred_call_register
     );
-
-    if interface_version > 0 {
-        imports.extend(&abis!(
-            "abi_deferred_call_cancel" => abi_deferred_call_cancel,
-            "abi_get_deferred_call_quote" => abi_get_deferred_call_quote,
-            "abi_deferred_call_exists" => abi_deferred_call_exists,
-            "abi_deferred_call_register" => abi_deferred_call_register
-        ));
-    }
 
     imports
 }
