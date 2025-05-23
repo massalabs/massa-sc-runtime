@@ -1982,12 +1982,6 @@
 <a href="#1982" id="1982">1982</a>
 <a href="#1983" id="1983">1983</a>
 <a href="#1984" id="1984">1984</a>
-<a href="#1985" id="1985">1985</a>
-<a href="#1986" id="1986">1986</a>
-<a href="#1987" id="1987">1987</a>
-<a href="#1988" id="1988">1988</a>
-<a href="#1989" id="1989">1989</a>
-<a href="#1990" id="1990">1990</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{
     <span class="kw">super</span>::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
@@ -2036,7 +2030,6 @@
 </span><span class="kw">pub fn </span>register_abis(
     store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
     shared_abi_env: ABIEnv,
-    interface_version: u32,
 ) -&gt; Imports {
     <span class="kw">let </span>fn_env = FunctionEnv::new(store, shared_abi_env);
 
@@ -2117,17 +2110,12 @@
         <span class="string">"abi_evm_get_address_from_pubkey" </span>=&gt; abi_evm_get_address_from_pubkey,
         <span class="string">"abi_evm_get_pubkey_from_signature" </span>=&gt; abi_evm_get_pubkey_from_signature,
         <span class="string">"abi_is_address_eoa" </span>=&gt; abi_is_address_eoa,
-        <span class="string">"abi_chain_id" </span>=&gt; abi_chain_id
+        <span class="string">"abi_chain_id" </span>=&gt; abi_chain_id,
+        <span class="string">"abi_deferred_call_cancel" </span>=&gt; abi_deferred_call_cancel,
+        <span class="string">"abi_get_deferred_call_quote" </span>=&gt; abi_get_deferred_call_quote,
+        <span class="string">"abi_deferred_call_exists" </span>=&gt; abi_deferred_call_exists,
+        <span class="string">"abi_deferred_call_register" </span>=&gt; abi_deferred_call_register
     );
-
-    <span class="kw">if </span>interface_version &gt; <span class="number">0 </span>{
-        imports.extend(<span class="kw-2">&amp;</span><span class="macro">abis!</span>(
-            <span class="string">"abi_deferred_call_cancel" </span>=&gt; abi_deferred_call_cancel,
-            <span class="string">"abi_get_deferred_call_quote" </span>=&gt; abi_get_deferred_call_quote,
-            <span class="string">"abi_deferred_call_exists" </span>=&gt; abi_deferred_call_exists,
-            <span class="string">"abi_deferred_call_register" </span>=&gt; abi_deferred_call_register
-        ));
-    }
 
     imports
 }
