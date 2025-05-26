@@ -60,7 +60,7 @@ pub fn register_abis(
         };
     }
 
-    let mut imports = abis!(
+    let imports = abis!(
         "abi_abort" => abi_abort,
         "abi_add_native_amount" => abi_add_native_amount,
         "abi_address_from_public_key" => abi_address_from_public_key,
