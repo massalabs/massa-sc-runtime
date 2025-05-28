@@ -43,10 +43,7 @@ macro_rules! resp_ok {
 }
 
 /// Register all ABIs to a store
-pub fn register_abis(
-    store: &mut impl AsStoreMut,
-    shared_abi_env: ABIEnv,
-) -> Imports {
+pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imports {
     let fn_env = FunctionEnv::new(store, shared_abi_env);
 
     // helper macro to ease the construction of the imports
