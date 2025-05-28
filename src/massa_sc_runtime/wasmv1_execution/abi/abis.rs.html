@@ -1979,9 +1979,6 @@
 <a href="#1979" id="1979">1979</a>
 <a href="#1980" id="1980">1980</a>
 <a href="#1981" id="1981">1981</a>
-<a href="#1982" id="1982">1982</a>
-<a href="#1983" id="1983">1983</a>
-<a href="#1984" id="1984">1984</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{
     <span class="kw">super</span>::{env::ABIEnv, WasmV1Error},
     handler::{handle_abi, handle_abi_raw},
@@ -2027,10 +2024,7 @@
 }
 
 <span class="doccomment">/// Register all ABIs to a store
-</span><span class="kw">pub fn </span>register_abis(
-    store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut,
-    shared_abi_env: ABIEnv,
-) -&gt; Imports {
+</span><span class="kw">pub fn </span>register_abis(store: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>AsStoreMut, shared_abi_env: ABIEnv) -&gt; Imports {
     <span class="kw">let </span>fn_env = FunctionEnv::new(store, shared_abi_env);
 
     <span class="comment">// helper macro to ease the construction of the imports
