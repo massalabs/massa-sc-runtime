@@ -11,7 +11,7 @@ use std::ops::Add;
 use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
 use super::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
-use crate::settings;
+use crate::{as_execution::ABIError, settings};
 #[cfg(feature = "execution-trace")]
 use crate::{
     into_trace_value,
@@ -1967,7 +1967,7 @@ fn read_string(memory: &Memory, store: &impl AsStoreRef, ptr: i32) -> ABIResult<
 /// Tooling, return a pointer offset of a serialized list in json
 fn alloc_string_array(ctx: &mut FunctionEnvMut<ASEnv>, vec: &[String]) -> ABIResult<i32> {
     let env = get_env(ctx)?;
-    let addresses = serde_json::to_string(vec)?;
+    let addresses = serde_json::to_string(vec).map_err(|e| ABIError::SerdeError(e.to_string()))?;
     Ok(StringPtr::alloc(&addresses, env.get_ffi_env(), ctx)?.offset() as i32)
 }
 

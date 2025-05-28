@@ -14,7 +14,6 @@ use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
 use crate::{CondomLimits, GasCosts, Interface, Response, VMError};
 use abi::*;
-use anyhow::Result;
 pub(crate) use error::*;
 use parking_lot::Mutex;
 use std::sync::Arc;
@@ -87,7 +86,7 @@ impl WasmV1Module {
         limit: u64,
         gas_costs: GasCosts,
         condom_limits: CondomLimits,
-    ) -> Result<Self> {
+    ) -> VMResult<Self> {
         // Deserialization is only meant for Cranelift modules
         let engine = init_cl_engine(limit, gas_costs, condom_limits);
         let store = Store::new(engine.clone());
@@ -238,9 +237,7 @@ pub(crate) fn exec_wasmv1_module(
     // Create the ABI imports and pass them an empty environment for now
     let shared_abi_env: ABIEnv = Arc::new(Mutex::new(None));
 
-    let interface_version = interface.get_interface_version().unwrap_or(0);
-
-    let import_object = register_abis(&mut store, shared_abi_env.clone(), interface_version);
+    let import_object = register_abis(&mut store, shared_abi_env.clone());
 
     // save the gas remaining before subexecution: used by readonly execution
     interface.save_gas_remaining_before_subexecution(gas_limit);

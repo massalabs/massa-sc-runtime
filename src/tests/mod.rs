@@ -1,8 +1,7 @@
 use crate::as_execution::ASModule;
-use crate::types::{Interface, InterfaceClone};
+use crate::types::{Interface, InterfaceClone, Result};
 use crate::{Compiler, CondomLimits, GasCosts, RuntimeModule};
 
-use anyhow::Result;
 use massa_proto_rs::massa::model::v1::*;
 use sha2::{Digest, Sha256};
 use sha3::Keccak256;
@@ -133,7 +132,8 @@ impl Interface for TestInterface {
             GasCosts::default(),
             Compiler::CL,
             CondomLimits::default(),
-        )?;
+        )
+        .unwrap();
         let module = RuntimeModule::ASModule(as_module);
         Ok(module)
     }
@@ -146,7 +146,8 @@ impl Interface for TestInterface {
             GasCosts::default(),
             Compiler::SP,
             CondomLimits::default(),
-        )?;
+        )
+        .unwrap();
         let module = RuntimeModule::ASModule(as_module);
         Ok(module)
     }
