@@ -177,3 +177,63 @@ pub(crate) fn sub_remaining_gas(
     }
     Ok(())
 }
+
+/// Optimized version that extracts what it needs directly from ctx
+/// This avoids cloning the entire ASEnv in ABI functions
+pub(crate) fn sub_remaining_gas_direct(
+    ctx: &mut wasmer::FunctionEnvMut<ASEnv>,
+    gas: u64,
+) -> ABIResult<()> {
+    if cfg!(feature = "gas_calibration") {
+        return Ok(());
+    }
+
+    // Extract what we need from ctx (only call ctx.data() once)
+    let remaining_points;
+    let exhausted_points;
+    {
+        let data = ctx.data();
+
+        // Check abi_enabled
+        if !data.abi_enabled.load(std::sync::atomic::Ordering::Relaxed) {
+            abi_bail!("ABI calls are not available during instantiation");
+        }
+
+        remaining_points = match data.remaining_points.as_ref() {
+            Some(g) => g.clone(),
+            None => abi_bail!("Lost reference to remaining_points"),
+        };
+        exhausted_points = match data.exhausted_points.as_ref() {
+            Some(g) => g.clone(),
+            None => abi_bail!("Lost reference to exhausted_points"),
+        };
+    }
+
+    // Check exhausted points
+    match exhausted_points.get(ctx).try_into() {
+        Ok::<i32, _>(exhausted) if exhausted > 0 => {
+            abi_bail!("Out of gas");
+        }
+        Ok::<i32, _>(_) => (),
+        Err(_) => abi_bail!("exhausted_points has wrong type"),
+    }
+
+    // Get remaining points
+    let remaining_gas: u64 = match remaining_points.get(ctx).try_into() {
+        Ok(remaining) => remaining,
+        Err(_) => abi_bail!("remaining_points has wrong type"),
+    };
+
+    // Subtract gas
+    if let Some(new_remaining) = remaining_gas.checked_sub(gas) {
+        if remaining_points.set(ctx, new_remaining.into()).is_err() {
+            abi_bail!("Can't set remaining_points");
+        }
+        if exhausted_points.set(ctx, 0i32.into()).is_err() {
+            abi_bail!("Can't set exhausted_points");
+        }
+    } else {
+        abi_bail!("Out of gas")
+    }
+    Ok(())
+}

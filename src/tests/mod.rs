@@ -25,7 +25,7 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn init_call(&self, address: &str, raw_coins: u64) -> Result<Vec<u8>> {
+    fn init_call(&self, _address: &str, _raw_coins: u64) -> Result<Vec<u8>> {
         Ok(vec![])
     }
 
@@ -33,7 +33,7 @@ impl Interface for TestInterface {
         Ok(0)
     }
 
-    fn init_call_wasmv1(&self, address: &str, raw_coins: NativeAmount) -> Result<Vec<u8>> {
+    fn init_call_wasmv1(&self, _address: &str, _raw_coins: NativeAmount) -> Result<Vec<u8>> {
         Ok(vec![])
     }
 
@@ -41,37 +41,37 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn transfer_coins(&self, to_address: &str, raw_amount: u64) -> Result<()> {
+    fn transfer_coins(&self, _to_address: &str, _raw_amount: u64) -> Result<()> {
         Ok(())
     }
 
     fn transfer_coins_for(
         &self,
-        from_address: &str,
-        to_address: &str,
-        raw_amount: u64,
+        _from_address: &str,
+        _to_address: &str,
+        _raw_amount: u64,
     ) -> Result<()> {
         Ok(())
     }
 
     fn transfer_coins_wasmv1(
         &self,
-        to_address: String,
-        raw_amount: NativeAmount,
+        _to_address: String,
+        _raw_amount: NativeAmount,
         from_address: Option<String>,
     ) -> Result<()> {
         match from_address {
-            Some(from_address) => {}
+            Some(_from_address) => {}
             None => {}
         }
         Ok(())
     }
 
-    fn address_from_public_key(&self, public_key: &str) -> Result<String> {
+    fn address_from_public_key(&self, _public_key: &str) -> Result<String> {
         Ok("".to_string())
     }
 
-    fn generate_event(&self, event: String) -> Result<()> {
+    fn generate_event(&self, _event: String) -> Result<()> {
         Ok(())
     }
 
@@ -124,112 +124,117 @@ impl Interface for TestInterface {
         Ok(vec![])
     }
 
-    fn has_data(&self, key: &[u8]) -> Result<bool> {
+    fn has_data(&self, _key: &[u8]) -> Result<bool> {
         Ok(false)
     }
 
-    fn has_data_for(&self, address: &str, key: &[u8]) -> Result<bool> {
+    fn has_data_for(&self, _address: &str, _key: &[u8]) -> Result<bool> {
         Ok(false)
     }
 
-    fn ds_entry_exists_wasmv1(&self, key: &[u8], address: Option<String>) -> Result<bool> {
+    fn ds_entry_exists_wasmv1(&self, _key: &[u8], address: Option<String>) -> Result<bool> {
         match address {
-            Some(address) => {}
+            Some(_address) => {}
             None => {}
         }
         Ok(false)
     }
 
-    fn hash(&self, data: &[u8]) -> Result<[u8; 32]> {
+    fn hash(&self, _data: &[u8]) -> Result<[u8; 32]> {
         Ok([0; 32])
     }
 
-    fn get_bytecode_wasmv1(&self, address: Option<String>) -> Result<Vec<u8>> {
+    fn get_bytecode_wasmv1(&self, _address: Option<String>) -> Result<Vec<u8>> {
         Ok(vec![])
     }
 
     fn get_ds_keys_wasmv1(
         &self,
-        prefix: &[u8],
+        _prefix: &[u8],
         address: Option<String>,
     ) -> Result<BTreeSet<Vec<u8>>> {
         match address {
-            Some(address) => {}
+            Some(_address) => {}
             None => {}
         }
         Ok(BTreeSet::new())
     }
 
-    fn raw_append_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
+    fn raw_append_data(&self, _key: &[u8], _value: &[u8]) -> Result<()> {
         Ok(())
     }
 
-    fn raw_append_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()> {
+    fn raw_append_data_for(&self, _address: &str, _key: &[u8], _value: &[u8]) -> Result<()> {
         Ok(())
     }
 
     fn append_ds_value_wasmv1(
         &self,
-        key: &[u8],
-        value: &[u8],
+        _key: &[u8],
+        _value: &[u8],
         address: Option<String>,
     ) -> Result<()> {
         match address {
-            Some(address) => {}
+            Some(_address) => {}
             None => {}
         }
         Ok(())
     }
 
-    fn raw_delete_data(&self, key: &[u8]) -> Result<()> {
+    fn raw_delete_data(&self, _key: &[u8]) -> Result<()> {
         Ok(())
     }
 
-    fn raw_delete_data_for(&self, address: &str, key: &[u8]) -> Result<()> {
+    fn raw_delete_data_for(&self, _address: &str, _key: &[u8]) -> Result<()> {
         Ok(())
     }
 
-    fn delete_ds_entry_wasmv1(&self, key: &[u8], address: Option<String>) -> Result<()> {
+    fn delete_ds_entry_wasmv1(&self, _key: &[u8], address: Option<String>) -> Result<()> {
         match address {
-            Some(address) => {}
+            Some(_address) => {}
             None => {}
         }
         Ok(())
     }
 
-    fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>> {
+    fn raw_get_data(&self, _key: &[u8]) -> Result<Vec<u8>> {
         Ok(vec![])
     }
 
-    fn raw_get_data_for(&self, address: &str, key: &[u8]) -> Result<Vec<u8>> {
+    fn raw_get_data_for(&self, _address: &str, _key: &[u8]) -> Result<Vec<u8>> {
         Ok(vec![])
     }
 
-    fn get_ds_value_wasmv1(&self, key: &[u8], address: Option<String>) -> Result<Vec<u8>> {
+    fn get_ds_value_wasmv1(&self, _key: &[u8], address: Option<String>) -> Result<Vec<u8>> {
         match address {
-            Some(address) => {}
+            Some(_address) => {}
             None => {}
         }
         Ok(vec![])
     }
 
-    fn raw_set_data(&self, key: &[u8], value: &[u8]) -> Result<()> {
+    fn raw_set_data(&self, _key: &[u8], _value: &[u8]) -> Result<()> {
         Ok(())
     }
 
-    fn raw_set_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()> {
+    fn raw_set_data_for(&self, _address: &str, _key: &[u8], _value: &[u8]) -> Result<()> {
         Ok(())
     }
 
-    fn set_ds_value_wasmv1(&self, key: &[u8], value: &[u8], address: Option<String>) -> Result<()> {
+    fn set_ds_value_wasmv1(
+        &self,
+        _key: &[u8],
+        _value: &[u8],
+        address: Option<String>,
+    ) -> Result<()> {
         match address {
-            Some(address) => {}
+            Some(_address) => {}
             None => {}
         }
         Ok(())
     }
 
-    fn signature_verify(&self, data: &[u8], signature: &str, public_key: &str) -> Result<bool> {
+    fn signature_verify(&self, _data: &[u8], _signature: &str, _public_key: &str) -> Result<bool> {
         Ok(false)
     }
 
@@ -252,7 +257,7 @@ impl Interface for TestInterface {
 
     fn get_balance_wasmv1(&self, address: Option<String>) -> Result<NativeAmount> {
         match address {
-            Some(address) => {}
+            Some(_address) => {}
             None => {}
         }
         Ok(NativeAmount {
@@ -261,17 +266,17 @@ impl Interface for TestInterface {
         })
     }
 
-    fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()> {
+    fn raw_set_bytecode(&self, _bytecode: &[u8]) -> Result<()> {
         Ok(())
     }
 
-    fn raw_set_bytecode_for(&self, address: &str, bytecode: &[u8]) -> Result<()> {
+    fn raw_set_bytecode_for(&self, _address: &str, _bytecode: &[u8]) -> Result<()> {
         Ok(())
     }
 
-    fn set_bytecode_wasmv1(&self, bytecode: &[u8], address: Option<String>) -> Result<()> {
+    fn set_bytecode_wasmv1(&self, _bytecode: &[u8], address: Option<String>) -> Result<()> {
         match address {
-            Some(address) => {}
+            Some(_address) => {}
             None => {}
         }
         Ok(())
@@ -279,8 +284,6 @@ impl Interface for TestInterface {
 
     /// Generate a smart contract event
     fn generate_event_wasmv1(&self, _event: Vec<u8>) -> Result<()> {
-        let msg = String::from_utf8_lossy(&_event);
-
         Ok(())
     }
 
@@ -307,7 +310,7 @@ impl Interface for TestInterface {
     }
 
     /// Print function for examples
-    fn print(&self, message: &str) -> Result<()> {
+    fn print(&self, _message: &str) -> Result<()> {
         Ok(())
     }
 
@@ -347,7 +350,7 @@ impl Interface for TestInterface {
         }
     }
 
-    fn get_op_keys_wasmv1(&self, prefix: &[u8]) -> Result<Vec<Vec<u8>>> {
+    fn get_op_keys_wasmv1(&self, _prefix: &[u8]) -> Result<Vec<Vec<u8>>> {
         Ok(vec![
             vec![0, 1, 2, 3, 4, 5, 6, 11],
             vec![127, 128],
@@ -409,7 +412,7 @@ impl Interface for TestInterface {
     }
 
     /// Returns the blake3 hash of the given bytes
-    fn hash_blake3(&self, bytes: &[u8]) -> Result<[u8; 32]> {
+    fn hash_blake3(&self, _bytes: &[u8]) -> Result<[u8; 32]> {
         Ok([0u8; 32])
     }
 
@@ -688,34 +691,34 @@ impl Interface for TestInterface {
         Ok(7)
     }
 
-    fn save_gas_remaining_before_subexecution(&self, gas_used_until: u64) {}
+    fn save_gas_remaining_before_subexecution(&self, _gas_used_until: u64) {}
 
     fn get_deferred_call_quote(
         &self,
-        target_slot: (u64, u8),
-        gas_limit: u64,
-        params_size: u64,
+        _target_slot: (u64, u8),
+        _gas_limit: u64,
+        _params_size: u64,
     ) -> Result<(bool, u64)> {
         Ok((true, 0))
     }
 
     fn deferred_call_register(
         &self,
-        target_addr: &str,
-        target_func: &str,
-        target_slot: (u64, u8),
-        max_gas: u64,
-        params: &[u8],
-        coins: u64,
+        _target_addr: &str,
+        _target_func: &str,
+        _target_slot: (u64, u8),
+        _max_gas: u64,
+        _params: &[u8],
+        _coins: u64,
     ) -> Result<String> {
         Ok("sample_test_id".to_string())
     }
 
-    fn deferred_call_exists(&self, id: &str) -> Result<bool> {
+    fn deferred_call_exists(&self, _id: &str) -> Result<bool> {
         Ok(true)
     }
 
-    fn deferred_call_cancel(&self, id: &str) -> Result<()> {
+    fn deferred_call_cancel(&self, _id: &str) -> Result<()> {
         Ok(())
     }
 }

@@ -9,8 +9,9 @@ use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
 use std::ops::Add;
 use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
-use super::env::{get_remaining_points, sub_remaining_gas, ASEnv};
+use super::env::{get_remaining_points, sub_remaining_gas, sub_remaining_gas_direct, ASEnv};
 use crate::{as_execution::ABIError, settings};
+
 #[cfg(feature = "execution-trace")]
 use crate::{
     into_trace_value,
@@ -1364,13 +1365,13 @@ pub(crate) fn assembly_script_get_origin_operation_id(
 
 /// gets the period of the current execution slot
 pub(crate) fn assembly_script_get_current_period(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
-    let env = get_env(&ctx)?;
-    sub_remaining_gas(
-        &env,
-        &mut ctx,
-        env.get_gas_costs().assembly_script_get_current_period,
-    )?;
-    let current_period = env.get_interface().get_current_period()?;
+    let gas_cost = ctx
+        .data()
+        .get_gas_costs()
+        .assembly_script_get_current_period;
+    sub_remaining_gas_direct(&mut ctx, gas_cost)?;
+    let current_period = ctx.data().interface.get_current_period()?;
+
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
         name: function_name!().to_string(),
@@ -1383,13 +1384,12 @@ pub(crate) fn assembly_script_get_current_period(mut ctx: FunctionEnvMut<ASEnv>)
 
 /// gets the thread of the current execution slot
 pub(crate) fn assembly_script_get_current_thread(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
-    let env = get_env(&ctx)?;
-    sub_remaining_gas(
-        &env,
-        &mut ctx,
-        env.get_gas_costs().assembly_script_get_current_thread,
-    )?;
-    let current_thread = env.get_interface().get_current_thread()?;
+    let gas_cost = ctx
+        .data()
+        .get_gas_costs()
+        .assembly_script_get_current_thread;
+    sub_remaining_gas_direct(&mut ctx, gas_cost)?;
+    let current_thread = ctx.data().interface.get_current_thread()?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
         name: function_name!().to_string(),

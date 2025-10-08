@@ -51,3 +51,4 @@ testing = []
 dumper = []
 build-wasm = []
 execution-trace = ["rust_decimal"]
+

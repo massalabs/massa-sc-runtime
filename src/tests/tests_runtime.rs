@@ -532,7 +532,7 @@ fn test_abort_wasmv1_as() {
     let res = run_main(
         &*interface,
         runtime_module,
-        100_000,
+        5_000_000, // Increased for operator_cost=23 (was 100_000 with operator_cost=1)
         gas_costs,
         condom_limits,
     );
@@ -636,7 +636,7 @@ fn test_transfer_coins_wasmv1_as() {
     let _resp = run_main(
         &*interface,
         runtime_module,
-        100_000,
+        5_000_000, // Increased for operator_cost=23 (was 100_000 with operator_cost=1)
         gas_costs,
         condom_limits,
     )
