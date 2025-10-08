@@ -4042,7 +4042,7 @@
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
     <span class="macro">crate::handle_abi!</span>(
-        abi_checked_div_native_time,
+        abi_verify_signature,
         store_env,
         arg_offset,
         |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
@@ -4064,7 +4064,7 @@
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
     <span class="macro">crate::handle_abi!</span>(
-        abi_checked_div_native_time,
+        abi_chain_id,
         store_env,
         arg_offset,
         |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,

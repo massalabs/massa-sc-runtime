@@ -3840,7 +3840,7 @@
     sub_remaining_gas(
         <span class="kw-2">&amp;</span>env,
         <span class="kw-2">&amp;mut </span>ctx,
-        env.get_gas_costs().assembly_script_local_call,
+        env.get_gas_costs().assembly_script_caller_has_write_access,
     )<span class="question-mark">?</span>;
     <span class="kw">let </span>has_write_access = env.get_interface().caller_has_write_access()<span class="question-mark">?</span>;
     <span class="attr">#[cfg(feature = <span class="string">"execution-trace"</span>)]
@@ -3863,7 +3863,7 @@
     sub_remaining_gas(
         <span class="kw-2">&amp;</span>env,
         <span class="kw-2">&amp;mut </span>ctx,
-        env.get_gas_costs().assembly_script_local_call,
+        env.get_gas_costs().assembly_script_function_exists,
     )<span class="question-mark">?</span>;
     <span class="kw">let </span>memory = <span class="macro">get_memory!</span>(env);
     <span class="kw">let </span>address = read_string(memory, <span class="kw-2">&amp;</span>ctx, address)<span class="question-mark">?</span>;
@@ -4113,7 +4113,7 @@
         sub_remaining_gas(
             <span class="kw-2">&amp;</span>env,
             <span class="kw-2">&amp;mut </span>ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_seed,
         )<span class="question-mark">?</span>;
     }
     <span class="kw">let </span>seed = <span class="kw">match </span>env.interface.unsafe_random_f64() {
@@ -4137,7 +4137,7 @@
         sub_remaining_gas(
             <span class="kw-2">&amp;</span>env,
             <span class="kw-2">&amp;mut </span>ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_date_now,
         )<span class="question-mark">?</span>;
     }
     <span class="kw">let </span>utime = <span class="kw">match </span>env.interface.get_time() {
@@ -4165,7 +4165,7 @@
         sub_remaining_gas(
             <span class="kw-2">&amp;</span>env,
             <span class="kw-2">&amp;mut </span>ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_console_log,
         )<span class="question-mark">?</span>;
     }
 
@@ -4182,7 +4182,7 @@
         sub_remaining_gas(
             <span class="kw-2">&amp;</span>env,
             <span class="kw-2">&amp;mut </span>ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_console_info,
         )<span class="question-mark">?</span>;
     }
     assembly_script_console(ctx, message, <span class="string">"INFO"</span>)
@@ -4198,7 +4198,7 @@
         sub_remaining_gas(
             <span class="kw-2">&amp;</span>env,
             <span class="kw-2">&amp;mut </span>ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_console_warn,
         )<span class="question-mark">?</span>;
     }
     assembly_script_console(ctx, message, <span class="string">"WARN"</span>)
@@ -4214,7 +4214,7 @@
         sub_remaining_gas(
             <span class="kw-2">&amp;</span>env,
             <span class="kw-2">&amp;mut </span>ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_console_debug,
         )<span class="question-mark">?</span>;
     }
 
@@ -4231,7 +4231,7 @@
         sub_remaining_gas(
             <span class="kw-2">&amp;</span>env,
             <span class="kw-2">&amp;mut </span>ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_console_error,
         )<span class="question-mark">?</span>;
     }
     assembly_script_console(ctx, message, <span class="string">"ERROR"</span>)
@@ -4287,7 +4287,7 @@
         sub_remaining_gas(
             <span class="kw-2">&amp;</span>env,
             <span class="kw-2">&amp;mut </span>ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_trace,
         )<span class="question-mark">?</span>;
     }
 
