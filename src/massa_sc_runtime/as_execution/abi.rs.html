@@ -2228,18 +2228,6 @@
 <a href="#2228" id="2228">2228</a>
 <a href="#2229" id="2229">2229</a>
 <a href="#2230" id="2230">2230</a>
-<a href="#2231" id="2231">2231</a>
-<a href="#2232" id="2232">2232</a>
-<a href="#2233" id="2233">2233</a>
-<a href="#2234" id="2234">2234</a>
-<a href="#2235" id="2235">2235</a>
-<a href="#2236" id="2236">2236</a>
-<a href="#2237" id="2237">2237</a>
-<a href="#2238" id="2238">2238</a>
-<a href="#2239" id="2239">2239</a>
-<a href="#2240" id="2240">2240</a>
-<a href="#2241" id="2241">2241</a>
-<a href="#2242" id="2242">2242</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! *abi_impl.rs* contains all the implementation (and some tools as
 //! abi_bail!) of the massa abi.
 //!
@@ -4110,11 +4098,7 @@
 </span><span class="kw">pub fn </span>assembly_script_seed(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;f64&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
-        sub_remaining_gas(
-            <span class="kw-2">&amp;</span>env,
-            <span class="kw-2">&amp;mut </span>ctx,
-            env.get_gas_costs().assembly_script_seed,
-        )<span class="question-mark">?</span>;
+        sub_remaining_gas(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, env.get_gas_costs().assembly_script_seed)<span class="question-mark">?</span>;
     }
     <span class="kw">let </span>seed = <span class="kw">match </span>env.interface.unsafe_random_f64() {
         <span class="prelude-val">Ok</span>(ret) =&gt; ret,
@@ -4134,11 +4118,7 @@
 </span><span class="kw">pub fn </span>assembly_script_date_now(<span class="kw-2">mut </span>ctx: FunctionEnvMut&lt;ASEnv&gt;) -&gt; ABIResult&lt;f64&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
-        sub_remaining_gas(
-            <span class="kw-2">&amp;</span>env,
-            <span class="kw-2">&amp;mut </span>ctx,
-            env.get_gas_costs().assembly_script_date_now,
-        )<span class="question-mark">?</span>;
+        sub_remaining_gas(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, env.get_gas_costs().assembly_script_date_now)<span class="question-mark">?</span>;
     }
     <span class="kw">let </span>utime = <span class="kw">match </span>env.interface.get_time() {
         <span class="prelude-val">Ok</span>(time) =&gt; time,
@@ -4284,11 +4264,7 @@
 ) -&gt; ABIResult&lt;()&gt; {
     <span class="kw">let </span>env = get_env(<span class="kw-2">&amp;</span>ctx)<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
-        sub_remaining_gas(
-            <span class="kw-2">&amp;</span>env,
-            <span class="kw-2">&amp;mut </span>ctx,
-            env.get_gas_costs().assembly_script_trace,
-        )<span class="question-mark">?</span>;
+        sub_remaining_gas(<span class="kw-2">&amp;</span>env, <span class="kw-2">&amp;mut </span>ctx, env.get_gas_costs().assembly_script_trace)<span class="question-mark">?</span>;
     }
 
     <span class="kw">let </span>memory = ctx
