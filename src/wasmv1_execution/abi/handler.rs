@@ -3,88 +3,86 @@ use crate::{wasmv1_execution::WasmV1Error, CondomLimits, GasCosts};
 use std::io::Cursor;
 use wasmer::FunctionEnvMut;
 
-/// Handle an ABI call by providing helpers to read arguments, return values,
-/// and so on
-pub fn handle_abi<F, Req, Resp>(
-    abi_name: &str,
-    mut store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-    func: F,
-) -> Result<i32, WasmV1Error>
-where
-    F: FnOnce(&mut ABIHandler, Req) -> Result<Resp, WasmV1Error>,
-    Req: prost::Message + Default,
-    Resp: prost::Message,
-{
-    // get environment and interface
-    let env_mutex = store_env.data().clone();
-    let mut env_lock = env_mutex.lock();
-    let exec_env = env_lock.as_mut().ok_or_else(|| {
-        WasmV1Error::InstanciationError("ABIs cannot be called at initialization time.".into())
-    })?;
+/// Macro to handle an ABI call by providing helpers to read arguments, return values
+/// Takes the gas cost field name directly to avoid HashMap lookup
+#[macro_export]
+macro_rules! handle_abi {
+    ($gas_field:ident, $store_env:expr, $arg_offset:expr, $func:expr) => {{
+        use $crate::wasmv1_execution::WasmV1Error;
 
-    // create handler
-    let mut handler = ABIHandler {
-        store_env: &mut store_env,
-        exec_env,
-    };
+        let mut store_env = $store_env;
+        // get environment and interface
+        let env_mutex = store_env.data().clone();
+        let mut env_lock = env_mutex.lock();
+        let exec_env = env_lock.as_mut().ok_or_else(|| {
+            WasmV1Error::InstanciationError("ABIs cannot be called at initialization time.".into())
+        })?;
 
-    // apply gas cost
-    let gas_cost = handler.get_gas_cost(abi_name);
-    if gas_cost > 0 {
-        handler.try_subtract_gas(gas_cost)?;
-    }
+        // get gas cost directly from struct field
+        let gas_cost = exec_env.get_gas_costs().$gas_field;
 
-    // read argument
-    let arg: Req = handler.read_arg(arg_offset)?;
+        // create handler
+        let mut handler = $crate::wasmv1_execution::abi::handler::ABIHandler {
+            store_env: &mut store_env,
+            exec_env,
+        };
 
-    // call function
-    let response = func(&mut handler, arg)?;
+        // apply gas cost
+        if gas_cost > 0 {
+            handler.try_subtract_gas(gas_cost)?;
+        }
 
-    // return value
-    handler.return_value(response)
+        // read argument
+        let arg = handler.read_arg($arg_offset)?;
+
+        // call function
+        let func = $func;
+        let response = func(&mut handler, arg)?;
+
+        // return value
+        handler.return_value(response)
+    }};
 }
 
-/// Handle an ABI call that cannot rely on encoding
-/// its providing helpers to read arguments, return values, and so on in the
-/// form of Vec<u8>
-pub fn handle_abi_raw<F>(
-    abi_name: &str,
-    mut store_env: FunctionEnvMut<ABIEnv>,
-    arg_offset: i32,
-    func: F,
-) -> Result<i32, WasmV1Error>
-where
-    F: FnOnce(&mut ABIHandler, Vec<u8>) -> Result<Vec<u8>, WasmV1Error>,
-{
-    // get environment and interface
-    let env_mutex = store_env.data().clone();
-    let mut env_lock = env_mutex.lock();
-    let exec_env = env_lock.as_mut().ok_or_else(|| {
-        WasmV1Error::InstanciationError("ABIs cannot be called at initialization time.".into())
-    })?;
-    // let interface = exec_env.get_interface_mut();
+/// Macro to handle an ABI call with raw bytes (cannot rely on encoding)
+/// Takes the gas cost field name directly to avoid HashMap lookup
+#[macro_export]
+macro_rules! handle_abi_raw {
+    ($gas_field:ident, $store_env:expr, $arg_offset:expr, $func:expr) => {{
+        use $crate::wasmv1_execution::WasmV1Error;
 
-    // create handler
-    let mut handler = ABIHandler {
-        store_env: &mut store_env,
-        exec_env,
-    };
+        let mut store_env = $store_env;
+        // get environment and interface
+        let env_mutex = store_env.data().clone();
+        let mut env_lock = env_mutex.lock();
+        let exec_env = env_lock.as_mut().ok_or_else(|| {
+            WasmV1Error::InstanciationError("ABIs cannot be called at initialization time.".into())
+        })?;
 
-    // apply gas cost
-    let gas_cost = handler.get_gas_cost(abi_name);
-    if gas_cost > 0 {
-        handler.try_subtract_gas(gas_cost)?;
-    }
+        // get gas cost directly from struct field
+        let gas_cost = exec_env.get_gas_costs().$gas_field;
 
-    // read argument
-    let arg: Vec<u8> = handler.read_arg_raw(arg_offset)?;
+        // create handler
+        let mut handler = $crate::wasmv1_execution::abi::handler::ABIHandler {
+            store_env: &mut store_env,
+            exec_env,
+        };
 
-    // call function
-    let response = func(&mut handler, arg)?;
+        // apply gas cost
+        if gas_cost > 0 {
+            handler.try_subtract_gas(gas_cost)?;
+        }
 
-    // return value
-    handler.return_value_raw(&response)
+        // read argument
+        let arg: Vec<u8> = handler.read_arg_raw($arg_offset)?;
+
+        // call function
+        let func = $func;
+        let response = func(&mut handler, arg)?;
+
+        // return value
+        handler.return_value_raw(&response)
+    }};
 }
 
 /// A helper structure to handle ABI calls
@@ -165,19 +163,9 @@ impl<'a, 'b> ABIHandler<'a, 'b> {
         self.exec_env.set_remaining_gas(&mut self.store_env, gas)
     }
 
-    /// Get gas costs
+    /// Get gas costs structure
     pub fn get_gas_costs(&self) -> &GasCosts {
         self.exec_env.get_gas_costs()
-    }
-
-    /// Get gas cost
-    pub fn get_gas_cost(&self, abi_name: &str) -> u64 {
-        *self
-            .exec_env
-            .get_gas_costs()
-            .abi_costs
-            .get(abi_name)
-            .unwrap_or(&0)
     }
 
     /// Get condom limits

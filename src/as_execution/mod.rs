@@ -246,12 +246,7 @@ pub(crate) fn exec_as_module(
         Compiler::SP => init_sp_engine(limit, gas_costs.clone(), condom_limits.clone()),
     };
     let mut store = Store::new(engine);
-    let mut context = ASContext::new(
-        interface,
-        as_module.binary_module,
-        gas_costs,
-        condom_limits.clone(),
-    );
+    let mut context = ASContext::new(interface, as_module.binary_module, gas_costs, condom_limits);
 
     // save the gas remaining before sub-execution: used by readonly execution
     interface.save_gas_remaining_before_subexecution(limit);

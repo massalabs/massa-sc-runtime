@@ -6,11 +6,10 @@
 //! rust side in `execution_impl.rs`.
 
 use as_ffi_bindings::{BufferPtr, Read as ASRead, StringPtr, Write as ASWrite};
-use function_name::named;
 use std::ops::Add;
 use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory};
 
-use super::env::{get_remaining_points, sub_remaining_gas_abi, ASEnv};
+use super::env::{get_remaining_points, sub_remaining_gas, ASEnv};
 use crate::{as_execution::ABIError, settings};
 #[cfg(feature = "execution-trace")]
 use crate::{
@@ -45,10 +44,13 @@ pub(crate) fn get_env(ctx: &FunctionEnvMut<ASEnv>) -> ABIResult<ASEnv> {
 
 /// Get the coins that have been made available for a specific purpose for the
 /// current call.
-#[named]
 pub(crate) fn assembly_script_get_call_coins(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_call_coins,
+    )?;
     let res = env.get_interface().get_call_coins()? as i64;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -62,14 +64,17 @@ pub(crate) fn assembly_script_get_call_coins(mut ctx: FunctionEnvMut<ASEnv>) -> 
 
 /// Transfer an amount from the address on the current call stack to a target
 /// address.
-#[named]
 pub(crate) fn assembly_script_transfer_coins(
     mut ctx: FunctionEnvMut<ASEnv>,
     to_address: i32,
     raw_amount: i64,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_transfer_coins,
+    )?;
     if raw_amount.is_negative() {
         abi_bail!("Negative raw amount.");
     }
@@ -107,7 +112,6 @@ pub(crate) fn assembly_script_transfer_coins(
 }
 
 /// Transfer an amount from the specified address to a target address.
-#[named]
 pub(crate) fn assembly_script_transfer_coins_for(
     mut ctx: FunctionEnvMut<ASEnv>,
     from_address: i32,
@@ -115,7 +119,11 @@ pub(crate) fn assembly_script_transfer_coins_for(
     raw_amount: i64,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_transfer_coins_for,
+    )?;
     if raw_amount.is_negative() {
         abi_bail!("Negative raw amount.");
     }
@@ -145,10 +153,13 @@ pub(crate) fn assembly_script_transfer_coins_for(
     Ok(())
 }
 
-#[named]
 pub(crate) fn assembly_script_get_balance(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_balance,
+    )?;
     let res = env.get_interface().get_balance()? as i64;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -160,13 +171,16 @@ pub(crate) fn assembly_script_get_balance(mut ctx: FunctionEnvMut<ASEnv>) -> ABI
     Ok(res)
 }
 
-#[named]
 pub(crate) fn assembly_script_get_balance_for(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
 ) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_balance_for,
+    )?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     // Do not remove this. It could be used for gas_calibration in future.
@@ -187,7 +201,6 @@ pub(crate) fn assembly_script_get_balance_for(
 
 /// Raw call that have the right type signature to be able to be call a module
 /// directly form AssemblyScript:
-#[named]
 pub(crate) fn assembly_script_call(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
@@ -196,7 +209,7 @@ pub(crate) fn assembly_script_call(
     call_coins: i64,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(&env, &mut ctx, env.get_gas_costs().assembly_script_call)?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let function = read_string(memory, &ctx, function)?;
@@ -234,10 +247,13 @@ pub(crate) fn assembly_script_call(
     }
 }
 
-#[named]
 pub(crate) fn assembly_script_get_remaining_gas(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_remaining_gas,
+    )?;
     let res = get_remaining_points(&env, &mut ctx)? as i64;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -253,10 +269,9 @@ pub(crate) fn assembly_script_get_remaining_gas(mut ctx: FunctionEnvMut<ASEnv>) 
 /// given interface, an operation number limit and a webassembly module
 ///
 /// An utility print function to write on stdout directly from AssemblyScript:
-#[named]
 pub(crate) fn assembly_script_print(mut ctx: FunctionEnvMut<ASEnv>, arg: i32) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(&env, &mut ctx, env.get_gas_costs().assembly_script_print)?;
     let memory = get_memory!(env);
     let message = read_string(memory, &ctx, arg)?;
 
@@ -278,10 +293,13 @@ pub(crate) fn assembly_script_print(mut ctx: FunctionEnvMut<ASEnv>, arg: i32) ->
 }
 
 /// Get the operation datastore keys (aka entries)
-#[named]
 pub(crate) fn assembly_script_get_op_keys(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_op_keys,
+    )?;
     match env.get_interface().get_op_keys(None) {
         Err(err) => abi_bail!(err),
         Ok(keys) => {
@@ -302,13 +320,16 @@ pub(crate) fn assembly_script_get_op_keys(mut ctx: FunctionEnvMut<ASEnv>) -> ABI
 }
 
 /// Get the operation datastore keys (aka entries)
-#[named]
 pub(crate) fn assembly_script_get_op_keys_prefix(
     mut ctx: FunctionEnvMut<ASEnv>,
     prefix: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_op_keys_prefix,
+    )?;
     let memory = get_memory!(env);
     let prefix = read_buffer(memory, &ctx, prefix)?;
     let prefix_opt = if !prefix.is_empty() {
@@ -336,13 +357,16 @@ pub(crate) fn assembly_script_get_op_keys_prefix(
 }
 
 /// Check if a key is present in operation datastore
-#[named]
 pub(crate) fn assembly_script_has_op_key(
     mut ctx: FunctionEnvMut<ASEnv>,
     key: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_has_op_key,
+    )?;
     let env = get_env(&ctx)?;
     let memory = get_memory!(env);
     let key_bytes = read_buffer(memory, &ctx, key)?;
@@ -374,13 +398,16 @@ pub(crate) fn assembly_script_has_op_key(
 }
 
 /// Get the operation datastore value associated to given key
-#[named]
 pub(crate) fn assembly_script_get_op_data(
     mut ctx: FunctionEnvMut<ASEnv>,
     key: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_op_data,
+    )?;
     let memory = get_memory!(env);
     let key_bytes = read_buffer(memory, &ctx, key)?;
     // Do not remove this. It could be used for gas_calibration in future.
@@ -403,13 +430,16 @@ pub(crate) fn assembly_script_get_op_data(
 
 /// Read a bytecode string, representing the webassembly module binary encoded
 /// with in base64.
-#[named]
 pub(crate) fn assembly_script_create_sc(
     mut ctx: FunctionEnvMut<ASEnv>,
     bytecode: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_create_sc,
+    )?;
     let memory = get_memory!(env);
     let bytecode: Vec<u8> = read_buffer(memory, &ctx, bytecode)?;
     // Do not remove this. It could be used for gas_calibration in future.
@@ -431,10 +461,9 @@ pub(crate) fn assembly_script_create_sc(
 }
 
 /// performs a hash on a bytearray and returns the hash
-#[named]
 pub(crate) fn assembly_script_hash(mut ctx: FunctionEnvMut<ASEnv>, value: i32) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(&env, &mut ctx, env.get_gas_costs().assembly_script_hash)?;
     let memory = get_memory!(env);
     let bytes = read_buffer(memory, &ctx, value)?;
     // Do not remove this. It could be used for gas_calibration in future.
@@ -455,13 +484,16 @@ pub(crate) fn assembly_script_hash(mut ctx: FunctionEnvMut<ASEnv>, value: i32) -
 }
 
 /// performs a hash on a bytearray and returns the hash
-#[named]
 pub(crate) fn assembly_script_keccak256_hash(
     mut ctx: FunctionEnvMut<ASEnv>,
     value: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_keccak256_hash,
+    )?;
     let memory = get_memory!(env);
     let bytes = read_buffer(memory, &ctx, value)?;
     let hash = env.get_interface().hash_keccak256(&bytes)?.to_vec();
@@ -479,13 +511,12 @@ pub(crate) fn assembly_script_keccak256_hash(
 }
 
 /// Get keys (aka entries) in the datastore
-#[named]
 pub(crate) fn assembly_script_get_keys(
     mut ctx: FunctionEnvMut<ASEnv>,
     prefix: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(&env, &mut ctx, env.get_gas_costs().assembly_script_get_keys)?;
     let memory = get_memory!(env);
     let prefix = read_buffer(memory, &ctx, prefix)?;
     let prefix_opt = if !prefix.is_empty() {
@@ -508,14 +539,17 @@ pub(crate) fn assembly_script_get_keys(
 }
 
 /// Get keys (aka entries) in the datastore
-#[named]
 pub(crate) fn assembly_script_get_keys_for(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
     prefix: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_keys_for,
+    )?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let prefix = read_buffer(memory, &ctx, prefix)?;
@@ -540,14 +574,13 @@ pub(crate) fn assembly_script_get_keys_for(
 
 /// sets a key-indexed data entry in the datastore, overwriting existing values
 /// if any
-#[named]
 pub(crate) fn assembly_script_set_data(
     mut ctx: FunctionEnvMut<ASEnv>,
     key: i32,
     value: i32,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(&env, &mut ctx, env.get_gas_costs().assembly_script_set_data)?;
     let memory = get_memory!(env);
     let key = read_buffer(memory, &ctx, key)?;
     let value = read_buffer(memory, &ctx, value)?;
@@ -583,14 +616,17 @@ pub(crate) fn assembly_script_set_data(
 
 /// appends data to a key-indexed data entry in the datastore, fails if the
 /// entry does not exist
-#[named]
 pub(crate) fn assembly_script_append_data(
     mut ctx: FunctionEnvMut<ASEnv>,
     key: i32,
     value: i32,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_append_data,
+    )?;
     let memory = get_memory!(env);
     let key = read_buffer(memory, &ctx, key)?;
     let value = read_buffer(memory, &ctx, value)?;
@@ -613,10 +649,9 @@ pub(crate) fn assembly_script_append_data(
 }
 
 /// gets a key-indexed data entry in the datastore, failing if non-existent
-#[named]
 pub(crate) fn assembly_script_get_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(&env, &mut ctx, env.get_gas_costs().assembly_script_get_data)?;
     let memory = get_memory!(env);
     let key = read_buffer(memory, &ctx, key)?;
     // Do not remove this. It could be used for gas_calibration in future.
@@ -637,10 +672,9 @@ pub(crate) fn assembly_script_get_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
 }
 
 /// checks if a key-indexed data entry exists in the datastore
-#[named]
 pub(crate) fn assembly_script_has_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(&env, &mut ctx, env.get_gas_costs().assembly_script_has_data)?;
     let memory = get_memory!(env);
     let key = read_buffer(memory, &ctx, key)?;
     // Do not remove this. It could be used for gas_calibration in future.
@@ -661,13 +695,16 @@ pub(crate) fn assembly_script_has_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
 
 /// deletes a key-indexed data entry in the datastore of the current address,
 /// fails if the entry is absent
-#[named]
 pub(crate) fn assembly_script_delete_data(
     mut ctx: FunctionEnvMut<ASEnv>,
     key: i32,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_delete_data,
+    )?;
     let memory = get_memory!(env);
     let key = read_buffer(memory, &ctx, key)?;
     // Do not remove this. It could be used for gas_calibration in future.
@@ -688,7 +725,6 @@ pub(crate) fn assembly_script_delete_data(
 
 /// Sets the value of a datastore entry of an arbitrary address, creating the
 /// entry if it does not exist. Fails if the address does not exist.
-#[named]
 pub(crate) fn assembly_script_set_data_for(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
@@ -696,7 +732,11 @@ pub(crate) fn assembly_script_set_data_for(
     value: i32,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_set_data_for,
+    )?;
     let memory = get_memory!(env);
     let key = read_buffer(memory, &ctx, key)?;
     let value = read_buffer(memory, &ctx, value)?;
@@ -728,7 +768,6 @@ pub(crate) fn assembly_script_set_data_for(
 
 /// Appends data to the value of a datastore entry of an arbitrary address,
 /// fails if the entry or address does not exist.
-#[named]
 pub(crate) fn assembly_script_append_data_for(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
@@ -736,7 +775,11 @@ pub(crate) fn assembly_script_append_data_for(
     value: i32,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_append_data_for,
+    )?;
     let memory = get_memory!(env);
     let key = read_buffer(memory, &ctx, key)?;
     let value = read_buffer(memory, &ctx, value)?;
@@ -768,14 +811,17 @@ pub(crate) fn assembly_script_append_data_for(
 
 /// Gets the value of a datastore entry for an arbitrary address, fails if the
 /// entry or address does not exist
-#[named]
 pub(crate) fn assembly_script_get_data_for(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
     key: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_data_for,
+    )?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let key = read_buffer(memory, &ctx, key)?;
@@ -801,14 +847,17 @@ pub(crate) fn assembly_script_get_data_for(
 
 /// Deletes a datastore entry for an address. Fails if the entry or address does
 /// not exist.
-#[named]
 pub(crate) fn assembly_script_delete_data_for(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
     key: i32,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_delete_data_for,
+    )?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let key = read_buffer(memory, &ctx, key)?;
@@ -830,14 +879,17 @@ pub(crate) fn assembly_script_delete_data_for(
     Ok(())
 }
 
-#[named]
 pub(crate) fn assembly_script_has_data_for(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
     key: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_has_data_for,
+    )?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let key = read_buffer(memory, &ctx, key)?;
@@ -859,12 +911,15 @@ pub(crate) fn assembly_script_has_data_for(
     Ok(res as i32)
 }
 
-#[named]
 pub(crate) fn assembly_script_get_owned_addresses(
     mut ctx: FunctionEnvMut<ASEnv>,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_owned_addresses,
+    )?;
     let data = env.get_interface().get_owned_addresses()?;
     // prevent data.clone() when enabling execution-trace
     #[allow(clippy::let_and_return)]
@@ -879,10 +934,13 @@ pub(crate) fn assembly_script_get_owned_addresses(
     ptr
 }
 
-#[named]
 pub(crate) fn assembly_script_get_call_stack(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_call_stack,
+    )?;
     let data = env.get_interface().get_call_stack()?;
     // prevent data.clone() when enabling execution-trace
     #[allow(clippy::let_and_return)]
@@ -897,13 +955,16 @@ pub(crate) fn assembly_script_get_call_stack(mut ctx: FunctionEnvMut<ASEnv>) -> 
     ptr
 }
 
-#[named]
 pub(crate) fn assembly_script_generate_event(
     mut ctx: FunctionEnvMut<ASEnv>,
     event: i32,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_generate_event,
+    )?;
     let memory = get_memory!(env);
     let event = read_string(memory, &ctx, event)?;
     // Do not remove this. It could be used for gas_calibration in future.
@@ -924,7 +985,6 @@ pub(crate) fn assembly_script_generate_event(
 
 /// verify a signature of data given a public key. Returns Ok(1) if correctly
 /// verified, otherwise Ok(0)
-#[named]
 pub(crate) fn assembly_script_signature_verify(
     mut ctx: FunctionEnvMut<ASEnv>,
     data: i32,
@@ -932,7 +992,11 @@ pub(crate) fn assembly_script_signature_verify(
     public_key: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_signature_verify,
+    )?;
     let memory = get_memory!(env);
     let data = read_string(memory, &ctx, data)?;
     let signature = read_string(memory, &ctx, signature)?;
@@ -965,7 +1029,6 @@ pub(crate) fn assembly_script_signature_verify(
 
 /// Verify an EVM signature.
 /// Returns Ok(1) if correctly verified, Ok(0) otherwise.
-#[named]
 pub(crate) fn assembly_script_evm_signature_verify(
     mut ctx: FunctionEnvMut<ASEnv>,
     data: i32,
@@ -973,7 +1036,11 @@ pub(crate) fn assembly_script_evm_signature_verify(
     public_key: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_evm_signature_verify,
+    )?;
     let memory = get_memory!(env);
     let data = read_buffer(memory, &ctx, data)?;
     let signature = read_buffer(memory, &ctx, signature)?;
@@ -996,13 +1063,17 @@ pub(crate) fn assembly_script_evm_signature_verify(
 }
 
 /// Get address from public key (EVM)
-#[named]
 pub(crate) fn assembly_script_evm_get_address_from_pubkey(
     mut ctx: FunctionEnvMut<ASEnv>,
     public_key: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs()
+            .assembly_script_evm_get_address_from_pubkey,
+    )?;
     let memory = get_memory!(env);
     let public_key = read_buffer(memory, &ctx, public_key)?;
     let address = env
@@ -1020,14 +1091,18 @@ pub(crate) fn assembly_script_evm_get_address_from_pubkey(
 }
 
 /// Get public key from signature (EVM)
-#[named]
 pub(crate) fn assembly_script_evm_get_pubkey_from_signature(
     mut ctx: FunctionEnvMut<ASEnv>,
     data: i32,
     signature: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs()
+            .assembly_script_evm_get_pubkey_from_signature,
+    )?;
     let memory = get_memory!(env);
     let data = read_buffer(memory, &ctx, data)?;
     let signature = read_buffer(memory, &ctx, signature)?;
@@ -1045,14 +1120,17 @@ pub(crate) fn assembly_script_evm_get_pubkey_from_signature(
     Ok(ptr as i32)
 }
 
-#[named]
 /// Return Ok(1) if the address is a User address, Ok(0) if it is an SC address
 pub(crate) fn assembly_script_is_address_eoa(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_is_address_eoa,
+    )?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let res = env.get_interface().is_address_eoa(&address)?;
@@ -1067,13 +1145,16 @@ pub(crate) fn assembly_script_is_address_eoa(
 }
 
 /// converts a public key to an address
-#[named]
 pub(crate) fn assembly_script_address_from_public_key(
     mut ctx: FunctionEnvMut<ASEnv>,
     public_key: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_address_from_public_key,
+    )?;
     let memory = get_memory!(env);
     let public_key = read_string(memory, &ctx, public_key)?;
     // Do not remove this. It could be used for gas_calibration in future.
@@ -1094,13 +1175,16 @@ pub(crate) fn assembly_script_address_from_public_key(
 }
 
 /// Validates an address is correct
-#[named]
 pub(crate) fn assembly_script_validate_address(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
 ) -> ABIResult<i32> {
     let env = ctx.data().clone();
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_validate_address,
+    )?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let res = env.get_interface().validate_address(&address)?;
@@ -1115,10 +1199,13 @@ pub(crate) fn assembly_script_validate_address(
 }
 
 /// generates an unsafe random number
-#[named]
 pub(crate) fn assembly_script_unsafe_random(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_unsafe_random,
+    )?;
     let res = env.get_interface().unsafe_random()?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -1131,10 +1218,9 @@ pub(crate) fn assembly_script_unsafe_random(mut ctx: FunctionEnvMut<ASEnv>) -> A
 }
 
 /// gets the current unix timestamp in milliseconds
-#[named]
 pub(crate) fn assembly_script_get_time(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(&env, &mut ctx, env.get_gas_costs().assembly_script_get_time)?;
     let res = env.get_interface().get_time()?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -1148,7 +1234,6 @@ pub(crate) fn assembly_script_get_time(mut ctx: FunctionEnvMut<ASEnv>) -> ABIRes
 
 /// sends an async message
 #[allow(clippy::too_many_arguments)]
-#[named]
 pub(crate) fn assembly_script_send_message(
     mut ctx: FunctionEnvMut<ASEnv>,
     target_address: i32,
@@ -1165,7 +1250,11 @@ pub(crate) fn assembly_script_send_message(
     filter_datastore_key: i32,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_send_message,
+    )?;
     let validity_start: (u64, u8) = match (
         validity_start_period.try_into(),
         validity_start_thread.try_into(),
@@ -1249,12 +1338,15 @@ pub(crate) fn assembly_script_send_message(
 }
 
 /// converts a public key to an address
-#[named]
 pub(crate) fn assembly_script_get_origin_operation_id(
     mut ctx: FunctionEnvMut<ASEnv>,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_origin_operation_id,
+    )?;
     let operation_id = env
         .get_interface()
         .get_origin_operation_id()?
@@ -1271,10 +1363,13 @@ pub(crate) fn assembly_script_get_origin_operation_id(
 }
 
 /// gets the period of the current execution slot
-#[named]
 pub(crate) fn assembly_script_get_current_period(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_current_period,
+    )?;
     let current_period = env.get_interface().get_current_period()?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -1287,10 +1382,13 @@ pub(crate) fn assembly_script_get_current_period(mut ctx: FunctionEnvMut<ASEnv>)
 }
 
 /// gets the thread of the current execution slot
-#[named]
 pub(crate) fn assembly_script_get_current_thread(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_current_thread,
+    )?;
     let current_thread = env.get_interface().get_current_thread()?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -1303,14 +1401,17 @@ pub(crate) fn assembly_script_get_current_thread(mut ctx: FunctionEnvMut<ASEnv>)
 }
 
 /// sets the executable bytecode of an arbitrary address
-#[named]
 pub(crate) fn assembly_script_set_bytecode_for(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
     bytecode: i32,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_set_bytecode_for,
+    )?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let bytecode_raw = read_buffer(memory, &ctx, bytecode)?;
@@ -1334,13 +1435,16 @@ pub(crate) fn assembly_script_set_bytecode_for(
 }
 
 /// sets the executable bytecode of the current address
-#[named]
 pub(crate) fn assembly_script_set_bytecode(
     mut ctx: FunctionEnvMut<ASEnv>,
     bytecode: i32,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_set_bytecode,
+    )?;
     let memory = get_memory!(env);
     let bytecode_raw = read_buffer(memory, &ctx, bytecode)?;
     // Do not remove this. It could be used for gas_calibration in future.
@@ -1360,10 +1464,13 @@ pub(crate) fn assembly_script_set_bytecode(
 }
 
 /// get bytecode of the current address
-#[named]
 pub(crate) fn assembly_script_get_bytecode(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_bytecode,
+    )?;
     let data = env.get_interface().raw_get_bytecode()?;
     let ptr = pointer_from_bytearray(&env, &mut ctx, &data)?.offset() as i32;
     #[cfg(feature = "execution-trace")]
@@ -1377,13 +1484,16 @@ pub(crate) fn assembly_script_get_bytecode(mut ctx: FunctionEnvMut<ASEnv>) -> AB
 }
 
 /// get bytecode of the target address
-#[named]
 pub(crate) fn assembly_script_get_bytecode_for(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_bytecode_for,
+    )?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let data = env.get_interface().raw_get_bytecode_for(&address)?;
@@ -1399,7 +1509,6 @@ pub(crate) fn assembly_script_get_bytecode_for(
 }
 
 /// execute `function` of the given bytecode in the current context
-#[named]
 pub(crate) fn assembly_script_local_execution(
     mut ctx: FunctionEnvMut<ASEnv>,
     bytecode: i32,
@@ -1407,7 +1516,11 @@ pub(crate) fn assembly_script_local_execution(
     param: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_local_execution,
+    )?;
     let memory = get_memory!(env);
 
     let bytecode = read_buffer(memory, &ctx, bytecode)?;
@@ -1437,7 +1550,6 @@ pub(crate) fn assembly_script_local_execution(
 
 /// execute `function` of the bytecode located at `address` in the current
 /// context
-#[named]
 pub(crate) fn assembly_script_local_call(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
@@ -1445,7 +1557,11 @@ pub(crate) fn assembly_script_local_call(
     param: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_local_call,
+    )?;
     let memory = get_memory!(env);
 
     let address = &read_string(memory, &ctx, address)?;
@@ -1477,10 +1593,13 @@ pub(crate) fn assembly_script_local_call(
 }
 
 /// Check whether or not the caller has write access in the current context
-#[named]
 pub fn assembly_script_caller_has_write_access(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_local_call,
+    )?;
     let has_write_access = env.get_interface().caller_has_write_access()?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -1493,14 +1612,17 @@ pub fn assembly_script_caller_has_write_access(mut ctx: FunctionEnvMut<ASEnv>) -
 }
 
 /// Check whether the given function exists at the given address
-#[named]
 pub fn assembly_script_function_exists(
     mut ctx: FunctionEnvMut<ASEnv>,
     address: i32,
     function: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_local_call,
+    )?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
     let function = read_string(memory, &ctx, function)?;
@@ -1516,10 +1638,9 @@ pub fn assembly_script_function_exists(
 }
 
 /// Return current chain id
-#[named]
 pub(crate) fn assembly_script_chain_id(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<u64> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(&env, &mut ctx, env.get_gas_costs().assembly_script_chain_id)?;
     let chain_id = env.get_interface().chain_id()?;
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
@@ -1532,7 +1653,6 @@ pub(crate) fn assembly_script_chain_id(mut ctx: FunctionEnvMut<ASEnv>) -> ABIRes
 }
 
 /// Return the price in nMAS to book an deferred call space in a specific slot.
-#[named]
 pub(crate) fn assembly_script_get_deferred_call_quote(
     mut ctx: FunctionEnvMut<ASEnv>,
     deferred_call_period: i64,
@@ -1541,7 +1661,11 @@ pub(crate) fn assembly_script_get_deferred_call_quote(
     params_size: i64,
 ) -> ABIResult<u64> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_get_deferred_call_quote,
+    )?;
     let asc_slot: (u64, u8) = match (
         deferred_call_period.try_into(),
         deferred_call_thread.try_into(),
@@ -1581,7 +1705,6 @@ pub(crate) fn assembly_script_get_deferred_call_quote(
 }
 
 /// Register a new deferred call in the target slot with the given parameters.
-#[named]
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn assembly_script_deferred_call_register(
     mut ctx: FunctionEnvMut<ASEnv>,
@@ -1594,7 +1717,11 @@ pub(crate) fn assembly_script_deferred_call_register(
     raw_coins: i64,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_deferred_call_register,
+    )?;
     let asc_target_slot: (u64, u8) = match (target_period.try_into(), target_thread.try_into()) {
         (Ok(p), Ok(t)) => (p, t),
         (Err(_), _) => abi_bail!("negative validity end period"),
@@ -1643,13 +1770,16 @@ pub(crate) fn assembly_script_deferred_call_register(
 }
 
 /// Check if an deferred call exists with the given deferred_call_id (exists meaning to be executed in the future).
-#[named]
 pub(crate) fn assembly_script_deferred_call_exists(
     mut ctx: FunctionEnvMut<ASEnv>,
     deferred_id: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_deferred_call_exists,
+    )?;
     let memory = get_memory!(env);
     let asc_id = read_string(memory, &ctx, deferred_id)?;
     let exists = env.get_interface().deferred_call_exists(&asc_id)?;
@@ -1664,13 +1794,16 @@ pub(crate) fn assembly_script_deferred_call_exists(
 }
 
 /// Cancel an deferred call with the given deferred_call_id. This will reimburse the user with the coins they provided
-#[named]
 pub(crate) fn assembly_script_deferred_call_cancel(
     mut ctx: FunctionEnvMut<ASEnv>,
     deferred_call_id: i32,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_deferred_call_cancel,
+    )?;
     let memory = get_memory!(env);
     let deferred_id = read_string(memory, &ctx, deferred_call_id)?;
     env.get_interface().deferred_call_cancel(&deferred_id)?;
@@ -1690,7 +1823,6 @@ pub(crate) fn assembly_script_deferred_call_cancel(
 /// It prints the origin filename, an error messag, the line and column.
 #[allow(unused_macros)]
 #[allow(unused_mut)]
-#[named]
 pub fn assembly_script_abort(
     mut ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
@@ -1733,11 +1865,14 @@ pub fn assembly_script_abort(
 }
 
 /// Assembly script builtin `seed` function
-#[named]
 pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
     let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+        sub_remaining_gas(
+            &env,
+            &mut ctx,
+            env.get_gas_costs().assembly_script_deferred_call_cancel,
+        )?;
     }
     let seed = match env.interface.unsafe_random_f64() {
         Ok(ret) => ret,
@@ -1754,11 +1889,14 @@ pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
 }
 
 /// Assembly script builtin `Date.now()`
-#[named]
 pub fn assembly_script_date_now(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
     let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+        sub_remaining_gas(
+            &env,
+            &mut ctx,
+            env.get_gas_costs().assembly_script_deferred_call_cancel,
+        )?;
     }
     let utime = match env.interface.get_time() {
         Ok(time) => time,
@@ -1776,68 +1914,83 @@ pub fn assembly_script_date_now(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64
 }
 
 /// Assembly script builtin `console.log()`.
-#[named]
 pub fn assembly_script_console_log(
     mut ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+        sub_remaining_gas(
+            &env,
+            &mut ctx,
+            env.get_gas_costs().assembly_script_deferred_call_cancel,
+        )?;
     }
 
     assembly_script_console(ctx, message, "LOG")
 }
 
 /// Assembly script builtin `console.info()`.
-#[named]
 pub fn assembly_script_console_info(
     mut ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+        sub_remaining_gas(
+            &env,
+            &mut ctx,
+            env.get_gas_costs().assembly_script_deferred_call_cancel,
+        )?;
     }
     assembly_script_console(ctx, message, "INFO")
 }
 
 /// Assembly script builtin `console.warn()`.
-#[named]
 pub fn assembly_script_console_warn(
     mut ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+        sub_remaining_gas(
+            &env,
+            &mut ctx,
+            env.get_gas_costs().assembly_script_deferred_call_cancel,
+        )?;
     }
     assembly_script_console(ctx, message, "WARN")
 }
 
 /// Assembly script builtin `console.debug()`.
-#[named]
 pub fn assembly_script_console_debug(
     mut ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+        sub_remaining_gas(
+            &env,
+            &mut ctx,
+            env.get_gas_costs().assembly_script_deferred_call_cancel,
+        )?;
     }
 
     assembly_script_console(ctx, message, "DEBUG")
 }
 
 /// Assembly script builtin `console.error()`.
-#[named]
 pub fn assembly_script_console_error(
     mut ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+        sub_remaining_gas(
+            &env,
+            &mut ctx,
+            env.get_gas_costs().assembly_script_deferred_call_cancel,
+        )?;
     }
     assembly_script_console(ctx, message, "ERROR")
 }
@@ -1845,7 +1998,6 @@ pub fn assembly_script_console_error(
 /// Assembly script console functions
 #[allow(unused_macros)]
 #[allow(unused_mut)]
-#[named]
 fn assembly_script_console(
     mut ctx: FunctionEnvMut<ASEnv>,
     message: StringPtr,
@@ -1877,7 +2029,6 @@ fn assembly_script_console(
 }
 
 /// Assembly script builtin `trace()`.
-#[named]
 #[allow(clippy::too_many_arguments)]
 pub fn assembly_script_trace(
     mut ctx: FunctionEnvMut<ASEnv>,
@@ -1891,7 +2042,11 @@ pub fn assembly_script_trace(
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+        sub_remaining_gas(
+            &env,
+            &mut ctx,
+            env.get_gas_costs().assembly_script_deferred_call_cancel,
+        )?;
     }
 
     let memory = ctx
@@ -2008,13 +2163,16 @@ where
 }
 
 /// performs a sha256 hash on byte array and returns the hash as byte array
-#[named]
 pub(crate) fn assembly_script_hash_sha256(
     mut ctx: FunctionEnvMut<ASEnv>,
     bytes: i32,
 ) -> ABIResult<i32> {
     let env = get_env(&ctx)?;
-    sub_remaining_gas_abi(&env, &mut ctx, function_name!())?;
+    sub_remaining_gas(
+        &env,
+        &mut ctx,
+        env.get_gas_costs().assembly_script_hash_sha256,
+    )?;
     let memory = get_memory!(env);
     let bytes = read_buffer(memory, &ctx, bytes)?;
     let hash = env.get_interface().hash_sha256(&bytes)?.to_vec();

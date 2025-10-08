@@ -1,5 +1,5 @@
 use super::abi::*;
-use super::env::{get_remaining_points, set_remaining_points, ASEnv, Metered};
+use super::env::{get_remaining_points, set_remaining_points, ASEnv};
 use crate::error::{vm_bail, VMResult};
 use crate::types::Response;
 use crate::{CondomLimits, GasCosts, Interface};

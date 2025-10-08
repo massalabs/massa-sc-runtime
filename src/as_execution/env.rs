@@ -60,14 +60,17 @@ impl ASEnv {
             trace: Default::default(),
         }
     }
-    pub fn get_interface(&self) -> Box<dyn Interface> {
-        self.interface.clone()
+    pub fn get_interface(&self) -> &dyn Interface {
+        &*self.interface
     }
     pub fn get_ffi_env(&self) -> &as_ffi_bindings::Env {
         &self.ffi_env
     }
     pub fn get_ffi_env_as_mut(&mut self) -> &mut as_ffi_bindings::Env {
         &mut self.ffi_env
+    }
+    pub fn get_gas_costs(&self) -> &GasCosts {
+        &self.gas_costs
     }
 }
 
@@ -81,11 +84,8 @@ impl Metered for ASEnv {
     fn get_gc_param(&self, name: &str) -> Option<&Global> {
         self.param_size_map.get(name)?.as_ref()
     }
-    fn get_gas_costs(&self) -> GasCosts {
-        self.gas_costs.clone()
-    }
-    fn get_condom_limits(&self) -> CondomLimits {
-        self.condom_limits.clone()
+    fn get_condom_limits(&self) -> &CondomLimits {
+        &self.condom_limits
     }
 }
 
@@ -97,8 +97,7 @@ pub(crate) trait Metered {
     fn get_remaining_points(&self) -> Option<&Global>;
     #[allow(dead_code)]
     fn get_gc_param(&self, name: &str) -> Option<&Global>;
-    fn get_gas_costs(&self) -> GasCosts;
-    fn get_condom_limits(&self) -> CondomLimits;
+    fn get_condom_limits(&self) -> &CondomLimits;
 }
 
 /// Get remaining metering points.
@@ -177,18 +176,4 @@ pub(crate) fn sub_remaining_gas(
         abi_bail!("Out of gas")
     }
     Ok(())
-}
-
-pub(crate) fn sub_remaining_gas_abi(
-    env: &impl Metered,
-    store: &mut impl AsStoreMut,
-    abi_name: &str,
-) -> ABIResult<()> {
-    sub_remaining_gas(
-        env,
-        store,
-        *env.get_gas_costs().abi_costs.get(abi_name).ok_or_else(|| {
-            wasmer::RuntimeError::new(format!("Failed to get gas for {} ABI", abi_name))
-        })?,
-    )
 }
