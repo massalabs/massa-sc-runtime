@@ -1598,7 +1598,7 @@ pub fn assembly_script_caller_has_write_access(mut ctx: FunctionEnvMut<ASEnv>) -
     sub_remaining_gas(
         &env,
         &mut ctx,
-        env.get_gas_costs().assembly_script_local_call,
+        env.get_gas_costs().assembly_script_caller_has_write_access,
     )?;
     let has_write_access = env.get_interface().caller_has_write_access()?;
     #[cfg(feature = "execution-trace")]
@@ -1621,7 +1621,7 @@ pub fn assembly_script_function_exists(
     sub_remaining_gas(
         &env,
         &mut ctx,
-        env.get_gas_costs().assembly_script_local_call,
+        env.get_gas_costs().assembly_script_function_exists,
     )?;
     let memory = get_memory!(env);
     let address = read_string(memory, &ctx, address)?;
@@ -1871,7 +1871,7 @@ pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
         sub_remaining_gas(
             &env,
             &mut ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_seed,
         )?;
     }
     let seed = match env.interface.unsafe_random_f64() {
@@ -1895,7 +1895,7 @@ pub fn assembly_script_date_now(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64
         sub_remaining_gas(
             &env,
             &mut ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_date_now,
         )?;
     }
     let utime = match env.interface.get_time() {
@@ -1923,7 +1923,7 @@ pub fn assembly_script_console_log(
         sub_remaining_gas(
             &env,
             &mut ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_console_log,
         )?;
     }
 
@@ -1940,7 +1940,7 @@ pub fn assembly_script_console_info(
         sub_remaining_gas(
             &env,
             &mut ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_console_info,
         )?;
     }
     assembly_script_console(ctx, message, "INFO")
@@ -1956,7 +1956,7 @@ pub fn assembly_script_console_warn(
         sub_remaining_gas(
             &env,
             &mut ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_console_warn,
         )?;
     }
     assembly_script_console(ctx, message, "WARN")
@@ -1972,7 +1972,7 @@ pub fn assembly_script_console_debug(
         sub_remaining_gas(
             &env,
             &mut ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_console_debug,
         )?;
     }
 
@@ -1989,7 +1989,7 @@ pub fn assembly_script_console_error(
         sub_remaining_gas(
             &env,
             &mut ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_console_error,
         )?;
     }
     assembly_script_console(ctx, message, "ERROR")
@@ -2045,7 +2045,7 @@ pub fn assembly_script_trace(
         sub_remaining_gas(
             &env,
             &mut ctx,
-            env.get_gas_costs().assembly_script_deferred_call_cancel,
+            env.get_gas_costs().assembly_script_trace,
         )?;
     }
 

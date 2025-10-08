@@ -2001,7 +2001,7 @@ pub fn abi_verify_signature(
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
     crate::handle_abi!(
-        abi_checked_div_native_time,
+        abi_verify_signature,
         store_env,
         arg_offset,
         |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
@@ -2023,7 +2023,7 @@ pub fn abi_chain_id(
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
     crate::handle_abi!(
-        abi_checked_div_native_time,
+        abi_chain_id,
         store_env,
         arg_offset,
         |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
