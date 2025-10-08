@@ -1979,12 +1979,69 @@
 <a href="#1979" id="1979">1979</a>
 <a href="#1980" id="1980">1980</a>
 <a href="#1981" id="1981">1981</a>
-</pre></div><pre class="rust"><code><span class="kw">use super</span>::{
-    <span class="kw">super</span>::{env::ABIEnv, WasmV1Error},
-    handler::{handle_abi, handle_abi_raw},
-};
-<span class="kw">use </span>function_name::named;
-<span class="kw">use </span>massa_proto_rs::massa::{
+<a href="#1982" id="1982">1982</a>
+<a href="#1983" id="1983">1983</a>
+<a href="#1984" id="1984">1984</a>
+<a href="#1985" id="1985">1985</a>
+<a href="#1986" id="1986">1986</a>
+<a href="#1987" id="1987">1987</a>
+<a href="#1988" id="1988">1988</a>
+<a href="#1989" id="1989">1989</a>
+<a href="#1990" id="1990">1990</a>
+<a href="#1991" id="1991">1991</a>
+<a href="#1992" id="1992">1992</a>
+<a href="#1993" id="1993">1993</a>
+<a href="#1994" id="1994">1994</a>
+<a href="#1995" id="1995">1995</a>
+<a href="#1996" id="1996">1996</a>
+<a href="#1997" id="1997">1997</a>
+<a href="#1998" id="1998">1998</a>
+<a href="#1999" id="1999">1999</a>
+<a href="#2000" id="2000">2000</a>
+<a href="#2001" id="2001">2001</a>
+<a href="#2002" id="2002">2002</a>
+<a href="#2003" id="2003">2003</a>
+<a href="#2004" id="2004">2004</a>
+<a href="#2005" id="2005">2005</a>
+<a href="#2006" id="2006">2006</a>
+<a href="#2007" id="2007">2007</a>
+<a href="#2008" id="2008">2008</a>
+<a href="#2009" id="2009">2009</a>
+<a href="#2010" id="2010">2010</a>
+<a href="#2011" id="2011">2011</a>
+<a href="#2012" id="2012">2012</a>
+<a href="#2013" id="2013">2013</a>
+<a href="#2014" id="2014">2014</a>
+<a href="#2015" id="2015">2015</a>
+<a href="#2016" id="2016">2016</a>
+<a href="#2017" id="2017">2017</a>
+<a href="#2018" id="2018">2018</a>
+<a href="#2019" id="2019">2019</a>
+<a href="#2020" id="2020">2020</a>
+<a href="#2021" id="2021">2021</a>
+<a href="#2022" id="2022">2022</a>
+<a href="#2023" id="2023">2023</a>
+<a href="#2024" id="2024">2024</a>
+<a href="#2025" id="2025">2025</a>
+<a href="#2026" id="2026">2026</a>
+<a href="#2027" id="2027">2027</a>
+<a href="#2028" id="2028">2028</a>
+<a href="#2029" id="2029">2029</a>
+<a href="#2030" id="2030">2030</a>
+<a href="#2031" id="2031">2031</a>
+<a href="#2032" id="2032">2032</a>
+<a href="#2033" id="2033">2033</a>
+<a href="#2034" id="2034">2034</a>
+<a href="#2035" id="2035">2035</a>
+<a href="#2036" id="2036">2036</a>
+<a href="#2037" id="2037">2037</a>
+<a href="#2038" id="2038">2038</a>
+<a href="#2039" id="2039">2039</a>
+<a href="#2040" id="2040">2040</a>
+<a href="#2041" id="2041">2041</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::{env::ABIEnv, WasmV1Error};
+<span class="comment">// handle_abi and handle_abi_raw are now macros exported at crate root
+</span><span class="kw">use </span>massa_proto_rs::massa::{
     abi::v1::{<span class="self">self </span><span class="kw">as </span>proto, <span class="kw-2">*</span>},
     model::v1::NativeTime,
 };
@@ -2115,13 +2172,12 @@
 }
 
 <span class="doccomment">/// Call another smart contract
-</span><span class="attr">#[named]
 </span><span class="kw">fn </span>abi_call(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_call,
         store_env,
         arg_offset,
-        |handler, req: CallRequest| {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler, req: CallRequest| {
             <span class="kw">let </span>amount = req
                 .call_coins
                 .ok_or_else(|| WasmV1Error::RuntimeError(<span class="string">"No coins provided"</span>.into()))<span class="question-mark">?</span>;
@@ -2178,19 +2234,18 @@
                 }
             }
             <span class="prelude-val">Ok</span>(CallResponse { data: response.ret })
-        },
+        }
     )
 }
 
 <span class="doccomment">/// Alternative to `call_module` to execute bytecode in a local context
 /// Reuse the protobuf CallRequest message, the call_coins field is just ignored
-</span><span class="attr">#[named]
 </span><span class="kw">fn </span>abi_local_call(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_local_call,
         store_env,
         arg_offset,
-        |handler, req: CallRequest| {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler, req: CallRequest| {
             <span class="kw">let </span>bytecode = helper_get_bytecode(handler, req.target_sc_address.clone())<span class="question-mark">?</span>;
             <span class="kw">let </span>remaining_gas = handler.get_remaining_gas();
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
@@ -2230,18 +2285,19 @@
             }
 
             <span class="prelude-val">Ok</span>(CallResponse { data: response.ret })
-        },
+        }
     )
 }
 
 <span class="doccomment">/// Create a new smart contract.
-</span><span class="attr">#[named]
 </span><span class="kw">fn </span>abi_create_sc(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_create_sc,
         store_env,
         arg_offset,
-        |handler, req: CreateScRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: CreateScRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.create_module(<span class="kw-2">&amp;</span>req.bytecode) {
                 <span class="prelude-val">Ok</span>(sc_address) =&gt; {
@@ -2249,21 +2305,22 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
 <span class="doccomment">/// gets the current execution slot
-</span><span class="attr">#[named]
 </span><span class="kw">fn </span>abi_get_current_slot(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_current_slot,
         store_env,
         arg_offset,
-        |handler, _req: GetCurrentSlotRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetCurrentSlotRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="comment">// Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
@@ -2277,18 +2334,19 @@
                 }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
 <span class="doccomment">/// performs a hash on a bytearray and returns the native_hash
-</span><span class="attr">#[named]
 </span><span class="kw">fn </span>abi_hash_blake3(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_hash_blake3,
         store_env,
         arg_offset,
-        |handler, req: HashBlake3Request| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: HashBlake3Request|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="comment">// Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
@@ -2302,18 +2360,19 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
 <span class="doccomment">/// performs a sha256 hash on byte array and returns the hash as byte array
-</span><span class="attr">#[named]
 </span><span class="kw">fn </span>abi_hash_sha256(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_hash_sha256,
         store_env,
         arg_offset,
-        |handler, req: HashSha256Request| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: HashSha256Request|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="comment">// Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
@@ -2325,21 +2384,22 @@
                 <span class="prelude-val">Ok</span>(hash) =&gt; <span class="macro">resp_ok!</span>(HashSha256Result, { hash: hash.to_vec() }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
 <span class="doccomment">/// performs a keccak256 hash on byte array and returns the hash as byte array
-</span><span class="attr">#[named]
 </span><span class="kw">fn </span>abi_hash_keccak256(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_hash_keccak256,
         store_env,
         arg_offset,
-        |handler, req: Keccak256Request| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: Keccak256Request|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="comment">// Do not remove this. It could be used for gas_calibration in
             // future. if cfg!(feature = "gas_calibration") {
             //     let fname = format!("massa.{}:0", function_name!());
@@ -2351,21 +2411,22 @@
                 <span class="prelude-val">Ok</span>(hash) =&gt; <span class="macro">resp_ok!</span>(Keccak256Result, { hash: hash.to_vec() }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
 <span class="doccomment">/// Function designed to abort execution.
-</span><span class="attr">#[named]
 </span><span class="kw">fn </span>abi_transfer_coins(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_transfer_coins,
         store_env,
         arg_offset,
-        |handler, req: TransferCoinsRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: TransferCoinsRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(amount) = req.amount_to_transfer <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No coins provided"</span>);
             };
@@ -2421,201 +2482,210 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_generate_event(
+<span class="kw">fn </span>abi_generate_event(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_generate_event,
         store_env,
         arg_offset,
-        |handler, req: GenerateEventRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: GenerateEventRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             interface.generate_event_wasmv1(req.event).map_err(|err| {
                 WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Failed to generate event: {}"</span>, err))
             })<span class="question-mark">?</span>;
 
             <span class="macro">resp_ok!</span>(GenerateEventResult, {})
-        },
+        }
     )
 }
 
 <span class="doccomment">/// Function designed to abort execution.
-</span><span class="attr">#[named]
 </span><span class="kw">fn </span>abi_abort(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi_raw(
-        <span class="macro">function_name!</span>(),
-        store_env,
-        arg_offset,
-        |_handler, req: Vec&lt;u8&gt;| -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, WasmV1Error&gt; {
-            <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">"Guest program abort: {}"</span>, String::from_utf8_lossy(<span class="kw-2">&amp;</span>req));
+    <span class="macro">crate::handle_abi_raw!</span>(abi_abort, store_env, arg_offset, |_handler,
+                                                              req: Vec&lt;u8&gt;|
+     -&gt; <span class="prelude-ty">Result</span>&lt;
+        Vec&lt;u8&gt;,
+        WasmV1Error,
+    &gt; {
+        <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">"Guest program abort: {}"</span>, String::from_utf8_lossy(<span class="kw-2">&amp;</span>req));
 
-            <span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(msg))
-        },
-    )
+        <span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(msg))
+    })
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_set_ds_value(
+<span class="kw">fn </span>abi_set_ds_value(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_set_ds_value,
         store_env,
         arg_offset,
-        |handler, req: SetDsValueRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: SetDsValueRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = interface.set_ds_value_wasmv1(<span class="kw-2">&amp;</span>req.key, <span class="kw-2">&amp;</span>req.value, <span class="prelude-val">None</span>) {
                 <span class="kw">return </span><span class="macro">resp_err!</span>(e);
             }
             <span class="macro">resp_ok!</span>(SetDsValueResult, {})
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_ds_value(
+<span class="kw">fn </span>abi_get_ds_value(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_ds_value,
         store_env,
         arg_offset,
-        |handler, req: GetDsValueRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetDsValueRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_ds_value_wasmv1(<span class="kw-2">&amp;</span>req.key, req.address) {
                 <span class="prelude-val">Ok</span>(value) =&gt; <span class="macro">resp_ok!</span>(GetDsValueResult, { value }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_delete_ds_entry(
+<span class="kw">fn </span>abi_delete_ds_entry(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_delete_ds_entry,
         store_env,
         arg_offset,
-        |handler, req: DeleteDsEntryRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: DeleteDsEntryRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = interface.delete_ds_entry_wasmv1(<span class="kw-2">&amp;</span>req.key, req.address) {
                 <span class="kw">return </span><span class="macro">resp_err!</span>(e);
             }
             <span class="macro">resp_ok!</span>(DeleteDsEntryResult, {})
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_append_ds_value(
+<span class="kw">fn </span>abi_append_ds_value(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_append_ds_value,
         store_env,
         arg_offset,
-        |handler, req: AppendDsValueRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: AppendDsValueRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = interface.append_ds_value_wasmv1(<span class="kw-2">&amp;</span>req.key, <span class="kw-2">&amp;</span>req.value, req.address) {
                 <span class="kw">return </span><span class="macro">resp_err!</span>(e);
             }
             <span class="macro">resp_ok!</span>(AppendDsValueResult, {})
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_ds_entry_exists(
+<span class="kw">fn </span>abi_ds_entry_exists(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_ds_entry_exists,
         store_env,
         arg_offset,
-        |handler, req: DsEntryExistsRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: DsEntryExistsRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.ds_entry_exists_wasmv1(<span class="kw-2">&amp;</span>req.key, req.address) {
                 <span class="prelude-val">Ok</span>(has_data) =&gt; <span class="macro">resp_ok!</span>(DsEntryExistsResult, { has_data }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_balance(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+<span class="kw">fn </span>abi_get_balance(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_balance,
         store_env,
         arg_offset,
-        |handler, req: GetBalanceRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetBalanceRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_balance_wasmv1(req.address) {
                 <span class="prelude-val">Ok</span>(res) =&gt; <span class="macro">resp_ok!</span>(GetBalanceResult, { balance: <span class="prelude-val">Some</span>(res) }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_bytecode(
+<span class="kw">fn </span>abi_get_bytecode(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_bytecode,
         store_env,
         arg_offset,
-        |handler, req: GetBytecodeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetBytecodeRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_bytecode_wasmv1(req.address) {
                 <span class="prelude-val">Ok</span>(bytecode) =&gt; <span class="macro">resp_ok!</span>(GetBytecodeResult, { bytecode }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_set_bytecode(
+<span class="kw">fn </span>abi_set_bytecode(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_set_bytecode,
         store_env,
         arg_offset,
-        |handler, req: SetBytecodeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: SetBytecodeRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.set_bytecode_wasmv1(<span class="kw-2">&amp;</span>req.bytecode, req.address) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">resp_ok!</span>(SetBytecodeResult, {}),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_ds_keys(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+<span class="kw">fn </span>abi_get_ds_keys(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_ds_keys,
         store_env,
         arg_offset,
-        |handler, req: GetDsKeysRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetDsKeysRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_ds_keys_wasmv1(<span class="kw-2">&amp;</span>req.prefix, req.address) {
                 <span class="prelude-val">Ok</span>(res) =&gt; {
@@ -2623,71 +2693,75 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_op_keys(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+<span class="kw">fn </span>abi_get_op_keys(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_op_keys,
         store_env,
         arg_offset,
-        |handler, req: GetOpKeysRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetOpKeysRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_op_keys_wasmv1(<span class="kw-2">&amp;</span>req.prefix) {
                 <span class="prelude-val">Ok</span>(keys) =&gt; <span class="macro">resp_ok!</span>(GetOpKeysResult, { keys }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_op_entry_exists(
+<span class="kw">fn </span>abi_op_entry_exists(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_op_entry_exists,
         store_env,
         arg_offset,
-        |handler, req: OpEntryExistsRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: OpEntryExistsRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.op_entry_exists(<span class="kw-2">&amp;</span>req.key) {
                 <span class="prelude-val">Ok</span>(has_key) =&gt; <span class="macro">resp_ok!</span>(OpEntryExistsResult, { has_key }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_op_data(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+<span class="kw">fn </span>abi_get_op_data(store_env: FunctionEnvMut&lt;ABIEnv&gt;, arg_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_op_data,
         store_env,
         arg_offset,
-        |handler, req: GetOpDataRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetOpDataRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_op_data(<span class="kw-2">&amp;</span>req.key) {
                 <span class="prelude-val">Ok</span>(value) =&gt; <span class="macro">resp_ok!</span>(GetOpDataResult, { value }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_evm_verify_signature(
+<span class="kw">fn </span>abi_evm_verify_signature(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_evm_verify_signature,
         store_env,
         arg_offset,
-        |handler, req: EvmVerifySigRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: EvmVerifySigRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.evm_signature_verify(<span class="kw-2">&amp;</span>req.message, <span class="kw-2">&amp;</span>req.sig, <span class="kw-2">&amp;</span>req.pub_key) {
                 <span class="prelude-val">Ok</span>(is_verified) =&gt; {
@@ -2697,20 +2771,21 @@
                     <span class="macro">resp_err!</span>(<span class="string">"EVM signature verification failed"</span>)
                 }
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_evm_get_address_from_pubkey(
+<span class="kw">fn </span>abi_evm_get_address_from_pubkey(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_evm_get_address_from_pubkey,
         store_env,
         arg_offset,
-        |handler, req: EvmGetAddressFromPubkeyRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: EvmGetAddressFromPubkeyRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.evm_get_address_from_pubkey(<span class="kw-2">&amp;</span>req.pub_key) {
                 <span class="prelude-val">Ok</span>(address) =&gt; {
@@ -2718,20 +2793,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_evm_get_pubkey_from_signature(
+<span class="kw">fn </span>abi_evm_get_pubkey_from_signature(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_evm_get_pubkey_from_signature,
         store_env,
         arg_offset,
-        |handler, req: EvmGetPubkeyFromSignatureRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: EvmGetPubkeyFromSignatureRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.evm_get_pubkey_from_signature(<span class="kw-2">&amp;</span>req.hash, <span class="kw-2">&amp;</span>req.sig) {
                 <span class="prelude-val">Ok</span>(pub_key) =&gt; {
@@ -2739,55 +2815,58 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_is_address_eoa(
+<span class="kw">fn </span>abi_is_address_eoa(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_is_address_eoa,
         store_env,
         arg_offset,
-        |handler, req: IsAddressEoaRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: IsAddressEoaRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.is_address_eoa(<span class="kw-2">&amp;</span>req.address) {
                 <span class="prelude-val">Ok</span>(is_eoa) =&gt; <span class="macro">resp_ok!</span>(IsAddressEoaResult, { is_eoa }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_remaining_gas(
+<span class="kw">fn </span>abi_get_remaining_gas(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_remaining_gas,
         store_env,
         arg_offset,
-        |handler, _req: GetRemainingGasRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetRemainingGasRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>remaining_gas = handler.get_remaining_gas();
             <span class="macro">resp_ok!</span>(GetRemainingGasResult, { remaining_gas })
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_owned_addresses(
+<span class="kw">fn </span>abi_get_owned_addresses(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_owned_addresses,
         store_env,
         arg_offset,
-        |handler, _req: GetOwnedAddressesRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetOwnedAddressesRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_owned_addresses() {
                 <span class="prelude-val">Ok</span>(addresses) =&gt; {
@@ -2795,20 +2874,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_call_stack(
+<span class="kw">fn </span>abi_get_call_stack(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_call_stack,
         store_env,
         arg_offset,
-        |handler, _req: GetCallStackRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetCallStackRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_call_stack() {
                 <span class="prelude-val">Ok</span>(calls) =&gt; {
@@ -2816,20 +2896,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_address_from_public_key(
+<span class="kw">fn </span>abi_address_from_public_key(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_address_from_public_key,
         store_env,
         arg_offset,
-        |handler, req: AddressFromPubKeyRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: AddressFromPubKeyRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.address_from_public_key(<span class="kw-2">&amp;</span>req.pub_key) {
                 <span class="prelude-val">Ok</span>(address) =&gt; {
@@ -2837,20 +2918,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_unsafe_random(
+<span class="kw">fn </span>abi_unsafe_random(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_unsafe_random,
         store_env,
         arg_offset,
-        |handler, req: UnsafeRandomRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: UnsafeRandomRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">if </span>req.num_bytes <span class="kw">as </span>u64 &gt; handler.get_max_mem_size() {
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Requested random bytes exceed the maximum memory size"</span>);
             }
@@ -2862,20 +2944,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_call_coins(
+<span class="kw">fn </span>abi_get_call_coins(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_call_coins,
         store_env,
         arg_offset,
-        |handler, _req: GetCallCoinsRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetCallCoinsRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_call_coins_wasmv1() {
                 <span class="prelude-val">Ok</span>(coins) =&gt; {
@@ -2883,20 +2966,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_native_time(
+<span class="kw">fn </span>abi_get_native_time(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_native_time,
         store_env,
         arg_offset,
-        |handler, _req: GetNativeTimeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetNativeTimeRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_time() {
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
@@ -2904,20 +2988,21 @@
                     <span class="macro">resp_ok!</span>(GetNativeTimeResult, { time: <span class="prelude-val">Some</span>(NativeTime { milliseconds: time }) })
                 }
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_deferred_call_cancel(
+<span class="kw">fn </span>abi_deferred_call_cancel(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_deferred_call_cancel,
         store_env,
         arg_offset,
-        |handler, req: DeferredCallCancelRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: DeferredCallCancelRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(call_id) = req.call_id <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Call ID is required"</span>);
             };
@@ -2942,20 +3027,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_deferred_call_register(
+<span class="kw">fn </span>abi_deferred_call_register(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_deferred_call_register,
         store_env,
         arg_offset,
-        |handler, req: DeferredCallRegisterRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: DeferredCallRegisterRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(target_slot) = req.target_slot <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Target slot is required"</span>);
             };
@@ -2999,20 +3085,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_deferred_call_quote(
+<span class="kw">fn </span>abi_get_deferred_call_quote(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_deferred_call_quote,
         store_env,
         arg_offset,
-        |handler, req: DeferredCallQuoteRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: DeferredCallQuoteRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
 
             <span class="kw">let </span><span class="prelude-val">Some</span>(target_slot) = req.target_slot <span class="kw">else </span>{
@@ -3032,20 +3119,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_deferred_call_exists(
+<span class="kw">fn </span>abi_deferred_call_exists(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_deferred_call_exists,
         store_env,
         arg_offset,
-        |handler, req: DeferredCallExistsRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: DeferredCallExistsRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(call_id) = req.call_id <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Call ID is required"</span>);
             };
@@ -3057,20 +3145,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_send_async_message(
+<span class="kw">fn </span>abi_send_async_message(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_send_async_message,
         store_env,
         arg_offset,
-        |handler, req: SendAsyncMessageRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: SendAsyncMessageRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(start) = req.validity_start <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Validity start slot is required"</span>);
             };
@@ -3136,20 +3225,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_origin_operation_id(
+<span class="kw">fn </span>abi_get_origin_operation_id(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_origin_operation_id,
         store_env,
         arg_offset,
-        |handler, _req: GetOriginOperationIdRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetOriginOperationIdRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_origin_operation_id() {
                 <span class="prelude-val">Ok</span>(operation_id) =&gt; {
@@ -3157,20 +3247,20 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_local_execution(
+<span class="kw">fn </span>abi_local_execution(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_local_execution,
         store_env,
         arg_offset,
-        |handler, req: LocalExecutionRequest| {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: LocalExecutionRequest| {
             <span class="kw">let </span>remaining_gas = handler.get_remaining_gas();
             <span class="kw">let </span>module = helper_get_tmp_module(handler, req.bytecode.clone(), remaining_gas)<span class="question-mark">?</span>;
 
@@ -3216,20 +3306,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_caller_has_write_access(
+<span class="kw">fn </span>abi_caller_has_write_access(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_caller_has_write_access,
         store_env,
         arg_offset,
-        |handler, _req: CallerHasWriteAccessRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         _req: CallerHasWriteAccessRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.caller_has_write_access() {
                 <span class="prelude-val">Ok</span>(has_write_access) =&gt; {
@@ -3237,22 +3328,23 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
 <span class="doccomment">/// Check the exports of a compiled module to see if it contains the given
 /// function
-</span><span class="attr">#[named]
 </span><span class="kw">fn </span>abi_function_exists(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_function_exists,
         store_env,
         arg_offset,
-        |handler, req: FunctionExistsRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: FunctionExistsRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Ok</span>(bytecode) = helper_get_bytecode(handler, req.target_sc_address) <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No SC found at the given address"</span>);
             };
@@ -3273,7 +3365,7 @@
 
             <span class="macro">resp_ok!</span>(FunctionExistsResult, {
                 exists: module.function_exists(<span class="kw-2">&amp;</span>req.function_name) })
-        },
+        }
     )
 }
 
@@ -3314,16 +3406,17 @@
         .map_err(|err| WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Could not get module: {}"</span>, err)))
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_check_native_amount(
+<span class="kw">fn </span>abi_check_native_amount(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_check_native_amount,
         store_env,
         arg_offset,
-        |handler, req: CheckNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckNativeAmountRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(amount) = req.to_check <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No amount to check"</span>);
             };
@@ -3335,20 +3428,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_add_native_amount(
+<span class="kw">fn </span>abi_add_native_amount(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_add_native_amount,
         store_env,
         arg_offset,
-        |handler, req: AddNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: AddNativeAmountRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(amount1) = req.amount1 <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No amount1"</span>);
             };
@@ -3363,20 +3457,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_sub_native_amount(
+<span class="kw">fn </span>abi_sub_native_amount(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_sub_native_amount,
         store_env,
         arg_offset,
-        |handler, req: SubNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: SubNativeAmountRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(left) = req.left <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No left amount"</span>);
             };
@@ -3391,20 +3486,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_scalar_mul_native_amount(
+<span class="kw">fn </span>abi_scalar_mul_native_amount(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_scalar_mul_native_amount,
         store_env,
         arg_offset,
-        |handler, req: ScalarMulNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: ScalarMulNativeAmountRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(amount) = req.amount <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No amount"</span>);
             };
@@ -3416,20 +3512,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_scalar_div_rem_native_amount(
+<span class="kw">fn </span>abi_scalar_div_rem_native_amount(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_scalar_div_rem_native_amount,
         store_env,
         arg_offset,
-        |handler, req: ScalarDivRemNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: ScalarDivRemNativeAmountRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(dividend) = req.dividend <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No dividend"</span>);
             };
@@ -3442,20 +3539,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_div_rem_native_amount(
+<span class="kw">fn </span>abi_div_rem_native_amount(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_div_rem_native_amount,
         store_env,
         arg_offset,
-        |handler, req: DivRemNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: DivRemNativeAmountRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(dividend) = req.dividend <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No dividend"</span>);
             };
@@ -3471,20 +3569,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_native_amount_to_string(
+<span class="kw">fn </span>abi_native_amount_to_string(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_native_amount_to_string,
         store_env,
         arg_offset,
-        |handler, req: NativeAmountToStringRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: NativeAmountToStringRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(amount) = req.to_convert <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No amount to convert"</span>);
             };
@@ -3496,76 +3595,80 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_native_amount_from_string(
+<span class="kw">fn </span>abi_native_amount_from_string(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_native_amount_from_string,
         store_env,
         arg_offset,
-        |handler, req: NativeAmountFromStringRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: NativeAmountFromStringRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">let </span><span class="prelude-val">Ok</span>(amount) = interface.native_amount_from_str_wasmv1(<span class="kw-2">&amp;</span>req.to_convert) <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Invalid amount"</span>);
             };
 
             <span class="macro">resp_ok!</span>(NativeAmountFromStringResult, { converted_amount: <span class="prelude-val">Some</span>(amount) })
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_base58_check_to_bytes(
+<span class="kw">fn </span>abi_base58_check_to_bytes(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_base58_check_to_bytes,
         store_env,
         arg_offset,
-        |handler, req: Base58CheckToBytesRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: Base58CheckToBytesRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.base58_check_to_bytes_wasmv1(<span class="kw-2">&amp;</span>req.base58_check) {
                 <span class="prelude-val">Ok</span>(bytes) =&gt; <span class="macro">resp_ok!</span>(Base58CheckToBytesResult, { bytes }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_bytes_to_base58_check(
+<span class="kw">fn </span>abi_bytes_to_base58_check(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_bytes_to_base58_check,
         store_env,
         arg_offset,
-        |handler, req: BytesToBase58CheckRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: BytesToBase58CheckRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">let </span>base58_check = interface.bytes_to_base58_check_wasmv1(<span class="kw-2">&amp;</span>req.bytes);
             <span class="macro">resp_ok!</span>(BytesToBase58CheckResult, { base58_check })
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_compare_address(
+<span class="kw">fn </span>abi_compare_address(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_compare_address,
         store_env,
         arg_offset,
-        |handler, req: CompareAddressRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: CompareAddressRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.compare_address_wasmv1(<span class="kw-2">&amp;</span>req.left, <span class="kw-2">&amp;</span>req.right) {
                 <span class="prelude-val">Ok</span>(result) =&gt; {
@@ -3573,20 +3676,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_compare_native_amount(
+<span class="kw">fn </span>abi_compare_native_amount(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_compare_native_amount,
         store_env,
         arg_offset,
-        |handler, req: CompareNativeAmountRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: CompareNativeAmountRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>(<span class="prelude-val">Some</span>(left), <span class="prelude-val">Some</span>(right)) = (req.left, req.right) <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Either left or right argument is none"</span>);
             };
@@ -3597,20 +3701,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_compare_native_time(
+<span class="kw">fn </span>abi_compare_native_time(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_compare_native_time,
         store_env,
         arg_offset,
-        |handler, req: CompareNativeTimeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: CompareNativeTimeRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>(<span class="prelude-val">Some</span>(left), <span class="prelude-val">Some</span>(right)) = (req.left, req.right) <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"Either left or right argument is none"</span>);
             };
@@ -3621,20 +3726,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_compare_pub_key(
+<span class="kw">fn </span>abi_compare_pub_key(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_compare_pub_key,
         store_env,
         arg_offset,
-        |handler, req: ComparePubKeyRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: ComparePubKeyRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.compare_pub_key_wasmv1(<span class="kw-2">&amp;</span>req.left, <span class="kw-2">&amp;</span>req.right) {
                 <span class="prelude-val">Ok</span>(result) =&gt; {
@@ -3642,20 +3748,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_check_address(
+<span class="kw">fn </span>abi_check_address(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_check_address,
         store_env,
         arg_offset,
-        |handler, req: CheckAddressRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckAddressRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.check_address_wasmv1(<span class="kw-2">&amp;</span>req.to_check) {
                 <span class="prelude-val">Ok</span>(is_valid) =&gt; {
@@ -3663,58 +3770,61 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_check_pubkey(
+<span class="kw">fn </span>abi_check_pubkey(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_check_pubkey,
         store_env,
         arg_offset,
-        |handler, req: CheckPubKeyRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckPubKeyRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.check_pubkey_wasmv1(<span class="kw-2">&amp;</span>req.to_check) {
                 <span class="prelude-val">Ok</span>(is_valid) =&gt; <span class="macro">resp_ok!</span>(CheckPubKeyResult, { is_valid }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_check_signature(
+<span class="kw">fn </span>abi_check_signature(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_check_signature,
         store_env,
         arg_offset,
-        |handler, req: CheckSigRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckSigRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.check_signature_wasmv1(<span class="kw-2">&amp;</span>req.to_check) {
                 <span class="prelude-val">Ok</span>(is_valid) =&gt; <span class="macro">resp_ok!</span>(CheckSigResult, { is_valid }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_address_category(
+<span class="kw">fn </span>abi_get_address_category(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_address_category,
         store_env,
         arg_offset,
-        |handler, req: GetAddressCategoryRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetAddressCategoryRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_address_category_wasmv1(<span class="kw-2">&amp;</span>req.address) {
                 <span class="prelude-val">Ok</span>(res) =&gt; {
@@ -3722,77 +3832,81 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_address_version(
+<span class="kw">fn </span>abi_get_address_version(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_address_version,
         store_env,
         arg_offset,
-        |handler, req: GetAddressVersionRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetAddressVersionRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_address_version_wasmv1(<span class="kw-2">&amp;</span>req.address) {
                 <span class="prelude-val">Ok</span>(version) =&gt; <span class="macro">resp_ok!</span>(GetAddressVersionResult, { version }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_pubkey_version(
+<span class="kw">fn </span>abi_get_pubkey_version(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_pubkey_version,
         store_env,
         arg_offset,
-        |handler, req: GetPubKeyVersionRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetPubKeyVersionRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_pubkey_version_wasmv1(<span class="kw-2">&amp;</span>req.pub_key) {
                 <span class="prelude-val">Ok</span>(version) =&gt; <span class="macro">resp_ok!</span>(GetPubKeyVersionResult, { version }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_get_signature_version(
+<span class="kw">fn </span>abi_get_signature_version(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_get_signature_version,
         store_env,
         arg_offset,
-        |handler, req: GetSignatureVersionRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetSignatureVersionRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.get_signature_version_wasmv1(<span class="kw-2">&amp;</span>req.signature) {
                 <span class="prelude-val">Ok</span>(version) =&gt; <span class="macro">resp_ok!</span>(GetSignatureVersionResult, { version }),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_checked_add_native_time(
+<span class="kw">fn </span>abi_checked_add_native_time(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_checked_add_native_time,
         store_env,
         arg_offset,
-        |handler, req: CheckedAddNativeTimeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckedAddNativeTimeRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(time1) = req.left <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No time1"</span>);
             };
@@ -3807,20 +3921,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_checked_sub_native_time(
+<span class="kw">fn </span>abi_checked_sub_native_time(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_checked_sub_native_time,
         store_env,
         arg_offset,
-        |handler, req: CheckedSubNativeTimeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckedSubNativeTimeRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(left) = req.left <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No left time"</span>);
             };
@@ -3835,20 +3950,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_checked_mul_native_time(
+<span class="kw">fn </span>abi_checked_mul_native_time(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_checked_mul_native_time,
         store_env,
         arg_offset,
-        |handler, req: CheckedScalarMulNativeTimeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckedScalarMulNativeTimeRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(time) = req.time <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No time"</span>);
             };
@@ -3860,20 +3976,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_checked_scalar_div_native_time(
+<span class="kw">fn </span>abi_checked_scalar_div_native_time(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_checked_scalar_div_native_time,
         store_env,
         arg_offset,
-        |handler, req: CheckedScalarDivRemNativeTimeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckedScalarDivRemNativeTimeRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(dividend) = req.dividend <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No dividend"</span>);
             };
@@ -3886,20 +4003,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">fn </span>abi_checked_div_native_time(
+<span class="kw">fn </span>abi_checked_div_native_time(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_checked_div_native_time,
         store_env,
         arg_offset,
-        |handler, req: CheckedDivRemNativeTimeRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckedDivRemNativeTimeRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span><span class="prelude-val">Some</span>(dividend) = req.dividend <span class="kw">else </span>{
                 <span class="kw">return </span><span class="macro">resp_err!</span>(<span class="string">"No dividend"</span>);
             };
@@ -3915,20 +4033,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">pub fn </span>abi_verify_signature(
+<span class="kw">pub fn </span>abi_verify_signature(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_checked_div_native_time,
         store_env,
         arg_offset,
-        |handler, req: VerifySigRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         req: VerifySigRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.signature_verify(<span class="kw-2">&amp;</span>req.message, <span class="kw-2">&amp;</span>req.sig, <span class="kw-2">&amp;</span>req.pub_key) {
                 <span class="prelude-val">Ok</span>(is_verified) =&gt; {
@@ -3936,20 +4055,21 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 
-<span class="attr">#[named]
-</span><span class="kw">pub fn </span>abi_chain_id(
+<span class="kw">pub fn </span>abi_chain_id(
     store_env: FunctionEnvMut&lt;ABIEnv&gt;,
     arg_offset: i32,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt; {
-    handle_abi(
-        <span class="macro">function_name!</span>(),
+    <span class="macro">crate::handle_abi!</span>(
+        abi_checked_div_native_time,
         store_env,
         arg_offset,
-        |handler, _req: ChainIdRequest| -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
+        |handler: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::wasmv1_execution::abi::handler::ABIHandler,
+         _req: ChainIdRequest|
+         -&gt; <span class="prelude-ty">Result</span>&lt;AbiResponse, WasmV1Error&gt; {
             <span class="kw">let </span>interface = handler.exec_env.get_interface();
             <span class="kw">match </span>interface.chain_id() {
                 <span class="prelude-val">Ok</span>(chain_id) =&gt; {
@@ -3957,7 +4077,7 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">resp_err!</span>(e),
             }
-        },
+        }
     )
 }
 </code></pre></div></section></main></body></html>

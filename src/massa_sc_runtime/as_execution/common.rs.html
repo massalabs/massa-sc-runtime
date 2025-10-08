@@ -176,13 +176,13 @@
     interface.increment_recursion_counter()<span class="question-mark">?</span>;
 
     <span class="kw">let </span>resp = <span class="kw">crate</span>::execution::run_function(
-        <span class="kw-2">&amp;*</span>interface,
+        interface,
         module,
         function,
         param,
         remaining_gas,
-        env.get_gas_costs(),
-        env.get_condom_limits(),
+        env.get_gas_costs().clone(),
+        env.get_condom_limits().clone(),
     )<span class="question-mark">?</span>;
     <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"gas_calibration"</span>)) {
         set_remaining_points(<span class="kw-2">&amp;</span>env, ctx, resp.remaining_gas)<span class="question-mark">?</span>;
@@ -215,13 +215,13 @@
     interface.increment_recursion_counter()<span class="question-mark">?</span>;
 
     <span class="kw">let </span>resp = <span class="kw">crate</span>::execution::run_function(
-        <span class="kw-2">&amp;*</span>interface,
+        interface,
         module,
         function,
         param,
         remaining_gas,
-        gas_costs,
-        env.get_condom_limits(),
+        gas_costs.clone(),
+        env.get_condom_limits().clone(),
     )<span class="question-mark">?</span>;
 
     interface.decrement_recursion_counter()<span class="question-mark">?</span>;

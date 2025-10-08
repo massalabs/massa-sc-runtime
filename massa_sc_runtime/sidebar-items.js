@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Compiler","InterfaceError","RuntimeModule","VMError"],"fn":["run_function","run_main"],"macro":["bail"],"struct":["CondomLimits","GasCosts","Response"],"trait":["Interface","InterfaceClone"],"type":["Result"]};
+window.SIDEBAR_ITEMS = {"enum":["Compiler","InterfaceError","RuntimeModule","VMError"],"fn":["run_function","run_main"],"macro":["bail","handle_abi","handle_abi_raw"],"struct":["CondomLimits","GasCosts","Response"],"trait":["Interface","InterfaceClone"],"type":["Result"]};

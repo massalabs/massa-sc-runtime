@@ -178,105 +178,91 @@
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::env::{ABIEnv, ExecutionEnv};
 <span class="kw">use crate</span>::{wasmv1_execution::WasmV1Error, CondomLimits, GasCosts};
 <span class="kw">use </span>std::io::Cursor;
 <span class="kw">use </span>wasmer::FunctionEnvMut;
 
-<span class="doccomment">/// Handle an ABI call by providing helpers to read arguments, return values,
-/// and so on
-</span><span class="kw">pub fn </span>handle_abi&lt;F, Req, Resp&gt;(
-    abi_name: <span class="kw-2">&amp;</span>str,
-    <span class="kw-2">mut </span>store_env: FunctionEnvMut&lt;ABIEnv&gt;,
-    arg_offset: i32,
-    func: F,
-) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt;
-<span class="kw">where
-    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>ABIHandler, Req) -&gt; <span class="prelude-ty">Result</span>&lt;Resp, WasmV1Error&gt;,
-    Req: prost::Message + Default,
-    Resp: prost::Message,
-{
-    <span class="comment">// get environment and interface
-    </span><span class="kw">let </span>env_mutex = store_env.data().clone();
-    <span class="kw">let </span><span class="kw-2">mut </span>env_lock = env_mutex.lock();
-    <span class="kw">let </span>exec_env = env_lock.as_mut().ok_or_else(|| {
-        WasmV1Error::InstanciationError(<span class="string">"ABIs cannot be called at initialization time."</span>.into())
-    })<span class="question-mark">?</span>;
+<span class="doccomment">/// Macro to handle an ABI call by providing helpers to read arguments, return values
+/// Takes the gas cost field name directly to avoid HashMap lookup
+</span><span class="attr">#[macro_export]
+</span><span class="macro">macro_rules!</span> handle_abi {
+    (<span class="macro-nonterminal">$gas_field</span>:ident, <span class="macro-nonterminal">$store_env</span>:expr, <span class="macro-nonterminal">$arg_offset</span>:expr, <span class="macro-nonterminal">$func</span>:expr) =&gt; {{
+        <span class="kw">use </span><span class="macro-nonterminal">$crate::wasmv1_execution::WasmV1Error</span>;
 
-    <span class="comment">// create handler
-    </span><span class="kw">let </span><span class="kw-2">mut </span>handler = ABIHandler {
-        store_env: <span class="kw-2">&amp;mut </span>store_env,
-        exec_env,
-    };
+        <span class="kw">let </span><span class="kw-2">mut </span>store_env = <span class="macro-nonterminal">$store_env</span>;
+        <span class="comment">// get environment and interface
+        </span><span class="kw">let </span>env_mutex = store_env.data().clone();
+        <span class="kw">let </span><span class="kw-2">mut </span>env_lock = env_mutex.lock();
+        <span class="kw">let </span>exec_env = env_lock.as_mut().ok_or_else(|| {
+            WasmV1Error::InstanciationError(<span class="string">"ABIs cannot be called at initialization time."</span>.into())
+        })<span class="question-mark">?</span>;
 
-    <span class="comment">// apply gas cost
-    </span><span class="kw">let </span>gas_cost = handler.get_gas_cost(abi_name);
-    <span class="kw">if </span>gas_cost &gt; <span class="number">0 </span>{
-        handler.try_subtract_gas(gas_cost)<span class="question-mark">?</span>;
-    }
+        <span class="comment">// get gas cost directly from struct field
+        </span><span class="kw">let </span>gas_cost = exec_env.get_gas_costs().<span class="macro-nonterminal">$gas_field</span>;
 
-    <span class="comment">// read argument
-    </span><span class="kw">let </span>arg: Req = handler.read_arg(arg_offset)<span class="question-mark">?</span>;
+        <span class="comment">// create handler
+        </span><span class="kw">let </span><span class="kw-2">mut </span>handler = <span class="macro-nonterminal">$crate::wasmv1_execution::abi::handler::ABIHandler </span>{
+            store_env: <span class="kw-2">&amp;mut </span>store_env,
+            exec_env,
+        };
 
-    <span class="comment">// call function
-    </span><span class="kw">let </span>response = func(<span class="kw-2">&amp;mut </span>handler, arg)<span class="question-mark">?</span>;
+        <span class="comment">// apply gas cost
+        </span><span class="kw">if </span>gas_cost &gt; <span class="number">0 </span>{
+            handler.try_subtract_gas(gas_cost)<span class="question-mark">?</span>;
+        }
 
-    <span class="comment">// return value
-    </span>handler.return_value(response)
+        <span class="comment">// read argument
+        </span><span class="kw">let </span>arg = handler.read_arg(<span class="macro-nonterminal">$arg_offset</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// call function
+        </span><span class="kw">let </span>func = <span class="macro-nonterminal">$func</span>;
+        <span class="kw">let </span>response = func(<span class="kw-2">&amp;mut </span>handler, arg)<span class="question-mark">?</span>;
+
+        <span class="comment">// return value
+        </span>handler.return_value(response)
+    }};
 }
 
-<span class="doccomment">/// Handle an ABI call that cannot rely on encoding
-/// its providing helpers to read arguments, return values, and so on in the
-/// form of Vec&lt;u8&gt;
-</span><span class="kw">pub fn </span>handle_abi_raw&lt;F&gt;(
-    abi_name: <span class="kw-2">&amp;</span>str,
-    <span class="kw-2">mut </span>store_env: FunctionEnvMut&lt;ABIEnv&gt;,
-    arg_offset: i32,
-    func: F,
-) -&gt; <span class="prelude-ty">Result</span>&lt;i32, WasmV1Error&gt;
-<span class="kw">where
-    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>ABIHandler, Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, WasmV1Error&gt;,
-{
-    <span class="comment">// get environment and interface
-    </span><span class="kw">let </span>env_mutex = store_env.data().clone();
-    <span class="kw">let </span><span class="kw-2">mut </span>env_lock = env_mutex.lock();
-    <span class="kw">let </span>exec_env = env_lock.as_mut().ok_or_else(|| {
-        WasmV1Error::InstanciationError(<span class="string">"ABIs cannot be called at initialization time."</span>.into())
-    })<span class="question-mark">?</span>;
-    <span class="comment">// let interface = exec_env.get_interface_mut();
+<span class="doccomment">/// Macro to handle an ABI call with raw bytes (cannot rely on encoding)
+/// Takes the gas cost field name directly to avoid HashMap lookup
+</span><span class="attr">#[macro_export]
+</span><span class="macro">macro_rules!</span> handle_abi_raw {
+    (<span class="macro-nonterminal">$gas_field</span>:ident, <span class="macro-nonterminal">$store_env</span>:expr, <span class="macro-nonterminal">$arg_offset</span>:expr, <span class="macro-nonterminal">$func</span>:expr) =&gt; {{
+        <span class="kw">use </span><span class="macro-nonterminal">$crate::wasmv1_execution::WasmV1Error</span>;
 
-    // create handler
-    </span><span class="kw">let </span><span class="kw-2">mut </span>handler = ABIHandler {
-        store_env: <span class="kw-2">&amp;mut </span>store_env,
-        exec_env,
-    };
+        <span class="kw">let </span><span class="kw-2">mut </span>store_env = <span class="macro-nonterminal">$store_env</span>;
+        <span class="comment">// get environment and interface
+        </span><span class="kw">let </span>env_mutex = store_env.data().clone();
+        <span class="kw">let </span><span class="kw-2">mut </span>env_lock = env_mutex.lock();
+        <span class="kw">let </span>exec_env = env_lock.as_mut().ok_or_else(|| {
+            WasmV1Error::InstanciationError(<span class="string">"ABIs cannot be called at initialization time."</span>.into())
+        })<span class="question-mark">?</span>;
 
-    <span class="comment">// apply gas cost
-    </span><span class="kw">let </span>gas_cost = handler.get_gas_cost(abi_name);
-    <span class="kw">if </span>gas_cost &gt; <span class="number">0 </span>{
-        handler.try_subtract_gas(gas_cost)<span class="question-mark">?</span>;
-    }
+        <span class="comment">// get gas cost directly from struct field
+        </span><span class="kw">let </span>gas_cost = exec_env.get_gas_costs().<span class="macro-nonterminal">$gas_field</span>;
 
-    <span class="comment">// read argument
-    </span><span class="kw">let </span>arg: Vec&lt;u8&gt; = handler.read_arg_raw(arg_offset)<span class="question-mark">?</span>;
+        <span class="comment">// create handler
+        </span><span class="kw">let </span><span class="kw-2">mut </span>handler = <span class="macro-nonterminal">$crate::wasmv1_execution::abi::handler::ABIHandler </span>{
+            store_env: <span class="kw-2">&amp;mut </span>store_env,
+            exec_env,
+        };
 
-    <span class="comment">// call function
-    </span><span class="kw">let </span>response = func(<span class="kw-2">&amp;mut </span>handler, arg)<span class="question-mark">?</span>;
+        <span class="comment">// apply gas cost
+        </span><span class="kw">if </span>gas_cost &gt; <span class="number">0 </span>{
+            handler.try_subtract_gas(gas_cost)<span class="question-mark">?</span>;
+        }
 
-    <span class="comment">// return value
-    </span>handler.return_value_raw(<span class="kw-2">&amp;</span>response)
+        <span class="comment">// read argument
+        </span><span class="kw">let </span>arg: Vec&lt;u8&gt; = handler.read_arg_raw(<span class="macro-nonterminal">$arg_offset</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// call function
+        </span><span class="kw">let </span>func = <span class="macro-nonterminal">$func</span>;
+        <span class="kw">let </span>response = func(<span class="kw-2">&amp;mut </span>handler, arg)<span class="question-mark">?</span>;
+
+        <span class="comment">// return value
+        </span>handler.return_value_raw(<span class="kw-2">&amp;</span>response)
+    }};
 }
 
 <span class="doccomment">/// A helper structure to handle ABI calls
@@ -357,19 +343,9 @@
         <span class="self">self</span>.exec_env.set_remaining_gas(<span class="kw-2">&amp;mut </span><span class="self">self</span>.store_env, gas)
     }
 
-    <span class="doccomment">/// Get gas costs
+    <span class="doccomment">/// Get gas costs structure
     </span><span class="kw">pub fn </span>get_gas_costs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GasCosts {
         <span class="self">self</span>.exec_env.get_gas_costs()
-    }
-
-    <span class="doccomment">/// Get gas cost
-    </span><span class="kw">pub fn </span>get_gas_cost(<span class="kw-2">&amp;</span><span class="self">self</span>, abi_name: <span class="kw-2">&amp;</span>str) -&gt; u64 {
-        <span class="kw-2">*</span><span class="self">self
-            </span>.exec_env
-            .get_gas_costs()
-            .abi_costs
-            .get(abi_name)
-            .unwrap_or(<span class="kw-2">&amp;</span><span class="number">0</span>)
     }
 
     <span class="doccomment">/// Get condom limits

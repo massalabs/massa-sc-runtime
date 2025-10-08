@@ -304,11 +304,6 @@
 <a href="#304" id="304">304</a>
 <a href="#305" id="305">305</a>
 <a href="#306" id="306">306</a>
-<a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>context;
@@ -557,12 +552,7 @@
         Compiler::SP =&gt; init_sp_engine(limit, gas_costs.clone(), condom_limits.clone()),
     };
     <span class="kw">let </span><span class="kw-2">mut </span>store = Store::new(engine);
-    <span class="kw">let </span><span class="kw-2">mut </span>context = ASContext::new(
-        interface,
-        as_module.binary_module,
-        gas_costs,
-        condom_limits.clone(),
-    );
+    <span class="kw">let </span><span class="kw-2">mut </span>context = ASContext::new(interface, as_module.binary_module, gas_costs, condom_limits);
 
     <span class="comment">// save the gas remaining before sub-execution: used by readonly execution
     </span>interface.save_gas_remaining_before_subexecution(limit);
