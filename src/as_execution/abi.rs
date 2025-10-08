@@ -1868,11 +1868,7 @@ pub fn assembly_script_abort(
 pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
     let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas(
-            &env,
-            &mut ctx,
-            env.get_gas_costs().assembly_script_seed,
-        )?;
+        sub_remaining_gas(&env, &mut ctx, env.get_gas_costs().assembly_script_seed)?;
     }
     let seed = match env.interface.unsafe_random_f64() {
         Ok(ret) => ret,
@@ -1892,11 +1888,7 @@ pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
 pub fn assembly_script_date_now(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
     let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas(
-            &env,
-            &mut ctx,
-            env.get_gas_costs().assembly_script_date_now,
-        )?;
+        sub_remaining_gas(&env, &mut ctx, env.get_gas_costs().assembly_script_date_now)?;
     }
     let utime = match env.interface.get_time() {
         Ok(time) => time,
@@ -2042,11 +2034,7 @@ pub fn assembly_script_trace(
 ) -> ABIResult<()> {
     let env = get_env(&ctx)?;
     if cfg!(not(feature = "gas_calibration")) {
-        sub_remaining_gas(
-            &env,
-            &mut ctx,
-            env.get_gas_costs().assembly_script_trace,
-        )?;
+        sub_remaining_gas(&env, &mut ctx, env.get_gas_costs().assembly_script_trace)?;
     }
 
     let memory = ctx
