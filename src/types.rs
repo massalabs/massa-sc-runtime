@@ -578,7 +578,7 @@ impl Default for GasCosts {
         Self {
             // Core costs
             launch_cost: 15702,
-            operator_cost: 1, // Note: Changed to 1 for tests (production uses 23)
+            operator_cost: 23,
             cl_compilation_cost: 745000000,
             sp_compilation_cost: 314000000,
             max_instance_cost: 2100000,

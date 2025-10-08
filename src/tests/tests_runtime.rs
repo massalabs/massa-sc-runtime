@@ -1430,3 +1430,127 @@ fn test_ser() {
     assert!(s_atv1.find("foo").is_some());
     assert!(s_atv1.find("slot").is_some());
 }
+
+#[test]
+#[serial]
+fn test_gas_limit_300ms_target() {
+    let interface = TestInterface;
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/gas_limit_test.wasm"
+    ));
+    let gas_costs = GasCosts::default();
+    let condom_limits = CondomLimits::default();
+
+    let runtime_module = RuntimeModule::new(
+        module,
+        gas_costs.clone(),
+        Compiler::SP,
+        condom_limits.clone(),
+    )
+    .unwrap();
+
+    // Run with u32::MAX gas limit
+    let start = std::time::Instant::now();
+
+    let result = run_function(
+        &interface,
+        runtime_module,
+        "test",
+        b"",
+        u32::MAX as u64,
+        gas_costs,
+        condom_limits,
+    );
+
+    let duration = start.elapsed();
+
+    println!("\n=== Gas Calibration Target Test ===");
+    println!("Gas limit: u32::MAX ({})", u32::MAX);
+    println!("Execution time: {} ms", duration.as_millis());
+
+    match result {
+        Ok(response) => {
+            println!("Remaining gas: {}", response.remaining_gas);
+            println!("Gas used: {}", u32::MAX as u64 - response.remaining_gas);
+        }
+        Err(e) => {
+            println!("Execution stopped (expected - out of gas): {:?}", e);
+        }
+    }
+
+    // Assert: u32::MAX gas must execute in at most 300ms
+    assert!(
+        duration.as_millis() <= 300,
+        "Execution took {} ms, expected <= 300 ms. Gas calibration target violated!",
+        duration.as_millis()
+    );
+
+    println!(
+        "✓ Gas calibration target met: {} ms <= 300 ms",
+        duration.as_millis()
+    );
+}
+
+#[test]
+#[serial]
+/// Test that u32::MAX gas executes in at most 300ms with pure WASM instructions
+/// This validates the gas calibration for pure arithmetic/branching (no ABI calls)
+fn test_gas_limit_300ms_pure_wasm() {
+    let interface = TestInterface;
+    let module = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/gas_limit_pure_wasm.wasm"
+    ));
+    let gas_costs = GasCosts::default();
+    let condom_limits = CondomLimits::default();
+
+    let runtime_module = RuntimeModule::new(
+        module,
+        gas_costs.clone(),
+        Compiler::SP,
+        condom_limits.clone(),
+    )
+    .unwrap();
+
+    // Run with u32::MAX gas limit
+    let start = std::time::Instant::now();
+
+    let result = run_function(
+        &interface,
+        runtime_module,
+        "test",
+        b"",
+        u32::MAX as u64,
+        gas_costs,
+        condom_limits,
+    );
+
+    let duration = start.elapsed();
+
+    println!("\n=== Pure WASM Gas Calibration Test ===");
+    println!("Gas limit: u32::MAX ({})", u32::MAX);
+    println!("Execution time: {} ms", duration.as_millis());
+
+    match result {
+        Ok(response) => {
+            println!("Remaining gas: {}", response.remaining_gas);
+            println!("Gas used: {}", u32::MAX as u64 - response.remaining_gas);
+        }
+        Err(e) => {
+            println!("Execution stopped (expected - out of gas): {:?}", e);
+        }
+    }
+
+    // Assert: u32::MAX gas must execute in at most 300ms
+    assert!(
+        duration.as_millis() <= 300,
+        "Pure WASM execution took {} ms, expected <= 300 ms. Gas calibration target violated!",
+        duration.as_millis()
+    );
+
+    println!(
+        "✓ Pure WASM gas calibration target met: {} ms <= 300 ms",
+        duration.as_millis()
+    );
+}
