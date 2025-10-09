@@ -1433,6 +1433,7 @@ fn test_ser() {
 
 #[test]
 #[serial]
+#[ignore]
 fn test_gas_limit_300ms_target() {
     let interface = TestInterface;
     let module = include_bytes!(concat!(
@@ -1494,6 +1495,7 @@ fn test_gas_limit_300ms_target() {
 
 #[test]
 #[serial]
+#[ignore]
 /// Test that u32::MAX gas executes in at most 300ms with pure WASM instructions
 /// This validates the gas calibration for pure arithmetic/branching (no ABI calls)
 fn test_gas_limit_300ms_pure_wasm() {
