@@ -502,7 +502,7 @@ pub(crate) fn assembly_script_keccak256_hash(
 
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: "assembly_script_keccak".to_string(),
+            name: "assembly_script_keccak256_hash".to_string(),
             params: vec![into_trace_value!(bytes)],
             return_value: hash.into(),
             sub_calls: None,
