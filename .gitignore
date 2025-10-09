@@ -3,6 +3,7 @@ node_modules
 wasm/*.d.ts
 wasm/*.js
 wasm/*.wasm.map
+calibrate.wat
 
 # IDE
 .idea
