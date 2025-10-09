@@ -60,10 +60,7 @@ impl Interface for TestInterface {
         _raw_amount: NativeAmount,
         from_address: Option<String>,
     ) -> Result<()> {
-        match from_address {
-            Some(_from_address) => {}
-            None => {}
-        }
+        if let Some(_from_address) = from_address {}
         Ok(())
     }
 
@@ -133,10 +130,7 @@ impl Interface for TestInterface {
     }
 
     fn ds_entry_exists_wasmv1(&self, _key: &[u8], address: Option<String>) -> Result<bool> {
-        match address {
-            Some(_address) => {}
-            None => {}
-        }
+        if let Some(_address) = address {}
         Ok(false)
     }
 
@@ -153,10 +147,7 @@ impl Interface for TestInterface {
         _prefix: &[u8],
         address: Option<String>,
     ) -> Result<BTreeSet<Vec<u8>>> {
-        match address {
-            Some(_address) => {}
-            None => {}
-        }
+        if let Some(_address) = address {}
         Ok(BTreeSet::new())
     }
 
@@ -174,10 +165,7 @@ impl Interface for TestInterface {
         _value: &[u8],
         address: Option<String>,
     ) -> Result<()> {
-        match address {
-            Some(_address) => {}
-            None => {}
-        }
+        if let Some(_address) = address {}
         Ok(())
     }
 
@@ -190,10 +178,7 @@ impl Interface for TestInterface {
     }
 
     fn delete_ds_entry_wasmv1(&self, _key: &[u8], address: Option<String>) -> Result<()> {
-        match address {
-            Some(_address) => {}
-            None => {}
-        }
+        if let Some(_address) = address {}
         Ok(())
     }
 
@@ -206,10 +191,7 @@ impl Interface for TestInterface {
     }
 
     fn get_ds_value_wasmv1(&self, _key: &[u8], address: Option<String>) -> Result<Vec<u8>> {
-        match address {
-            Some(_address) => {}
-            None => {}
-        }
+        if let Some(_address) = address {}
         Ok(vec![])
     }
 
@@ -227,10 +209,7 @@ impl Interface for TestInterface {
         _value: &[u8],
         address: Option<String>,
     ) -> Result<()> {
-        match address {
-            Some(_address) => {}
-            None => {}
-        }
+        if let Some(_address) = address {}
         Ok(())
     }
 
@@ -256,10 +235,7 @@ impl Interface for TestInterface {
     }
 
     fn get_balance_wasmv1(&self, address: Option<String>) -> Result<NativeAmount> {
-        match address {
-            Some(_address) => {}
-            None => {}
-        }
+        if let Some(_address) = address {}
         Ok(NativeAmount {
             mantissa: 0,
             scale: 1,
@@ -275,10 +251,7 @@ impl Interface for TestInterface {
     }
 
     fn set_bytecode_wasmv1(&self, _bytecode: &[u8], address: Option<String>) -> Result<()> {
-        match address {
-            Some(_address) => {}
-            None => {}
-        }
+        if let Some(_address) = address {}
         Ok(())
     }
 
@@ -304,7 +277,6 @@ impl Interface for TestInterface {
             for item in module.iter().take(32) {
                 bytes.push(item);
             }
-        } else {
         }
         Ok("sc_address".to_string())
     }

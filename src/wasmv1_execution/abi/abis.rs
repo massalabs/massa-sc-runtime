@@ -180,7 +180,7 @@ fn abi_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, W
             {
                 if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                     exec_env.trace.push(AbiTrace {
-                        name: function_name!().to_string(),
+                        name: "abi_call".to_string(),
                         params: vec![
                             into_trace_value!(req.target_sc_address),
                             into_trace_value!(req.target_function_name),
@@ -231,7 +231,7 @@ fn abi_local_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<
             {
                 if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                     exec_env.trace.push(AbiTrace {
-                        name: function_name!().to_string(),
+                        name: "abi_local_call".to_string(),
                         params: vec![
                             into_trace_value!(bytecode),
                             into_trace_value!(req.target_function_name),
@@ -280,12 +280,6 @@ fn abi_get_current_slot(
         |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
          _req: GetCurrentSlotRequest|
          -> Result<AbiResponse, WasmV1Error> {
-            // Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = "gas_calibration") {
-            //     let fname = format!("massa.{}:0", function_name!());
-            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
-            // true); }
-
             let interface = handler.exec_env.get_interface();
             match interface.get_current_slot() {
                 Ok(slot) => resp_ok!(GetCurrentSlotResult, {
@@ -306,12 +300,6 @@ fn abi_hash_blake3(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result
         |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
          req: HashBlake3Request|
          -> Result<AbiResponse, WasmV1Error> {
-            // Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = "gas_calibration") {
-            //     let fname = format!("massa.{}:0", function_name!());
-            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
-            // true); }
-
             let interface = handler.exec_env.get_interface();
             match interface.hash_blake3(&req.data) {
                 Ok(hash) => {
@@ -332,12 +320,6 @@ fn abi_hash_sha256(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result
         |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
          req: HashSha256Request|
          -> Result<AbiResponse, WasmV1Error> {
-            // Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = "gas_calibration") {
-            //     let fname = format!("massa.{}:0", function_name!());
-            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
-            // true); }
-
             let interface = handler.exec_env.get_interface();
             match interface.hash_sha256(&req.data) {
                 Ok(hash) => resp_ok!(HashSha256Result, { hash: hash.to_vec() }),
@@ -359,12 +341,6 @@ fn abi_hash_keccak256(
         |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
          req: Keccak256Request|
          -> Result<AbiResponse, WasmV1Error> {
-            // Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = "gas_calibration") {
-            //     let fname = format!("massa.{}:0", function_name!());
-            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
-            // true); }
-
             let interface = handler.exec_env.get_interface();
             match interface.hash_keccak256(&req.data) {
                 Ok(hash) => resp_ok!(Keccak256Result, { hash: hash.to_vec() }),
@@ -389,12 +365,6 @@ fn abi_transfer_coins(
             let Some(amount) = req.amount_to_transfer else {
                 return resp_err!("No coins provided");
             };
-
-            // Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = "gas_calibration") {
-            //     let fname = format!("massa.{}:0", function_name!());
-            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
-            // true); }
 
             #[cfg(feature = "execution-trace")]
             let amount_ = Decimal::try_from_i128_with_scale(amount.mantissa as i128, amount.scale)
@@ -431,7 +401,7 @@ fn abi_transfer_coins(
 
                         // let mut guard = handler.store_env.data_mut().lock();
                         handler.exec_env.trace.push(AbiTrace {
-                            name: function_name!().to_string(),
+                            name: "abi_transfer_coins".to_string(),
                             params,
                             return_value: AbiTraceType::None,
                             sub_calls: None,
@@ -974,7 +944,7 @@ fn abi_deferred_call_cancel(
                         let params = vec![into_trace_value!(call_id)];
                         if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                             exec_env.trace.push(AbiTrace {
-                                name: function_name!().to_string(),
+                                name: "abi_deferred_call_cancel".to_string(),
                                 params,
                                 return_value: AbiTraceType::None,
                                 sub_calls: None,
@@ -1032,7 +1002,7 @@ fn abi_deferred_call_register(
                         ];
                         if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                             exec_env.trace.push(AbiTrace {
-                                name: function_name!().to_string(),
+                                name: "abi_deferred_call_register".to_string(),
                                 params,
                                 return_value: AbiTraceType::String(call_id.clone()),
                                 sub_calls: None,
@@ -1172,7 +1142,7 @@ fn abi_send_async_message(
                         ];
                         if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                             exec_env.trace.push(AbiTrace {
-                                name: function_name!().to_string(),
+                                name: "abi_send_async_message".to_string(),
                                 params,
                                 return_value: AbiTraceType::None,
                                 sub_calls: None,
@@ -1249,7 +1219,7 @@ fn abi_local_execution(
                     {
                         if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                             exec_env.trace.push(AbiTrace {
-                                name: function_name!().to_string(),
+                                name: "abi_local_execution".to_string(),
                                 params: vec![
                                     into_trace_value!(req.bytecode),
                                     into_trace_value!(req.target_function_name),

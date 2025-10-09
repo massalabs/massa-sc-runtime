@@ -103,7 +103,7 @@ pub(crate) fn assembly_script_get_call_coins(mut ctx: FunctionEnvMut<ASEnv>) -> 
         let res = ctx.data().interface.get_call_coins()? as i64;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_call_coins".to_string(),
             params: vec![],
             return_value: res.into(),
             sub_calls: None,
@@ -137,7 +137,7 @@ pub(crate) fn assembly_script_transfer_coins(
                 .unwrap_or_else(|| "".to_string());
 
             ctx.data_mut().trace.push(AbiTrace {
-                name: function_name!().to_string(),
+                name: "assembly_script_transfer_coins".to_string(),
                 params: vec![
                     into_trace_value!(from_address),
                     into_trace_value!(to_address),
@@ -169,7 +169,7 @@ pub(crate) fn assembly_script_transfer_coins_for(
             .transfer_coins_for(&from_address, &to_address, raw_amount as u64)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_transfer_coins_for".to_string(),
             params: vec![
                 into_trace_value!(from_address),
                 into_trace_value!(to_address),
@@ -187,7 +187,7 @@ pub(crate) fn assembly_script_get_balance(mut ctx: FunctionEnvMut<ASEnv>) -> ABI
         let res = ctx.data().interface.get_balance()? as i64;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_balance".to_string(),
             params: vec![],
             return_value: res.into(),
             sub_calls: None,
@@ -205,7 +205,7 @@ pub(crate) fn assembly_script_get_balance_for(
         let res = ctx.data().interface.get_balance_for(&address)? as i64;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_balance_for".to_string(),
             params: vec![into_trace_value!(address)],
             return_value: res.into(),
             sub_calls: None,
@@ -231,7 +231,7 @@ pub(crate) fn assembly_script_call(
         let response = call_module(&mut ctx, &address, &function, &param, call_coins)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_call".to_string(),
             params: vec![
                 ("address", address.clone()).into(),
                 ("function", function.clone()).into(),
@@ -276,7 +276,7 @@ pub(crate) fn assembly_script_get_remaining_gas(mut ctx: FunctionEnvMut<ASEnv>) 
     if cfg!(feature = "gas_calibration") {
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_remaining_gas".to_string(),
             params: vec![],
             return_value: (u64::MAX as i64).into(),
             sub_calls: None,
@@ -289,7 +289,7 @@ pub(crate) fn assembly_script_get_remaining_gas(mut ctx: FunctionEnvMut<ASEnv>) 
         Ok::<i32, _>(exhausted_val) if exhausted_val > 0 => {
             #[cfg(feature = "execution-trace")]
             ctx.data_mut().trace.push(AbiTrace {
-                name: function_name!().to_string(),
+                name: "assembly_script_get_remaining_gas".to_string(),
                 params: vec![],
                 return_value: 0i64.into(),
                 sub_calls: None,
@@ -308,7 +308,7 @@ pub(crate) fn assembly_script_get_remaining_gas(mut ctx: FunctionEnvMut<ASEnv>) 
 
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
+        name: "assembly_script_get_remaining_gas".to_string(),
         params: vec![],
         return_value: res.into(),
         sub_calls: None,
@@ -326,7 +326,7 @@ pub(crate) fn assembly_script_print(mut ctx: FunctionEnvMut<ASEnv>, arg: i32) ->
         ctx.data().interface.print(&message)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_print".to_string(),
             params: vec![into_trace_value!(message)],
             return_value: AbiTraceType::None,
             sub_calls: None,
@@ -348,7 +348,7 @@ pub(crate) fn assembly_script_get_op_keys(mut ctx: FunctionEnvMut<ASEnv>) -> ABI
 
                 #[cfg(feature = "execution-trace")]
                 ctx.data_mut().trace.push(AbiTrace {
-                    name: function_name!().to_string(),
+                    name: "assembly_script_get_op_keys".to_string(),
                     params: vec![],
                     return_value: fmt_keys.into(),
                     sub_calls: None,
@@ -381,7 +381,7 @@ pub(crate) fn assembly_script_get_op_keys_prefix(
 
                 #[cfg(feature = "execution-trace")]
                 ctx.data_mut().trace.push(AbiTrace {
-                    name: function_name!().to_string(),
+                    name: "assembly_script_get_op_keys_prefix".to_string(),
                     params: vec![into_trace_value!(prefix)],
                     return_value: AbiTraceType::ByteArray(fmt_keys),
                     sub_calls: None,
@@ -411,7 +411,7 @@ pub(crate) fn assembly_script_has_op_key(
 
                 #[cfg(feature = "execution-trace")]
                 ctx.data_mut().trace.push(AbiTrace {
-                    name: function_name!().to_string(),
+                    name: "assembly_script_has_op_key".to_string(),
                     params: vec![into_trace_value!(key_bytes)],
                     return_value: b_vec.into(),
                     sub_calls: None,
@@ -437,7 +437,7 @@ pub(crate) fn assembly_script_get_op_data(
 
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_op_data".to_string(),
             params: vec![into_trace_value!(key_bytes)],
             return_value: data.into(),
             sub_calls: None,
@@ -461,7 +461,7 @@ pub(crate) fn assembly_script_create_sc(
 
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_create_sc".to_string(),
             params: vec![into_trace_value!(bytecode)],
             return_value: address.clone().into(),
             sub_calls: None,
@@ -480,7 +480,7 @@ pub(crate) fn assembly_script_hash(mut ctx: FunctionEnvMut<ASEnv>, value: i32) -
         let ptr = BufferPtr::alloc(&hash, &ffi_env, &mut ctx)?.offset();
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_hash".to_string(),
             params: vec![into_trace_value!(bytes)],
             return_value: hash.into(),
             sub_calls: None,
@@ -502,7 +502,7 @@ pub(crate) fn assembly_script_keccak256_hash(
 
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_keccak".to_string(),
             params: vec![into_trace_value!(bytes)],
             return_value: hash.into(),
             sub_calls: None,
@@ -531,7 +531,7 @@ pub(crate) fn assembly_script_get_keys(
 
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_keys".to_string(),
             params: vec![into_trace_value!(prefix)],
             return_value: fmt_keys.into(),
             sub_calls: None,
@@ -561,7 +561,7 @@ pub(crate) fn assembly_script_get_keys_for(
 
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_keys_for".to_string(),
             params: vec![into_trace_value!(address), into_trace_value!(prefix)],
             return_value: AbiTraceType::ByteArrays(keys.iter().cloned().collect()),
             sub_calls: None,
@@ -583,7 +583,7 @@ pub(crate) fn assembly_script_set_data(
         ctx.data().interface.raw_set_data(&key, &value)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_set_data".to_string(),
             params: vec![into_trace_value!(key), into_trace_value!(value)],
             return_value: AbiTraceType::None,
             sub_calls: None,
@@ -605,7 +605,7 @@ pub(crate) fn assembly_script_append_data(
         ctx.data().interface.raw_append_data(&key, &value)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_append_data".to_string(),
             params: vec![into_trace_value!(key), into_trace_value!(value)],
             return_value: AbiTraceType::None,
             sub_calls: None,
@@ -624,7 +624,7 @@ pub(crate) fn assembly_script_get_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
         let ptr = BufferPtr::alloc(&data, &ffi_env, &mut ctx)?.offset() as i32;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_data".to_string(),
             params: vec![into_trace_value!(key)],
             return_value: data.clone().into(),
             sub_calls: None,
@@ -640,7 +640,7 @@ pub(crate) fn assembly_script_has_data(mut ctx: FunctionEnvMut<ASEnv>, key: i32)
         let res = ctx.data().interface.has_data(&key)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_has_data".to_string(),
             params: vec![into_trace_value!(key)],
             return_value: res.into(),
             sub_calls: None,
@@ -660,7 +660,7 @@ pub(crate) fn assembly_script_delete_data(
         ctx.data().interface.raw_delete_data(&key)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_delete_data".to_string(),
             params: vec![into_trace_value!(key)],
             return_value: AbiTraceType::None,
             sub_calls: None,
@@ -686,7 +686,7 @@ pub(crate) fn assembly_script_set_data_for(
             .raw_set_data_for(&address, &key, &value)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_set_data_for".to_string(),
             params: vec![
                 into_trace_value!(address),
                 into_trace_value!(key),
@@ -716,7 +716,7 @@ pub(crate) fn assembly_script_append_data_for(
             .raw_append_data_for(&address, &key, &value)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_append_data_for".to_string(),
             params: vec![
                 into_trace_value!(address),
                 into_trace_value!(key),
@@ -745,7 +745,7 @@ pub(crate) fn assembly_script_get_data_for(
         let ptr = BufferPtr::alloc(&data, &ffi_env, &mut ctx)?.offset() as i32;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_data_for".to_string(),
             params: vec![into_trace_value!(address), into_trace_value!(key)],
             return_value: data.into(),
             sub_calls: None,
@@ -767,7 +767,7 @@ pub(crate) fn assembly_script_delete_data_for(
         ctx.data().interface.raw_delete_data_for(&address, &key)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_delete_data_for".to_string(),
             params: vec![into_trace_value!(address), into_trace_value!(key)],
             return_value: AbiTraceType::None,
             sub_calls: None,
@@ -787,7 +787,7 @@ pub(crate) fn assembly_script_has_data_for(
         let res = ctx.data().interface.has_data_for(&address, &key)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_has_data_for".to_string(),
             params: vec![into_trace_value!(address), into_trace_value!(key)],
             return_value: res.into(),
             sub_calls: None,
@@ -805,7 +805,7 @@ pub(crate) fn assembly_script_get_owned_addresses(
         let ptr = alloc_string_array(&mut ctx, &data);
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_owned_addresses".to_string(),
             params: vec![],
             return_value: data.into(),
             sub_calls: None,
@@ -821,7 +821,7 @@ pub(crate) fn assembly_script_get_call_stack(mut ctx: FunctionEnvMut<ASEnv>) -> 
         let ptr = alloc_string_array(&mut ctx, &data);
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_call_stack".to_string(),
             params: vec![],
             return_value: data.into(),
             sub_calls: None,
@@ -839,7 +839,7 @@ pub(crate) fn assembly_script_generate_event(
         ctx.data().interface.generate_event(event.clone())?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_generate_event".to_string(),
             params: vec![into_trace_value!(event)],
             return_value: AbiTraceType::None,
             sub_calls: None,
@@ -866,7 +866,7 @@ pub(crate) fn assembly_script_signature_verify(
                 .signature_verify(data.as_bytes(), &signature, &public_key)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_signature_verify".to_string(),
             params: vec![
                 into_trace_value!(data.as_bytes().to_vec()),
                 into_trace_value!(signature),
@@ -897,7 +897,7 @@ pub(crate) fn assembly_script_evm_signature_verify(
             .evm_signature_verify(&data, &signature, &public_key)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_evm_signature_verify".to_string(),
             params: vec![
                 into_trace_value!(data),
                 into_trace_value!(signature),
@@ -925,7 +925,7 @@ pub(crate) fn assembly_script_evm_get_address_from_pubkey(
         let ptr = BufferPtr::alloc(&address, &ffi_env, &mut ctx)?.offset();
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_evm_get_address_from_pubkey".to_string(),
             params: vec![into_trace_value!(public_key)],
             return_value: address.into(),
             sub_calls: None,
@@ -954,7 +954,7 @@ pub(crate) fn assembly_script_evm_get_pubkey_from_signature(
             let ptr = BufferPtr::alloc(&public_key, &ffi_env, &mut ctx)?.offset();
             #[cfg(feature = "execution-trace")]
             ctx.data_mut().trace.push(AbiTrace {
-                name: function_name!().to_string(),
+                name: "assembly_script_evm_get_pubkey_from_signature".to_string(),
                 params: vec![into_trace_value!(data), into_trace_value!(signature)],
                 return_value: public_key.into(),
                 sub_calls: None,
@@ -974,7 +974,7 @@ pub(crate) fn assembly_script_is_address_eoa(
         let res = ctx.data().interface.is_address_eoa(&address)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_is_address_eoa".to_string(),
             params: vec![into_trace_value!(address)],
             return_value: res.into(),
             sub_calls: None,
@@ -996,7 +996,7 @@ pub(crate) fn assembly_script_address_from_public_key(
         let ptr = StringPtr::alloc(&addr, &ffi_env, &mut ctx)?.offset() as i32;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_address_from_public_key".to_string(),
             params: vec![into_trace_value!(public_key)],
             return_value: addr.into(),
             sub_calls: None,
@@ -1015,7 +1015,7 @@ pub(crate) fn assembly_script_validate_address(
         let res = ctx.data().interface.validate_address(&address)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_validate_address".to_string(),
             params: vec![into_trace_value!(address)],
             return_value: res.into(),
             sub_calls: None,
@@ -1030,7 +1030,7 @@ pub(crate) fn assembly_script_unsafe_random(mut ctx: FunctionEnvMut<ASEnv>) -> A
         let res = ctx.data().interface.unsafe_random()?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_unsafe_random".to_string(),
             params: vec![],
             return_value: res.into(),
             sub_calls: None,
@@ -1045,7 +1045,7 @@ pub(crate) fn assembly_script_get_time(mut ctx: FunctionEnvMut<ASEnv>) -> ABIRes
         let res = ctx.data().interface.get_time()?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_time".to_string(),
             params: vec![],
             return_value: res.into(),
             sub_calls: None,
@@ -1123,7 +1123,7 @@ pub(crate) fn assembly_script_send_message(
 
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_send_message".to_string(),
             params: vec![
                 into_trace_value!(target_address),
                 into_trace_value!(target_handler),
@@ -1160,7 +1160,7 @@ pub(crate) fn assembly_script_get_origin_operation_id(
         let ptr = StringPtr::alloc(&operation_id, &ffi_env, &mut ctx)?.offset() as i32;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_origin_operation_id".to_string(),
             params: vec![],
             return_value: operation_id.into(),
             sub_calls: None,
@@ -1175,7 +1175,7 @@ pub(crate) fn assembly_script_get_current_period(mut ctx: FunctionEnvMut<ASEnv>)
         let current_period = ctx.data().interface.get_current_period()?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_current_period".to_string(),
             params: vec![],
             return_value: current_period.into(),
             sub_calls: None,
@@ -1190,7 +1190,7 @@ pub(crate) fn assembly_script_get_current_thread(mut ctx: FunctionEnvMut<ASEnv>)
         let current_thread = ctx.data().interface.get_current_thread()?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_current_thread".to_string(),
             params: vec![],
             return_value: current_thread.into(),
             sub_calls: None,
@@ -1213,7 +1213,7 @@ pub(crate) fn assembly_script_set_bytecode_for(
             .raw_set_bytecode_for(&address, &bytecode_raw)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_set_bytecode_for".to_string(),
             params: vec![into_trace_value!(address), into_trace_value!(bytecode_raw)],
             return_value: AbiTraceType::None,
             sub_calls: None,
@@ -1233,7 +1233,7 @@ pub(crate) fn assembly_script_set_bytecode(
         ctx.data().interface.raw_set_bytecode(&bytecode_raw)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_set_bytecode".to_string(),
             params: vec![into_trace_value!(bytecode_raw)],
             return_value: AbiTraceType::None,
             sub_calls: None,
@@ -1250,7 +1250,7 @@ pub(crate) fn assembly_script_get_bytecode(mut ctx: FunctionEnvMut<ASEnv>) -> AB
         let ptr = BufferPtr::alloc(&data, &ffi_env, &mut ctx)?.offset() as i32;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_bytecode".to_string(),
             params: vec![],
             return_value: data.into(),
             sub_calls: None,
@@ -1271,7 +1271,7 @@ pub(crate) fn assembly_script_get_bytecode_for(
         let ptr = BufferPtr::alloc(&data, &ffi_env, &mut ctx)?.offset() as i32;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_bytecode_for".to_string(),
             params: vec![into_trace_value!(address)],
             return_value: data.into(),
             sub_calls: None,
@@ -1302,7 +1302,7 @@ pub(crate) fn assembly_script_local_execution(
         };
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_local_execution".to_string(),
             params: vec![
                 into_trace_value!(bytecode),
                 into_trace_value!(function),
@@ -1340,7 +1340,7 @@ pub(crate) fn assembly_script_local_call(
         };
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_local_call".to_string(),
             params: vec![
                 into_trace_value!(bytecode),
                 into_trace_value!(function),
@@ -1360,7 +1360,7 @@ pub fn assembly_script_caller_has_write_access(mut ctx: FunctionEnvMut<ASEnv>) -
         let has_write_access = ctx.data().interface.caller_has_write_access()?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_caller_has_write_access".to_string(),
             params: vec![],
             return_value: has_write_access.into(),
             sub_calls: None,
@@ -1381,7 +1381,7 @@ pub fn assembly_script_function_exists(
         let function_exists = function_exists(&mut ctx, &address, &function)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_function_exists".to_string(),
             params: vec![into_trace_value!(address), into_trace_value!(function)],
             return_value: function_exists.into(),
             sub_calls: None,
@@ -1396,12 +1396,12 @@ pub(crate) fn assembly_script_chain_id(mut ctx: FunctionEnvMut<ASEnv>) -> ABIRes
         let chain_id = ctx.data().interface.chain_id()?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_chain_id".to_string(),
             params: vec![],
             return_value: chain_id.into(),
             sub_calls: None,
         });
-        Ok(chain_id as u64)
+        Ok(chain_id)
     })
 }
 
@@ -1442,7 +1442,7 @@ pub(crate) fn assembly_script_get_deferred_call_quote(
         }
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_get_deferred_call_quote".to_string(),
             params: vec![
                 into_trace_value!(deferred_call_period),
                 into_trace_value!(deferred_call_thread),
@@ -1499,7 +1499,7 @@ pub(crate) fn assembly_script_deferred_call_register(
         let ptr = StringPtr::alloc(&response, &ffi_env, &mut ctx)?.offset() as i32;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_deferred_call_register".to_string(),
             params: vec![
                 into_trace_value!(target_address),
                 into_trace_value!(target_function),
@@ -1526,7 +1526,7 @@ pub(crate) fn assembly_script_deferred_call_exists(
         let exists = ctx.data().interface.deferred_call_exists(&asc_id)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_deferred_call_exists".to_string(),
             params: vec![into_trace_value!(asc_id)],
             return_value: exists.into(),
             sub_calls: None,
@@ -1545,7 +1545,7 @@ pub(crate) fn assembly_script_deferred_call_cancel(
         ctx.data().interface.deferred_call_cancel(&deferred_id)?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_deferred_call_cancel".to_string(),
             params: vec![into_trace_value!(deferred_id)],
             return_value: AbiTraceType::None,
             sub_calls: None,
@@ -1581,7 +1581,7 @@ pub fn assembly_script_abort(
     }
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
+        name: "assembly_script_abort".to_string(),
         params: vec![
             into_trace_value!(message_.clone().unwrap_or_default()),
             into_trace_value!(filename_.clone().unwrap_or_default()),
@@ -1617,7 +1617,7 @@ pub fn assembly_script_seed(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64> {
         };
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_seed".to_string(),
             params: vec![],
             return_value: seed.into(),
             sub_calls: None,
@@ -1644,7 +1644,7 @@ pub fn assembly_script_date_now(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<f64
         let ret = utime as f64;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_date_now".to_string(),
             params: vec![],
             return_value: ret.into(),
             sub_calls: None,
@@ -1757,7 +1757,7 @@ fn assembly_script_console(
 
     #[cfg(feature = "execution-trace")]
     ctx.data_mut().trace.push(AbiTrace {
-        name: function_name!().to_string(),
+        name: "assembly_script_console_error".to_string(),
         params: vec![into_trace_value!(message)],
         return_value: AbiTraceType::None,
         sub_calls: None,
@@ -1825,7 +1825,7 @@ pub fn assembly_script_trace(
             .generate_event(message_for_event.clone())?;
         #[cfg(feature = "execution-trace")]
         ctx.data_mut().trace.push(AbiTrace {
-            name: function_name!().to_string(),
+            name: "assembly_script_trace".to_string(),
             params: vec![into_trace_value!(message_for_event)],
             return_value: AbiTraceType::None,
             sub_calls: None,
