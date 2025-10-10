@@ -32,7 +32,7 @@ fn test_basic_abi_call_counter() -> Result<()> {
         &interface,
         runtime_module,
         b"",
-        100_000,
+        100_000_000,
         gas_costs.clone(),
         condom_limits.clone(),
     )?;
@@ -196,7 +196,7 @@ fn test_basic_abi_call_loop() -> Result<()> {
         &interface,
         runtime_module,
         b"",
-        100_000,
+        100_000_000,
         gas_costs.clone(),
         condom_limits.clone(),
     )?;

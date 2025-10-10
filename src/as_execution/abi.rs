@@ -15,24 +15,32 @@ use crate::{as_execution::ABIError, settings};
 /// Optimized macro for simple ABI calls - single ctx.data() call
 macro_rules! abi {
     ($ctx:expr, $gas_field:ident, $body:expr) => {{
-        let (gas_cost, remaining, exhausted) = {
+        if cfg!(feature = "gas_calibration") {
             let data = $ctx.data();
             if !data.abi_enabled.load(std::sync::atomic::Ordering::Relaxed) {
                 abi_bail!("ABI calls are not available during instantiation");
             }
-            let gas = data.get_gas_costs().$gas_field;
-            let rem = match data.remaining_points.as_ref() {
-                Some(g) => g.clone(),
-                None => abi_bail!("Lost remaining_points"),
+            $body
+        } else {
+            let (gas_cost, remaining, exhausted) = {
+                let data = $ctx.data();
+                if !data.abi_enabled.load(std::sync::atomic::Ordering::Relaxed) {
+                    abi_bail!("ABI calls are not available during instantiation");
+                }
+                let gas = data.get_gas_costs().$gas_field;
+                let rem = match data.remaining_points.as_ref() {
+                    Some(g) => g.clone(),
+                    None => abi_bail!("Lost remaining_points"),
+                };
+                let exh = match data.exhausted_points.as_ref() {
+                    Some(g) => g.clone(),
+                    None => abi_bail!("Lost exhausted_points"),
+                };
+                (gas, rem, exh)
             };
-            let exh = match data.exhausted_points.as_ref() {
-                Some(g) => g.clone(),
-                None => abi_bail!("Lost exhausted_points"),
-            };
-            (gas, rem, exh)
-        };
-        sub_remaining_gas_with_globals(&remaining, &exhausted, &mut $ctx, gas_cost)?;
-        $body
+            sub_remaining_gas_with_globals(&remaining, &exhausted, &mut $ctx, gas_cost)?;
+            $body
+        }
     }};
 }
 
@@ -40,28 +48,42 @@ macro_rules! abi {
 /// Usage: abi_with_memory!(ctx, gas_field, |memory| { body with memory })
 macro_rules! abi_with_memory {
     ($ctx:expr, $gas_field:ident, |$memory:ident| $body:expr) => {{
-        let (gas_cost, remaining, exhausted, $memory) = {
-            let data = $ctx.data();
-            if !data.abi_enabled.load(std::sync::atomic::Ordering::Relaxed) {
-                abi_bail!("ABI calls are not available during instantiation");
-            }
-            let gas = data.get_gas_costs().$gas_field;
-            let rem = match data.remaining_points.as_ref() {
-                Some(g) => g.clone(),
-                None => abi_bail!("Lost remaining_points"),
+        if cfg!(feature = "gas_calibration") {
+            let $memory = {
+                let data = $ctx.data();
+                if !data.abi_enabled.load(std::sync::atomic::Ordering::Relaxed) {
+                    abi_bail!("ABI calls are not available during instantiation");
+                }
+                match data.get_ffi_env().memory.as_ref() {
+                    Some(m) => m.clone(),
+                    None => abi_bail!("Failed to get memory"),
+                }
             };
-            let exh = match data.exhausted_points.as_ref() {
-                Some(g) => g.clone(),
-                None => abi_bail!("Lost exhausted_points"),
+            $body
+        } else {
+            let (gas_cost, remaining, exhausted, $memory) = {
+                let data = $ctx.data();
+                if !data.abi_enabled.load(std::sync::atomic::Ordering::Relaxed) {
+                    abi_bail!("ABI calls are not available during instantiation");
+                }
+                let gas = data.get_gas_costs().$gas_field;
+                let rem = match data.remaining_points.as_ref() {
+                    Some(g) => g.clone(),
+                    None => abi_bail!("Lost remaining_points"),
+                };
+                let exh = match data.exhausted_points.as_ref() {
+                    Some(g) => g.clone(),
+                    None => abi_bail!("Lost exhausted_points"),
+                };
+                let mem = match data.get_ffi_env().memory.as_ref() {
+                    Some(m) => m.clone(),
+                    None => abi_bail!("Failed to get memory"),
+                };
+                (gas, rem, exh, mem)
             };
-            let mem = match data.get_ffi_env().memory.as_ref() {
-                Some(m) => m.clone(),
-                None => abi_bail!("Failed to get memory"),
-            };
-            (gas, rem, exh, mem)
-        };
-        sub_remaining_gas_with_globals(&remaining, &exhausted, &mut $ctx, gas_cost)?;
-        $body
+            sub_remaining_gas_with_globals(&remaining, &exhausted, &mut $ctx, gas_cost)?;
+            $body
+        }
     }};
 }
 
@@ -253,6 +275,22 @@ pub(crate) fn assembly_script_call(
 }
 
 pub(crate) fn assembly_script_get_remaining_gas(mut ctx: FunctionEnvMut<ASEnv>) -> ABIResult<i64> {
+    // Check if gas_calibration is enabled first
+    if cfg!(feature = "gas_calibration") {
+        let data = ctx.data();
+        if !data.abi_enabled.load(std::sync::atomic::Ordering::Relaxed) {
+            abi_bail!("ABI calls are not available during instantiation");
+        }
+        #[cfg(feature = "execution-trace")]
+        ctx.data_mut().trace.push(AbiTrace {
+            name: "assembly_script_get_remaining_gas".to_string(),
+            params: vec![],
+            return_value: (u64::MAX as i64).into(),
+            sub_calls: None,
+        });
+        return Ok(u64::MAX as i64);
+    }
+
     // Inline macro logic: check enabled, get gas cost, extract globals, subtract gas
     let (gas_cost, remaining, exhausted) = {
         let data = ctx.data();
@@ -271,18 +309,6 @@ pub(crate) fn assembly_script_get_remaining_gas(mut ctx: FunctionEnvMut<ASEnv>) 
         (gas, rem, exh)
     };
     sub_remaining_gas_with_globals(&remaining, &exhausted, &mut ctx, gas_cost)?;
-
-    // Now read the remaining gas after subtraction (same logic as get_remaining_points)
-    if cfg!(feature = "gas_calibration") {
-        #[cfg(feature = "execution-trace")]
-        ctx.data_mut().trace.push(AbiTrace {
-            name: "assembly_script_get_remaining_gas".to_string(),
-            params: vec![],
-            return_value: (u64::MAX as i64).into(),
-            sub_calls: None,
-        });
-        return Ok(u64::MAX as i64);
-    }
 
     // Check if exhausted
     match exhausted.get(&mut ctx).try_into() {
