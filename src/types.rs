@@ -228,297 +228,500 @@ pub struct CondomLimits {
 
 #[derive(Clone, Debug)]
 pub struct GasCosts {
-    pub(crate) abi_costs: HashMap<String, u64>,
+    // Core costs
     pub(crate) launch_cost: u64,
     pub(crate) operator_cost: u64,
     pub cl_compilation_cost: u64,
     pub sp_compilation_cost: u64,
     pub max_instance_cost: u64,
+
+    // AssemblyScript ABI costs (alphabetically sorted)
+    pub assembly_script_abort: u64,
+    pub assembly_script_address_from_public_key: u64,
+    pub assembly_script_append_data: u64,
+    pub assembly_script_append_data_for: u64,
+    pub assembly_script_call: u64,
+    pub assembly_script_caller_has_write_access: u64,
+    pub assembly_script_chain_id: u64,
+    pub assembly_script_console_debug: u64,
+    pub assembly_script_console_error: u64,
+    pub assembly_script_console_info: u64,
+    pub assembly_script_console_log: u64,
+    pub assembly_script_console_warn: u64,
+    pub assembly_script_create_sc: u64,
+    pub assembly_script_date_now: u64,
+    pub assembly_script_deferred_call_cancel: u64,
+    pub assembly_script_deferred_call_exists: u64,
+    pub assembly_script_deferred_call_register: u64,
+    pub assembly_script_delete_data: u64,
+    pub assembly_script_delete_data_for: u64,
+    pub assembly_script_evm_get_address_from_pubkey: u64,
+    pub assembly_script_evm_get_pubkey_from_signature: u64,
+    pub assembly_script_evm_signature_verify: u64,
+    pub assembly_script_function_exists: u64,
+    pub assembly_script_generate_event: u64,
+    pub assembly_script_get_balance: u64,
+    pub assembly_script_get_balance_for: u64,
+    pub assembly_script_get_bytecode: u64,
+    pub assembly_script_get_bytecode_for: u64,
+    pub assembly_script_get_call_coins: u64,
+    pub assembly_script_get_call_stack: u64,
+    pub assembly_script_get_current_period: u64,
+    pub assembly_script_get_current_thread: u64,
+    pub assembly_script_get_data: u64,
+    pub assembly_script_get_data_for: u64,
+    pub assembly_script_get_deferred_call_quote: u64,
+    pub assembly_script_get_keys: u64,
+    pub assembly_script_get_keys_for: u64,
+    pub assembly_script_get_op_data: u64,
+    pub assembly_script_get_op_keys: u64,
+    pub assembly_script_get_op_keys_prefix: u64,
+    pub assembly_script_get_origin_operation_id: u64,
+    pub assembly_script_get_owned_addresses: u64,
+    pub assembly_script_get_remaining_gas: u64,
+    pub assembly_script_get_time: u64,
+    pub assembly_script_has_data: u64,
+    pub assembly_script_has_data_for: u64,
+    pub assembly_script_has_op_key: u64,
+    pub assembly_script_hash: u64,
+    pub assembly_script_hash_sha256: u64,
+    pub assembly_script_is_address_eoa: u64,
+    pub assembly_script_keccak256_hash: u64,
+    pub assembly_script_local_call: u64,
+    pub assembly_script_local_execution: u64,
+    pub assembly_script_print: u64,
+    pub assembly_script_seed: u64,
+    pub assembly_script_send_message: u64,
+    pub assembly_script_set_bytecode: u64,
+    pub assembly_script_set_bytecode_for: u64,
+    pub assembly_script_set_data: u64,
+    pub assembly_script_set_data_for: u64,
+    pub assembly_script_signature_verify: u64,
+    pub assembly_script_trace: u64,
+    pub assembly_script_transfer_coins: u64,
+    pub assembly_script_transfer_coins_for: u64,
+    pub assembly_script_unsafe_random: u64,
+    pub assembly_script_validate_address: u64,
+
+    // WasmV1 ABI costs
+    pub abi_abort: u64,
+    pub abi_add_native_amount: u64,
+    pub abi_address_from_public_key: u64,
+    pub abi_append_ds_value: u64,
+    pub abi_base58_check_to_bytes: u64,
+    pub abi_bytes_to_base58_check: u64,
+    pub abi_call: u64,
+    pub abi_caller_has_write_access: u64,
+    pub abi_chain_id: u64,
+    pub abi_check_address: u64,
+    pub abi_check_native_amount: u64,
+    pub abi_check_pubkey: u64,
+    pub abi_check_signature: u64,
+    pub abi_checked_add_native_time: u64,
+    pub abi_checked_div_native_time: u64,
+    pub abi_checked_mul_native_time: u64,
+    pub abi_checked_scalar_div_native_time: u64,
+    pub abi_checked_sub_native_time: u64,
+    pub abi_compare_address: u64,
+    pub abi_compare_native_amount: u64,
+    pub abi_compare_native_time: u64,
+    pub abi_compare_pub_key: u64,
+    pub abi_create_sc: u64,
+    pub abi_deferred_call_cancel: u64,
+    pub abi_deferred_call_exists: u64,
+    pub abi_deferred_call_register: u64,
+    pub abi_delete_ds_entry: u64,
+    pub abi_div_rem_native_amount: u64,
+    pub abi_ds_entry_exists: u64,
+    pub abi_evm_get_address_from_pubkey: u64,
+    pub abi_evm_get_pubkey_from_signature: u64,
+    pub abi_evm_verify_signature: u64,
+    pub abi_function_exists: u64,
+    pub abi_generate_event: u64,
+    pub abi_get_address_category: u64,
+    pub abi_get_address_version: u64,
+    pub abi_get_balance: u64,
+    pub abi_get_bytecode: u64,
+    pub abi_get_call_coins: u64,
+    pub abi_get_call_stack: u64,
+    pub abi_get_current_slot: u64,
+    pub abi_get_deferred_call_quote: u64,
+    pub abi_get_ds_keys: u64,
+    pub abi_get_ds_value: u64,
+    pub abi_get_native_time: u64,
+    pub abi_get_op_data: u64,
+    pub abi_get_op_keys: u64,
+    pub abi_get_origin_operation_id: u64,
+    pub abi_get_owned_addresses: u64,
+    pub abi_get_pubkey_version: u64,
+    pub abi_get_remaining_gas: u64,
+    pub abi_get_signature_version: u64,
+    pub abi_hash_blake3: u64,
+    pub abi_hash_keccak256: u64,
+    pub abi_hash_sha256: u64,
+    pub abi_is_address_eoa: u64,
+    pub abi_local_call: u64,
+    pub abi_local_execution: u64,
+    pub abi_native_amount_from_string: u64,
+    pub abi_native_amount_to_string: u64,
+    pub abi_op_entry_exists: u64,
+    pub abi_scalar_div_rem_native_amount: u64,
+    pub abi_scalar_mul_native_amount: u64,
+    pub abi_send_async_message: u64,
+    pub abi_set_bytecode: u64,
+    pub abi_set_ds_value: u64,
+    pub abi_sub_native_amount: u64,
+    pub abi_transfer_coins: u64,
+    pub abi_unsafe_random: u64,
+    pub abi_verify_signature: u64,
 }
 
 impl GasCosts {
+    /// Round gas cost to nearest 10
+    fn round_gas(v: u64) -> u64 {
+        let unit_digit = v % 10;
+        if unit_digit > 5 {
+            v + (10 - unit_digit)
+        } else {
+            v - unit_digit
+        }
+    }
+
     pub fn new(abi_cost_file: PathBuf) -> Result<Self> {
         let abi_cost_file = std::fs::read_to_string(abi_cost_file)?;
         let mut abi_costs: HashMap<String, u64> = serde_json::from_str(&abi_cost_file)?;
         abi_costs.iter_mut().for_each(|(_, v)| {
-            let unit_digit = *v % 10;
-            if unit_digit > 5 {
-                *v += 10 - unit_digit;
-            } else {
-                *v -= unit_digit;
-            }
+            *v = Self::round_gas(*v);
         });
+
+        // Helper macro to get and unwrap cost from HashMap
+        macro_rules! get_cost {
+            ($name:expr) => {
+                *abi_costs.get($name).ok_or_else(|| {
+                    InterfaceError::GasCalibrationError(
+                        format!("{} cost not found in ABI gas cost file", $name).into(),
+                    )
+                })?
+            };
+        }
+
         Ok(Self {
             // Note: Use a constant = 23 here in order to not break compatibility with previous Massa node version
             //       The gas calibration for wasm operators is very incomplete for now and should be reworked
             //       See: https://github.com/massalabs/gas-calibration/issues/9
             operator_cost: 23,
-            launch_cost: *abi_costs.get("launch").ok_or_else(|| {
-                InterfaceError::GasCalibrationError(
-                    "launch cost not found in ABI gas cost file.".into(),
-                )
-            })?,
-            cl_compilation_cost: *abi_costs.get("cl_compilation").ok_or_else(|| {
-                InterfaceError::GasCalibrationError(
-                    "cl_compilation cost not found in ABI gas cost file.".into(),
-                )
-            })?,
-            sp_compilation_cost: *abi_costs.get("sp_compilation").ok_or_else(|| {
-                InterfaceError::GasCalibrationError(
-                    "sp_compilation cost not found in ABI gas cost file.".into(),
-                )
-            })?,
-            max_instance_cost: *abi_costs.get("max_instance").ok_or_else(|| {
-                InterfaceError::GasCalibrationError(
-                    "max_instance cost not found in ABI gas cost file.".into(),
-                )
-            })?,
-            abi_costs,
+            launch_cost: get_cost!("launch"),
+            cl_compilation_cost: get_cost!("cl_compilation"),
+            sp_compilation_cost: get_cost!("sp_compilation"),
+            max_instance_cost: get_cost!("max_instance"),
+
+            // AssemblyScript ABI costs
+            assembly_script_abort: get_cost!("assembly_script_abort"),
+            assembly_script_address_from_public_key: get_cost!(
+                "assembly_script_address_from_public_key"
+            ),
+            assembly_script_append_data: get_cost!("assembly_script_append_data"),
+            assembly_script_append_data_for: get_cost!("assembly_script_append_data_for"),
+            assembly_script_call: get_cost!("assembly_script_call"),
+            assembly_script_caller_has_write_access: get_cost!(
+                "assembly_script_caller_has_write_access"
+            ),
+            assembly_script_chain_id: get_cost!("assembly_script_chain_id"),
+            assembly_script_console_debug: get_cost!("assembly_script_console_debug"),
+            assembly_script_console_error: get_cost!("assembly_script_console_error"),
+            assembly_script_console_info: get_cost!("assembly_script_console_info"),
+            assembly_script_console_log: get_cost!("assembly_script_console_log"),
+            assembly_script_console_warn: get_cost!("assembly_script_console_warn"),
+            assembly_script_create_sc: get_cost!("assembly_script_create_sc"),
+            assembly_script_date_now: get_cost!("assembly_script_date_now"),
+            assembly_script_deferred_call_cancel: get_cost!("assembly_script_deferred_call_cancel"),
+            assembly_script_deferred_call_exists: get_cost!("assembly_script_deferred_call_exists"),
+            assembly_script_deferred_call_register: get_cost!(
+                "assembly_script_deferred_call_register"
+            ),
+            assembly_script_delete_data: get_cost!("assembly_script_delete_data"),
+            assembly_script_delete_data_for: get_cost!("assembly_script_delete_data_for"),
+            assembly_script_evm_get_address_from_pubkey: get_cost!(
+                "assembly_script_evm_get_address_from_pubkey"
+            ),
+            assembly_script_evm_get_pubkey_from_signature: get_cost!(
+                "assembly_script_evm_get_pubkey_from_signature"
+            ),
+            assembly_script_evm_signature_verify: get_cost!("assembly_script_evm_signature_verify"),
+            assembly_script_function_exists: get_cost!("assembly_script_function_exists"),
+            assembly_script_generate_event: get_cost!("assembly_script_generate_event"),
+            assembly_script_get_balance: get_cost!("assembly_script_get_balance"),
+            assembly_script_get_balance_for: get_cost!("assembly_script_get_balance_for"),
+            assembly_script_get_bytecode: get_cost!("assembly_script_get_bytecode"),
+            assembly_script_get_bytecode_for: get_cost!("assembly_script_get_bytecode_for"),
+            assembly_script_get_call_coins: get_cost!("assembly_script_get_call_coins"),
+            assembly_script_get_call_stack: get_cost!("assembly_script_get_call_stack"),
+            assembly_script_get_current_period: get_cost!("assembly_script_get_current_period"),
+            assembly_script_get_current_thread: get_cost!("assembly_script_get_current_thread"),
+            assembly_script_get_data: get_cost!("assembly_script_get_data"),
+            assembly_script_get_data_for: get_cost!("assembly_script_get_data_for"),
+            assembly_script_get_deferred_call_quote: get_cost!(
+                "assembly_script_get_deferred_call_quote"
+            ),
+            assembly_script_get_keys: get_cost!("assembly_script_get_keys"),
+            assembly_script_get_keys_for: get_cost!("assembly_script_get_keys_for"),
+            assembly_script_get_op_data: get_cost!("assembly_script_get_op_data"),
+            assembly_script_get_op_keys: get_cost!("assembly_script_get_op_keys"),
+            assembly_script_get_op_keys_prefix: get_cost!("assembly_script_get_op_keys_prefix"),
+            assembly_script_get_origin_operation_id: get_cost!(
+                "assembly_script_get_origin_operation_id"
+            ),
+            assembly_script_get_owned_addresses: get_cost!("assembly_script_get_owned_addresses"),
+            assembly_script_get_remaining_gas: get_cost!("assembly_script_get_remaining_gas"),
+            assembly_script_get_time: get_cost!("assembly_script_get_time"),
+            assembly_script_has_data: get_cost!("assembly_script_has_data"),
+            assembly_script_has_data_for: get_cost!("assembly_script_has_data_for"),
+            assembly_script_has_op_key: get_cost!("assembly_script_has_op_key"),
+            assembly_script_hash: get_cost!("assembly_script_hash"),
+            assembly_script_hash_sha256: get_cost!("assembly_script_hash_sha256"),
+            assembly_script_is_address_eoa: get_cost!("assembly_script_is_address_eoa"),
+            assembly_script_keccak256_hash: get_cost!("assembly_script_keccak256_hash"),
+            assembly_script_local_call: get_cost!("assembly_script_local_call"),
+            assembly_script_local_execution: get_cost!("assembly_script_local_execution"),
+            assembly_script_print: get_cost!("assembly_script_print"),
+            assembly_script_seed: get_cost!("assembly_script_seed"),
+            assembly_script_send_message: get_cost!("assembly_script_send_message"),
+            assembly_script_set_bytecode: get_cost!("assembly_script_set_bytecode"),
+            assembly_script_set_bytecode_for: get_cost!("assembly_script_set_bytecode_for"),
+            assembly_script_set_data: get_cost!("assembly_script_set_data"),
+            assembly_script_set_data_for: get_cost!("assembly_script_set_data_for"),
+            assembly_script_signature_verify: get_cost!("assembly_script_signature_verify"),
+            assembly_script_trace: get_cost!("assembly_script_trace"),
+            assembly_script_transfer_coins: get_cost!("assembly_script_transfer_coins"),
+            assembly_script_transfer_coins_for: get_cost!("assembly_script_transfer_coins_for"),
+            assembly_script_unsafe_random: get_cost!("assembly_script_unsafe_random"),
+            assembly_script_validate_address: get_cost!("assembly_script_validate_address"),
+
+            // WasmV1 ABI costs
+            abi_abort: get_cost!("abi_abort"),
+            abi_add_native_amount: get_cost!("abi_add_native_amount"),
+            abi_address_from_public_key: get_cost!("abi_address_from_public_key"),
+            abi_append_ds_value: get_cost!("abi_append_ds_value"),
+            abi_base58_check_to_bytes: get_cost!("abi_base58_check_to_bytes"),
+            abi_bytes_to_base58_check: get_cost!("abi_bytes_to_base58_check"),
+            abi_call: get_cost!("abi_call"),
+            abi_caller_has_write_access: get_cost!("abi_caller_has_write_access"),
+            abi_chain_id: get_cost!("abi_chain_id"),
+            abi_check_address: get_cost!("abi_check_address"),
+            abi_check_native_amount: get_cost!("abi_check_native_amount"),
+            abi_check_pubkey: get_cost!("abi_check_pubkey"),
+            abi_check_signature: get_cost!("abi_check_signature"),
+            abi_checked_add_native_time: get_cost!("abi_checked_add_native_time"),
+            abi_checked_div_native_time: get_cost!("abi_checked_div_native_time"),
+            abi_checked_mul_native_time: get_cost!("abi_checked_mul_native_time"),
+            abi_checked_scalar_div_native_time: get_cost!("abi_checked_scalar_div_native_time"),
+            abi_checked_sub_native_time: get_cost!("abi_checked_sub_native_time"),
+            abi_compare_address: get_cost!("abi_compare_address"),
+            abi_compare_native_amount: get_cost!("abi_compare_native_amount"),
+            abi_compare_native_time: get_cost!("abi_compare_native_time"),
+            abi_compare_pub_key: get_cost!("abi_compare_pub_key"),
+            abi_create_sc: get_cost!("abi_create_sc"),
+            abi_deferred_call_cancel: get_cost!("abi_deferred_call_cancel"),
+            abi_deferred_call_exists: get_cost!("abi_deferred_call_exists"),
+            abi_deferred_call_register: get_cost!("abi_deferred_call_register"),
+            abi_delete_ds_entry: get_cost!("abi_delete_ds_entry"),
+            abi_div_rem_native_amount: get_cost!("abi_div_rem_native_amount"),
+            abi_ds_entry_exists: get_cost!("abi_ds_entry_exists"),
+            abi_evm_get_address_from_pubkey: get_cost!("abi_evm_get_address_from_pubkey"),
+            abi_evm_get_pubkey_from_signature: get_cost!("abi_evm_get_pubkey_from_signature"),
+            abi_evm_verify_signature: get_cost!("abi_evm_verify_signature"),
+            abi_function_exists: get_cost!("abi_function_exists"),
+            abi_generate_event: get_cost!("abi_generate_event"),
+            abi_get_address_category: get_cost!("abi_get_address_category"),
+            abi_get_address_version: get_cost!("abi_get_address_version"),
+            abi_get_balance: get_cost!("abi_get_balance"),
+            abi_get_bytecode: get_cost!("abi_get_bytecode"),
+            abi_get_call_coins: get_cost!("abi_get_call_coins"),
+            abi_get_call_stack: get_cost!("abi_get_call_stack"),
+            abi_get_current_slot: get_cost!("abi_get_current_slot"),
+            abi_get_deferred_call_quote: get_cost!("abi_get_deferred_call_quote"),
+            abi_get_ds_keys: get_cost!("abi_get_ds_keys"),
+            abi_get_ds_value: get_cost!("abi_get_ds_value"),
+            abi_get_native_time: get_cost!("abi_get_native_time"),
+            abi_get_op_data: get_cost!("abi_get_op_data"),
+            abi_get_op_keys: get_cost!("abi_get_op_keys"),
+            abi_get_origin_operation_id: get_cost!("abi_get_origin_operation_id"),
+            abi_get_owned_addresses: get_cost!("abi_get_owned_addresses"),
+            abi_get_pubkey_version: get_cost!("abi_get_pubkey_version"),
+            abi_get_remaining_gas: get_cost!("abi_get_remaining_gas"),
+            abi_get_signature_version: get_cost!("abi_get_signature_version"),
+            abi_hash_blake3: get_cost!("abi_hash_blake3"),
+            abi_hash_keccak256: get_cost!("abi_hash_keccak256"),
+            abi_hash_sha256: get_cost!("abi_hash_sha256"),
+            abi_is_address_eoa: get_cost!("abi_is_address_eoa"),
+            abi_local_call: get_cost!("abi_local_call"),
+            abi_local_execution: get_cost!("abi_local_execution"),
+            abi_native_amount_from_string: get_cost!("abi_native_amount_from_string"),
+            abi_native_amount_to_string: get_cost!("abi_native_amount_to_string"),
+            abi_op_entry_exists: get_cost!("abi_op_entry_exists"),
+            abi_scalar_div_rem_native_amount: get_cost!("abi_scalar_div_rem_native_amount"),
+            abi_scalar_mul_native_amount: get_cost!("abi_scalar_mul_native_amount"),
+            abi_send_async_message: get_cost!("abi_send_async_message"),
+            abi_set_bytecode: get_cost!("abi_set_bytecode"),
+            abi_set_ds_value: get_cost!("abi_set_ds_value"),
+            abi_sub_native_amount: get_cost!("abi_sub_native_amount"),
+            abi_transfer_coins: get_cost!("abi_transfer_coins"),
+            abi_unsafe_random: get_cost!("abi_unsafe_random"),
+            abi_verify_signature: get_cost!("abi_verify_signature"),
         })
-    }
-
-    #[cfg(any(test, feature = "gas_calibration", feature = "testing"))]
-    pub fn get_abi_costs(&self) -> &HashMap<String, u64> {
-        &self.abi_costs
-    }
-
-    #[cfg(any(test, feature = "gas_calibration", feature = "testing"))]
-    /// Insert into hashmap - return None if already there
-    fn try_insert(h: &mut HashMap<String, u64>, k: String, v: u64) {
-        // Note: use try_insert when not an experimental feature anymore
-        // https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.try_insert
-        if h.insert(k.clone(), v).is_some() {
-            // Insert return old value if the key was already there
-            panic!("Key {} already in hashmap", k);
-        }
     }
 }
 
 #[cfg(any(test, feature = "gas_calibration", feature = "testing"))]
 impl Default for GasCosts {
     fn default() -> Self {
-        let mut h = HashMap::new();
-        // Note: use try_insert to notify devs for duplicated abi/gas_costs
-        //       this will panic in unit tests
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_address_from_public_key"),
-            147,
-        );
-        GasCosts::try_insert(&mut h, String::from("assembly_script_validate_address"), 4);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_append_data"), 162);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_append_data_for"), 200);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_create_sc"), 160);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_delete_data"), 78);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_delete_data_for"), 120);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_generate_event"), 36);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_balance"), 4);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_balance_for"), 41);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_call_coins"), 9);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_call_stack"), 56);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_data"), 85);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_data_for"), 139);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_keys"), 26);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_keys_for"), 48);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_op_data"), 71);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_op_keys"), 138);
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_get_op_keys_prefix"),
-            138,
-        );
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_get_owned_addresses"),
-            52,
-        );
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_remaining_gas"), 7);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_time"), 4);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_has_data"), 69);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_has_data_for"), 115);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_has_op_key"), 78);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_hash"), 83);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_hash_sha256"), 83);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_keccak256_hash"), 83);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_print"), 35);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_send_message"), 316);
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_get_origin_operation_id"),
-            200,
-        );
-        GasCosts::try_insert(&mut h, String::from("assembly_script_set_bytecode"), 74);
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_set_bytecode_for"),
-            129,
-        );
-        GasCosts::try_insert(&mut h, String::from("assembly_script_set_data"), 158);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_set_data_for"), 165);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_signature_verify"), 98);
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_evm_signature_verify"),
-            264,
-        );
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_evm_get_address_from_pubkey"),
-            11,
-        );
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_evm_get_pubkey_from_signature"),
-            11,
-        );
-        GasCosts::try_insert(&mut h, String::from("assembly_script_is_address_eoa"), 11);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_transfer_coins"), 62);
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_transfer_coins_for"),
-            102,
-        );
-        GasCosts::try_insert(&mut h, String::from("assembly_script_unsafe_random"), 11);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_call"), 11);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_local_call"), 11);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_local_execution"), 11);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_bytecode"), 11);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_get_bytecode_for"), 11);
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_caller_has_write_access"),
-            11,
-        );
-        GasCosts::try_insert(&mut h, String::from("assembly_script_function_exists"), 11);
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_get_deferred_call_quote"),
-            244,
-        );
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_deferred_call_register"),
-            530,
-        );
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_deferred_call_exists"),
-            1316,
-        );
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_deferred_call_cancel"),
-            833,
-        );
-        GasCosts::try_insert(&mut h, String::from("assembly_script_seed"), 11);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_abort"), 11);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_date_now"), 11);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_console_log"), 36); // same cost as for generate_event
-        GasCosts::try_insert(&mut h, String::from("assembly_script_console_info"), 36);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_console_debug"), 36);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_console_warn"), 36);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_console_error"), 36);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_trace"), 36);
-        GasCosts::try_insert(&mut h, String::from("assembly_script_chain_id"), 9);
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_get_current_period"),
-            157,
-        );
-        GasCosts::try_insert(
-            &mut h,
-            String::from("assembly_script_get_current_thread"),
-            154,
-        );
-
-        // abi v1
-        GasCosts::try_insert(&mut h, String::from("abi_get_address_version"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_call"), 30);
-        GasCosts::try_insert(
-            &mut h,
-            String::from("abi_checked_scalar_div_native_time"),
-            30,
-        );
-        GasCosts::try_insert(&mut h, String::from("abi_check_signature"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_local_call"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_compare_address"), 30);
-        GasCosts::try_insert(&mut h, String::from("sp_compilation"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_append_ds_value"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_delete_ds_entry"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_address_from_public_key"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_bytes_to_base58_check"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_hash_blake3"), 30);
-        GasCosts::try_insert(
-            &mut h,
-            String::from("abi_evm_get_pubkey_from_signature"),
-            30,
-        );
-        GasCosts::try_insert(&mut h, String::from("abi_get_remaining_gas"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_add_native_amount"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_base58_check_to_bytes"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_set_bytecode"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_call_coins"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_chain_id"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_abort"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_checked_div_native_time"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_address_category"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_send_async_message"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_check_address"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_sub_native_amount"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_scalar_mul_native_amount"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_bytecode"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_op_keys"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_native_amount_to_string"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_hash_sha256"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_native_amount_from_string"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_create_sc"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_origin_operation_id"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_pubkey_version"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_is_address_eoa"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_evm_get_address_from_pubkey"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_ds_value"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_scalar_div_rem_native_amount"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_signature_version"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_unsafe_random"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_compare_pub_key"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_generate_event"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_verify_signature"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_checked_sub_native_time"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_native_time"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_owned_addresses"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_check_pubkey"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_compare_native_amount"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_compare_native_time"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_balance"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_set_ds_value"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_ds_keys"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_op_data"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_ds_entry_exists"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_div_rem_native_amount"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_evm_verify_signature"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_check_native_amount"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_transfer_coins"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_hash_keccak256"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_current_slot"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_checked_add_native_time"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_op_entry_exists"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_function_exists"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_get_call_stack"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_caller_has_write_access"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_local_execution"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_checked_mul_native_time"), 30);
-        GasCosts::try_insert(&mut h, String::from("abi_deferred_call_cancel"), 750);
-        GasCosts::try_insert(&mut h, String::from("abi_deferred_call_exists"), 443);
-        GasCosts::try_insert(&mut h, String::from("abi_deferred_call_register"), 745);
-        GasCosts::try_insert(&mut h, String::from("abi_get_deferred_call_quote"), 416);
-
         Self {
-            abi_costs: h,
-            operator_cost: 1,
-            launch_cost: 10_000,
-            sp_compilation_cost: 314_000_000,
-            cl_compilation_cost: 745_000_000,
-            max_instance_cost: 2_100_000,
+            // Core costs
+            launch_cost: 15702,
+            operator_cost: 23,
+            cl_compilation_cost: 745000000,
+            sp_compilation_cost: 314000000,
+            max_instance_cost: 2100000,
+
+            // AssemblyScript ABI costs
+            assembly_script_abort: 1,
+            assembly_script_address_from_public_key: 1570,
+            assembly_script_append_data: 1060,
+            assembly_script_append_data_for: 1290,
+            assembly_script_call: 15000,
+            assembly_script_caller_has_write_access: 775,
+            assembly_script_chain_id: 785,
+            assembly_script_console_debug: 855,
+            assembly_script_console_error: 855,
+            assembly_script_console_info: 855,
+            assembly_script_console_log: 855,
+            assembly_script_console_warn: 855,
+            assembly_script_create_sc: 745000000,
+            assembly_script_date_now: 355,
+            assembly_script_deferred_call_cancel: 4165,
+            assembly_script_deferred_call_exists: 6580,
+            assembly_script_deferred_call_register: 2650,
+            assembly_script_delete_data: 980,
+            assembly_script_delete_data_for: 1100,
+            assembly_script_evm_get_address_from_pubkey: 1120,
+            assembly_script_evm_get_pubkey_from_signature: 1540,
+            assembly_script_evm_signature_verify: 3310,
+            assembly_script_function_exists: 2875,
+            assembly_script_generate_event: 860,
+            assembly_script_get_balance: 745,
+            assembly_script_get_balance_for: 900,
+            assembly_script_get_bytecode: 1100,
+            assembly_script_get_bytecode_for: 1375,
+            assembly_script_get_call_coins: 725,
+            assembly_script_get_call_stack: 1560,
+            assembly_script_get_current_period: 785,
+            assembly_script_get_current_thread: 770,
+            assembly_script_get_data: 1040,
+            assembly_script_get_data_for: 1240,
+            assembly_script_get_deferred_call_quote: 1220,
+            assembly_script_get_keys: 1000,
+            assembly_script_get_keys_for: 1195,
+            assembly_script_get_op_data: 50000,
+            assembly_script_get_op_keys: 1400,
+            assembly_script_get_op_keys_prefix: 1400,
+            assembly_script_get_origin_operation_id: 785,
+            assembly_script_get_owned_addresses: 1600,
+            assembly_script_get_remaining_gas: 580,
+            assembly_script_get_time: 750,
+            assembly_script_has_data: 845,
+            assembly_script_has_data_for: 1220,
+            assembly_script_has_op_key: 1455,
+            assembly_script_hash: 1055,
+            assembly_script_hash_sha256: 990,
+            assembly_script_is_address_eoa: 450,
+            assembly_script_keccak256_hash: 1055,
+            assembly_script_local_call: 15000,
+            assembly_script_local_execution: 314000000,
+            assembly_script_print: 855,
+            assembly_script_seed: 360,
+            assembly_script_send_message: 40000000,
+            assembly_script_set_bytecode: 745000000,
+            assembly_script_set_bytecode_for: 745000000,
+            assembly_script_set_data: 940,
+            assembly_script_set_data_for: 1070,
+            assembly_script_signature_verify: 1200,
+            assembly_script_trace: 855,
+            assembly_script_transfer_coins: 1045,
+            assembly_script_transfer_coins_for: 1190,
+            assembly_script_unsafe_random: 790,
+            assembly_script_validate_address: 890,
+
+            // WasmV1 ABI costs
+            abi_abort: 0,
+            abi_add_native_amount: 2415,
+            abi_address_from_public_key: 2410,
+            abi_append_ds_value: 2130,
+            abi_base58_check_to_bytes: 13380,
+            abi_bytes_to_base58_check: 31550,
+            abi_call: 85637,
+            abi_caller_has_write_access: 1360,
+            abi_chain_id: 1505,
+            abi_check_address: 1800,
+            abi_check_native_amount: 1765,
+            abi_check_pubkey: 1880,
+            abi_check_signature: 1985,
+            abi_checked_add_native_time: 2060,
+            abi_checked_div_native_time: 2310,
+            abi_checked_mul_native_time: 1750,
+            abi_checked_scalar_div_native_time: 2200,
+            abi_checked_sub_native_time: 2065,
+            abi_compare_address: 2050,
+            abi_compare_native_amount: 1955,
+            abi_compare_native_time: 2130,
+            abi_compare_pub_key: 2660,
+            abi_create_sc: 2395,
+            abi_deferred_call_cancel: 3750,
+            abi_deferred_call_exists: 2215,
+            abi_deferred_call_register: 3725,
+            abi_delete_ds_entry: 1115,
+            abi_div_rem_native_amount: 2315,
+            abi_ds_entry_exists: 1870,
+            abi_evm_get_address_from_pubkey: 2180,
+            abi_evm_get_pubkey_from_signature: 16275,
+            abi_evm_verify_signature: 14195,
+            abi_function_exists: 2380,
+            abi_generate_event: 2105,
+            abi_get_address_category: 1800,
+            abi_get_address_version: 1695,
+            abi_get_balance: 1765,
+            abi_get_bytecode: 1465,
+            abi_get_call_coins: 1590,
+            abi_get_call_stack: 2015,
+            abi_get_current_slot: 1505,
+            abi_get_deferred_call_quote: 2080,
+            abi_get_ds_keys: 1825,
+            abi_get_ds_value: 2440,
+            abi_get_native_time: 1625,
+            abi_get_op_data: 1805,
+            abi_get_op_keys: 23185,
+            abi_get_origin_operation_id: 1310,
+            abi_get_owned_addresses: 2035,
+            abi_get_pubkey_version: 1920,
+            abi_get_remaining_gas: 1455,
+            abi_get_signature_version: 1755,
+            abi_hash_blake3: 2705,
+            abi_hash_keccak256: 2620,
+            abi_hash_sha256: 2725,
+            abi_is_address_eoa: 1720,
+            abi_local_call: 83348,
+            abi_local_execution: 86310,
+            abi_native_amount_from_string: 1615,
+            abi_native_amount_to_string: 1880,
+            abi_op_entry_exists: 1860,
+            abi_scalar_div_rem_native_amount: 2320,
+            abi_scalar_mul_native_amount: 2200,
+            abi_send_async_message: 40000000,
+            abi_set_bytecode: 238,
+            abi_set_ds_value: 2020,
+            abi_sub_native_amount: 2130,
+            abi_transfer_coins: 2250,
+            abi_unsafe_random: 2010,
+            abi_verify_signature: 5960,
         }
     }
 }

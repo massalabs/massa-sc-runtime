@@ -1,8 +1,5 @@
-use super::{
-    super::{env::ABIEnv, WasmV1Error},
-    handler::{handle_abi, handle_abi_raw},
-};
-use function_name::named;
+use super::super::{env::ABIEnv, WasmV1Error};
+// handle_abi and handle_abi_raw are now macros exported at crate root
 use massa_proto_rs::massa::{
     abi::v1::{self as proto, *},
     model::v1::NativeTime,
@@ -134,13 +131,12 @@ pub fn register_abis(store: &mut impl AsStoreMut, shared_abi_env: ABIEnv) -> Imp
 }
 
 /// Call another smart contract
-#[named]
 fn abi_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_call,
         store_env,
         arg_offset,
-        |handler, req: CallRequest| {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler, req: CallRequest| {
             let amount = req
                 .call_coins
                 .ok_or_else(|| WasmV1Error::RuntimeError("No coins provided".into()))?;
@@ -184,7 +180,7 @@ fn abi_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, W
             {
                 if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                     exec_env.trace.push(AbiTrace {
-                        name: function_name!().to_string(),
+                        name: "abi_call".to_string(),
                         params: vec![
                             into_trace_value!(req.target_sc_address),
                             into_trace_value!(req.target_function_name),
@@ -197,19 +193,18 @@ fn abi_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, W
                 }
             }
             Ok(CallResponse { data: response.ret })
-        },
+        }
     )
 }
 
 /// Alternative to `call_module` to execute bytecode in a local context
 /// Reuse the protobuf CallRequest message, the call_coins field is just ignored
-#[named]
 fn abi_local_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_local_call,
         store_env,
         arg_offset,
-        |handler, req: CallRequest| {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler, req: CallRequest| {
             let bytecode = helper_get_bytecode(handler, req.target_sc_address.clone())?;
             let remaining_gas = handler.get_remaining_gas();
             let interface = handler.exec_env.get_interface();
@@ -236,7 +231,7 @@ fn abi_local_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<
             {
                 if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                     exec_env.trace.push(AbiTrace {
-                        name: function_name!().to_string(),
+                        name: "abi_local_call".to_string(),
                         params: vec![
                             into_trace_value!(bytecode),
                             into_trace_value!(req.target_function_name),
@@ -249,18 +244,19 @@ fn abi_local_call(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<
             }
 
             Ok(CallResponse { data: response.ret })
-        },
+        }
     )
 }
 
 /// Create a new smart contract.
-#[named]
 fn abi_create_sc(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_create_sc,
         store_env,
         arg_offset,
-        |handler, req: CreateScRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: CreateScRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.create_module(&req.bytecode) {
                 Ok(sc_address) => {
@@ -268,27 +264,22 @@ fn abi_create_sc(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
 /// gets the current execution slot
-#[named]
 fn abi_get_current_slot(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_current_slot,
         store_env,
         arg_offset,
-        |handler, _req: GetCurrentSlotRequest| -> Result<AbiResponse, WasmV1Error> {
-            // Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = "gas_calibration") {
-            //     let fname = format!("massa.{}:0", function_name!());
-            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
-            // true); }
-
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetCurrentSlotRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_current_slot() {
                 Ok(slot) => resp_ok!(GetCurrentSlotResult, {
@@ -296,24 +287,19 @@ fn abi_get_current_slot(
                 }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
 /// performs a hash on a bytearray and returns the native_hash
-#[named]
 fn abi_hash_blake3(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_hash_blake3,
         store_env,
         arg_offset,
-        |handler, req: HashBlake3Request| -> Result<AbiResponse, WasmV1Error> {
-            // Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = "gas_calibration") {
-            //     let fname = format!("massa.{}:0", function_name!());
-            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
-            // true); }
-
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: HashBlake3Request|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.hash_blake3(&req.data) {
                 Ok(hash) => {
@@ -321,79 +307,64 @@ fn abi_hash_blake3(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
 /// performs a sha256 hash on byte array and returns the hash as byte array
-#[named]
 fn abi_hash_sha256(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_hash_sha256,
         store_env,
         arg_offset,
-        |handler, req: HashSha256Request| -> Result<AbiResponse, WasmV1Error> {
-            // Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = "gas_calibration") {
-            //     let fname = format!("massa.{}:0", function_name!());
-            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
-            // true); }
-
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: HashSha256Request|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.hash_sha256(&req.data) {
                 Ok(hash) => resp_ok!(HashSha256Result, { hash: hash.to_vec() }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
 /// performs a keccak256 hash on byte array and returns the hash as byte array
-#[named]
 fn abi_hash_keccak256(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_hash_keccak256,
         store_env,
         arg_offset,
-        |handler, req: Keccak256Request| -> Result<AbiResponse, WasmV1Error> {
-            // Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = "gas_calibration") {
-            //     let fname = format!("massa.{}:0", function_name!());
-            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
-            // true); }
-
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: Keccak256Request|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.hash_keccak256(&req.data) {
                 Ok(hash) => resp_ok!(Keccak256Result, { hash: hash.to_vec() }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
 /// Function designed to abort execution.
-#[named]
 fn abi_transfer_coins(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_transfer_coins,
         store_env,
         arg_offset,
-        |handler, req: TransferCoinsRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: TransferCoinsRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(amount) = req.amount_to_transfer else {
                 return resp_err!("No coins provided");
             };
-
-            // Do not remove this. It could be used for gas_calibration in
-            // future. if cfg!(feature = "gas_calibration") {
-            //     let fname = format!("massa.{}:0", function_name!());
-            //     param_size_update(&env, &mut ctx, &fname, to_address.len(),
-            // true); }
 
             #[cfg(feature = "execution-trace")]
             let amount_ = Decimal::try_from_i128_with_scale(amount.mantissa as i128, amount.scale)
@@ -430,7 +401,7 @@ fn abi_transfer_coins(
 
                         // let mut guard = handler.store_env.data_mut().lock();
                         handler.exec_env.trace.push(AbiTrace {
-                            name: function_name!().to_string(),
+                            name: "abi_transfer_coins".to_string(),
                             params,
                             return_value: AbiTraceType::None,
                             sub_calls: None,
@@ -440,201 +411,210 @@ fn abi_transfer_coins(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_generate_event(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_generate_event,
         store_env,
         arg_offset,
-        |handler, req: GenerateEventRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: GenerateEventRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             interface.generate_event_wasmv1(req.event).map_err(|err| {
                 WasmV1Error::RuntimeError(format!("Failed to generate event: {}", err))
             })?;
 
             resp_ok!(GenerateEventResult, {})
-        },
+        }
     )
 }
 
 /// Function designed to abort execution.
-#[named]
 fn abi_abort(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
-    handle_abi_raw(
-        function_name!(),
-        store_env,
-        arg_offset,
-        |_handler, req: Vec<u8>| -> Result<Vec<u8>, WasmV1Error> {
-            let msg = format!("Guest program abort: {}", String::from_utf8_lossy(&req));
+    crate::handle_abi_raw!(abi_abort, store_env, arg_offset, |_handler,
+                                                              req: Vec<u8>|
+     -> Result<
+        Vec<u8>,
+        WasmV1Error,
+    > {
+        let msg = format!("Guest program abort: {}", String::from_utf8_lossy(&req));
 
-            Err(WasmV1Error::RuntimeError(msg))
-        },
-    )
+        Err(WasmV1Error::RuntimeError(msg))
+    })
 }
 
-#[named]
 fn abi_set_ds_value(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_set_ds_value,
         store_env,
         arg_offset,
-        |handler, req: SetDsValueRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: SetDsValueRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             if let Err(e) = interface.set_ds_value_wasmv1(&req.key, &req.value, None) {
                 return resp_err!(e);
             }
             resp_ok!(SetDsValueResult, {})
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_ds_value(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_ds_value,
         store_env,
         arg_offset,
-        |handler, req: GetDsValueRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetDsValueRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_ds_value_wasmv1(&req.key, req.address) {
                 Ok(value) => resp_ok!(GetDsValueResult, { value }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_delete_ds_entry(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_delete_ds_entry,
         store_env,
         arg_offset,
-        |handler, req: DeleteDsEntryRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: DeleteDsEntryRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             if let Err(e) = interface.delete_ds_entry_wasmv1(&req.key, req.address) {
                 return resp_err!(e);
             }
             resp_ok!(DeleteDsEntryResult, {})
-        },
+        }
     )
 }
 
-#[named]
 fn abi_append_ds_value(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_append_ds_value,
         store_env,
         arg_offset,
-        |handler, req: AppendDsValueRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: AppendDsValueRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             if let Err(e) = interface.append_ds_value_wasmv1(&req.key, &req.value, req.address) {
                 return resp_err!(e);
             }
             resp_ok!(AppendDsValueResult, {})
-        },
+        }
     )
 }
 
-#[named]
 fn abi_ds_entry_exists(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_ds_entry_exists,
         store_env,
         arg_offset,
-        |handler, req: DsEntryExistsRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: DsEntryExistsRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.ds_entry_exists_wasmv1(&req.key, req.address) {
                 Ok(has_data) => resp_ok!(DsEntryExistsResult, { has_data }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_balance(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_balance,
         store_env,
         arg_offset,
-        |handler, req: GetBalanceRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetBalanceRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_balance_wasmv1(req.address) {
                 Ok(res) => resp_ok!(GetBalanceResult, { balance: Some(res) }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_bytecode(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_bytecode,
         store_env,
         arg_offset,
-        |handler, req: GetBytecodeRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetBytecodeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_bytecode_wasmv1(req.address) {
                 Ok(bytecode) => resp_ok!(GetBytecodeResult, { bytecode }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_set_bytecode(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_set_bytecode,
         store_env,
         arg_offset,
-        |handler, req: SetBytecodeRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: SetBytecodeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.set_bytecode_wasmv1(&req.bytecode, req.address) {
                 Ok(_) => resp_ok!(SetBytecodeResult, {}),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_ds_keys(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_ds_keys,
         store_env,
         arg_offset,
-        |handler, req: GetDsKeysRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetDsKeysRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_ds_keys_wasmv1(&req.prefix, req.address) {
                 Ok(res) => {
@@ -642,71 +622,75 @@ fn abi_get_ds_keys(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_op_keys(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_op_keys,
         store_env,
         arg_offset,
-        |handler, req: GetOpKeysRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetOpKeysRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_op_keys_wasmv1(&req.prefix) {
                 Ok(keys) => resp_ok!(GetOpKeysResult, { keys }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_op_entry_exists(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_op_entry_exists,
         store_env,
         arg_offset,
-        |handler, req: OpEntryExistsRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: OpEntryExistsRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.op_entry_exists(&req.key) {
                 Ok(has_key) => resp_ok!(OpEntryExistsResult, { has_key }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_op_data(store_env: FunctionEnvMut<ABIEnv>, arg_offset: i32) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_op_data,
         store_env,
         arg_offset,
-        |handler, req: GetOpDataRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetOpDataRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_op_data(&req.key) {
                 Ok(value) => resp_ok!(GetOpDataResult, { value }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_evm_verify_signature(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_evm_verify_signature,
         store_env,
         arg_offset,
-        |handler, req: EvmVerifySigRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: EvmVerifySigRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.evm_signature_verify(&req.message, &req.sig, &req.pub_key) {
                 Ok(is_verified) => {
@@ -716,20 +700,21 @@ fn abi_evm_verify_signature(
                     resp_err!("EVM signature verification failed")
                 }
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_evm_get_address_from_pubkey(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_evm_get_address_from_pubkey,
         store_env,
         arg_offset,
-        |handler, req: EvmGetAddressFromPubkeyRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: EvmGetAddressFromPubkeyRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.evm_get_address_from_pubkey(&req.pub_key) {
                 Ok(address) => {
@@ -737,20 +722,21 @@ fn abi_evm_get_address_from_pubkey(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_evm_get_pubkey_from_signature(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_evm_get_pubkey_from_signature,
         store_env,
         arg_offset,
-        |handler, req: EvmGetPubkeyFromSignatureRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: EvmGetPubkeyFromSignatureRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.evm_get_pubkey_from_signature(&req.hash, &req.sig) {
                 Ok(pub_key) => {
@@ -758,55 +744,58 @@ fn abi_evm_get_pubkey_from_signature(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_is_address_eoa(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_is_address_eoa,
         store_env,
         arg_offset,
-        |handler, req: IsAddressEoaRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: IsAddressEoaRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.is_address_eoa(&req.address) {
                 Ok(is_eoa) => resp_ok!(IsAddressEoaResult, { is_eoa }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_remaining_gas(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_remaining_gas,
         store_env,
         arg_offset,
-        |handler, _req: GetRemainingGasRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetRemainingGasRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let remaining_gas = handler.get_remaining_gas();
             resp_ok!(GetRemainingGasResult, { remaining_gas })
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_owned_addresses(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_owned_addresses,
         store_env,
         arg_offset,
-        |handler, _req: GetOwnedAddressesRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetOwnedAddressesRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_owned_addresses() {
                 Ok(addresses) => {
@@ -814,20 +803,21 @@ fn abi_get_owned_addresses(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_call_stack(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_call_stack,
         store_env,
         arg_offset,
-        |handler, _req: GetCallStackRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetCallStackRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_call_stack() {
                 Ok(calls) => {
@@ -835,20 +825,21 @@ fn abi_get_call_stack(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_address_from_public_key(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_address_from_public_key,
         store_env,
         arg_offset,
-        |handler, req: AddressFromPubKeyRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: AddressFromPubKeyRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.address_from_public_key(&req.pub_key) {
                 Ok(address) => {
@@ -856,20 +847,21 @@ fn abi_address_from_public_key(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_unsafe_random(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_unsafe_random,
         store_env,
         arg_offset,
-        |handler, req: UnsafeRandomRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: UnsafeRandomRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             if req.num_bytes as u64 > handler.get_max_mem_size() {
                 return resp_err!("Requested random bytes exceed the maximum memory size");
             }
@@ -881,20 +873,21 @@ fn abi_unsafe_random(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_call_coins(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_call_coins,
         store_env,
         arg_offset,
-        |handler, _req: GetCallCoinsRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetCallCoinsRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_call_coins_wasmv1() {
                 Ok(coins) => {
@@ -902,20 +895,21 @@ fn abi_get_call_coins(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_native_time(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_native_time,
         store_env,
         arg_offset,
-        |handler, _req: GetNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_time() {
                 Err(e) => resp_err!(e),
@@ -923,20 +917,21 @@ fn abi_get_native_time(
                     resp_ok!(GetNativeTimeResult, { time: Some(NativeTime { milliseconds: time }) })
                 }
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_deferred_call_cancel(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_deferred_call_cancel,
         store_env,
         arg_offset,
-        |handler, req: DeferredCallCancelRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: DeferredCallCancelRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(call_id) = req.call_id else {
                 return resp_err!("Call ID is required");
             };
@@ -949,7 +944,7 @@ fn abi_deferred_call_cancel(
                         let params = vec![into_trace_value!(call_id)];
                         if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                             exec_env.trace.push(AbiTrace {
-                                name: function_name!().to_string(),
+                                name: "abi_deferred_call_cancel".to_string(),
                                 params,
                                 return_value: AbiTraceType::None,
                                 sub_calls: None,
@@ -961,20 +956,21 @@ fn abi_deferred_call_cancel(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_deferred_call_register(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_deferred_call_register,
         store_env,
         arg_offset,
-        |handler, req: DeferredCallRegisterRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: DeferredCallRegisterRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(target_slot) = req.target_slot else {
                 return resp_err!("Target slot is required");
             };
@@ -1006,7 +1002,7 @@ fn abi_deferred_call_register(
                         ];
                         if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                             exec_env.trace.push(AbiTrace {
-                                name: function_name!().to_string(),
+                                name: "abi_deferred_call_register".to_string(),
                                 params,
                                 return_value: AbiTraceType::String(call_id.clone()),
                                 sub_calls: None,
@@ -1018,20 +1014,21 @@ fn abi_deferred_call_register(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_deferred_call_quote(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_deferred_call_quote,
         store_env,
         arg_offset,
-        |handler, req: DeferredCallQuoteRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: DeferredCallQuoteRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
 
             let Some(target_slot) = req.target_slot else {
@@ -1051,20 +1048,21 @@ fn abi_get_deferred_call_quote(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_deferred_call_exists(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_deferred_call_exists,
         store_env,
         arg_offset,
-        |handler, req: DeferredCallExistsRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: DeferredCallExistsRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(call_id) = req.call_id else {
                 return resp_err!("Call ID is required");
             };
@@ -1076,20 +1074,21 @@ fn abi_deferred_call_exists(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_send_async_message(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_send_async_message,
         store_env,
         arg_offset,
-        |handler, req: SendAsyncMessageRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: SendAsyncMessageRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(start) = req.validity_start else {
                 return resp_err!("Validity start slot is required");
             };
@@ -1143,7 +1142,7 @@ fn abi_send_async_message(
                         ];
                         if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                             exec_env.trace.push(AbiTrace {
-                                name: function_name!().to_string(),
+                                name: "abi_send_async_message".to_string(),
                                 params,
                                 return_value: AbiTraceType::None,
                                 sub_calls: None,
@@ -1155,20 +1154,21 @@ fn abi_send_async_message(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_origin_operation_id(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_origin_operation_id,
         store_env,
         arg_offset,
-        |handler, _req: GetOriginOperationIdRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         _req: GetOriginOperationIdRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_origin_operation_id() {
                 Ok(operation_id) => {
@@ -1176,20 +1176,20 @@ fn abi_get_origin_operation_id(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_local_execution(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_local_execution,
         store_env,
         arg_offset,
-        |handler, req: LocalExecutionRequest| {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: LocalExecutionRequest| {
             let remaining_gas = handler.get_remaining_gas();
             let module = helper_get_tmp_module(handler, req.bytecode.clone(), remaining_gas)?;
 
@@ -1219,7 +1219,7 @@ fn abi_local_execution(
                     {
                         if let Some(exec_env) = handler.store_env.data_mut().lock().as_mut() {
                             exec_env.trace.push(AbiTrace {
-                                name: function_name!().to_string(),
+                                name: "abi_local_execution".to_string(),
                                 params: vec![
                                     into_trace_value!(req.bytecode),
                                     into_trace_value!(req.target_function_name),
@@ -1235,20 +1235,21 @@ fn abi_local_execution(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_caller_has_write_access(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_caller_has_write_access,
         store_env,
         arg_offset,
-        |handler, _req: CallerHasWriteAccessRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         _req: CallerHasWriteAccessRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.caller_has_write_access() {
                 Ok(has_write_access) => {
@@ -1256,22 +1257,23 @@ fn abi_caller_has_write_access(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
 /// Check the exports of a compiled module to see if it contains the given
 /// function
-#[named]
 fn abi_function_exists(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_function_exists,
         store_env,
         arg_offset,
-        |handler, req: FunctionExistsRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: FunctionExistsRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Ok(bytecode) = helper_get_bytecode(handler, req.target_sc_address) else {
                 return resp_err!("No SC found at the given address");
             };
@@ -1292,7 +1294,7 @@ fn abi_function_exists(
 
             resp_ok!(FunctionExistsResult, {
                 exists: module.function_exists(&req.function_name) })
-        },
+        }
     )
 }
 
@@ -1333,16 +1335,17 @@ fn helper_get_tmp_module(
         .map_err(|err| WasmV1Error::RuntimeError(format!("Could not get module: {}", err)))
 }
 
-#[named]
 fn abi_check_native_amount(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_check_native_amount,
         store_env,
         arg_offset,
-        |handler, req: CheckNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckNativeAmountRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(amount) = req.to_check else {
                 return resp_err!("No amount to check");
             };
@@ -1354,20 +1357,21 @@ fn abi_check_native_amount(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_add_native_amount(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_add_native_amount,
         store_env,
         arg_offset,
-        |handler, req: AddNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: AddNativeAmountRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(amount1) = req.amount1 else {
                 return resp_err!("No amount1");
             };
@@ -1382,20 +1386,21 @@ fn abi_add_native_amount(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_sub_native_amount(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_sub_native_amount,
         store_env,
         arg_offset,
-        |handler, req: SubNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: SubNativeAmountRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(left) = req.left else {
                 return resp_err!("No left amount");
             };
@@ -1410,20 +1415,21 @@ fn abi_sub_native_amount(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_scalar_mul_native_amount(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_scalar_mul_native_amount,
         store_env,
         arg_offset,
-        |handler, req: ScalarMulNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: ScalarMulNativeAmountRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(amount) = req.amount else {
                 return resp_err!("No amount");
             };
@@ -1435,20 +1441,21 @@ fn abi_scalar_mul_native_amount(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_scalar_div_rem_native_amount(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_scalar_div_rem_native_amount,
         store_env,
         arg_offset,
-        |handler, req: ScalarDivRemNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: ScalarDivRemNativeAmountRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(dividend) = req.dividend else {
                 return resp_err!("No dividend");
             };
@@ -1461,20 +1468,21 @@ fn abi_scalar_div_rem_native_amount(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_div_rem_native_amount(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_div_rem_native_amount,
         store_env,
         arg_offset,
-        |handler, req: DivRemNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: DivRemNativeAmountRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(dividend) = req.dividend else {
                 return resp_err!("No dividend");
             };
@@ -1490,20 +1498,21 @@ fn abi_div_rem_native_amount(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_native_amount_to_string(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_native_amount_to_string,
         store_env,
         arg_offset,
-        |handler, req: NativeAmountToStringRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: NativeAmountToStringRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(amount) = req.to_convert else {
                 return resp_err!("No amount to convert");
             };
@@ -1515,76 +1524,80 @@ fn abi_native_amount_to_string(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_native_amount_from_string(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_native_amount_from_string,
         store_env,
         arg_offset,
-        |handler, req: NativeAmountFromStringRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: NativeAmountFromStringRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             let Ok(amount) = interface.native_amount_from_str_wasmv1(&req.to_convert) else {
                 return resp_err!("Invalid amount");
             };
 
             resp_ok!(NativeAmountFromStringResult, { converted_amount: Some(amount) })
-        },
+        }
     )
 }
 
-#[named]
 fn abi_base58_check_to_bytes(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_base58_check_to_bytes,
         store_env,
         arg_offset,
-        |handler, req: Base58CheckToBytesRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: Base58CheckToBytesRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.base58_check_to_bytes_wasmv1(&req.base58_check) {
                 Ok(bytes) => resp_ok!(Base58CheckToBytesResult, { bytes }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_bytes_to_base58_check(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_bytes_to_base58_check,
         store_env,
         arg_offset,
-        |handler, req: BytesToBase58CheckRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: BytesToBase58CheckRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             let base58_check = interface.bytes_to_base58_check_wasmv1(&req.bytes);
             resp_ok!(BytesToBase58CheckResult, { base58_check })
-        },
+        }
     )
 }
 
-#[named]
 fn abi_compare_address(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_compare_address,
         store_env,
         arg_offset,
-        |handler, req: CompareAddressRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: CompareAddressRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.compare_address_wasmv1(&req.left, &req.right) {
                 Ok(result) => {
@@ -1592,20 +1605,21 @@ fn abi_compare_address(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_compare_native_amount(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_compare_native_amount,
         store_env,
         arg_offset,
-        |handler, req: CompareNativeAmountRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: CompareNativeAmountRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let (Some(left), Some(right)) = (req.left, req.right) else {
                 return resp_err!("Either left or right argument is none");
             };
@@ -1616,20 +1630,21 @@ fn abi_compare_native_amount(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_compare_native_time(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_compare_native_time,
         store_env,
         arg_offset,
-        |handler, req: CompareNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: CompareNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let (Some(left), Some(right)) = (req.left, req.right) else {
                 return resp_err!("Either left or right argument is none");
             };
@@ -1640,20 +1655,21 @@ fn abi_compare_native_time(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_compare_pub_key(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_compare_pub_key,
         store_env,
         arg_offset,
-        |handler, req: ComparePubKeyRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: ComparePubKeyRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.compare_pub_key_wasmv1(&req.left, &req.right) {
                 Ok(result) => {
@@ -1661,20 +1677,21 @@ fn abi_compare_pub_key(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_check_address(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_check_address,
         store_env,
         arg_offset,
-        |handler, req: CheckAddressRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckAddressRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.check_address_wasmv1(&req.to_check) {
                 Ok(is_valid) => {
@@ -1682,58 +1699,61 @@ fn abi_check_address(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_check_pubkey(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_check_pubkey,
         store_env,
         arg_offset,
-        |handler, req: CheckPubKeyRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckPubKeyRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.check_pubkey_wasmv1(&req.to_check) {
                 Ok(is_valid) => resp_ok!(CheckPubKeyResult, { is_valid }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_check_signature(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_check_signature,
         store_env,
         arg_offset,
-        |handler, req: CheckSigRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckSigRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.check_signature_wasmv1(&req.to_check) {
                 Ok(is_valid) => resp_ok!(CheckSigResult, { is_valid }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_address_category(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_address_category,
         store_env,
         arg_offset,
-        |handler, req: GetAddressCategoryRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetAddressCategoryRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_address_category_wasmv1(&req.address) {
                 Ok(res) => {
@@ -1741,77 +1761,81 @@ fn abi_get_address_category(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_address_version(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_address_version,
         store_env,
         arg_offset,
-        |handler, req: GetAddressVersionRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetAddressVersionRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_address_version_wasmv1(&req.address) {
                 Ok(version) => resp_ok!(GetAddressVersionResult, { version }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_pubkey_version(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_pubkey_version,
         store_env,
         arg_offset,
-        |handler, req: GetPubKeyVersionRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetPubKeyVersionRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_pubkey_version_wasmv1(&req.pub_key) {
                 Ok(version) => resp_ok!(GetPubKeyVersionResult, { version }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_get_signature_version(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_get_signature_version,
         store_env,
         arg_offset,
-        |handler, req: GetSignatureVersionRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: GetSignatureVersionRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.get_signature_version_wasmv1(&req.signature) {
                 Ok(version) => resp_ok!(GetSignatureVersionResult, { version }),
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_checked_add_native_time(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_checked_add_native_time,
         store_env,
         arg_offset,
-        |handler, req: CheckedAddNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckedAddNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(time1) = req.left else {
                 return resp_err!("No time1");
             };
@@ -1826,20 +1850,21 @@ fn abi_checked_add_native_time(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_checked_sub_native_time(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_checked_sub_native_time,
         store_env,
         arg_offset,
-        |handler, req: CheckedSubNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckedSubNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(left) = req.left else {
                 return resp_err!("No left time");
             };
@@ -1854,20 +1879,21 @@ fn abi_checked_sub_native_time(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_checked_mul_native_time(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_checked_mul_native_time,
         store_env,
         arg_offset,
-        |handler, req: CheckedScalarMulNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckedScalarMulNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(time) = req.time else {
                 return resp_err!("No time");
             };
@@ -1879,20 +1905,21 @@ fn abi_checked_mul_native_time(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_checked_scalar_div_native_time(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_checked_scalar_div_native_time,
         store_env,
         arg_offset,
-        |handler, req: CheckedScalarDivRemNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckedScalarDivRemNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(dividend) = req.dividend else {
                 return resp_err!("No dividend");
             };
@@ -1905,20 +1932,21 @@ fn abi_checked_scalar_div_native_time(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 fn abi_checked_div_native_time(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_checked_div_native_time,
         store_env,
         arg_offset,
-        |handler, req: CheckedDivRemNativeTimeRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: CheckedDivRemNativeTimeRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let Some(dividend) = req.dividend else {
                 return resp_err!("No dividend");
             };
@@ -1934,20 +1962,21 @@ fn abi_checked_div_native_time(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 pub fn abi_verify_signature(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_verify_signature,
         store_env,
         arg_offset,
-        |handler, req: VerifySigRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         req: VerifySigRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.signature_verify(&req.message, &req.sig, &req.pub_key) {
                 Ok(is_verified) => {
@@ -1955,20 +1984,21 @@ pub fn abi_verify_signature(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }
 
-#[named]
 pub fn abi_chain_id(
     store_env: FunctionEnvMut<ABIEnv>,
     arg_offset: i32,
 ) -> Result<i32, WasmV1Error> {
-    handle_abi(
-        function_name!(),
+    crate::handle_abi!(
+        abi_chain_id,
         store_env,
         arg_offset,
-        |handler, _req: ChainIdRequest| -> Result<AbiResponse, WasmV1Error> {
+        |handler: &mut crate::wasmv1_execution::abi::handler::ABIHandler,
+         _req: ChainIdRequest|
+         -> Result<AbiResponse, WasmV1Error> {
             let interface = handler.exec_env.get_interface();
             match interface.chain_id() {
                 Ok(chain_id) => {
@@ -1976,6 +2006,6 @@ pub fn abi_chain_id(
                 }
                 Err(e) => resp_err!(e),
             }
-        },
+        }
     )
 }

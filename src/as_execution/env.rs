@@ -60,14 +60,17 @@ impl ASEnv {
             trace: Default::default(),
         }
     }
-    pub fn get_interface(&self) -> Box<dyn Interface> {
-        self.interface.clone()
+    pub fn get_interface(&self) -> &dyn Interface {
+        &*self.interface
     }
     pub fn get_ffi_env(&self) -> &as_ffi_bindings::Env {
         &self.ffi_env
     }
     pub fn get_ffi_env_as_mut(&mut self) -> &mut as_ffi_bindings::Env {
         &mut self.ffi_env
+    }
+    pub fn get_gas_costs(&self) -> &GasCosts {
+        &self.gas_costs
     }
 }
 
@@ -81,11 +84,8 @@ impl Metered for ASEnv {
     fn get_gc_param(&self, name: &str) -> Option<&Global> {
         self.param_size_map.get(name)?.as_ref()
     }
-    fn get_gas_costs(&self) -> GasCosts {
-        self.gas_costs.clone()
-    }
-    fn get_condom_limits(&self) -> CondomLimits {
-        self.condom_limits.clone()
+    fn get_condom_limits(&self) -> &CondomLimits {
+        &self.condom_limits
     }
 }
 
@@ -97,8 +97,7 @@ pub(crate) trait Metered {
     fn get_remaining_points(&self) -> Option<&Global>;
     #[allow(dead_code)]
     fn get_gc_param(&self, name: &str) -> Option<&Global>;
-    fn get_gas_costs(&self) -> GasCosts;
-    fn get_condom_limits(&self) -> CondomLimits;
+    fn get_condom_limits(&self) -> &CondomLimits;
 }
 
 /// Get remaining metering points.
@@ -162,33 +161,43 @@ pub(crate) fn set_remaining_points(
     Ok(())
 }
 
-pub(crate) fn sub_remaining_gas(
-    env: &impl Metered,
-    store: &mut impl AsStoreMut,
+/// Optimized version that works with pre-extracted Global handles
+/// This avoids extra ctx.data() calls
+pub(crate) fn sub_remaining_gas_with_globals(
+    remaining_points: &wasmer::Global,
+    exhausted_points: &wasmer::Global,
+    ctx: &mut impl AsStoreMut,
     gas: u64,
 ) -> ABIResult<()> {
     if cfg!(feature = "gas_calibration") {
         return Ok(());
     }
-    let remaining_gas = get_remaining_points(env, store)?;
-    if let Some(remaining_gas) = remaining_gas.checked_sub(gas) {
-        set_remaining_points(env, store, remaining_gas)?;
+
+    // Check exhausted points
+    match exhausted_points.get(ctx).try_into() {
+        Ok::<i32, _>(exhausted) if exhausted > 0 => {
+            abi_bail!("Out of gas");
+        }
+        Ok::<i32, _>(_) => (),
+        Err(_) => abi_bail!("exhausted_points has wrong type"),
+    }
+
+    // Get remaining points
+    let remaining_gas: u64 = match remaining_points.get(ctx).try_into() {
+        Ok(remaining) => remaining,
+        Err(_) => abi_bail!("remaining_points has wrong type"),
+    };
+
+    // Subtract gas
+    if let Some(new_remaining) = remaining_gas.checked_sub(gas) {
+        if remaining_points.set(ctx, new_remaining.into()).is_err() {
+            abi_bail!("Can't set remaining_points");
+        }
+        if exhausted_points.set(ctx, 0i32.into()).is_err() {
+            abi_bail!("Can't set exhausted_points");
+        }
     } else {
         abi_bail!("Out of gas")
     }
     Ok(())
-}
-
-pub(crate) fn sub_remaining_gas_abi(
-    env: &impl Metered,
-    store: &mut impl AsStoreMut,
-    abi_name: &str,
-) -> ABIResult<()> {
-    sub_remaining_gas(
-        env,
-        store,
-        *env.get_gas_costs().abi_costs.get(abi_name).ok_or_else(|| {
-            wasmer::RuntimeError::new(format!("Failed to get gas for {} ABI", abi_name))
-        })?,
-    )
 }
