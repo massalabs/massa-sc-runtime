@@ -106,9 +106,15 @@ impl ASContext {
             Ok(value) => {
                 let ret = if let Some(offset) = value.first() {
                     if let Some(offset) = offset.i32() {
-                        let buffer_ptr = BufferPtr::new(offset as u32);
-                        let memory = instance.exports.get_memory("memory")?;
-                        buffer_ptr.read(memory, store)?
+                        // Offset 0 means no return value in AssemblyScript
+                        if offset == 0 {
+                            Vec::new()
+                        } else {
+                            let buffer_ptr = BufferPtr::new(offset as u32);
+                            let memory = instance.exports.get_memory("memory")?;
+                            // If reading fails (e.g., invalid offset), return empty vec
+                            buffer_ptr.read(memory, store).unwrap_or_default()
+                        }
                     } else {
                         vm_bail!("Execution wasn't in capacity to read the return value")
                     }
