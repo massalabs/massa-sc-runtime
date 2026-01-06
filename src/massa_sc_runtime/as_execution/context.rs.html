@@ -277,6 +277,12 @@
 <a href="#277" id="277">277</a>
 <a href="#278" id="278">278</a>
 <a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::abi::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">super</span>::env::{get_remaining_points, set_remaining_points, ASEnv};
 <span class="kw">use </span><span class="kw">crate</span>::error::{vm_bail, VMResult};
@@ -385,10 +391,16 @@
             <span class="prelude-val">Ok</span>(value) =&gt; {
                 <span class="kw">let </span>ret = <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = value.first() {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = offset.i32() {
-                        <span class="kw">let </span>buffer_ptr = BufferPtr::new(offset <span class="kw">as </span>u32);
-                        <span class="kw">let </span>memory = instance.exports.get_memory(<span class="string">"memory"</span>)<span class="question-mark">?</span>;
-                        buffer_ptr.read(memory, store)<span class="question-mark">?
-                    </span>} <span class="kw">else </span>{
+                        <span class="comment">// Offset 0 means no return value in AssemblyScript
+                        </span><span class="kw">if </span>offset == <span class="number">0 </span>{
+                            Vec::new()
+                        } <span class="kw">else </span>{
+                            <span class="kw">let </span>buffer_ptr = BufferPtr::new(offset <span class="kw">as </span>u32);
+                            <span class="kw">let </span>memory = instance.exports.get_memory(<span class="string">"memory"</span>)<span class="question-mark">?</span>;
+                            <span class="comment">// If reading fails (e.g., invalid offset), return empty vec
+                            </span>buffer_ptr.read(memory, store).unwrap_or_default()
+                        }
+                    } <span class="kw">else </span>{
                         <span class="macro">vm_bail!</span>(<span class="string">"Execution wasn't in capacity to read the return value"</span>)
                     }
                 } <span class="kw">else </span>{
