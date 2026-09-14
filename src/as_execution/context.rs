@@ -104,26 +104,17 @@ impl ASContext {
 
         match res {
             Ok(value) => {
-                if function.eq(crate::settings::MAIN) {
-                    let remaining_gas = if cfg!(feature = "gas_calibration") {
-                        Ok(0_u64)
-                    } else {
-                        get_remaining_points(&self.env, store)
-                    };
-
-                    return Ok(Response {
-                        ret: Vec::new(), // main return empty vec
-                        remaining_gas: remaining_gas?,
-                        init_gas_cost: 0,
-                        #[cfg(feature = "execution-trace")]
-                        trace: Default::default(),
-                    });
-                }
                 let ret = if let Some(offset) = value.first() {
                     if let Some(offset) = offset.i32() {
-                        let buffer_ptr = BufferPtr::new(offset as u32);
-                        let memory = instance.exports.get_memory("memory")?;
-                        buffer_ptr.read(memory, store)?
+                        // Offset 0 means no return value in AssemblyScript
+                        if offset == 0 {
+                            Vec::new()
+                        } else {
+                            let buffer_ptr = BufferPtr::new(offset as u32);
+                            let memory = instance.exports.get_memory("memory")?;
+                            // If reading fails (e.g., invalid offset), return empty vec
+                            buffer_ptr.read(memory, store).unwrap_or_default()
+                        }
                     } else {
                         vm_bail!("Execution wasn't in capacity to read the return value")
                     }
