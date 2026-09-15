@@ -1,5 +1,20 @@
 use displaydoc::Display;
 use thiserror::Error;
+use tracing::debug;
+
+/// Format a wasmer runtime error without its wasm backtrace.
+///
+/// The frames are not worth showing to a smart contract developer: they carry no symbol
+/// name (AssemblyScript strips the wasm `name` section in release builds, so wasmer prints
+/// `<unnamed>`), their content depends on which compiler built the module, and a deep call
+/// stack fills the whole event size budget, pushing the actual cause out of the message.
+/// The full error, backtrace included, is still logged node side.
+pub(crate) fn runtime_error_without_trace(e: &wasmer::RuntimeError) -> String {
+    if !e.trace().is_empty() {
+        debug!("wasm backtrace discarded from error message: {}", e);
+    }
+    format!("RuntimeError: {}", e.message())
+}
 
 pub type VMResult<T> = Result<T, VMError>;
 
@@ -27,10 +42,17 @@ impl From<ABIError> for VMError {
 
 impl From<wasmer::RuntimeError> for VMError {
     fn from(e: wasmer::RuntimeError) -> Self {
-        if let Some(err) = e.downcast_ref::<ABIError>() {
-            VMError::DepthError(err.to_string())
-        } else {
-            VMError::InstanceError(e.to_string())
+        // Only a depth error must keep its variant: any other ABI error trapping out of a
+        // host function is a regular failure and must not be reported as a depth error.
+        // The other arms mirror `From<ABIError> for VMError` so that an already formatted
+        // message is not prefixed twice.
+        match e.downcast_ref::<ABIError>() {
+            Some(ABIError::DepthError(err)) => VMError::DepthError(err.clone()),
+            Some(
+                ABIError::VMError(err) | ABIError::RuntimeError(err) | ABIError::SerdeError(err),
+            ) => VMError::InstanceError(err.clone()),
+            Some(ABIError::Error(err)) => VMError::InstanceError(err.to_string()),
+            None => VMError::InstanceError(runtime_error_without_trace(&e)),
         }
     }
 }
@@ -72,3 +94,44 @@ pub(crate) use exec_bail;
 pub(crate) use vm_bail;
 
 use crate::as_execution::ABIError;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A depth error trapping out of a host function must keep its variant and its message.
+    #[test]
+    fn test_depth_error_is_preserved() {
+        let err = wasmer::RuntimeError::user(Box::new(ABIError::DepthError(
+            "recursion depth limit reached".to_string(),
+        )));
+        match VMError::from(err) {
+            VMError::DepthError(msg) => assert_eq!(msg, "recursion depth limit reached"),
+            e => panic!("expected a depth error, got: {e}"),
+        }
+    }
+
+    /// Any other ABI error must not be reported as a depth error, and must not be prefixed twice.
+    #[test]
+    fn test_other_abi_errors_are_not_depth_errors() {
+        let err = wasmer::RuntimeError::user(Box::new(ABIError::VMError(
+            "VM instance error: RuntimeError: unreachable".to_string(),
+        )));
+        match VMError::from(err) {
+            VMError::InstanceError(msg) => {
+                assert_eq!(msg, "VM instance error: RuntimeError: unreachable")
+            }
+            e => panic!("expected an instance error, got: {e}"),
+        }
+    }
+
+    /// A trap that carries no ABI error at all is an instance error.
+    #[test]
+    fn test_plain_trap_is_an_instance_error() {
+        let err = wasmer::RuntimeError::new("unreachable");
+        match VMError::from(err) {
+            VMError::InstanceError(msg) => assert_eq!(msg, "RuntimeError: unreachable"),
+            e => panic!("expected an instance error, got: {e}"),
+        }
+    }
+}

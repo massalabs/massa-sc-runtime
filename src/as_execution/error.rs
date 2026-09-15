@@ -44,7 +44,7 @@ impl From<InterfaceError> for ABIError {
 
 impl From<wasmer::RuntimeError> for ABIError {
     fn from(e: wasmer::RuntimeError) -> Self {
-        ABIError::RuntimeError(e.to_string())
+        ABIError::RuntimeError(crate::error::runtime_error_without_trace(&e))
     }
 }
 

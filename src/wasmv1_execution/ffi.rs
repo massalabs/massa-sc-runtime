@@ -111,7 +111,10 @@ impl Ffi {
         // Deallocate the buffer if there is a dealloc guest function
         if let Some(guest_dealloc_func) = &self.guest_dealloc_func {
             guest_dealloc_func.call(store, offset).map_err(|err| {
-                WasmV1Error::RuntimeError(format!("__dealloc function call failed: {}", err))
+                WasmV1Error::RuntimeError(format!(
+                    "__dealloc function call failed: {}",
+                    crate::error::runtime_error_without_trace(&err)
+                ))
             })?;
         }
         Ok(buffer)
@@ -127,7 +130,10 @@ impl Ffi {
             WasmV1Error::RuntimeError(format!("Could not convert buffer length to i32: {}", err))
         })?;
         let offset: i32 = self.guest_alloc_func.call(store, len).map_err(|err| {
-            WasmV1Error::RuntimeError(format!("__alloc function call failed: {}", err))
+            WasmV1Error::RuntimeError(format!(
+                "__alloc function call failed: {}",
+                crate::error::runtime_error_without_trace(&err)
+            ))
         })?;
         let Ok(offset_u64): Result<u64, _> = offset.try_into() else {
             return Err(WasmV1Error::RuntimeError(format!(
