@@ -17,16 +17,13 @@ jobs:
   sanity:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@1.81.0
         with:
-          profile: minimal
-          toolchain: 1.81.0
           components: rustfmt
-          override: true
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
@@ -37,15 +34,11 @@ jobs:
     needs: sanity
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: 1.81.0
-          override: true
-      - uses: Swatinem/rust-cache@v1
+      - uses: dtolnay/rust-toolchain@1.81.0
+      - uses: Swatinem/rust-cache@v2
       - uses: arduino/setup-protoc@v3
         with:
           version: "23.x"
@@ -60,16 +53,13 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@1.81.0
         with:
-          profile: minimal
-          toolchain: 1.81.0
           components: clippy
-          override: true
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - uses: arduino/setup-protoc@v3
         with:
           version: '23.x'
@@ -92,15 +82,11 @@ jobs:
           - macOS-latest
           - windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: 1.81.0
-          override: true
-      - uses: Swatinem/rust-cache@v1
+      - uses: dtolnay/rust-toolchain@1.81.0
+      - uses: Swatinem/rust-cache@v2
       - uses: arduino/setup-protoc@v3
         with:
           version: '23.x'
@@ -128,15 +114,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@1.81.0
         with:
-          profile: minimal
-          toolchain: 1.81.0
           components: llvm-tools-preview
-          override: true
       - uses: arduino/setup-protoc@v3
         with:
           version: '23.x'
@@ -171,15 +154,12 @@ jobs:
     runs-on: ubuntu-latest
     # if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@1.81.0
         with:
-          profile: minimal
-          toolchain: 1.81.0
           components: rustfmt
-          override: true
       - uses: arduino/setup-protoc@v3
         with:
           version: '23.x'
