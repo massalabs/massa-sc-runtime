@@ -148,6 +148,12 @@
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>wasmer::{AsStoreMut, AsStoreRef, Instance, Memory, TypedFunction};
 
 <span class="kw">use </span><span class="kw">super</span>::WasmV1Error;
@@ -261,7 +267,10 @@
         <span class="comment">// Deallocate the buffer if there is a dealloc guest function
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(guest_dealloc_func) = <span class="kw-2">&amp;</span><span class="self">self</span>.guest_dealloc_func {
             guest_dealloc_func.call(store, offset).map_err(|err| {
-                WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"__dealloc function call failed: {}"</span>, err))
+                WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                    <span class="string">"__dealloc function call failed: {}"</span>,
+                    <span class="kw">crate</span>::error::runtime_error_without_trace(<span class="kw-2">&amp;</span>err)
+                ))
             })<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(buffer)
@@ -277,7 +286,10 @@
             WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"Could not convert buffer length to i32: {}"</span>, err))
         })<span class="question-mark">?</span>;
         <span class="kw">let </span>offset: i32 = <span class="self">self</span>.guest_alloc_func.call(store, len).map_err(|err| {
-            WasmV1Error::RuntimeError(<span class="macro">format!</span>(<span class="string">"__alloc function call failed: {}"</span>, err))
+            WasmV1Error::RuntimeError(<span class="macro">format!</span>(
+                <span class="string">"__alloc function call failed: {}"</span>,
+                <span class="kw">crate</span>::error::runtime_error_without_trace(<span class="kw-2">&amp;</span>err)
+            ))
         })<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="prelude-val">Ok</span>(offset_u64): <span class="prelude-ty">Result</span>&lt;u64, <span class="kw">_</span>&gt; = offset.try_into() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(WasmV1Error::RuntimeError(<span class="macro">format!</span>(

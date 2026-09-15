@@ -354,6 +354,10 @@
 <a href="#354" id="354">354</a>
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>abi;
 <span class="kw">mod </span>env;
 <span class="kw">mod </span>error;
@@ -665,7 +669,11 @@
         wasm_func
             .call(<span class="kw-2">&amp;mut </span>store, param_offset)
             .map_err(|err| VMError::ExecutionError {
-                error: <span class="macro">format!</span>(<span class="string">"Error while calling guest function {}: {}"</span>, function, err),
+                error: <span class="macro">format!</span>(
+                    <span class="string">"Error while calling guest function {}: {}"</span>,
+                    function,
+                    <span class="kw">crate</span>::error::runtime_error_without_trace(<span class="kw-2">&amp;</span>err)
+                ),
                 init_gas_cost,
             })<span class="question-mark">?</span>;
 

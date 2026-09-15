@@ -72,8 +72,86 @@
 <a href="#72" id="72">72</a>
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>displaydoc::Display;
 <span class="kw">use </span>thiserror::Error;
+<span class="kw">use </span>tracing::debug;
+
+<span class="doccomment">/// Format a wasmer runtime error without its wasm backtrace.
+///
+/// The frames are not worth showing to a smart contract developer: they carry no symbol
+/// name (AssemblyScript strips the wasm `name` section in release builds, so wasmer prints
+/// `&lt;unnamed&gt;`), their content depends on which compiler built the module, and a deep call
+/// stack fills the whole event size budget, pushing the actual cause out of the message.
+/// The full error, backtrace included, is still logged node side.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>runtime_error_without_trace(e: <span class="kw-2">&amp;</span>wasmer::RuntimeError) -&gt; String {
+    <span class="kw">if </span>!e.trace().is_empty() {
+        <span class="macro">debug!</span>(<span class="string">"wasm backtrace discarded from error message: {}"</span>, e);
+    }
+    <span class="macro">format!</span>(<span class="string">"RuntimeError: {}"</span>, e.message())
+}
 
 <span class="kw">pub type </span>VMResult&lt;T&gt; = <span class="prelude-ty">Result</span>&lt;T, VMError&gt;;
 
@@ -101,10 +179,17 @@
 
 <span class="kw">impl </span>From&lt;wasmer::RuntimeError&gt; <span class="kw">for </span>VMError {
     <span class="kw">fn </span>from(e: wasmer::RuntimeError) -&gt; <span class="self">Self </span>{
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = e.downcast_ref::&lt;ABIError&gt;() {
-            VMError::DepthError(err.to_string())
-        } <span class="kw">else </span>{
-            VMError::InstanceError(e.to_string())
+        <span class="comment">// Only a depth error must keep its variant: any other ABI error trapping out of a
+        // host function is a regular failure and must not be reported as a depth error.
+        // The other arms mirror `From&lt;ABIError&gt; for VMError` so that an already formatted
+        // message is not prefixed twice.
+        </span><span class="kw">match </span>e.downcast_ref::&lt;ABIError&gt;() {
+            <span class="prelude-val">Some</span>(ABIError::DepthError(err)) =&gt; VMError::DepthError(err.clone()),
+            <span class="prelude-val">Some</span>(
+                ABIError::VMError(err) | ABIError::RuntimeError(err) | ABIError::SerdeError(err),
+            ) =&gt; VMError::InstanceError(err.clone()),
+            <span class="prelude-val">Some</span>(ABIError::Error(err)) =&gt; VMError::InstanceError(err.to_string()),
+            <span class="prelude-val">None </span>=&gt; VMError::InstanceError(runtime_error_without_trace(<span class="kw-2">&amp;</span>e)),
         }
     }
 }
@@ -146,4 +231,45 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>vm_bail;
 
 <span class="kw">use </span><span class="kw">crate</span>::as_execution::ABIError;
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+    <span class="doccomment">/// A depth error trapping out of a host function must keep its variant and its message.
+    </span><span class="attr">#[test]
+    </span><span class="kw">fn </span>test_depth_error_is_preserved() {
+        <span class="kw">let </span>err = wasmer::RuntimeError::user(Box::new(ABIError::DepthError(
+            <span class="string">"recursion depth limit reached"</span>.to_string(),
+        )));
+        <span class="kw">match </span>VMError::from(err) {
+            VMError::DepthError(msg) =&gt; <span class="macro">assert_eq!</span>(msg, <span class="string">"recursion depth limit reached"</span>),
+            e =&gt; <span class="macro">panic!</span>(<span class="string">"expected a depth error, got: {e}"</span>),
+        }
+    }
+
+    <span class="doccomment">/// Any other ABI error must not be reported as a depth error, and must not be prefixed twice.
+    </span><span class="attr">#[test]
+    </span><span class="kw">fn </span>test_other_abi_errors_are_not_depth_errors() {
+        <span class="kw">let </span>err = wasmer::RuntimeError::user(Box::new(ABIError::VMError(
+            <span class="string">"VM instance error: RuntimeError: unreachable"</span>.to_string(),
+        )));
+        <span class="kw">match </span>VMError::from(err) {
+            VMError::InstanceError(msg) =&gt; {
+                <span class="macro">assert_eq!</span>(msg, <span class="string">"VM instance error: RuntimeError: unreachable"</span>)
+            }
+            e =&gt; <span class="macro">panic!</span>(<span class="string">"expected an instance error, got: {e}"</span>),
+        }
+    }
+
+    <span class="doccomment">/// A trap that carries no ABI error at all is an instance error.
+    </span><span class="attr">#[test]
+    </span><span class="kw">fn </span>test_plain_trap_is_an_instance_error() {
+        <span class="kw">let </span>err = wasmer::RuntimeError::new(<span class="string">"unreachable"</span>);
+        <span class="kw">match </span>VMError::from(err) {
+            VMError::InstanceError(msg) =&gt; <span class="macro">assert_eq!</span>(msg, <span class="string">"RuntimeError: unreachable"</span>),
+            e =&gt; <span class="macro">panic!</span>(<span class="string">"expected an instance error, got: {e}"</span>),
+        }
+    }
+}
 </code></pre></div></section></main></body></html>
