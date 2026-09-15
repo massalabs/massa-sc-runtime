@@ -27,10 +27,17 @@ impl From<ABIError> for VMError {
 
 impl From<wasmer::RuntimeError> for VMError {
     fn from(e: wasmer::RuntimeError) -> Self {
-        if let Some(err) = e.downcast_ref::<ABIError>() {
-            VMError::DepthError(err.to_string())
-        } else {
-            VMError::InstanceError(e.to_string())
+        // Only a depth error must keep its variant: any other ABI error trapping out of a
+        // host function is a regular failure and must not be reported as a depth error.
+        // The other arms mirror `From<ABIError> for VMError` so that an already formatted
+        // message is not prefixed twice.
+        match e.downcast_ref::<ABIError>() {
+            Some(ABIError::DepthError(err)) => VMError::DepthError(err.clone()),
+            Some(
+                ABIError::VMError(err) | ABIError::RuntimeError(err) | ABIError::SerdeError(err),
+            ) => VMError::InstanceError(err.clone()),
+            Some(ABIError::Error(err)) => VMError::InstanceError(err.to_string()),
+            None => VMError::InstanceError(e.to_string()),
         }
     }
 }
@@ -72,3 +79,41 @@ pub(crate) use exec_bail;
 pub(crate) use vm_bail;
 
 use crate::as_execution::ABIError;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A depth error trapping out of a host function must keep its variant and its message.
+    #[test]
+    fn test_depth_error_is_preserved() {
+        let err = wasmer::RuntimeError::user(Box::new(ABIError::DepthError(
+            "recursion depth limit reached".to_string(),
+        )));
+        match VMError::from(err) {
+            VMError::DepthError(msg) => assert_eq!(msg, "recursion depth limit reached"),
+            e => panic!("expected a depth error, got: {e}"),
+        }
+    }
+
+    /// Any other ABI error must not be reported as a depth error, and must not be prefixed twice.
+    #[test]
+    fn test_other_abi_errors_are_not_depth_errors() {
+        let err = wasmer::RuntimeError::user(Box::new(ABIError::VMError(
+            "VM instance error: RuntimeError: unreachable".to_string(),
+        )));
+        match VMError::from(err) {
+            VMError::InstanceError(msg) => {
+                assert_eq!(msg, "VM instance error: RuntimeError: unreachable")
+            }
+            e => panic!("expected an instance error, got: {e}"),
+        }
+    }
+
+    /// A trap that carries no ABI error at all is an instance error.
+    #[test]
+    fn test_plain_trap_is_an_instance_error() {
+        let err = wasmer::RuntimeError::new("unreachable");
+        assert!(matches!(VMError::from(err), VMError::InstanceError(_)));
+    }
+}
