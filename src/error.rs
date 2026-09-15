@@ -1,5 +1,20 @@
 use displaydoc::Display;
 use thiserror::Error;
+use tracing::debug;
+
+/// Format a wasmer runtime error without its wasm backtrace.
+///
+/// The frames are not worth showing to a smart contract developer: they carry no symbol
+/// name (AssemblyScript strips the wasm `name` section in release builds, so wasmer prints
+/// `<unnamed>`), their content depends on which compiler built the module, and a deep call
+/// stack fills the whole event size budget, pushing the actual cause out of the message.
+/// The full error, backtrace included, is still logged node side.
+pub(crate) fn runtime_error_without_trace(e: &wasmer::RuntimeError) -> String {
+    if !e.trace().is_empty() {
+        debug!("wasm backtrace discarded from error message: {}", e);
+    }
+    format!("RuntimeError: {}", e.message())
+}
 
 pub type VMResult<T> = Result<T, VMError>;
 
@@ -37,7 +52,7 @@ impl From<wasmer::RuntimeError> for VMError {
                 ABIError::VMError(err) | ABIError::RuntimeError(err) | ABIError::SerdeError(err),
             ) => VMError::InstanceError(err.clone()),
             Some(ABIError::Error(err)) => VMError::InstanceError(err.to_string()),
-            None => VMError::InstanceError(e.to_string()),
+            None => VMError::InstanceError(runtime_error_without_trace(&e)),
         }
     }
 }
@@ -114,6 +129,9 @@ mod tests {
     #[test]
     fn test_plain_trap_is_an_instance_error() {
         let err = wasmer::RuntimeError::new("unreachable");
-        assert!(matches!(VMError::from(err), VMError::InstanceError(_)));
+        match VMError::from(err) {
+            VMError::InstanceError(msg) => assert_eq!(msg, "RuntimeError: unreachable"),
+            e => panic!("expected an instance error, got: {e}"),
+        }
     }
 }

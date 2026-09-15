@@ -309,7 +309,11 @@ pub(crate) fn exec_wasmv1_module(
         wasm_func
             .call(&mut store, param_offset)
             .map_err(|err| VMError::ExecutionError {
-                error: format!("Error while calling guest function {}: {}", function, err),
+                error: format!(
+                    "Error while calling guest function {}: {}",
+                    function,
+                    crate::error::runtime_error_without_trace(&err)
+                ),
                 init_gas_cost,
             })?;
 

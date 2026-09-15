@@ -1556,3 +1556,59 @@ fn test_gas_limit_300ms_pure_wasm() {
         duration.as_millis()
     );
 }
+
+#[test]
+#[serial]
+/// Test that a wasm trap is reported without its wasm backtrace.
+///
+/// The frames are `<unnamed>` for released contracts and a deep call stack fills the whole
+/// event size budget, pushing the actual cause out of the message. See massalabs/massa#4923.
+fn test_trap_error_has_no_backtrace() {
+    let wat = r#"
+        (module
+          (memory (export "memory") 1)
+          (func $deep unreachable)
+          (func $mid call $deep)
+          (func (export "main") (param i32) (result i32)
+            call $mid
+            unreachable)
+          (func (export "__new") (param i32 i32) (result i32) i32.const 0)
+          (func (export "__pin") (param i32) (result i32) i32.const 0)
+          (func (export "__unpin") (param i32))
+          (func (export "__collect")))
+    "#;
+    let bytecode = wasmer::wat2wasm(wat.as_bytes()).unwrap().to_vec();
+
+    // Both compilers are used in production: Cranelift for cached modules, Singlepass for
+    // the uncached path.
+    // Note: whether wasmer populates the wasm trace at all is platform dependent, so this
+    // test is a no-op on targets that never collect frames.
+    for compiler in [Compiler::SP, Compiler::CL] {
+        let gas_costs = GasCosts::default();
+        let condom_limits = CondomLimits::default();
+        let runtime_module = RuntimeModule::new(
+            &bytecode,
+            gas_costs.clone(),
+            compiler,
+            condom_limits.clone(),
+        )
+        .unwrap();
+        let error = run_main(
+            &TestInterface,
+            runtime_module,
+            100_000_000,
+            gas_costs,
+            condom_limits,
+        )
+        .unwrap_err()
+        .to_string();
+
+        println!("error: {}", error);
+        assert!(error.contains("unreachable"), "unexpected error: {}", error);
+        assert!(
+            !error.contains("    at "),
+            "the wasm backtrace leaked into the error message: {}",
+            error
+        );
+    }
+}
