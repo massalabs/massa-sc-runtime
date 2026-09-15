@@ -134,12 +134,16 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: 1.81.0
+          components: llvm-tools-preview
           override: true
       - uses: arduino/setup-protoc@v3
         with:
           version: '23.x'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: install grcov
+        run: |
+          curl -sL https://github.com/mozilla/grcov/releases/download/v0.8.19/grcov-x86_64-unknown-linux-gnu.tar.bz2 | tar jxf - -C /usr/local/bin
       - uses: actions-rs/cargo@v1
         with:
           command: clean
@@ -149,14 +153,19 @@ jobs:
           args: --features gas_calibration,testing,dumper --no-fail-fast
         env:
           CARGO_INCREMENTAL: "0"
-          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-          RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-      - id: coverage
-        uses: actions-rs/grcov@v0.1
+          RUSTFLAGS: "-Cinstrument-coverage"
+          LLVM_PROFILE_FILE: "massa-sc-runtime-%p-%m.profraw"
+      - name: generate lcov report
+        run: |
+          grcov . \
+            --binary-path ./target/debug/deps/ \
+            -s . -t lcov --ignore-not-existing \
+            --ignore '../*' --ignore '/*' --ignore 'target/*' \
+            -o lcov.info
       - uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ${{ steps.coverage.outputs.report }}
+          path-to-lcov: lcov.info
 
   doc:
     runs-on: ubuntu-latest
