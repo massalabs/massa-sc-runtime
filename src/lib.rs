@@ -2,6 +2,9 @@ mod as_execution;
 mod error;
 mod execution;
 mod middlewares;
+// Provides `__rust_probestack` for wasmer-vm < 6.1.0 on x86_64.
+// TODO: remove when wasmer is bumped to >= 6.1.0.
+mod probestack;
 mod settings;
 mod tunable_memory;
 mod types;
