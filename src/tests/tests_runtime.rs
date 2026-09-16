@@ -273,7 +273,7 @@ fn test_run_main_get_execution_traces() {
     )
     .unwrap();
 
-    assert_eq!(resp.trace.is_empty(), false);
+    assert!(!resp.trace.is_empty());
     assert_eq!(
         resp.trace,
         vec![AbiTrace {
@@ -644,8 +644,8 @@ fn test_transfer_coins_wasmv1_as() {
 
     #[cfg(feature = "execution-trace")]
     {
-        assert_eq!(_resp.trace.is_empty(), false);
-        let trace_1 = _resp.trace.get(0).unwrap();
+        assert!(!_resp.trace.is_empty());
+        let trace_1 = _resp.trace.first().unwrap();
         assert_eq!(trace_1.name, "abi_transfer_coins");
         assert_eq!(
             trace_1.params,
@@ -1399,25 +1399,25 @@ fn test_ser() {
     let at6 = AbiTraceType::Slot((111, 22));
     let s0 = serde_json::to_string(&at0).unwrap();
     println!("s0: {}", s0);
-    assert!(s0.find("bool").is_some());
+    assert!(s0.contains("bool"));
     let s1 = serde_json::to_string(&at1).unwrap();
     println!("s1: {}", s1);
-    assert!(s1.find("string").is_some());
+    assert!(s1.contains("string"));
     let s2 = serde_json::to_string(&at2).unwrap();
     println!("s2: {}", s2);
-    assert!(s2.find("u64").is_some());
+    assert!(s2.contains("u64"));
     let s3 = serde_json::to_string(&at3).unwrap();
     println!("s3: {}", s3);
-    assert!(s3.find("byteArray").is_some());
+    assert!(s3.contains("byteArray"));
     let s4 = serde_json::to_string(&at4).unwrap();
     println!("s4: {}", s4);
-    assert!(s4.find("byteArrays").is_some());
+    assert!(s4.contains("byteArrays"));
     let s5 = serde_json::to_string(&at5).unwrap();
     println!("s5: {}", s5);
-    assert!(s5.find("strings").is_some());
+    assert!(s5.contains("strings"));
     let s6 = serde_json::to_string(&at6).unwrap();
     println!("s6: {}", s6);
-    assert!(s6.find("slot").is_some());
+    assert!(s6.contains("slot"));
 
     let atv1 = AbiTraceValue {
         name: "foo".to_string(),
@@ -1427,8 +1427,8 @@ fn test_ser() {
     println!("s_atv1: {:?}", s_atv1_);
 
     let s_atv1 = s_atv1_.unwrap();
-    assert!(s_atv1.find("foo").is_some());
-    assert!(s_atv1.find("slot").is_some());
+    assert!(s_atv1.contains("foo"));
+    assert!(s_atv1.contains("slot"));
 }
 
 #[test]

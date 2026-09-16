@@ -740,7 +740,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     /// Prepare the execution of a module at the given address and transfer a
     /// given amount of coins
-
     fn init_call_wasmv1(&self, address: &str, raw_coins: NativeAmount) -> Result<Vec<u8>>;
 
     /// Finish a call
