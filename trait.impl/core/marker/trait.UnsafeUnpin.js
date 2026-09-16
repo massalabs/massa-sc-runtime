@@ -1,0 +1,9 @@
+(function() {
+    var implementors = Object.fromEntries([["massa_sc_runtime",[["impl UnsafeUnpin for <a class=\"enum\" href=\"massa_sc_runtime/enum.Compiler.html\" title=\"enum massa_sc_runtime::Compiler\">Compiler</a>",1,["massa_sc_runtime::execution::Compiler"]],["impl UnsafeUnpin for <a class=\"enum\" href=\"massa_sc_runtime/enum.InterfaceError.html\" title=\"enum massa_sc_runtime::InterfaceError\">InterfaceError</a>",1,["massa_sc_runtime::types::InterfaceError"]],["impl UnsafeUnpin for <a class=\"enum\" href=\"massa_sc_runtime/enum.RuntimeModule.html\" title=\"enum massa_sc_runtime::RuntimeModule\">RuntimeModule</a>",1,["massa_sc_runtime::execution::RuntimeModule"]],["impl UnsafeUnpin for <a class=\"enum\" href=\"massa_sc_runtime/enum.VMError.html\" title=\"enum massa_sc_runtime::VMError\">VMError</a>",1,["massa_sc_runtime::error::VMError"]],["impl UnsafeUnpin for <a class=\"struct\" href=\"massa_sc_runtime/struct.CondomLimits.html\" title=\"struct massa_sc_runtime::CondomLimits\">CondomLimits</a>",1,["massa_sc_runtime::types::CondomLimits"]],["impl UnsafeUnpin for <a class=\"struct\" href=\"massa_sc_runtime/struct.GasCosts.html\" title=\"struct massa_sc_runtime::GasCosts\">GasCosts</a>",1,["massa_sc_runtime::types::GasCosts"]],["impl UnsafeUnpin for <a class=\"struct\" href=\"massa_sc_runtime/struct.Response.html\" title=\"struct massa_sc_runtime::Response\">Response</a>",1,["massa_sc_runtime::types::Response"]]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[1385]}
