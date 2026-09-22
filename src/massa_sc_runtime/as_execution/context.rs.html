@@ -273,22 +273,24 @@
 <a href=#273 id=273 data-nosnippet>273</a>                <span class="string">"assembly_script_get_op_keys_prefix" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_op_keys_prefix),
 <a href=#274 id=274 data-nosnippet>274</a>                <span class="string">"assembly_script_get_keys" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_keys),
 <a href=#275 id=275 data-nosnippet>275</a>                <span class="string">"assembly_script_get_keys_for" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_keys_for),
-<a href=#276 id=276 data-nosnippet>276</a>                <span class="string">"assembly_script_has_op_key" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_has_op_key),
-<a href=#277 id=277 data-nosnippet>277</a>                <span class="string">"assembly_script_get_op_data" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_op_data),
-<a href=#278 id=278 data-nosnippet>278</a>                <span class="string">"assembly_script_get_bytecode" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_bytecode),
-<a href=#279 id=279 data-nosnippet>279</a>                <span class="string">"assembly_script_get_bytecode_for" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_bytecode_for),
-<a href=#280 id=280 data-nosnippet>280</a>                <span class="string">"assembly_script_local_call" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_local_call),
-<a href=#281 id=281 data-nosnippet>281</a>                <span class="string">"assembly_script_local_execution" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_local_execution),
-<a href=#282 id=282 data-nosnippet>282</a>                <span class="string">"assembly_script_caller_has_write_access" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_caller_has_write_access),
-<a href=#283 id=283 data-nosnippet>283</a>                <span class="string">"assembly_script_function_exists" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_function_exists),
-<a href=#284 id=284 data-nosnippet>284</a>                <span class="string">"assembly_script_chain_id" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_chain_id),
-<a href=#285 id=285 data-nosnippet>285</a>                <span class="string">"assembly_script_get_deferred_call_quote" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_deferred_call_quote),
-<a href=#286 id=286 data-nosnippet>286</a>                <span class="string">"assembly_script_deferred_call_register" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_register),
-<a href=#287 id=287 data-nosnippet>287</a>                <span class="string">"assembly_script_deferred_call_exists" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_exists),
-<a href=#288 id=288 data-nosnippet>288</a>                <span class="string">"assembly_script_deferred_call_cancel" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_cancel),
-<a href=#289 id=289 data-nosnippet>289</a>            },
-<a href=#290 id=290 data-nosnippet>290</a>        };
-<a href=#291 id=291 data-nosnippet>291</a>
-<a href=#292 id=292 data-nosnippet>292</a>        (imports, fenv)
-<a href=#293 id=293 data-nosnippet>293</a>    }
-<a href=#294 id=294 data-nosnippet>294</a>}</code></pre></div></section></main></body></html>
+<a href=#276 id=276 data-nosnippet>276</a>                <span class="string">"assembly_script_get_keys_paginated" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_keys_paginated),
+<a href=#277 id=277 data-nosnippet>277</a>                <span class="string">"assembly_script_get_keys_for_paginated" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_keys_for_paginated),
+<a href=#278 id=278 data-nosnippet>278</a>                <span class="string">"assembly_script_has_op_key" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_has_op_key),
+<a href=#279 id=279 data-nosnippet>279</a>                <span class="string">"assembly_script_get_op_data" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_op_data),
+<a href=#280 id=280 data-nosnippet>280</a>                <span class="string">"assembly_script_get_bytecode" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_bytecode),
+<a href=#281 id=281 data-nosnippet>281</a>                <span class="string">"assembly_script_get_bytecode_for" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_bytecode_for),
+<a href=#282 id=282 data-nosnippet>282</a>                <span class="string">"assembly_script_local_call" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_local_call),
+<a href=#283 id=283 data-nosnippet>283</a>                <span class="string">"assembly_script_local_execution" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_local_execution),
+<a href=#284 id=284 data-nosnippet>284</a>                <span class="string">"assembly_script_caller_has_write_access" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_caller_has_write_access),
+<a href=#285 id=285 data-nosnippet>285</a>                <span class="string">"assembly_script_function_exists" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_function_exists),
+<a href=#286 id=286 data-nosnippet>286</a>                <span class="string">"assembly_script_chain_id" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_chain_id),
+<a href=#287 id=287 data-nosnippet>287</a>                <span class="string">"assembly_script_get_deferred_call_quote" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_get_deferred_call_quote),
+<a href=#288 id=288 data-nosnippet>288</a>                <span class="string">"assembly_script_deferred_call_register" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_register),
+<a href=#289 id=289 data-nosnippet>289</a>                <span class="string">"assembly_script_deferred_call_exists" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_exists),
+<a href=#290 id=290 data-nosnippet>290</a>                <span class="string">"assembly_script_deferred_call_cancel" </span>=&gt; Function::new_typed_with_env(store, <span class="kw-2">&amp;</span>fenv, assembly_script_deferred_call_cancel),
+<a href=#291 id=291 data-nosnippet>291</a>            },
+<a href=#292 id=292 data-nosnippet>292</a>        };
+<a href=#293 id=293 data-nosnippet>293</a>
+<a href=#294 id=294 data-nosnippet>294</a>        (imports, fenv)
+<a href=#295 id=295 data-nosnippet>295</a>    }
+<a href=#296 id=296 data-nosnippet>296</a>}</code></pre></div></section></main></body></html>
