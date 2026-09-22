@@ -618,6 +618,25 @@ impl Interface for TestInterface {
         todo!()
     }
 
+    fn get_keys_paginated(
+        &self,
+        _prefix: Option<&[u8]>,
+        _start_after: Option<&[u8]>,
+        _count: u32,
+    ) -> Result<BTreeSet<Vec<u8>>> {
+        todo!()
+    }
+
+    fn get_keys_for_paginated(
+        &self,
+        _address: &str,
+        _prefix: Option<&[u8]>,
+        _start_after: Option<&[u8]>,
+        _count: u32,
+    ) -> Result<BTreeSet<Vec<u8>>> {
+        todo!()
+    }
+
     fn raw_get_bytecode(&self) -> Result<Vec<u8>> {
         todo!()
     }

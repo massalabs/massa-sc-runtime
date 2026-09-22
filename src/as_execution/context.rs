@@ -273,6 +273,8 @@ impl ASContext {
                 "assembly_script_get_op_keys_prefix" => Function::new_typed_with_env(store, &fenv, assembly_script_get_op_keys_prefix),
                 "assembly_script_get_keys" => Function::new_typed_with_env(store, &fenv, assembly_script_get_keys),
                 "assembly_script_get_keys_for" => Function::new_typed_with_env(store, &fenv, assembly_script_get_keys_for),
+                "assembly_script_get_keys_paginated" => Function::new_typed_with_env(store, &fenv, assembly_script_get_keys_paginated),
+                "assembly_script_get_keys_for_paginated" => Function::new_typed_with_env(store, &fenv, assembly_script_get_keys_for_paginated),
                 "assembly_script_has_op_key" => Function::new_typed_with_env(store, &fenv, assembly_script_has_op_key),
                 "assembly_script_get_op_data" => Function::new_typed_with_env(store, &fenv, assembly_script_get_op_data),
                 "assembly_script_get_bytecode" => Function::new_typed_with_env(store, &fenv, assembly_script_get_bytecode),
