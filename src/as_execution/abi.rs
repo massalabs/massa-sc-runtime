@@ -596,6 +596,98 @@ pub(crate) fn assembly_script_get_keys_for(
     })
 }
 
+/// Read pagination params shared by the paginated get-keys ABIs:
+/// empty buffers map to `None`, and a negative count is rejected.
+fn read_pagination_params(
+    prefix: Vec<u8>,
+    start_after: Vec<u8>,
+    count: i32,
+) -> ABIResult<(Vec<u8>, Vec<u8>, u32)> {
+    let count = u32::try_from(count)
+        .map_err(|_| ABIError::RuntimeError("pagination count must be non-negative".into()))?;
+    Ok((prefix, start_after, count))
+}
+
+/// Map a raw buffer to an optional bound: empty means unbounded.
+fn opt_bound(buffer: &[u8]) -> Option<&[u8]> {
+    if buffer.is_empty() {
+        None
+    } else {
+        Some(buffer)
+    }
+}
+
+/// Get keys (aka entries) in the datastore, paginated (bounded replacement for
+/// `assembly_script_get_keys`, see massa #5284).
+pub(crate) fn assembly_script_get_keys_paginated(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    prefix: i32,
+    start_after: i32,
+    count: i32,
+) -> ABIResult<i32> {
+    abi_with_memory!(ctx, assembly_script_get_keys_paginated, |memory| {
+        let prefix = read_buffer(&memory, &ctx, prefix)?;
+        let start_after = read_buffer(&memory, &ctx, start_after)?;
+        let (prefix, start_after, count) = read_pagination_params(prefix, start_after, count)?;
+        let keys = ctx.data().interface.get_keys_paginated(
+            opt_bound(&prefix),
+            opt_bound(&start_after),
+            count,
+        )?;
+        let fmt_keys = ser_bytearray_vec(&keys, keys.len(), settings::max_datastore_entry_count())?;
+        let ffi_env = ctx.data().get_ffi_env().clone();
+        let ptr = BufferPtr::alloc(&fmt_keys, &ffi_env, &mut ctx)?.offset();
+
+        #[cfg(feature = "execution-trace")]
+        ctx.data_mut().trace.push(AbiTrace {
+            name: "assembly_script_get_keys_paginated".to_string(),
+            params: vec![into_trace_value!(prefix), into_trace_value!(start_after)],
+            return_value: AbiTraceType::ByteArrays(keys.iter().cloned().collect()),
+            sub_calls: None,
+        });
+        Ok(ptr as i32)
+    })
+}
+
+/// Get keys (aka entries) in the datastore for an address, paginated (bounded
+/// replacement for `assembly_script_get_keys_for`, see massa #5284).
+pub(crate) fn assembly_script_get_keys_for_paginated(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    address: i32,
+    prefix: i32,
+    start_after: i32,
+    count: i32,
+) -> ABIResult<i32> {
+    abi_with_memory!(ctx, assembly_script_get_keys_for_paginated, |memory| {
+        let address = read_string(&memory, &ctx, address)?;
+        let prefix = read_buffer(&memory, &ctx, prefix)?;
+        let start_after = read_buffer(&memory, &ctx, start_after)?;
+        let (prefix, start_after, count) = read_pagination_params(prefix, start_after, count)?;
+        let keys = ctx.data().interface.get_keys_for_paginated(
+            &address,
+            opt_bound(&prefix),
+            opt_bound(&start_after),
+            count,
+        )?;
+        let fmt_keys = ser_bytearray_vec(&keys, keys.len(), settings::max_datastore_entry_count())?;
+        let ffi_env = ctx.data().get_ffi_env().clone();
+        let ptr = BufferPtr::alloc(&fmt_keys, &ffi_env, &mut ctx)?.offset();
+
+        #[cfg(feature = "execution-trace")]
+        ctx.data_mut().trace.push(AbiTrace {
+            name: "assembly_script_get_keys_for_paginated".to_string(),
+            params: vec![
+                into_trace_value!(address),
+                into_trace_value!(prefix),
+                into_trace_value!(start_after),
+            ],
+            return_value: AbiTraceType::ByteArrays(keys.iter().cloned().collect()),
+            sub_calls: None,
+        });
+        Ok(ptr as i32)
+    })
+}
+
 /// sets a key-indexed data entry in the datastore, overwriting existing values
 /// if any
 pub(crate) fn assembly_script_set_data(
@@ -1934,7 +2026,30 @@ pub(crate) fn assembly_script_hash_sha256(
 
 #[cfg(test)]
 mod tests {
-    use crate::as_execution::abi::ser_bytearray_vec;
+    use crate::as_execution::abi::{opt_bound, read_pagination_params, ser_bytearray_vec};
+
+    #[test]
+    fn test_pagination_params_empty_means_unbounded() {
+        let (prefix, start_after, count) = read_pagination_params(vec![], vec![], 10).unwrap();
+        assert_eq!(count, 10);
+        assert_eq!(opt_bound(&prefix), None);
+        assert_eq!(opt_bound(&start_after), None);
+    }
+
+    #[test]
+    fn test_pagination_params_buffers_forwarded() {
+        let (prefix, start_after, count) =
+            read_pagination_params(b"ab".to_vec(), b"key7".to_vec(), 0).unwrap();
+        assert_eq!(count, 0);
+        assert_eq!(opt_bound(&prefix), Some(b"ab".as_ref()));
+        assert_eq!(opt_bound(&start_after), Some(b"key7".as_ref()));
+    }
+
+    #[test]
+    fn test_pagination_params_negative_count_rejected() {
+        assert!(read_pagination_params(vec![], vec![], -1).is_err());
+        assert!(read_pagination_params(vec![], vec![], i32::MIN).is_err());
+    }
 
     #[test]
     fn test_ser() {
