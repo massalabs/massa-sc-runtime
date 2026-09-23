@@ -8,7 +8,7 @@ use sha3::Keccak256;
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone)]
-struct TestInterface;
+pub(crate) struct TestInterface;
 
 impl InterfaceClone for TestInterface {
     fn clone_box(&self) -> Box<dyn Interface> {

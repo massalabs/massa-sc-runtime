@@ -734,12 +734,25 @@ impl Default for GasCosts {
     }
 }
 
+/// Execution component version from which the paginated datastore-key ABIs
+/// (`get_keys_paginated`, `get_keys_for_paginated`) are exposed to guest
+/// modules. Mirrors massa's `MIP_0002_EXECUTION_VERSION`
+/// (`MipComponent::Execution` v2); kept as a literal here to avoid a
+/// massa-versioning dependency. Bump together with the massa rev when the
+/// activation version changes.
+pub const PAGINATED_DS_KEYS_EXECUTION_VERSION: u32 = 2;
+
 #[allow(unused_variables)]
 pub trait Interface: Send + Sync + InterfaceClone {
     fn increment_recursion_counter(&self) -> Result<()>;
 
     fn decrement_recursion_counter(&self) -> Result<()>;
 
+    /// Execution component version active at the current slot, as reported by
+    /// the host (massa-side: `ExecutionContext::execution_component_version`).
+    /// MIP-gated ABIs are only registered when this reaches the version that
+    /// introduced them, so that an updated node rejects the new imports before
+    /// activation exactly like a non-updated node (no consensus fork).
     fn get_interface_version(&self) -> Result<u32>;
 
     /// Prepare the execution of a module at the given address and transfer a
@@ -823,6 +836,10 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// lexicographically; only keys strictly after `start_after` (if any) are
     /// returned, up to `count` keys. This is the bounded replacement for
     /// `get_keys` (see massa #5284).
+    ///
+    /// MIP-gated: only exposed to guest modules from execution component
+    /// version [`PAGINATED_DS_KEYS_EXECUTION_VERSION`] on (MIP-0002
+    /// massa-side). Calling it before activation fails.
     fn get_keys_paginated(
         &self,
         prefix: Option<&[u8]>,
@@ -831,7 +848,7 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ) -> Result<BTreeSet<Vec<u8>>>;
 
     /// Return datastore keys for an address, paginated (same semantics as
-    /// `get_keys_paginated`, scoped to `address`).
+    /// `get_keys_paginated`, scoped to `address`; same MIP gating).
     fn get_keys_for_paginated(
         &self,
         address: &str,
