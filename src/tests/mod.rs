@@ -8,7 +8,7 @@ use sha3::Keccak256;
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone)]
-struct TestInterface;
+pub(crate) struct TestInterface;
 
 impl InterfaceClone for TestInterface {
     fn clone_box(&self) -> Box<dyn Interface> {
@@ -615,6 +615,25 @@ impl Interface for TestInterface {
     }
 
     fn get_keys_for(&self, _address: &str, _prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {
+        todo!()
+    }
+
+    fn get_keys_paginated(
+        &self,
+        _prefix: Option<&[u8]>,
+        _start_after: Option<&[u8]>,
+        _count: u32,
+    ) -> Result<BTreeSet<Vec<u8>>> {
+        todo!()
+    }
+
+    fn get_keys_for_paginated(
+        &self,
+        _address: &str,
+        _prefix: Option<&[u8]>,
+        _start_after: Option<&[u8]>,
+        _count: u32,
+    ) -> Result<BTreeSet<Vec<u8>>> {
         todo!()
     }
 

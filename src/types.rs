@@ -273,6 +273,8 @@ pub struct GasCosts {
     pub assembly_script_get_deferred_call_quote: u64,
     pub assembly_script_get_keys: u64,
     pub assembly_script_get_keys_for: u64,
+    pub assembly_script_get_keys_paginated: u64,
+    pub assembly_script_get_keys_for_paginated: u64,
     pub assembly_script_get_op_data: u64,
     pub assembly_script_get_op_keys: u64,
     pub assembly_script_get_op_keys_prefix: u64,
@@ -465,6 +467,10 @@ impl GasCosts {
             ),
             assembly_script_get_keys: get_cost!("assembly_script_get_keys"),
             assembly_script_get_keys_for: get_cost!("assembly_script_get_keys_for"),
+            assembly_script_get_keys_paginated: get_cost!("assembly_script_get_keys_paginated"),
+            assembly_script_get_keys_for_paginated: get_cost!(
+                "assembly_script_get_keys_for_paginated"
+            ),
             assembly_script_get_op_data: get_cost!("assembly_script_get_op_data"),
             assembly_script_get_op_keys: get_cost!("assembly_script_get_op_keys"),
             assembly_script_get_op_keys_prefix: get_cost!("assembly_script_get_op_keys_prefix"),
@@ -621,6 +627,8 @@ impl Default for GasCosts {
             assembly_script_get_deferred_call_quote: 1220,
             assembly_script_get_keys: 1000,
             assembly_script_get_keys_for: 1195,
+            assembly_script_get_keys_paginated: 1000,
+            assembly_script_get_keys_for_paginated: 1195,
             assembly_script_get_op_data: 50000,
             assembly_script_get_op_keys: 1400,
             assembly_script_get_op_keys_prefix: 1400,
@@ -726,12 +734,25 @@ impl Default for GasCosts {
     }
 }
 
+/// Execution component version from which the paginated datastore-key ABIs
+/// (`get_keys_paginated`, `get_keys_for_paginated`) are exposed to guest
+/// modules. Mirrors massa's `MIP_0002_EXECUTION_VERSION`
+/// (`MipComponent::Execution` v2); kept as a literal here to avoid a
+/// massa-versioning dependency. Bump together with the massa rev when the
+/// activation version changes.
+pub const PAGINATED_DS_KEYS_EXECUTION_VERSION: u32 = 2;
+
 #[allow(unused_variables)]
 pub trait Interface: Send + Sync + InterfaceClone {
     fn increment_recursion_counter(&self) -> Result<()>;
 
     fn decrement_recursion_counter(&self) -> Result<()>;
 
+    /// Execution component version active at the current slot, as reported by
+    /// the host (massa-side: `ExecutionContext::execution_component_version`).
+    /// MIP-gated ABIs are only registered when this reaches the version that
+    /// introduced them, so that an updated node rejects the new imports before
+    /// activation exactly like a non-updated node (no consensus fork).
     fn get_interface_version(&self) -> Result<u32>;
 
     /// Prepare the execution of a module at the given address and transfer a
@@ -809,6 +830,32 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Return datastore keys
     /// Will only return keys with a given prefix if provided in args
     fn get_keys_for(&self, address: &str, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>>;
+
+    /// Return datastore keys, paginated.
+    /// Only keys with the given prefix (if any) are considered, ordered
+    /// lexicographically; only keys strictly after `start_after` (if any) are
+    /// returned, up to `count` keys. This is the bounded replacement for
+    /// `get_keys` (see massa #5284).
+    ///
+    /// MIP-gated: only exposed to guest modules from execution component
+    /// version [`PAGINATED_DS_KEYS_EXECUTION_VERSION`] on (MIP-0002
+    /// massa-side). Calling it before activation fails.
+    fn get_keys_paginated(
+        &self,
+        prefix: Option<&[u8]>,
+        start_after: Option<&[u8]>,
+        count: u32,
+    ) -> Result<BTreeSet<Vec<u8>>>;
+
+    /// Return datastore keys for an address, paginated (same semantics as
+    /// `get_keys_paginated`, scoped to `address`; same MIP gating).
+    fn get_keys_for_paginated(
+        &self,
+        address: &str,
+        prefix: Option<&[u8]>,
+        start_after: Option<&[u8]>,
+        count: u32,
+    ) -> Result<BTreeSet<Vec<u8>>>;
 
     fn get_ds_keys_wasmv1(
         &self,
