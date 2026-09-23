@@ -13,7 +13,7 @@ pub(crate) static INTERFACE_VERSION: std::sync::atomic::AtomicU32 =
     std::sync::atomic::AtomicU32::new(0);
 
 #[derive(Clone)]
-struct TestInterface;
+pub(crate) struct TestInterface;
 
 impl InterfaceClone for TestInterface {
     fn clone_box(&self) -> Box<dyn Interface> {
@@ -626,7 +626,7 @@ impl Interface for TestInterface {
     fn get_keys_paginated(
         &self,
         _prefix: Option<&[u8]>,
-        _start_after: Option<&[u8]>,
+        _start_key: Option<&[u8]>,
         _count: u32,
     ) -> Result<BTreeSet<Vec<u8>>> {
         todo!()
@@ -636,7 +636,7 @@ impl Interface for TestInterface {
         &self,
         _address: &str,
         _prefix: Option<&[u8]>,
-        _start_after: Option<&[u8]>,
+        _start_key: Option<&[u8]>,
         _count: u32,
     ) -> Result<BTreeSet<Vec<u8>>> {
         todo!()

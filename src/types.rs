@@ -273,8 +273,8 @@ pub struct GasCosts {
     pub assembly_script_get_deferred_call_quote: u64,
     pub assembly_script_get_keys: u64,
     pub assembly_script_get_keys_for: u64,
-    pub assembly_script_get_keys_paginated: u64,
     pub assembly_script_get_keys_for_paginated: u64,
+    pub assembly_script_get_keys_paginated: u64,
     pub assembly_script_get_op_data: u64,
     pub assembly_script_get_op_keys: u64,
     pub assembly_script_get_op_keys_prefix: u64,
@@ -467,10 +467,10 @@ impl GasCosts {
             ),
             assembly_script_get_keys: get_cost!("assembly_script_get_keys"),
             assembly_script_get_keys_for: get_cost!("assembly_script_get_keys_for"),
-            assembly_script_get_keys_paginated: get_cost!("assembly_script_get_keys_paginated"),
             assembly_script_get_keys_for_paginated: get_cost!(
                 "assembly_script_get_keys_for_paginated"
             ),
+            assembly_script_get_keys_paginated: get_cost!("assembly_script_get_keys_paginated"),
             assembly_script_get_op_data: get_cost!("assembly_script_get_op_data"),
             assembly_script_get_op_keys: get_cost!("assembly_script_get_op_keys"),
             assembly_script_get_op_keys_prefix: get_cost!("assembly_script_get_op_keys_prefix"),
@@ -627,8 +627,13 @@ impl Default for GasCosts {
             assembly_script_get_deferred_call_quote: 1220,
             assembly_script_get_keys: 1000,
             assembly_script_get_keys_for: 1195,
-            assembly_script_get_keys_paginated: 1000,
-            assembly_script_get_keys_for_paginated: 1195,
+            // Flat price for the worst page the cap allows (500 keys):
+            // base + 500 × (per_key + per_key_byte × key length).
+            // 16-byte keys:  2_350 + 500 × 230 ≈ 117k.
+            // 255-byte keys: 117k + 500 × 255 × 0.55 ≈ 187k.
+            // 190k covers every such call, as far as keys go.
+            assembly_script_get_keys_for_paginated: 190000,
+            assembly_script_get_keys_paginated: 190000,
             assembly_script_get_op_data: 50000,
             assembly_script_get_op_keys: 1400,
             assembly_script_get_op_keys_prefix: 1400,
@@ -740,6 +745,16 @@ impl Default for GasCosts {
 /// avoid a massa-versioning dependency.
 pub const WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION: u32 = 2;
 
+/// Execution component version from which the paginated datastore-key ABIs are
+/// exposed to guest modules. Same massa MIP-0002 activation as
+/// [`WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION`]: before it, an updated node
+/// does not resolve the new imports, so instantiation fails exactly as on a
+/// non-updated node. A host that cannot report its version keeps them hidden.
+pub const PAGINATED_DS_KEYS_EXECUTION_VERSION: u32 = WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION;
+
+/// Maximum number of datastore keys one paginated call may return.
+pub const MAX_DATASTORE_KEYS_PAGE: u32 = 500;
+
 #[allow(unused_variables)]
 pub trait Interface: Send + Sync + InterfaceClone {
     fn increment_recursion_counter(&self) -> Result<()>;
@@ -821,33 +836,44 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Print function for examples
     fn print(&self, message: &str) -> Result<()>;
 
-    /// Return datastore keys
-    /// Will only return keys with a given prefix if provided in args
+    /// Return datastore keys.
+    /// Only keys with the given prefix are returned when one is provided.
+    ///
+    /// Superseded, from [`PAGINATED_DS_KEYS_EXECUTION_VERSION`], by
+    /// [`Interface::get_keys_paginated`].
     fn get_keys(&self, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>>;
 
-    /// Return datastore keys
-    /// Will only return keys with a given prefix if provided in args
+    /// Return datastore keys for an address.
+    /// Only keys with the given prefix are returned when one is provided.
+    ///
+    /// Superseded, from [`PAGINATED_DS_KEYS_EXECUTION_VERSION`], by
+    /// [`Interface::get_keys_for_paginated`].
     fn get_keys_for(&self, address: &str, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>>;
 
-    /// Return datastore keys, paginated.
-    /// Only keys with the given prefix (if any) are considered, ordered
-    /// lexicographically; only keys strictly after `start_after` (if any) are
-    /// returned, up to `count` keys. This is the bounded replacement for
-    /// `get_keys` (see massa #5284).
+    /// Return one page of datastore keys for the current address.
+    ///
+    /// Guest modules can call this only from [`PAGINATED_DS_KEYS_EXECUTION_VERSION`]
+    /// (massa MIP-0002). The AssemblyScript import is omitted before that version.
+    ///
+    /// * `prefix`: only keys with this prefix. `None` matches every key.
+    /// * `start_key`: exclusive resume cursor. `None` starts at the beginning of
+    ///   the range. Pass the last key of the previous page to obtain the next one.
+    /// * `count`: page size, in `1..=`[`MAX_DATASTORE_KEYS_PAGE`]. The ABI rejects
+    ///   any other value. The host must apply the same bound.
     fn get_keys_paginated(
         &self,
         prefix: Option<&[u8]>,
-        start_after: Option<&[u8]>,
+        start_key: Option<&[u8]>,
         count: u32,
     ) -> Result<BTreeSet<Vec<u8>>>;
 
-    /// Return datastore keys for an address, paginated (same semantics as
-    /// `get_keys_paginated`, scoped to `address`).
+    /// Return one page of datastore keys for an address.
+    /// See [`Interface::get_keys_paginated`].
     fn get_keys_for_paginated(
         &self,
         address: &str,
         prefix: Option<&[u8]>,
-        start_after: Option<&[u8]>,
+        start_key: Option<&[u8]>,
         count: u32,
     ) -> Result<BTreeSet<Vec<u8>>>;
 
