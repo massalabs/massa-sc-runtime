@@ -1,5 +1,5 @@
 use crate::as_execution::{ASContext, ASModule};
-use crate::tests::TestInterface;
+use crate::tests::{TestInterface, INTERFACE_VERSION};
 use crate::{
     run_function, run_main,
     types::{GasCosts, Interface},
@@ -384,6 +384,59 @@ fn test_get_current_period_and_thread_wasmv1_as() {
         condom_limits,
     )
     .unwrap();
+}
+
+#[test]
+#[serial]
+/// wasmv1 modules run below WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION and are refused from it on,
+/// while AssemblyScript modules keep running.
+fn test_wasmv1_runtime_disabled_at_version() {
+    use crate::WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION;
+    use std::sync::atomic::Ordering;
+
+    let gas_costs = GasCosts::default();
+    let condom_limits = CondomLimits::default();
+    let interface: Box<dyn Interface> = Box::new(TestInterface);
+    let wasmv1 = include_bytes!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/wasm/test_period_thread.wasm_add"
+    ));
+    let as_module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/basic_main.wasm"));
+    let run = |bytecode: &[u8], limit: u64| {
+        let module = RuntimeModule::new(
+            bytecode,
+            gas_costs.clone(),
+            Compiler::SP,
+            condom_limits.clone(),
+        )
+        .unwrap();
+        run_main(
+            &*interface,
+            module,
+            limit,
+            gas_costs.clone(),
+            condom_limits.clone(),
+        )
+    };
+
+    INTERFACE_VERSION.store(
+        WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION - 1,
+        Ordering::SeqCst,
+    );
+    let before = run(wasmv1, 100_000_000);
+
+    INTERFACE_VERSION.store(WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION, Ordering::SeqCst);
+    let after = run(wasmv1, 100_000_000);
+    let as_after = run(as_module, 100_000);
+
+    INTERFACE_VERSION.store(0, Ordering::SeqCst);
+
+    before.expect("wasmv1 modules run before the removal version");
+    let err = after.expect_err("wasmv1 modules are refused from the removal version on");
+    assert!(err
+        .to_string()
+        .contains("wasmv1 modules are no longer supported"));
+    as_after.expect("AssemblyScript modules are not affected");
 }
 
 #[test]
