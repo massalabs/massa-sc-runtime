@@ -726,12 +726,23 @@ impl Default for GasCosts {
     }
 }
 
+/// Execution component version from which wasmv1 modules (bytecode format byte `1`) are no
+/// longer executed: every execution of one fails, as if the format were unsupported. Mirrors
+/// massa's `MIP_0002_EXECUTION_VERSION` (`MipComponent::Execution` v2); kept as a literal here to
+/// avoid a massa-versioning dependency.
+pub const WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION: u32 = 2;
+
 #[allow(unused_variables)]
 pub trait Interface: Send + Sync + InterfaceClone {
     fn increment_recursion_counter(&self) -> Result<()>;
 
     fn decrement_recursion_counter(&self) -> Result<()>;
 
+    /// Execution component version active at the current slot, as reported by
+    /// the host. Version-gated changes are decided on it, so that an updated
+    /// node behaves exactly like a non-updated one before activation. A host
+    /// that cannot report it must return an error: gated changes then keep
+    /// their pre-activation behaviour.
     fn get_interface_version(&self) -> Result<u32>;
 
     /// Prepare the execution of a module at the given address and transfer a
