@@ -13,6 +13,7 @@ mod wasmv1_execution;
 pub use error::VMError;
 pub use execution::{run_function, run_main};
 pub use execution::{Compiler, RuntimeModule};
+pub use settings::{MAX_DATASTORE_KEYS_PAGE, MIP_0002_EXECUTION_VERSION};
 pub use types::*;
 
 #[cfg(feature = "gas_calibration")]

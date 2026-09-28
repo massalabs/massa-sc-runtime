@@ -318,14 +318,14 @@ impl ASContext {
 /// Whether the paginated datastore-key ABIs are exposed for a host reporting
 /// this execution component version.
 fn paginated_ds_keys_enabled(interface_version: u32) -> bool {
-    interface_version >= crate::PAGINATED_DS_KEYS_EXECUTION_VERSION
+    interface_version >= crate::MIP_0002_EXECUTION_VERSION
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::tests::{TestInterface, INTERFACE_VERSION};
-    use crate::{CondomLimits, GasCosts, PAGINATED_DS_KEYS_EXECUTION_VERSION};
+    use crate::{CondomLimits, GasCosts, MIP_0002_EXECUTION_VERSION};
     use serial_test::serial;
     use std::sync::atomic::Ordering;
     use wasmer::{sys::EngineBuilder, wat2wasm, Module, Store};
@@ -334,12 +334,8 @@ mod tests {
     #[test]
     fn test_paginated_ds_keys_gate_boundaries() {
         assert!(!paginated_ds_keys_enabled(0));
-        assert!(!paginated_ds_keys_enabled(
-            PAGINATED_DS_KEYS_EXECUTION_VERSION - 1
-        ));
-        assert!(paginated_ds_keys_enabled(
-            PAGINATED_DS_KEYS_EXECUTION_VERSION
-        ));
+        assert!(!paginated_ds_keys_enabled(MIP_0002_EXECUTION_VERSION - 1));
+        assert!(paginated_ds_keys_enabled(MIP_0002_EXECUTION_VERSION));
         assert!(paginated_ds_keys_enabled(u32::MAX));
     }
 
@@ -366,7 +362,7 @@ mod tests {
         let before_paginated = before.exists("massa", "assembly_script_get_keys_paginated")
             || before.exists("massa", "assembly_script_get_keys_for_paginated");
 
-        INTERFACE_VERSION.store(PAGINATED_DS_KEYS_EXECUTION_VERSION, Ordering::SeqCst);
+        INTERFACE_VERSION.store(MIP_0002_EXECUTION_VERSION, Ordering::SeqCst);
         let (after, _) = ctx.resolver(&mut store);
         let after_paginated = after.exists("massa", "assembly_script_get_keys_paginated")
             && after.exists("massa", "assembly_script_get_keys_for_paginated");

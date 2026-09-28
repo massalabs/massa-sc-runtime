@@ -4,7 +4,7 @@ use crate::middlewares::gas_calibration::GasCalibrationResult;
 use crate::types::{Interface, Response};
 use crate::wasmv1_execution::{exec_wasmv1_module, WasmV1Module};
 use crate::{settings, CondomLimits};
-use crate::{GasCosts, VMError, WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION};
+use crate::{GasCosts, VMError, MIP_0002_EXECUTION_VERSION};
 use anyhow::{anyhow, Result};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
@@ -157,7 +157,7 @@ pub(crate) fn exec(
         RuntimeModule::WasmV1Module(_)
             if interface
                 .get_interface_version()
-                .is_ok_and(|v| v >= WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION) =>
+                .is_ok_and(|v| v >= MIP_0002_EXECUTION_VERSION) =>
         {
             // Disabled from massa MIP-0002 on: no wasmv1 contract was ever deployed on mainnet,
             // and gating on the host's version keeps updated and non-updated nodes in agreement
