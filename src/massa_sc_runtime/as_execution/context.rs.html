@@ -318,14 +318,14 @@
 <a href=#318 id=318 data-nosnippet>318</a><span class="doccomment">/// Whether the paginated datastore-key ABIs are exposed for a host reporting
 <a href=#319 id=319 data-nosnippet>319</a>/// this execution component version.
 <a href=#320 id=320 data-nosnippet>320</a></span><span class="kw">fn </span>paginated_ds_keys_enabled(interface_version: u32) -&gt; bool {
-<a href=#321 id=321 data-nosnippet>321</a>    interface_version &gt;= <span class="kw">crate</span>::PAGINATED_DS_KEYS_EXECUTION_VERSION
+<a href=#321 id=321 data-nosnippet>321</a>    interface_version &gt;= <span class="kw">crate</span>::MIP_0002_EXECUTION_VERSION
 <a href=#322 id=322 data-nosnippet>322</a>}
 <a href=#323 id=323 data-nosnippet>323</a>
 <a href=#324 id=324 data-nosnippet>324</a><span class="attr">#[cfg(test)]
 <a href=#325 id=325 data-nosnippet>325</a></span><span class="kw">mod </span>tests {
 <a href=#326 id=326 data-nosnippet>326</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#327 id=327 data-nosnippet>327</a>    <span class="kw">use </span><span class="kw">crate</span>::tests::{TestInterface, INTERFACE_VERSION};
-<a href=#328 id=328 data-nosnippet>328</a>    <span class="kw">use crate</span>::{CondomLimits, GasCosts, PAGINATED_DS_KEYS_EXECUTION_VERSION};
+<a href=#328 id=328 data-nosnippet>328</a>    <span class="kw">use crate</span>::{CondomLimits, GasCosts, MIP_0002_EXECUTION_VERSION};
 <a href=#329 id=329 data-nosnippet>329</a>    <span class="kw">use </span>serial_test::serial;
 <a href=#330 id=330 data-nosnippet>330</a>    <span class="kw">use </span>std::sync::atomic::Ordering;
 <a href=#331 id=331 data-nosnippet>331</a>    <span class="kw">use </span>wasmer::{sys::EngineBuilder, wat2wasm, Module, Store};
@@ -334,47 +334,43 @@
 <a href=#334 id=334 data-nosnippet>334</a>    <span class="attr">#[test]
 <a href=#335 id=335 data-nosnippet>335</a>    </span><span class="kw">fn </span>test_paginated_ds_keys_gate_boundaries() {
 <a href=#336 id=336 data-nosnippet>336</a>        <span class="macro">assert!</span>(!paginated_ds_keys_enabled(<span class="number">0</span>));
-<a href=#337 id=337 data-nosnippet>337</a>        <span class="macro">assert!</span>(!paginated_ds_keys_enabled(
-<a href=#338 id=338 data-nosnippet>338</a>            PAGINATED_DS_KEYS_EXECUTION_VERSION - <span class="number">1
-<a href=#339 id=339 data-nosnippet>339</a>        </span>));
-<a href=#340 id=340 data-nosnippet>340</a>        <span class="macro">assert!</span>(paginated_ds_keys_enabled(
-<a href=#341 id=341 data-nosnippet>341</a>            PAGINATED_DS_KEYS_EXECUTION_VERSION
-<a href=#342 id=342 data-nosnippet>342</a>        ));
-<a href=#343 id=343 data-nosnippet>343</a>        <span class="macro">assert!</span>(paginated_ds_keys_enabled(u32::MAX));
-<a href=#344 id=344 data-nosnippet>344</a>    }
-<a href=#345 id=345 data-nosnippet>345</a>
-<a href=#346 id=346 data-nosnippet>346</a>    <span class="doccomment">/// The new imports follow the execution version. The deprecated ones stay
-<a href=#347 id=347 data-nosnippet>347</a>    /// registered either way, so existing modules still instantiate.
-<a href=#348 id=348 data-nosnippet>348</a>    </span><span class="attr">#[test]
-<a href=#349 id=349 data-nosnippet>349</a>    #[serial]
-<a href=#350 id=350 data-nosnippet>350</a>    </span><span class="kw">fn </span>test_paginated_ds_keys_imports_follow_execution_version() {
-<a href=#351 id=351 data-nosnippet>351</a>        <span class="kw">let </span>engine = EngineBuilder::new(Singlepass::default()).engine();
-<a href=#352 id=352 data-nosnippet>352</a>        <span class="kw">let </span><span class="kw-2">mut </span>store = Store::new(engine);
-<a href=#353 id=353 data-nosnippet>353</a>        <span class="kw">let </span>module = Module::new(<span class="kw-2">&amp;</span>store, wat2wasm(<span class="string">b"(module)"</span>).unwrap()).unwrap();
-<a href=#354 id=354 data-nosnippet>354</a>        <span class="kw">let </span>interface = TestInterface;
-<a href=#355 id=355 data-nosnippet>355</a>        <span class="kw">let </span>ctx = ASContext::new(
-<a href=#356 id=356 data-nosnippet>356</a>            <span class="kw-2">&amp;</span>interface,
-<a href=#357 id=357 data-nosnippet>357</a>            module,
-<a href=#358 id=358 data-nosnippet>358</a>            GasCosts::default(),
-<a href=#359 id=359 data-nosnippet>359</a>            CondomLimits::default(),
-<a href=#360 id=360 data-nosnippet>360</a>        );
-<a href=#361 id=361 data-nosnippet>361</a>
-<a href=#362 id=362 data-nosnippet>362</a>        INTERFACE_VERSION.store(<span class="number">0</span>, Ordering::SeqCst);
-<a href=#363 id=363 data-nosnippet>363</a>        <span class="kw">let </span>(before, <span class="kw">_</span>) = ctx.resolver(<span class="kw-2">&amp;mut </span>store);
-<a href=#364 id=364 data-nosnippet>364</a>        <span class="kw">let </span>before_legacy = before.exists(<span class="string">"massa"</span>, <span class="string">"assembly_script_get_keys"</span>)
-<a href=#365 id=365 data-nosnippet>365</a>            &amp;&amp; before.exists(<span class="string">"massa"</span>, <span class="string">"assembly_script_get_keys_for"</span>);
-<a href=#366 id=366 data-nosnippet>366</a>        <span class="kw">let </span>before_paginated = before.exists(<span class="string">"massa"</span>, <span class="string">"assembly_script_get_keys_paginated"</span>)
-<a href=#367 id=367 data-nosnippet>367</a>            || before.exists(<span class="string">"massa"</span>, <span class="string">"assembly_script_get_keys_for_paginated"</span>);
-<a href=#368 id=368 data-nosnippet>368</a>
-<a href=#369 id=369 data-nosnippet>369</a>        INTERFACE_VERSION.store(PAGINATED_DS_KEYS_EXECUTION_VERSION, Ordering::SeqCst);
-<a href=#370 id=370 data-nosnippet>370</a>        <span class="kw">let </span>(after, <span class="kw">_</span>) = ctx.resolver(<span class="kw-2">&amp;mut </span>store);
-<a href=#371 id=371 data-nosnippet>371</a>        <span class="kw">let </span>after_paginated = after.exists(<span class="string">"massa"</span>, <span class="string">"assembly_script_get_keys_paginated"</span>)
-<a href=#372 id=372 data-nosnippet>372</a>            &amp;&amp; after.exists(<span class="string">"massa"</span>, <span class="string">"assembly_script_get_keys_for_paginated"</span>);
-<a href=#373 id=373 data-nosnippet>373</a>
-<a href=#374 id=374 data-nosnippet>374</a>        INTERFACE_VERSION.store(<span class="number">0</span>, Ordering::SeqCst);
-<a href=#375 id=375 data-nosnippet>375</a>
-<a href=#376 id=376 data-nosnippet>376</a>        <span class="macro">assert!</span>(before_legacy);
-<a href=#377 id=377 data-nosnippet>377</a>        <span class="macro">assert!</span>(!before_paginated);
-<a href=#378 id=378 data-nosnippet>378</a>        <span class="macro">assert!</span>(after_paginated);
-<a href=#379 id=379 data-nosnippet>379</a>    }
-<a href=#380 id=380 data-nosnippet>380</a>}</code></pre></div></section></main></body></html>
+<a href=#337 id=337 data-nosnippet>337</a>        <span class="macro">assert!</span>(!paginated_ds_keys_enabled(MIP_0002_EXECUTION_VERSION - <span class="number">1</span>));
+<a href=#338 id=338 data-nosnippet>338</a>        <span class="macro">assert!</span>(paginated_ds_keys_enabled(MIP_0002_EXECUTION_VERSION));
+<a href=#339 id=339 data-nosnippet>339</a>        <span class="macro">assert!</span>(paginated_ds_keys_enabled(u32::MAX));
+<a href=#340 id=340 data-nosnippet>340</a>    }
+<a href=#341 id=341 data-nosnippet>341</a>
+<a href=#342 id=342 data-nosnippet>342</a>    <span class="doccomment">/// The new imports follow the execution version. The deprecated ones stay
+<a href=#343 id=343 data-nosnippet>343</a>    /// registered either way, so existing modules still instantiate.
+<a href=#344 id=344 data-nosnippet>344</a>    </span><span class="attr">#[test]
+<a href=#345 id=345 data-nosnippet>345</a>    #[serial]
+<a href=#346 id=346 data-nosnippet>346</a>    </span><span class="kw">fn </span>test_paginated_ds_keys_imports_follow_execution_version() {
+<a href=#347 id=347 data-nosnippet>347</a>        <span class="kw">let </span>engine = EngineBuilder::new(Singlepass::default()).engine();
+<a href=#348 id=348 data-nosnippet>348</a>        <span class="kw">let </span><span class="kw-2">mut </span>store = Store::new(engine);
+<a href=#349 id=349 data-nosnippet>349</a>        <span class="kw">let </span>module = Module::new(<span class="kw-2">&amp;</span>store, wat2wasm(<span class="string">b"(module)"</span>).unwrap()).unwrap();
+<a href=#350 id=350 data-nosnippet>350</a>        <span class="kw">let </span>interface = TestInterface;
+<a href=#351 id=351 data-nosnippet>351</a>        <span class="kw">let </span>ctx = ASContext::new(
+<a href=#352 id=352 data-nosnippet>352</a>            <span class="kw-2">&amp;</span>interface,
+<a href=#353 id=353 data-nosnippet>353</a>            module,
+<a href=#354 id=354 data-nosnippet>354</a>            GasCosts::default(),
+<a href=#355 id=355 data-nosnippet>355</a>            CondomLimits::default(),
+<a href=#356 id=356 data-nosnippet>356</a>        );
+<a href=#357 id=357 data-nosnippet>357</a>
+<a href=#358 id=358 data-nosnippet>358</a>        INTERFACE_VERSION.store(<span class="number">0</span>, Ordering::SeqCst);
+<a href=#359 id=359 data-nosnippet>359</a>        <span class="kw">let </span>(before, <span class="kw">_</span>) = ctx.resolver(<span class="kw-2">&amp;mut </span>store);
+<a href=#360 id=360 data-nosnippet>360</a>        <span class="kw">let </span>before_legacy = before.exists(<span class="string">"massa"</span>, <span class="string">"assembly_script_get_keys"</span>)
+<a href=#361 id=361 data-nosnippet>361</a>            &amp;&amp; before.exists(<span class="string">"massa"</span>, <span class="string">"assembly_script_get_keys_for"</span>);
+<a href=#362 id=362 data-nosnippet>362</a>        <span class="kw">let </span>before_paginated = before.exists(<span class="string">"massa"</span>, <span class="string">"assembly_script_get_keys_paginated"</span>)
+<a href=#363 id=363 data-nosnippet>363</a>            || before.exists(<span class="string">"massa"</span>, <span class="string">"assembly_script_get_keys_for_paginated"</span>);
+<a href=#364 id=364 data-nosnippet>364</a>
+<a href=#365 id=365 data-nosnippet>365</a>        INTERFACE_VERSION.store(MIP_0002_EXECUTION_VERSION, Ordering::SeqCst);
+<a href=#366 id=366 data-nosnippet>366</a>        <span class="kw">let </span>(after, <span class="kw">_</span>) = ctx.resolver(<span class="kw-2">&amp;mut </span>store);
+<a href=#367 id=367 data-nosnippet>367</a>        <span class="kw">let </span>after_paginated = after.exists(<span class="string">"massa"</span>, <span class="string">"assembly_script_get_keys_paginated"</span>)
+<a href=#368 id=368 data-nosnippet>368</a>            &amp;&amp; after.exists(<span class="string">"massa"</span>, <span class="string">"assembly_script_get_keys_for_paginated"</span>);
+<a href=#369 id=369 data-nosnippet>369</a>
+<a href=#370 id=370 data-nosnippet>370</a>        INTERFACE_VERSION.store(<span class="number">0</span>, Ordering::SeqCst);
+<a href=#371 id=371 data-nosnippet>371</a>
+<a href=#372 id=372 data-nosnippet>372</a>        <span class="macro">assert!</span>(before_legacy);
+<a href=#373 id=373 data-nosnippet>373</a>        <span class="macro">assert!</span>(!before_paginated);
+<a href=#374 id=374 data-nosnippet>374</a>        <span class="macro">assert!</span>(after_paginated);
+<a href=#375 id=375 data-nosnippet>375</a>    }
+<a href=#376 id=376 data-nosnippet>376</a>}</code></pre></div></section></main></body></html>
