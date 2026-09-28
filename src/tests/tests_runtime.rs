@@ -388,10 +388,10 @@ fn test_get_current_period_and_thread_wasmv1_as() {
 
 #[test]
 #[serial]
-/// wasmv1 modules run below WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION and are refused from it on,
+/// wasmv1 modules run below MIP_0002_EXECUTION_VERSION and are refused from it on,
 /// while AssemblyScript modules keep running.
 fn test_wasmv1_runtime_disabled_at_version() {
-    use crate::WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION;
+    use crate::MIP_0002_EXECUTION_VERSION;
     use std::sync::atomic::Ordering;
 
     let gas_costs = GasCosts::default();
@@ -419,13 +419,10 @@ fn test_wasmv1_runtime_disabled_at_version() {
         )
     };
 
-    INTERFACE_VERSION.store(
-        WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION - 1,
-        Ordering::SeqCst,
-    );
+    INTERFACE_VERSION.store(MIP_0002_EXECUTION_VERSION - 1, Ordering::SeqCst);
     let before = run(wasmv1, 100_000_000);
 
-    INTERFACE_VERSION.store(WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION, Ordering::SeqCst);
+    INTERFACE_VERSION.store(MIP_0002_EXECUTION_VERSION, Ordering::SeqCst);
     let after = run(wasmv1, 100_000_000);
     let as_after = run(as_module, 100_000);
 

@@ -273,6 +273,8 @@ pub struct GasCosts {
     pub assembly_script_get_deferred_call_quote: u64,
     pub assembly_script_get_keys: u64,
     pub assembly_script_get_keys_for: u64,
+    pub assembly_script_get_keys_for_paginated: u64,
+    pub assembly_script_get_keys_paginated: u64,
     pub assembly_script_get_op_data: u64,
     pub assembly_script_get_op_keys: u64,
     pub assembly_script_get_op_keys_prefix: u64,
@@ -465,6 +467,10 @@ impl GasCosts {
             ),
             assembly_script_get_keys: get_cost!("assembly_script_get_keys"),
             assembly_script_get_keys_for: get_cost!("assembly_script_get_keys_for"),
+            assembly_script_get_keys_for_paginated: get_cost!(
+                "assembly_script_get_keys_for_paginated"
+            ),
+            assembly_script_get_keys_paginated: get_cost!("assembly_script_get_keys_paginated"),
             assembly_script_get_op_data: get_cost!("assembly_script_get_op_data"),
             assembly_script_get_op_keys: get_cost!("assembly_script_get_op_keys"),
             assembly_script_get_op_keys_prefix: get_cost!("assembly_script_get_op_keys_prefix"),
@@ -621,6 +627,13 @@ impl Default for GasCosts {
             assembly_script_get_deferred_call_quote: 1220,
             assembly_script_get_keys: 1000,
             assembly_script_get_keys_for: 1195,
+            // Flat price for the worst page the cap allows (500 keys):
+            // base + 500 × (per_key + per_key_byte × key length).
+            // 16-byte keys:  2_350 + 500 × 230 ≈ 117k.
+            // 255-byte keys: 117k + 500 × 255 × 0.55 ≈ 187k.
+            // 190k covers every such call, as far as keys go.
+            assembly_script_get_keys_for_paginated: 190000,
+            assembly_script_get_keys_paginated: 190000,
             assembly_script_get_op_data: 50000,
             assembly_script_get_op_keys: 1400,
             assembly_script_get_op_keys_prefix: 1400,
@@ -726,12 +739,6 @@ impl Default for GasCosts {
     }
 }
 
-/// Execution component version from which wasmv1 modules (bytecode format byte `1`) are no
-/// longer executed: every execution of one fails, as if the format were unsupported. Mirrors
-/// massa's `MIP_0002_EXECUTION_VERSION` (`MipComponent::Execution` v2); kept as a literal here to
-/// avoid a massa-versioning dependency.
-pub const WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION: u32 = 2;
-
 #[allow(unused_variables)]
 pub trait Interface: Send + Sync + InterfaceClone {
     fn increment_recursion_counter(&self) -> Result<()>;
@@ -813,13 +820,46 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Print function for examples
     fn print(&self, message: &str) -> Result<()>;
 
-    /// Return datastore keys
-    /// Will only return keys with a given prefix if provided in args
+    /// Return datastore keys.
+    /// Only keys with the given prefix are returned when one is provided.
+    ///
+    /// Superseded, from [`crate::MIP_0002_EXECUTION_VERSION`], by
+    /// [`Interface::get_keys_paginated`].
     fn get_keys(&self, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>>;
 
-    /// Return datastore keys
-    /// Will only return keys with a given prefix if provided in args
+    /// Return datastore keys for an address.
+    /// Only keys with the given prefix are returned when one is provided.
+    ///
+    /// Superseded, from [`crate::MIP_0002_EXECUTION_VERSION`], by
+    /// [`Interface::get_keys_for_paginated`].
     fn get_keys_for(&self, address: &str, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>>;
+
+    /// Return one page of datastore keys for the current address.
+    ///
+    /// Guest modules can call this only from [`crate::MIP_0002_EXECUTION_VERSION`]
+    /// (massa MIP-0002). The AssemblyScript import is omitted before that version.
+    ///
+    /// * `prefix`: only keys with this prefix. `None` matches every key.
+    /// * `start_key`: exclusive resume cursor. `None` starts at the beginning of
+    ///   the range. Pass the last key of the previous page to obtain the next one.
+    /// * `count`: page size, in `1..=`[`crate::MAX_DATASTORE_KEYS_PAGE`]. The ABI rejects
+    ///   any other value. The host must apply the same bound.
+    fn get_keys_paginated(
+        &self,
+        prefix: Option<&[u8]>,
+        start_key: Option<&[u8]>,
+        count: u32,
+    ) -> Result<BTreeSet<Vec<u8>>>;
+
+    /// Return one page of datastore keys for an address.
+    /// See [`Interface::get_keys_paginated`].
+    fn get_keys_for_paginated(
+        &self,
+        address: &str,
+        prefix: Option<&[u8]>,
+        start_key: Option<&[u8]>,
+        count: u32,
+    ) -> Result<BTreeSet<Vec<u8>>>;
 
     fn get_ds_keys_wasmv1(
         &self,

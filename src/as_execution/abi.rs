@@ -596,6 +596,106 @@ pub(crate) fn assembly_script_get_keys_for(
     })
 }
 
+/// Empty buffer means the bound is unset.
+fn opt_bound(buffer: &[u8]) -> Option<&[u8]> {
+    (!buffer.is_empty()).then_some(buffer)
+}
+
+/// Page size accepted by the paginated datastore-key ABIs: `1..=MAX_DATASTORE_KEYS_PAGE`.
+fn checked_page_count(count: i32) -> ABIResult<u32> {
+    let Ok(count) = u32::try_from(count) else {
+        abi_bail!(format!("negative datastore key page size: {count}"));
+    };
+    if !(1..=crate::MAX_DATASTORE_KEYS_PAGE).contains(&count) {
+        abi_bail!(format!(
+            "datastore key page size must be between 1 and {}, got {}",
+            crate::MAX_DATASTORE_KEYS_PAGE,
+            count
+        ));
+    }
+    Ok(count)
+}
+
+/// Get one page of keys (aka entries) in the datastore.
+///
+/// `prefix` and `start_key` are optional (empty means unset). `start_key` is an
+/// exclusive cursor. `count` must be in `1..=MAX_DATASTORE_KEYS_PAGE`.
+pub(crate) fn assembly_script_get_keys_paginated(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    prefix: i32,
+    start_key: i32,
+    count: i32,
+) -> ABIResult<i32> {
+    abi_with_memory!(ctx, assembly_script_get_keys_paginated, |memory| {
+        let prefix = read_buffer(&memory, &ctx, prefix)?;
+        let start_key = read_buffer(&memory, &ctx, start_key)?;
+        let count = checked_page_count(count)?;
+        let keys = ctx.data().interface.get_keys_paginated(
+            opt_bound(&prefix),
+            opt_bound(&start_key),
+            count,
+        )?;
+        let fmt_keys =
+            ser_bytearray_vec(&keys, keys.len(), crate::MAX_DATASTORE_KEYS_PAGE as usize)?;
+        let ffi_env = ctx.data().get_ffi_env().clone();
+        let ptr = BufferPtr::alloc(&fmt_keys, &ffi_env, &mut ctx)?.offset();
+
+        #[cfg(feature = "execution-trace")]
+        ctx.data_mut().trace.push(AbiTrace {
+            name: "assembly_script_get_keys_paginated".to_string(),
+            params: vec![
+                into_trace_value!(prefix),
+                into_trace_value!(start_key),
+                into_trace_value!(count),
+            ],
+            return_value: fmt_keys.into(),
+            sub_calls: None,
+        });
+        Ok(ptr as i32)
+    })
+}
+
+/// Get one page of keys (aka entries) in the datastore of a given address.
+/// See [`assembly_script_get_keys_paginated`].
+pub(crate) fn assembly_script_get_keys_for_paginated(
+    mut ctx: FunctionEnvMut<ASEnv>,
+    address: i32,
+    prefix: i32,
+    start_key: i32,
+    count: i32,
+) -> ABIResult<i32> {
+    abi_with_memory!(ctx, assembly_script_get_keys_for_paginated, |memory| {
+        let address = read_string(&memory, &ctx, address)?;
+        let prefix = read_buffer(&memory, &ctx, prefix)?;
+        let start_key = read_buffer(&memory, &ctx, start_key)?;
+        let count = checked_page_count(count)?;
+        let keys = ctx.data().interface.get_keys_for_paginated(
+            &address,
+            opt_bound(&prefix),
+            opt_bound(&start_key),
+            count,
+        )?;
+        let fmt_keys =
+            ser_bytearray_vec(&keys, keys.len(), crate::MAX_DATASTORE_KEYS_PAGE as usize)?;
+        let ffi_env = ctx.data().get_ffi_env().clone();
+        let ptr = BufferPtr::alloc(&fmt_keys, &ffi_env, &mut ctx)?.offset();
+
+        #[cfg(feature = "execution-trace")]
+        ctx.data_mut().trace.push(AbiTrace {
+            name: "assembly_script_get_keys_for_paginated".to_string(),
+            params: vec![
+                into_trace_value!(address),
+                into_trace_value!(prefix),
+                into_trace_value!(start_key),
+                into_trace_value!(count),
+            ],
+            return_value: AbiTraceType::ByteArrays(keys.iter().cloned().collect()),
+            sub_calls: None,
+        });
+        Ok(ptr as i32)
+    })
+}
+
 /// sets a key-indexed data entry in the datastore, overwriting existing values
 /// if any
 pub(crate) fn assembly_script_set_data(
@@ -1934,7 +2034,34 @@ pub(crate) fn assembly_script_hash_sha256(
 
 #[cfg(test)]
 mod tests {
-    use crate::as_execution::abi::ser_bytearray_vec;
+    use super::{checked_page_count, opt_bound, ser_bytearray_vec};
+    use crate::{GasCosts, MAX_DATASTORE_KEYS_PAGE};
+
+    #[test]
+    fn test_opt_bound_empty_is_unset() {
+        assert_eq!(opt_bound(&[]), None);
+        assert_eq!(opt_bound(b"ab"), Some(b"ab".as_ref()));
+    }
+
+    #[test]
+    fn test_page_count_bounds() {
+        assert!(checked_page_count(-1).is_err());
+        assert!(checked_page_count(i32::MIN).is_err());
+        assert!(checked_page_count(0).is_err());
+        assert_eq!(checked_page_count(1).unwrap(), 1);
+        assert_eq!(
+            checked_page_count(MAX_DATASTORE_KEYS_PAGE as i32).unwrap(),
+            MAX_DATASTORE_KEYS_PAGE
+        );
+        assert!(checked_page_count(MAX_DATASTORE_KEYS_PAGE as i32 + 1).is_err());
+    }
+
+    #[test]
+    fn test_paginated_ds_keys_gas_is_flat_worst_page() {
+        let costs = GasCosts::default();
+        assert_eq!(costs.assembly_script_get_keys_paginated, 190000);
+        assert_eq!(costs.assembly_script_get_keys_for_paginated, 190000);
+    }
 
     #[test]
     fn test_ser() {
