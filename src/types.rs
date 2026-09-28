@@ -739,21 +739,16 @@ impl Default for GasCosts {
     }
 }
 
-/// Execution component version from which wasmv1 modules (bytecode format byte `1`) are no
-/// longer executed: every execution of one fails, as if the format were unsupported. Mirrors
-/// massa's `MIP_0002_EXECUTION_VERSION` (`MipComponent::Execution` v2); kept as a literal here to
-/// avoid a massa-versioning dependency.
-pub const WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION: u32 = 2;
-
-/// Execution component version from which the paginated datastore-key ABIs are
-/// exposed to guest modules. Same massa MIP-0002 activation as
-/// [`WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION`]: before it, an updated node
-/// does not resolve the new imports, so instantiation fails exactly as on a
-/// non-updated node. A host that cannot report its version keeps them hidden.
-pub const PAGINATED_DS_KEYS_EXECUTION_VERSION: u32 = WASMV1_RUNTIME_DISABLED_EXECUTION_VERSION;
-
-/// Maximum number of datastore keys one paginated call may return.
-pub const MAX_DATASTORE_KEYS_PAGE: u32 = 500;
+/// Execution component version introduced by massa MIP-0002 (`MipComponent::Execution` v2).
+/// Kept as a literal here to avoid a massa-versioning dependency; it must stay equal to
+/// massa's `MIP_0002_EXECUTION_VERSION`.
+///
+/// From this version on, wasmv1 modules are no longer executed and the paginated
+/// datastore-key imports are resolved. Before it, an updated node keeps the previous
+/// behavior: wasmv1 modules still run, and the new imports are absent, so instantiation
+/// fails exactly as on a non-updated node. A host that cannot report its version is
+/// treated as pre-activation.
+pub const MIP_0002_EXECUTION_VERSION: u32 = 2;
 
 #[allow(unused_variables)]
 pub trait Interface: Send + Sync + InterfaceClone {
@@ -839,26 +834,26 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Return datastore keys.
     /// Only keys with the given prefix are returned when one is provided.
     ///
-    /// Superseded, from [`PAGINATED_DS_KEYS_EXECUTION_VERSION`], by
+    /// Superseded, from [`MIP_0002_EXECUTION_VERSION`], by
     /// [`Interface::get_keys_paginated`].
     fn get_keys(&self, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>>;
 
     /// Return datastore keys for an address.
     /// Only keys with the given prefix are returned when one is provided.
     ///
-    /// Superseded, from [`PAGINATED_DS_KEYS_EXECUTION_VERSION`], by
+    /// Superseded, from [`MIP_0002_EXECUTION_VERSION`], by
     /// [`Interface::get_keys_for_paginated`].
     fn get_keys_for(&self, address: &str, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>>;
 
     /// Return one page of datastore keys for the current address.
     ///
-    /// Guest modules can call this only from [`PAGINATED_DS_KEYS_EXECUTION_VERSION`]
+    /// Guest modules can call this only from [`MIP_0002_EXECUTION_VERSION`]
     /// (massa MIP-0002). The AssemblyScript import is omitted before that version.
     ///
     /// * `prefix`: only keys with this prefix. `None` matches every key.
     /// * `start_key`: exclusive resume cursor. `None` starts at the beginning of
     ///   the range. Pass the last key of the previous page to obtain the next one.
-    /// * `count`: page size, in `1..=`[`MAX_DATASTORE_KEYS_PAGE`]. The ABI rejects
+    /// * `count`: page size, in `1..=`[`crate::MAX_DATASTORE_KEYS_PAGE`]. The ABI rejects
     ///   any other value. The host must apply the same bound.
     fn get_keys_paginated(
         &self,
