@@ -106,7 +106,9 @@ mod tests {
             "recursion depth limit reached".to_string(),
         )));
         match VMError::from(err) {
-            VMError::DepthError(msg) => assert_eq!(msg, "recursion depth limit reached"),
+            VMError::DepthError(msg) => {
+                assert_eq!(msg, "recursion depth limit reached")
+            }
             e => panic!("expected a depth error, got: {e}"),
         }
     }
@@ -130,7 +132,9 @@ mod tests {
     fn test_plain_trap_is_an_instance_error() {
         let err = wasmer::RuntimeError::new("unreachable");
         match VMError::from(err) {
-            VMError::InstanceError(msg) => assert_eq!(msg, "RuntimeError: unreachable"),
+            VMError::InstanceError(msg) => {
+                assert_eq!(msg, "RuntimeError: unreachable")
+            }
             e => panic!("expected an instance error, got: {e}"),
         }
     }

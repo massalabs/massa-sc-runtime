@@ -324,12 +324,123 @@ fn paginated_ds_keys_enabled(interface_version: u32) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tests::{TestInterface, INTERFACE_VERSION};
+    use crate::tests::{
+        PaginatedKeysCall, TestInterface, INTERFACE_VERSION, PAGINATED_KEYS_CALLS,
+        PAGINATED_KEYS_FIXTURE,
+    };
     use crate::{CondomLimits, GasCosts, MIP_0002_EXECUTION_VERSION};
     use serial_test::serial;
     use std::sync::atomic::Ordering;
-    use wasmer::{sys::EngineBuilder, wat2wasm, Module, Store};
-    use wasmer_compiler_singlepass::Singlepass;
+    use wasmer::{wat2wasm, Instance, Module, Store};
+
+    struct InterfaceVersionGuard;
+
+    impl InterfaceVersionGuard {
+        fn set(version: u32) -> Self {
+            INTERFACE_VERSION.store(version, Ordering::SeqCst);
+            Self
+        }
+    }
+
+    impl Drop for InterfaceVersionGuard {
+        fn drop(&mut self) {
+            INTERFACE_VERSION.store(0, Ordering::SeqCst);
+        }
+    }
+
+    fn instantiate_wat(
+        interface: &dyn crate::Interface,
+        wat: &str,
+        gas_costs: GasCosts,
+    ) -> VMResult<(Store, ASContext, Instance)> {
+        let condom_limits = CondomLimits::default();
+        let limit = 10_000_000;
+        let engine = super::super::init_sp_engine(limit, gas_costs.clone(), condom_limits.clone());
+        let module = Module::new(&engine, wat2wasm(wat.as_bytes()).unwrap()).unwrap();
+        let mut store = Store::new(engine);
+        let mut context = ASContext::new(interface, module, gas_costs, condom_limits);
+        let (instance, _, _) = context.create_vm_instance_and_init_env(&mut store)?;
+        Ok((store, context, instance))
+    }
+
+    fn run_wat_with_gas(
+        interface: &dyn crate::Interface,
+        wat: &str,
+        function: &str,
+        param: &[u8],
+        gas_costs: GasCosts,
+    ) -> VMResult<Response> {
+        let (mut store, context, instance) = instantiate_wat(interface, wat, gas_costs)?;
+        context.execution(&mut store, &instance, function, param)
+    }
+
+    fn run_wat_with_param(
+        interface: &dyn crate::Interface,
+        wat: &str,
+        function: &str,
+        param: &[u8],
+    ) -> VMResult<Response> {
+        run_wat_with_gas(interface, wat, function, param, GasCosts::default())
+    }
+
+    fn run_wat(interface: &dyn crate::Interface, wat: &str, function: &str) -> VMResult<Response> {
+        run_wat_with_param(interface, wat, function, &[])
+    }
+
+    struct PaginatedFixtureGuard;
+
+    impl PaginatedFixtureGuard {
+        fn set(keys: impl IntoIterator<Item = Vec<u8>>) -> Self {
+            *PAGINATED_KEYS_FIXTURE.lock().unwrap() = keys.into_iter().collect();
+            PAGINATED_KEYS_CALLS.lock().unwrap().clear();
+            Self
+        }
+    }
+
+    impl Drop for PaginatedFixtureGuard {
+        fn drop(&mut self) {
+            PAGINATED_KEYS_FIXTURE.lock().unwrap().clear();
+            PAGINATED_KEYS_CALLS.lock().unwrap().clear();
+        }
+    }
+
+    fn take_paginated_calls() -> Vec<PaginatedKeysCall> {
+        std::mem::take(&mut *PAGINATED_KEYS_CALLS.lock().unwrap())
+    }
+
+    const PAGINATED_ABI_WAT: &str = r#"
+        (module
+          (import "massa" "assembly_script_get_keys_paginated"
+            (func $get_keys (param i32 i32 i32) (result i32)))
+          (import "massa" "assembly_script_get_keys_for_paginated"
+            (func $get_keys_for (param i32 i32 i32 i32) (result i32)))
+          (export "direct_current" (func $get_keys))
+          (export "direct_for_address" (func $get_keys_for))
+          (memory (export "memory") 1)
+          ;; Empty byte arrays at 8; prefix "p" at 256; cursor "p0499" at 272.
+          (data (i32.const 4) "\00\00\00\00")
+          (data (i32.const 252) "\01\00\00\00p")
+          (data (i32.const 268) "\05\00\00\00p0499")
+          ;; Address "A" at 288; final cursor "p0500" at 304.
+          (data (i32.const 284) "\02\00\00\00A\00")
+          (data (i32.const 300) "\05\00\00\00p0500")
+          ;; Reuse one bounded buffer; each allocation writes its length header.
+          (func (export "__new") (param $size i32) (param $class i32) (result i32)
+            i32.const 2044 local.get $size i32.store
+            i32.const 2048)
+          (func (export "current") (param $count_buffer i32) (result i32)
+            i32.const 256 i32.const 8
+            local.get $count_buffer i32.load
+            call $get_keys)
+          (func (export "for_address") (param $count_buffer i32) (result i32)
+            i32.const 288 i32.const 256 i32.const 272
+            local.get $count_buffer i32.load
+            call $get_keys_for)
+          (func (export "empty_page") (param $count_buffer i32) (result i32)
+            i32.const 256 i32.const 304
+            local.get $count_buffer i32.load
+            call $get_keys))
+    "#;
 
     #[test]
     fn test_paginated_ds_keys_gate_boundaries() {
@@ -344,33 +455,319 @@ mod tests {
     #[test]
     #[serial]
     fn test_paginated_ds_keys_imports_follow_execution_version() {
-        let engine = EngineBuilder::new(Singlepass::default()).engine();
-        let mut store = Store::new(engine);
-        let module = Module::new(&store, wat2wasm(b"(module)").unwrap()).unwrap();
+        let current_address_wat = r#"
+            (module
+              (import "massa" "assembly_script_get_keys_paginated"
+                (func $get_keys (param i32 i32 i32) (result i32)))
+              (memory (export "memory") 1)
+              (func (export "main")))
+        "#;
+        let explicit_address_wat = r#"
+            (module
+              (import "massa" "assembly_script_get_keys_for_paginated"
+                (func $get_keys_for (param i32 i32 i32 i32) (result i32)))
+              (memory (export "memory") 1)
+              (func (export "main")))
+        "#;
         let interface = TestInterface;
-        let ctx = ASContext::new(
-            &interface,
-            module,
-            GasCosts::default(),
-            CondomLimits::default(),
+
+        for (wat, import_name) in [
+            (current_address_wat, "assembly_script_get_keys_paginated"),
+            (
+                explicit_address_wat,
+                "assembly_script_get_keys_for_paginated",
+            ),
+        ] {
+            let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION - 1);
+            let error = run_wat(&interface, wat, "main").unwrap_err();
+            assert!(
+                error.to_string().contains(import_name),
+                "expected unresolved import {import_name}, got: {error}"
+            );
+        }
+
+        for wat in [current_address_wat, explicit_address_wat] {
+            let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION);
+            run_wat(&interface, wat, "main").unwrap();
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn test_paginated_ds_keys_legacy_guest_imports_remain_available() {
+        let wat = r#"
+            (module
+              (import "massa" "assembly_script_get_keys"
+                (func $get_keys (param i32) (result i32)))
+              (import "massa" "assembly_script_get_keys_for"
+                (func $get_keys_for (param i32 i32) (result i32)))
+              (memory (export "memory") 1)
+              (func (export "main")))
+        "#;
+        let interface = TestInterface;
+
+        for version in [0, MIP_0002_EXECUTION_VERSION] {
+            let _version = InterfaceVersionGuard::set(version);
+            run_wat(&interface, wat, "main").unwrap();
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn test_paginated_ds_keys_v2_guest_call_returns_exact_empty_result() {
+        let wat = r#"
+            (module
+              (import "massa" "assembly_script_get_keys_paginated"
+                (func $get_keys (param i32 i32 i32) (result i32)))
+              (import "massa" "assembly_script_get_keys_for_paginated"
+                (func $get_keys_for (param i32 i32 i32 i32) (result i32)))
+              (memory (export "memory") 1)
+              ;; __new returns an ArrayBuffer payload at 8; its byte length is at 4.
+              (data (i32.const 4) "\00\00\00\00")
+              ;; StringPtr at 16 contains one UTF-16 code unit, "A".
+              (data (i32.const 12) "\02\00\00\00A\00")
+              (func (export "__new") (param i32 i32) (result i32) i32.const 8)
+              (func (export "invoke") (result i32)
+                i32.const 8 i32.const 8 i32.const 1 call $get_keys drop
+                i32.const 16 i32.const 8 i32.const 8 i32.const 1 call $get_keys_for))
+        "#;
+        let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION);
+        let response = run_wat(&TestInterface, wat, "invoke").unwrap();
+
+        assert_eq!(response.ret, Vec::<u8>::new());
+    }
+
+    #[test]
+    #[serial]
+    fn test_paginated_ds_keys_counts_are_validated_before_backend() {
+        let _fixture = PaginatedFixtureGuard::set(Vec::new());
+        let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION);
+
+        for function in ["current", "for_address"] {
+            for count in [-1_i32, 0, 501] {
+                PAGINATED_KEYS_CALLS.lock().unwrap().clear();
+                let error = run_wat_with_param(
+                    &TestInterface,
+                    PAGINATED_ABI_WAT,
+                    function,
+                    &count.to_le_bytes(),
+                )
+                .unwrap_err();
+                assert!(error.to_string().contains("datastore key page size"));
+                assert!(
+                    PAGINATED_KEYS_CALLS.lock().unwrap().is_empty(),
+                    "invalid count {count} reached {function} backend"
+                );
+            }
+
+            for count in [1_i32, 499, 500] {
+                let response = run_wat_with_param(
+                    &TestInterface,
+                    PAGINATED_ABI_WAT,
+                    function,
+                    &count.to_le_bytes(),
+                )
+                .unwrap();
+                assert!(response.ret.is_empty());
+                let expected_call = if function == "current" {
+                    PaginatedKeysCall::Current {
+                        prefix: Some(b"p".to_vec()),
+                        start_key: None,
+                        count: count as u32,
+                    }
+                } else {
+                    PaginatedKeysCall::ForAddress {
+                        address: "A".to_owned(),
+                        prefix: Some(b"p".to_vec()),
+                        start_key: Some(b"p0499".to_vec()),
+                        count: count as u32,
+                    }
+                };
+                assert_eq!(take_paginated_calls(), vec![expected_call]);
+            }
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn test_paginated_ds_keys_pages_serialize_exact_keys_and_forward_arguments() {
+        let keys = (0..501)
+            .map(|index| format!("p{index:04}").into_bytes())
+            .collect::<Vec<_>>();
+        let _fixture = PaginatedFixtureGuard::set(keys.clone());
+        let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION);
+
+        let first_page = run_wat_with_param(
+            &TestInterface,
+            PAGINATED_ABI_WAT,
+            "current",
+            &500_i32.to_le_bytes(),
+        )
+        .unwrap();
+        assert_eq!(first_page.ret, serialize_test_keys(&keys[..500]));
+        assert_eq!(
+            take_paginated_calls(),
+            vec![PaginatedKeysCall::Current {
+                prefix: Some(b"p".to_vec()),
+                start_key: None,
+                count: 500,
+            }]
         );
 
-        INTERFACE_VERSION.store(0, Ordering::SeqCst);
-        let (before, _) = ctx.resolver(&mut store);
-        let before_legacy = before.exists("massa", "assembly_script_get_keys")
-            && before.exists("massa", "assembly_script_get_keys_for");
-        let before_paginated = before.exists("massa", "assembly_script_get_keys_paginated")
-            || before.exists("massa", "assembly_script_get_keys_for_paginated");
+        let second_page = run_wat_with_param(
+            &TestInterface,
+            PAGINATED_ABI_WAT,
+            "for_address",
+            &1_i32.to_le_bytes(),
+        )
+        .unwrap();
+        assert_eq!(second_page.ret, serialize_test_keys(&keys[500..501]));
+        assert_eq!(
+            take_paginated_calls(),
+            vec![PaginatedKeysCall::ForAddress {
+                address: "A".to_owned(),
+                prefix: Some(b"p".to_vec()),
+                start_key: Some(b"p0499".to_vec()),
+                count: 1,
+            }]
+        );
 
-        INTERFACE_VERSION.store(MIP_0002_EXECUTION_VERSION, Ordering::SeqCst);
-        let (after, _) = ctx.resolver(&mut store);
-        let after_paginated = after.exists("massa", "assembly_script_get_keys_paginated")
-            && after.exists("massa", "assembly_script_get_keys_for_paginated");
+        let empty_page = run_wat_with_param(
+            &TestInterface,
+            PAGINATED_ABI_WAT,
+            "empty_page",
+            &1_i32.to_le_bytes(),
+        )
+        .unwrap();
+        assert_eq!(empty_page.ret, Vec::<u8>::new());
+        assert_eq!(
+            take_paginated_calls(),
+            vec![PaginatedKeysCall::Current {
+                prefix: Some(b"p".to_vec()),
+                start_key: Some(b"p0500".to_vec()),
+                count: 1,
+            }]
+        );
+    }
 
-        INTERFACE_VERSION.store(0, Ordering::SeqCst);
+    #[cfg(not(feature = "gas_calibration"))]
+    #[test]
+    #[serial]
+    fn test_paginated_ds_keys_direct_handler_debits_exact_abi_cost() {
+        let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION);
+        let full_keys = (500..1000)
+            .map(|index| format!("p{index:04}").into_bytes())
+            .collect::<Vec<_>>();
 
-        assert!(before_legacy);
-        assert!(!before_paginated);
-        assert!(after_paginated);
+        for (explicit, full_page) in [(false, false), (false, true), (true, false), (true, true)] {
+            let fixture = if full_page {
+                full_keys.clone()
+            } else {
+                Vec::new()
+            };
+            let _fixture = PaginatedFixtureGuard::set(fixture.clone());
+            // The guest allocator is still called, but its Wasm operators cost zero here.
+            let gas_costs = GasCosts {
+                operator_cost: 0,
+                ..GasCosts::default()
+            };
+            let (mut store, context, instance) =
+                instantiate_wat(&TestInterface, PAGINATED_ABI_WAT, gas_costs).unwrap();
+            let before = get_remaining_points(&context.env, &mut store).unwrap();
+
+            let function_name = if explicit {
+                "direct_for_address"
+            } else {
+                "direct_current"
+            };
+            let function = instance.exports.get_function(function_name).unwrap();
+            let args = if explicit {
+                vec![
+                    Value::I32(288),
+                    Value::I32(256),
+                    Value::I32(272),
+                    Value::I32(500),
+                ]
+            } else {
+                vec![Value::I32(256), Value::I32(8), Value::I32(500)]
+            };
+            let result = function.call(&mut store, &args).unwrap();
+            let result_ptr = result[0].i32().unwrap() as u32;
+            let memory = instance.exports.get_memory("memory").unwrap();
+            let serialized = BufferPtr::new(result_ptr).read(memory, &store).unwrap();
+            let after = get_remaining_points(&context.env, &mut store).unwrap();
+
+            let expected = if full_page {
+                serialize_test_keys(&full_keys)
+            } else {
+                Vec::new()
+            };
+            assert_eq!(serialized, expected);
+            assert_eq!(before - after, 190_000);
+        }
+    }
+
+    #[cfg(not(feature = "gas_calibration"))]
+    #[test]
+    #[serial]
+    fn test_paginated_ds_keys_guest_control_isolates_exact_abi_cost() {
+        let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION);
+        let full_keys = (500..1000)
+            .map(|index| format!("p{index:04}").into_bytes())
+            .collect::<Vec<_>>();
+
+        for (explicit, full_page) in [(false, false), (false, true), (true, false), (true, true)] {
+            let fixture = if full_page {
+                full_keys.clone()
+            } else {
+                Vec::new()
+            };
+            let _fixture = PaginatedFixtureGuard::set(fixture.clone());
+            let function = if explicit { "for_address" } else { "current" };
+            let charged = run_wat_with_gas(
+                &TestInterface,
+                PAGINATED_ABI_WAT,
+                function,
+                &500_i32.to_le_bytes(),
+                GasCosts::default(),
+            )
+            .unwrap();
+
+            let mut control_costs = GasCosts::default();
+            if explicit {
+                control_costs.assembly_script_get_keys_for_paginated = 0;
+            } else {
+                control_costs.assembly_script_get_keys_paginated = 0;
+            }
+            let control = run_wat_with_gas(
+                &TestInterface,
+                PAGINATED_ABI_WAT,
+                function,
+                &500_i32.to_le_bytes(),
+                control_costs,
+            )
+            .unwrap();
+
+            assert_eq!(charged.ret, control.ret);
+            assert_eq!(control.remaining_gas - charged.remaining_gas, 190_000);
+            let expected = if full_page {
+                serialize_test_keys(&full_keys)
+            } else {
+                Vec::new()
+            };
+            assert_eq!(charged.ret, expected);
+        }
+    }
+
+    fn serialize_test_keys(keys: &[Vec<u8>]) -> Vec<u8> {
+        if keys.is_empty() {
+            return Vec::new();
+        }
+        let mut serialized = (keys.len() as u32).to_le_bytes().to_vec();
+        for key in keys {
+            serialized.push(key.len() as u8);
+            serialized.extend_from_slice(key);
+        }
+        serialized
     }
 }

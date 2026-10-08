@@ -6,11 +6,46 @@ use massa_proto_rs::massa::model::v1::*;
 use sha2::{Digest, Sha256};
 use sha3::Keccak256;
 use std::collections::{BTreeMap, BTreeSet};
+use std::sync::Mutex;
 
 /// Execution component version reported by `TestInterface`. Tests changing it
 /// must be `#[serial]` and restore it to 0.
 pub(crate) static INTERFACE_VERSION: std::sync::atomic::AtomicU32 =
     std::sync::atomic::AtomicU32::new(0);
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) enum PaginatedKeysCall {
+    Current {
+        prefix: Option<Vec<u8>>,
+        start_key: Option<Vec<u8>>,
+        count: u32,
+    },
+    ForAddress {
+        address: String,
+        prefix: Option<Vec<u8>>,
+        start_key: Option<Vec<u8>>,
+        count: u32,
+    },
+}
+
+pub(crate) static PAGINATED_KEYS_FIXTURE: Mutex<BTreeSet<Vec<u8>>> = Mutex::new(BTreeSet::new());
+pub(crate) static PAGINATED_KEYS_CALLS: Mutex<Vec<PaginatedKeysCall>> = Mutex::new(Vec::new());
+
+fn select_paginated_keys(
+    prefix: Option<&[u8]>,
+    start_key: Option<&[u8]>,
+    count: u32,
+) -> BTreeSet<Vec<u8>> {
+    PAGINATED_KEYS_FIXTURE
+        .lock()
+        .unwrap()
+        .iter()
+        .filter(|key| prefix.is_none_or(|prefix| key.starts_with(prefix)))
+        .filter(|key| start_key.is_none_or(|start_key| key.as_slice() > start_key))
+        .take(count as usize)
+        .cloned()
+        .collect()
+}
 
 #[derive(Clone)]
 pub(crate) struct TestInterface;
@@ -625,21 +660,38 @@ impl Interface for TestInterface {
 
     fn get_keys_paginated(
         &self,
-        _prefix: Option<&[u8]>,
-        _start_key: Option<&[u8]>,
-        _count: u32,
+        prefix: Option<&[u8]>,
+        start_key: Option<&[u8]>,
+        count: u32,
     ) -> Result<BTreeSet<Vec<u8>>> {
-        todo!()
+        PAGINATED_KEYS_CALLS
+            .lock()
+            .unwrap()
+            .push(PaginatedKeysCall::Current {
+                prefix: prefix.map(<[u8]>::to_vec),
+                start_key: start_key.map(<[u8]>::to_vec),
+                count,
+            });
+        Ok(select_paginated_keys(prefix, start_key, count))
     }
 
     fn get_keys_for_paginated(
         &self,
-        _address: &str,
-        _prefix: Option<&[u8]>,
-        _start_key: Option<&[u8]>,
-        _count: u32,
+        address: &str,
+        prefix: Option<&[u8]>,
+        start_key: Option<&[u8]>,
+        count: u32,
     ) -> Result<BTreeSet<Vec<u8>>> {
-        todo!()
+        PAGINATED_KEYS_CALLS
+            .lock()
+            .unwrap()
+            .push(PaginatedKeysCall::ForAddress {
+                address: address.to_owned(),
+                prefix: prefix.map(<[u8]>::to_vec),
+                start_key: start_key.map(<[u8]>::to_vec),
+                count,
+            });
+        Ok(select_paginated_keys(prefix, start_key, count))
     }
 
     fn raw_get_bytecode(&self) -> Result<Vec<u8>> {

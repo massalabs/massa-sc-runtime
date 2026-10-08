@@ -1589,16 +1589,28 @@ pub fn operator_field_str<'a>(op: &'a Operator) -> &'a str {
         Operator::I31GetS => stringify!(I31GetS),
         Operator::I31GetU => stringify!(I31GetU),
         Operator::MemoryDiscard { .. } => stringify!(MemoryDiscard),
-        Operator::I32x4RelaxedTruncF32x4S => stringify!(I32x4RelaxedTruncF32x4S),
-        Operator::I32x4RelaxedTruncF32x4U => stringify!(I32x4RelaxedTruncF32x4U),
-        Operator::I32x4RelaxedTruncF64x2SZero => stringify!(I32x4RelaxedTruncF64x2SZero),
-        Operator::I32x4RelaxedTruncF64x2UZero => stringify!(I32x4RelaxedTruncF64x2UZero),
+        Operator::I32x4RelaxedTruncF32x4S => {
+            stringify!(I32x4RelaxedTruncF32x4S)
+        }
+        Operator::I32x4RelaxedTruncF32x4U => {
+            stringify!(I32x4RelaxedTruncF32x4U)
+        }
+        Operator::I32x4RelaxedTruncF64x2SZero => {
+            stringify!(I32x4RelaxedTruncF64x2SZero)
+        }
+        Operator::I32x4RelaxedTruncF64x2UZero => {
+            stringify!(I32x4RelaxedTruncF64x2UZero)
+        }
         Operator::F32x4RelaxedMadd => stringify!(F32x4RelaxedMadd),
         Operator::F32x4RelaxedNmadd => stringify!(F32x4RelaxedNmadd),
         Operator::F64x2RelaxedMadd => stringify!(F64x2RelaxedMadd),
         Operator::F64x2RelaxedNmadd => stringify!(F64x2RelaxedNmadd),
-        Operator::I16x8RelaxedDotI8x16I7x16S => stringify!(I16x8RelaxedDotI8x16I7x16S),
-        Operator::I32x4RelaxedDotI8x16I7x16AddS => stringify!(I32x4RelaxedDotI8x16I7x16AddS),
+        Operator::I16x8RelaxedDotI8x16I7x16S => {
+            stringify!(I16x8RelaxedDotI8x16I7x16S)
+        }
+        Operator::I32x4RelaxedDotI8x16I7x16AddS => {
+            stringify!(I32x4RelaxedDotI8x16I7x16AddS)
+        }
         Operator::CallRef { .. } => stringify!(CallRef),
         Operator::ReturnCallRef { .. } => stringify!(ReturnCallRef),
         Operator::RefAsNonNull => stringify!(RefAsNonNull),
