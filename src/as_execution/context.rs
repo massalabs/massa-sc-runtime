@@ -473,7 +473,10 @@ mod tests {
 
         for (wat, import_name) in [
             (current_address_wat, "assembly_script_get_keys_paginated"),
-            (explicit_address_wat, "assembly_script_get_keys_for_paginated"),
+            (
+                explicit_address_wat,
+                "assembly_script_get_keys_for_paginated",
+            ),
         ] {
             let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION - 1);
             let error = run_wat(&interface, wat, "main").unwrap_err();
@@ -656,7 +659,11 @@ mod tests {
             .collect::<Vec<_>>();
 
         for (explicit, full_page) in [(false, false), (false, true), (true, false), (true, true)] {
-            let fixture = if full_page { full_keys.clone() } else { Vec::new() };
+            let fixture = if full_page {
+                full_keys.clone()
+            } else {
+                Vec::new()
+            };
             let _fixture = PaginatedFixtureGuard::set(fixture.clone());
             let mut gas_costs = GasCosts::default();
             // The guest allocator is still called, but its Wasm operators cost zero here.
@@ -672,7 +679,12 @@ mod tests {
             };
             let function = instance.exports.get_function(function_name).unwrap();
             let args = if explicit {
-                vec![Value::I32(288), Value::I32(256), Value::I32(272), Value::I32(500)]
+                vec![
+                    Value::I32(288),
+                    Value::I32(256),
+                    Value::I32(272),
+                    Value::I32(500),
+                ]
             } else {
                 vec![Value::I32(256), Value::I32(8), Value::I32(500)]
             };
@@ -701,7 +713,11 @@ mod tests {
             .collect::<Vec<_>>();
 
         for (explicit, full_page) in [(false, false), (false, true), (true, false), (true, true)] {
-            let fixture = if full_page { full_keys.clone() } else { Vec::new() };
+            let fixture = if full_page {
+                full_keys.clone()
+            } else {
+                Vec::new()
+            };
             let _fixture = PaginatedFixtureGuard::set(fixture.clone());
             let function = if explicit { "for_address" } else { "current" };
             let charged = run_wat_with_gas(

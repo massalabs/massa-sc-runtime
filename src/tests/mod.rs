@@ -28,8 +28,7 @@ pub(crate) enum PaginatedKeysCall {
     },
 }
 
-pub(crate) static PAGINATED_KEYS_FIXTURE: Mutex<BTreeSet<Vec<u8>>> =
-    Mutex::new(BTreeSet::new());
+pub(crate) static PAGINATED_KEYS_FIXTURE: Mutex<BTreeSet<Vec<u8>>> = Mutex::new(BTreeSet::new());
 pub(crate) static PAGINATED_KEYS_CALLS: Mutex<Vec<PaginatedKeysCall>> = Mutex::new(Vec::new());
 
 fn select_paginated_keys(
