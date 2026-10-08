@@ -650,6 +650,7 @@ mod tests {
         );
     }
 
+    #[cfg(not(feature = "gas_calibration"))]
     #[test]
     #[serial]
     fn test_paginated_ds_keys_direct_handler_debits_exact_abi_cost() {
@@ -665,9 +666,11 @@ mod tests {
                 Vec::new()
             };
             let _fixture = PaginatedFixtureGuard::set(fixture.clone());
-            let mut gas_costs = GasCosts::default();
             // The guest allocator is still called, but its Wasm operators cost zero here.
-            gas_costs.operator_cost = 0;
+            let gas_costs = GasCosts {
+                operator_cost: 0,
+                ..GasCosts::default()
+            };
             let (mut store, context, instance) =
                 instantiate_wat(&TestInterface, PAGINATED_ABI_WAT, gas_costs).unwrap();
             let before = get_remaining_points(&context.env, &mut store).unwrap();
@@ -704,6 +707,7 @@ mod tests {
         }
     }
 
+    #[cfg(not(feature = "gas_calibration"))]
     #[test]
     #[serial]
     fn test_paginated_ds_keys_guest_control_isolates_exact_abi_cost() {
