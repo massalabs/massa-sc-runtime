@@ -10,12 +10,12 @@ base64 = "=0.21"
 chrono = { version = "=0.4", features = ["clock"], default-features = false }
 displaydoc = "0.2"
 loupe = "0.1"
-massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", "rev" = "0bcc52f40d2d7d596eeaf8f8713364bd7c15594b" }
+massa-proto-rs = { git = "https://github.com/massalabs/massa-proto-rs.git", "rev" = "f3b36ea7f0df92bc4fd2b3661dc3fa8885c5aef3" }
 more-asserts = "0.3"
 num_enum = "0.7"
 parking_lot = "0.12"
-prost = "=0.13"
-prost-types = "=0.13"
+prost = "=0.14"
+prost-types = "=0.14"
 rand = "=0.8"
 # for gas_calibration middleware
 regex = "1"
@@ -51,4 +51,3 @@ testing = []
 dumper = []
 build-wasm = []
 execution-trace = ["rust_decimal"]
-
