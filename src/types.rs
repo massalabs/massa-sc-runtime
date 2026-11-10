@@ -756,6 +756,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// given amount of coins
     fn init_call(&self, address: &str, raw_coins: u64) -> Result<Vec<u8>>;
 
+    /// Same as `init_call`, but does not return the target bytecode.
+    ///
+    /// Callers that then load the module with `get_module_for_address` use this
+    /// so that a host can avoid copying the whole target bytecode on every call.
+    fn init_call_without_bytecode(&self, address: &str, raw_coins: u64) -> Result<()> {
+        self.init_call(address, raw_coins).map(|_| ())
+    }
+
     /// Prepare the execution of a module at the given address and transfer a
     /// given amount of coins
     fn init_call_wasmv1(&self, address: &str, raw_coins: NativeAmount) -> Result<Vec<u8>>;
@@ -1018,6 +1026,17 @@ pub trait Interface: Send + Sync + InterfaceClone {
     ///
     /// Returns a CL compiled module and the remaining gas after loading
     fn get_module(&self, bytecode: &[u8], gas_limit: u64) -> Result<RuntimeModule>;
+
+    /// Same as `get_module`, for the bytecode currently stored at `address`.
+    ///
+    /// Must return exactly what `raw_get_bytecode_for` followed by `get_module`
+    /// would. A host can override it to skip fetching and hashing the whole
+    /// bytecode when the module is already cached, since these ABIs cost a flat
+    /// amount of gas whatever the bytecode size.
+    fn get_module_for_address(&self, address: &str, gas_limit: u64) -> Result<RuntimeModule> {
+        let bytecode = self.raw_get_bytecode_for(address)?;
+        self.get_module(&bytecode, gas_limit)
+    }
 
     /// Compile a temportary module from the given bytecode
     ///

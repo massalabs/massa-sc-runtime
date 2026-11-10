@@ -23,12 +23,13 @@ pub(crate) fn call_module(
         Err(_) => abi_bail!("negative amount of coins in Call"),
     };
     let env = get_env(ctx)?;
-    let bytecode = env.get_interface().init_call(address, raw_coins)?;
+    env.get_interface()
+        .init_call_without_bytecode(address, raw_coins)?;
     let interface = env.get_interface();
     let remaining_gas = get_remaining_gas(&env, ctx)?;
 
     let module = interface
-        .get_module(&bytecode, remaining_gas)
+        .get_module_for_address(address, remaining_gas)
         .map_err(|e| {
             super::ABIError::Error(anyhow::anyhow!(format!(
                 "call to {}:{} error: {}",
@@ -58,23 +59,33 @@ pub(crate) fn call_module(
     Ok(resp)
 }
 
+/// Module executed by `local_call`
+pub(crate) enum LocalCallModule<'a> {
+    /// The module stored at this address, loaded through the module cache
+    Address(&'a str),
+    /// A temporary module compiled from this bytecode
+    TmpBytecode(&'a [u8]),
+}
+
 /// Alternative to `call_module` to execute bytecode in a local context
 pub(crate) fn local_call(
     ctx: &mut FunctionEnvMut<ASEnv>,
-    bytecode: &[u8],
+    module: LocalCallModule,
     function: &str,
     param: &[u8],
-    tmp: bool,
 ) -> ABIResult<Response> {
     let env = get_env(ctx)?;
     let gas_costs = env.get_gas_costs();
     let interface = env.get_interface();
     let remaining_gas = get_remaining_gas(&env, ctx)?;
 
-    let module = if tmp {
-        interface.get_tmp_module(bytecode, remaining_gas)?
-    } else {
-        interface.get_module(bytecode, remaining_gas)?
+    let module = match module {
+        LocalCallModule::TmpBytecode(bytecode) => {
+            interface.get_tmp_module(bytecode, remaining_gas)?
+        }
+        LocalCallModule::Address(address) => {
+            interface.get_module_for_address(address, remaining_gas)?
+        }
     };
 
     interface.increment_recursion_counter()?;
@@ -112,11 +123,10 @@ pub(crate) fn function_exists(
 ) -> ABIResult<bool> {
     let env = get_env(ctx)?;
     let interface = env.get_interface();
-    let bytecode = interface.raw_get_bytecode_for(address)?;
     let remaining_gas = get_remaining_gas(&env, ctx)?;
 
     let function_exists = interface
-        .get_module(&bytecode, remaining_gas)?
+        .get_module_for_address(address, remaining_gas)?
         .function_exists(function);
 
     Ok(function_exists)
