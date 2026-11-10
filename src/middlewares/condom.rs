@@ -164,6 +164,25 @@ impl ModuleMiddleware for CondomMiddleware {
             }
         }
 
+        // Check the total table size: instantiation allocates every table at its
+        // declared minimum size, for free and outside the linear memory limits
+        if let Some(max_table_elements) = self.limits.max_table_elements_count {
+            let table_elements: u64 = module_info
+                .tables
+                .values()
+                .map(|table| u64::from(table.minimum))
+                .sum();
+            if table_elements > max_table_elements as u64 {
+                return Err(MiddlewareError::new(
+                    "CondomMiddleware",
+                    format!("The WASM file has too many table elements (contains: {} limit: {}). Blocked to prevent instantiation memory bloat",
+                    table_elements,
+                    max_table_elements,
+                    ),
+                ));
+            }
+        }
+
         // Check the memory limits
         if let Some(max_memories) = self.limits.max_memories_len {
             if module_info.memories.len() > max_memories {
@@ -845,6 +864,40 @@ mod tests {
         }
     }
 
+    /// MASSA-006: the total declared size of the tables (imported ones included)
+    /// is bounded, not only their count.
+    #[test]
+    fn test_condom_middleware_exceeds_table_elements_limit() {
+        let condom_limits = CondomLimits {
+            max_table_elements_count: Some(1_000),
+            ..Default::default()
+        };
+        let compile = |wat: &str| {
+            let condom_middleware = Arc::new(CondomMiddleware::new(condom_limits.clone()));
+            let mut compiler_config = Cranelift::default();
+            compiler_config.push_middleware(condom_middleware);
+            let store = Store::new(EngineBuilder::new(compiler_config));
+            Module::new(&store, wat2wasm(wat.as_bytes()).unwrap())
+        };
+
+        // exactly at the limit, over one or several tables
+        assert!(compile("(module (table 1000 funcref))").is_ok());
+        assert!(compile("(module (table 600 funcref) (table 400 funcref))").is_ok());
+        // only the declared minimum is allocated, so a large maximum is fine
+        assert!(compile("(module (table 10 10000000 funcref))").is_ok());
+
+        // one element over the limit: a single table, several tables, an imported table
+        for wat in [
+            "(module (table 1001 funcref))",
+            "(module (table 600 funcref) (table 401 funcref))",
+            "(module (import \"env\" \"t\" (table 1001 funcref)))",
+            "(module (table 10000000 funcref))",
+        ] {
+            let err = compile(wat).expect_err(wat).to_string();
+            assert!(err.contains("too many table elements"), "{wat}: {err}");
+        }
+    }
+
     #[test]
     fn test_condom_middleware_exceeds_memories_limit_max() {
         let condom_limits = CondomLimits {
@@ -1212,6 +1265,7 @@ mod tests {
             max_global_initializers_len: Some(nb_global_ini),
             max_function_names_len: Some(fn_name_len),
             max_tables_count: Some(nb_tables + 1), // +1 for the table with initializers
+            max_table_elements_count: None,
             max_memories_len: Some(nb_memories),
             max_globals_len: Some(nb_global_ini),
             max_custom_sections_len: Some(1),
