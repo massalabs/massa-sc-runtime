@@ -93,7 +93,7 @@ use crate::{
     types::{AbiTrace, AbiTraceType},
 };
 
-use super::common::{call_module, create_sc, function_exists, local_call};
+use super::common::{call_module, create_sc, function_exists, local_call, LocalCallModule};
 use super::error::{abi_bail, ABIResult};
 
 macro_rules! get_memory {
@@ -1417,7 +1417,12 @@ pub(crate) fn assembly_script_local_execution(
         let bytecode = read_buffer(&memory, &ctx, bytecode)?;
         let function = read_string(&memory, &ctx, function)?;
         let param = read_buffer(&memory, &ctx, param)?;
-        let response = local_call(&mut ctx, &bytecode, &function, &param, true)?;
+        let response = local_call(
+            &mut ctx,
+            LocalCallModule::TmpBytecode(&bytecode),
+            &function,
+            &param,
+        )?;
         let ffi_env = ctx.data().get_ffi_env().clone();
         let res = match BufferPtr::alloc(&response.ret, &ffi_env, &mut ctx) {
             Ok(ret) => Ok(ret.offset() as i32),
@@ -1451,11 +1456,15 @@ pub(crate) fn assembly_script_local_call(
 ) -> ABIResult<i32> {
     abi_with_memory!(ctx, assembly_script_local_call, |memory| {
         let address = &read_string(&memory, &ctx, address)?;
-        let bytecode = ctx.data().interface.raw_get_bytecode_for(address)?;
         let function = read_string(&memory, &ctx, function)?;
         let param = read_buffer(&memory, &ctx, param)?;
 
-        let response = local_call(&mut ctx, &bytecode, &function, &param, false)?;
+        let response = local_call(
+            &mut ctx,
+            LocalCallModule::Address(address),
+            &function,
+            &param,
+        )?;
         let ffi_env = ctx.data().get_ffi_env().clone();
         let res = match BufferPtr::alloc(&response.ret, &ffi_env, &mut ctx) {
             Ok(ret) => Ok(ret.offset() as i32),
