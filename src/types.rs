@@ -220,6 +220,11 @@ pub struct CondomLimits {
     pub max_global_initializers_len: Option<usize>,
     pub max_function_names_len: Option<usize>,
     pub max_tables_count: Option<usize>,
+    /// Max total number of elements over all the tables of a module (declared
+    /// and imported), counted from their declared minimum sizes. That is what
+    /// instantiation allocates, and tables cannot grow with `reference_types`
+    /// disabled.
+    pub max_table_elements_count: Option<usize>,
     pub max_memories_len: Option<usize>,
     pub max_globals_len: Option<usize>,
     pub max_custom_sections_len: Option<usize>,
