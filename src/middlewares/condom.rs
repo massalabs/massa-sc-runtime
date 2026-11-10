@@ -231,6 +231,59 @@ impl ModuleMiddleware for CondomMiddleware {
     }
 }
 
+/// Checks the limits that `CondomMiddleware` cannot see, before compiling `wasm`:
+/// the total number of locals declared by the function bodies, and the size of
+/// the code section. Middlewares only get the operators of each function, not
+/// its local declarations.
+///
+/// Invalid wasm is left to the compiler to reject, so only the parts read before
+/// the first parse error are counted.
+pub(crate) fn check_code_limits(wasm: &[u8], limits: &CondomLimits) -> Result<(), String> {
+    if limits.max_locals_count.is_none() && limits.max_code_section_size.is_none() {
+        return Ok(());
+    }
+    let mut locals_count: u64 = 0;
+    for payload in wasmer::wasmparser::Parser::new(0).parse_all(wasm) {
+        let Ok(payload) = payload else {
+            return Ok(());
+        };
+        match payload {
+            wasmer::wasmparser::Payload::CodeSectionStart { size, .. } => {
+                if let Some(max_code_section_size) = limits.max_code_section_size {
+                    if u64::from(size) > max_code_section_size as u64 {
+                        return Err(format!(
+                            "The WASM file has a too large code section (contains: {} bytes, limit: {}). Blocked to prevent compilation time bloat",
+                            size, max_code_section_size
+                        ));
+                    }
+                }
+            }
+            wasmer::wasmparser::Payload::CodeSectionEntry(body) => {
+                let Some(max_locals) = limits.max_locals_count else {
+                    continue;
+                };
+                let Ok(locals) = body.get_locals_reader() else {
+                    return Ok(());
+                };
+                for local in locals {
+                    let Ok((count, _)) = local else {
+                        return Ok(());
+                    };
+                    locals_count = locals_count.saturating_add(u64::from(count));
+                    if locals_count > max_locals as u64 {
+                        return Err(format!(
+                            "The WASM file has too many locals (more than {} declared, limit: {}). Blocked to prevent compilation time bloat",
+                            locals_count, max_locals
+                        ));
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
 /// A no-op function middleware used as a placeholder.
 struct NoOpFunctionMiddleware;
 
@@ -1216,6 +1269,8 @@ mod tests {
             max_globals_len: Some(nb_global_ini),
             max_custom_sections_len: Some(1),
             max_custom_sections_data_len: Some(custon_section_data_len),
+            max_locals_count: None,
+            max_code_section_size: None,
         };
 
         let condom_middleware = Arc::new(CondomMiddleware::new(condom_limits.clone()));
@@ -1272,5 +1327,157 @@ mod tests {
         let module_result = Module::new(&store, bytecode_within_limits());
 
         assert!(module_result.is_ok());
+    }
+
+    fn leb(mut v: u64, out: &mut Vec<u8>) {
+        loop {
+            let b = (v & 0x7f) as u8;
+            v >>= 7;
+            if v == 0 {
+                out.push(b);
+                break;
+            }
+            out.push(b | 0x80);
+        }
+    }
+
+    /// Binary module with `n_fn` functions of type () -> (). Each function declares
+    /// `locals` i32 locals and its body has `padding` extra `nop` bytes. Built in
+    /// binary form since declaring many locals in text would be huge.
+    fn module_with_code(n_fn: u64, locals: u64, padding: u64) -> Vec<u8> {
+        let section = |id: u8, body: Vec<u8>, out: &mut Vec<u8>| {
+            out.push(id);
+            leb(body.len() as u64, out);
+            out.extend(body);
+        };
+        let mut m = b"\0asm\x01\0\0\0".to_vec();
+        section(1, vec![1, 0x60, 0, 0], &mut m);
+        let mut functions = vec![];
+        leb(n_fn, &mut functions);
+        functions.extend(std::iter::repeat_n(0, n_fn as usize));
+        section(3, functions, &mut m);
+        let mut body = vec![];
+        if locals > 0 {
+            body.push(1);
+            leb(locals, &mut body);
+            body.push(0x7f);
+        } else {
+            body.push(0);
+        }
+        body.extend(std::iter::repeat_n(0x01, padding as usize));
+        body.push(0x0b);
+        let mut code = vec![];
+        leb(n_fn, &mut code);
+        for _ in 0..n_fn {
+            leb(body.len() as u64, &mut code);
+            code.extend(&body);
+        }
+        section(10, code, &mut m);
+        m
+    }
+
+    /// Size of the code section of a module built by `module_with_code`
+    fn code_section_size(n_fn: u64, locals: u64, padding: u64) -> usize {
+        let wasm = module_with_code(n_fn, locals, padding);
+        let mut size = 0;
+        for payload in wasmer::wasmparser::Parser::new(0).parse_all(&wasm) {
+            if let wasmer::wasmparser::Payload::CodeSectionStart { size: s, .. } = payload.unwrap()
+            {
+                size = s as usize;
+            }
+        }
+        size
+    }
+
+    /// MASSA-005: the total number of locals over all functions is bounded.
+    #[test]
+    fn test_check_code_limits_locals() {
+        let limits = CondomLimits {
+            max_locals_count: Some(1_000),
+            ..Default::default()
+        };
+        // exactly at the limit, in one function or spread over several
+        assert_eq!(
+            check_code_limits(&module_with_code(1, 1_000, 0), &limits),
+            Ok(())
+        );
+        assert_eq!(
+            check_code_limits(&module_with_code(10, 100, 0), &limits),
+            Ok(())
+        );
+        // one local over the limit
+        for wasm in [module_with_code(1, 1_001, 0), module_with_code(7, 143, 0)] {
+            let err = check_code_limits(&wasm, &limits).unwrap_err();
+            assert!(err.contains("too many locals"), "{err}");
+        }
+        // the shape from the review: 766 functions x 50,000 locals
+        let err = check_code_limits(&module_with_code(766, 50_000, 0), &limits).unwrap_err();
+        assert!(err.contains("too many locals"), "{err}");
+        // no limit set: not checked
+        assert_eq!(
+            check_code_limits(&module_with_code(766, 50_000, 0), &CondomLimits::default()),
+            Ok(())
+        );
+    }
+
+    /// MASSA-005: the code section size is bounded.
+    #[test]
+    fn test_check_code_limits_code_section_size() {
+        let size = code_section_size(4, 1, 1_000);
+        let at_limit = CondomLimits {
+            max_code_section_size: Some(size),
+            ..Default::default()
+        };
+        assert_eq!(
+            check_code_limits(&module_with_code(4, 1, 1_000), &at_limit),
+            Ok(())
+        );
+        let below = CondomLimits {
+            max_code_section_size: Some(size - 1),
+            ..Default::default()
+        };
+        let err = check_code_limits(&module_with_code(4, 1, 1_000), &below).unwrap_err();
+        assert!(err.contains("too large code section"), "{err}");
+    }
+
+    /// Invalid wasm is left to the compiler: the pre-pass must not reject it itself.
+    #[test]
+    fn test_check_code_limits_ignores_invalid_wasm() {
+        let limits = CondomLimits {
+            max_locals_count: Some(1),
+            max_code_section_size: Some(1),
+            ..Default::default()
+        };
+        assert_eq!(check_code_limits(b"not wasm", &limits), Ok(()));
+        assert_eq!(check_code_limits(&[], &limits), Ok(()));
+    }
+
+    /// The pre-pass runs before both compilers, for the modules executed by the runtime.
+    #[test]
+    fn test_runtime_module_rejects_too_many_locals() {
+        use crate::{Compiler, GasCosts, RuntimeModule};
+        let limits = CondomLimits {
+            max_locals_count: Some(1_000),
+            ..Default::default()
+        };
+        for compiler in [Compiler::SP, Compiler::CL] {
+            assert!(RuntimeModule::new(
+                &module_with_code(1, 1_000, 0),
+                GasCosts::default(),
+                compiler.clone(),
+                limits.clone()
+            )
+            .is_ok());
+            let err = RuntimeModule::new(
+                &module_with_code(766, 50_000, 0),
+                GasCosts::default(),
+                compiler,
+                limits.clone(),
+            )
+            .err()
+            .expect("too many locals")
+            .to_string();
+            assert!(err.contains("too many locals"), "{err}");
+        }
     }
 }

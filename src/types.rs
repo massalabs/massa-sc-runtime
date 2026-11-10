@@ -224,6 +224,13 @@ pub struct CondomLimits {
     pub max_globals_len: Option<usize>,
     pub max_custom_sections_len: Option<usize>,
     pub max_custom_sections_data_len: Option<usize>,
+    /// Max total number of locals declared by all the function bodies of a module
+    /// (parameters excluded). Compilation time and memory grow with it, and
+    /// compilation costs no gas.
+    pub max_locals_count: Option<usize>,
+    /// Max size in bytes of the code section of a module (all function bodies).
+    /// Compilation time grows with it, and compilation costs no gas.
+    pub max_code_section_size: Option<usize>,
 }
 
 #[derive(Clone, Debug)]

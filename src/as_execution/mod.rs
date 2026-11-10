@@ -8,7 +8,7 @@ use crate::{
     error::{exec_bail, VMResult},
     execution::Compiler,
     middlewares::{
-        condom::CondomMiddleware,
+        condom::{check_code_limits, CondomMiddleware},
         dumper::Dumper,
         gas_calibration::{get_gas_calibration_result, GasCalibration, GasCalibrationResult},
     },
@@ -49,6 +49,7 @@ impl ASModule {
         compiler: Compiler,
         condom_limits: CondomLimits,
     ) -> VMResult<Self> {
+        check_code_limits(bytecode, &condom_limits).map_err(VMError::InstanceError)?;
         let engine = match compiler {
             Compiler::CL => init_cl_engine(limit, gas_costs, condom_limits),
             Compiler::SP => init_sp_engine(limit, gas_costs, condom_limits),

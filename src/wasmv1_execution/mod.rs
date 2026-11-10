@@ -6,7 +6,7 @@ mod ffi;
 use self::env::{ABIEnv, ExecutionEnv};
 use crate::error::VMResult;
 use crate::execution::Compiler;
-use crate::middlewares::condom::CondomMiddleware;
+use crate::middlewares::condom::{check_code_limits, CondomMiddleware};
 use crate::middlewares::gas_calibration::{
     get_gas_calibration_result, GasCalibration, GasCalibrationResult,
 };
@@ -45,6 +45,9 @@ impl WasmV1Module {
         compiler: Compiler,
         condom_limits: CondomLimits,
     ) -> Result<Self, WasmV1Error> {
+        check_code_limits(bytecode, &condom_limits).map_err(|e| {
+            WasmV1Error::InstanciationError(format!("Could not compile bytecode: {}", e))
+        })?;
         let engine = match compiler {
             Compiler::CL => init_cl_engine(limit, gas_costs, condom_limits),
             Compiler::SP => init_sp_engine(limit, gas_costs, condom_limits),
