@@ -1477,7 +1477,7 @@ pub(crate) fn assembly_script_local_call(
         ctx.data_mut().trace.push(AbiTrace {
             name: "assembly_script_local_call".to_string(),
             params: vec![
-                into_trace_value!(bytecode),
+                ("address", address.clone()).into(),
                 into_trace_value!(function),
                 into_trace_value!(param),
             ],
