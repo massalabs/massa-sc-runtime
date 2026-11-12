@@ -1,21 +1,23 @@
-mod abi;
-mod env;
-mod error;
-mod ffi;
+//! WasmV1 modules are no longer executed: the runtime refuses them from massa
+//! MIP-0002 (execution version 2) on, and MIP-0002 is active on mainnet.
+//!
+//! Only their compilation is kept, because it is still consensus-observable:
+//! bytecode that starts with the WasmV1 module id is still compiled and cached,
+//! a compilation failure is reported as such, and `function_exists` still
+//! answers from the module exports. Removing it would change the result of
+//! `function_exists`, `call` or `local_call` on an address holding WasmV1
+//! bytecode, which anyone can deploy.
 
-use self::env::{ABIEnv, ExecutionEnv};
+mod error;
+
 use crate::error::VMResult;
 use crate::execution::Compiler;
 use crate::middlewares::condom::{check_code_limits, CondomMiddleware};
-use crate::middlewares::gas_calibration::{
-    get_gas_calibration_result, GasCalibration, GasCalibrationResult,
-};
+use crate::middlewares::gas_calibration::GasCalibration;
 use crate::settings::max_number_of_pages;
 use crate::tunable_memory::LimitingTunables;
-use crate::{CondomLimits, GasCosts, Interface, Response, VMError};
-use abi::*;
+use crate::{CondomLimits, GasCosts};
 pub(crate) use error::*;
-use parking_lot::Mutex;
 use std::sync::Arc;
 use wasmer::NativeEngineExt;
 use wasmer::{sys::Features, CompilerConfig, Cranelift, Engine, Module, Store};
@@ -27,11 +29,10 @@ use wasmer::{
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_middlewares::Metering;
 
-/// An executable runtime module compiled from an AssemblyScript SC
+/// A compiled WasmV1 module. It can be cached and queried for its exports, not executed.
 #[derive(Clone)]
 pub struct WasmV1Module {
     pub(crate) binary_module: Module,
-    pub(crate) gas_limit_at_compilation: u64,
     pub compiler: Compiler,
     // Compilation engine can not be dropped
     pub(crate) _engine: Engine,
@@ -63,7 +64,6 @@ impl WasmV1Module {
         };
         Ok(Self {
             binary_module,
-            gas_limit_at_compilation: limit,
             compiler,
             _engine: engine,
         })
@@ -102,7 +102,6 @@ impl WasmV1Module {
             .expect("Could not deserialize module");
         Ok(WasmV1Module {
             binary_module,
-            gas_limit_at_compilation: limit,
             compiler: Compiler::CL,
             _engine: engine,
         })
@@ -219,145 +218,4 @@ fn add_middleware<T>(
         }));
         compiler_config.push_middleware(metering);
     }
-}
-
-pub(crate) fn exec_wasmv1_module(
-    interface: &dyn Interface,
-    module: WasmV1Module,
-    function: &str,
-    param: &[u8],
-    gas_limit: u64,
-    gas_costs: GasCosts,
-    condom_limits: CondomLimits,
-) -> VMResult<(Response, Option<GasCalibrationResult>)> {
-    // Init store
-    let engine = match module.compiler {
-        Compiler::CL => init_cl_engine(gas_limit, gas_costs.clone(), condom_limits.clone()),
-        Compiler::SP => init_sp_engine(gas_limit, gas_costs.clone(), condom_limits.clone()),
-    };
-    let mut store = Store::new(engine);
-
-    // Create the ABI imports and pass them an empty environment for now
-    let shared_abi_env: ABIEnv = Arc::new(Mutex::new(None));
-
-    let import_object = register_abis(&mut store, shared_abi_env.clone());
-
-    // save the gas remaining before subexecution: used by readonly execution
-    interface.save_gas_remaining_before_subexecution(gas_limit);
-
-    // Create an instance of the execution environment.
-    let execution_env = ExecutionEnv::create_instance(
-        &mut store,
-        &module,
-        interface,
-        gas_costs,
-        &import_object,
-        condom_limits,
-    )
-    .map_err(|err| {
-        VMError::InstanceError(format!(
-            "Failed to create instance of execution environment: {}",
-            err
-        ))
-    })?;
-
-    // Get gas cost of instance creation
-    let init_gas_cost = execution_env.get_init_gas_cost();
-
-    // Set gas limit of function execution by subtracting the gas cost of
-    // instance creation
-    let available_gas = match gas_limit.checked_sub(init_gas_cost) {
-        Some(remaining_gas) => remaining_gas,
-        None => {
-            return Err(VMError::ExecutionError {
-                error: "Available gas does not cover instance creation".to_string(),
-                init_gas_cost,
-            })
-        }
-    };
-    execution_env.set_remaining_gas(&mut store, available_gas);
-
-    // Get function to execute. Must follow the following prototype: param_addr:
-    // i32 -> return_addr: i32
-    let wasm_func =
-        execution_env
-            .get_func(&store, function)
-            .map_err(|err| VMError::ExecutionError {
-                error: format!(
-                    "Could not find guest function {} for call: {}",
-                    function, err
-                ),
-                init_gas_cost,
-            })?;
-
-    // Allocate and write function argument to guest memory
-    let param_offset = execution_env
-        .create_buffer(&mut store, param)
-        .map_err(|err| VMError::ExecutionError {
-            error: format!(
-                "Could not write argument for guest call {}: {}",
-                function, err
-            ),
-            init_gas_cost,
-        })?;
-
-    // Now that we have an instance, we can make the execution environment
-    // available to the ABIs. We avoided setting it before instance creation
-    // to prevent the implicit `_start` call from accessing the env and
-    // causing non-determinism in init gas usage.
-    shared_abi_env.lock().replace(execution_env);
-
-    // Call func
-    let returned_offset =
-        wasm_func
-            .call(&mut store, param_offset)
-            .map_err(|err| VMError::ExecutionError {
-                error: format!(
-                    "Error while calling guest function {}: {}",
-                    function,
-                    crate::error::runtime_error_without_trace(&err)
-                ),
-                init_gas_cost,
-            })?;
-
-    // Take back the execution environment
-    let execution_env = shared_abi_env
-        .lock()
-        .take()
-        .expect("Execution environment unavailable after execution");
-
-    // Read returned value from guest memory and deallocate it
-    let ret = execution_env
-        .take_buffer(&mut store, returned_offset)
-        .map_err(|err| VMError::ExecutionError {
-            error: format!(
-                "Could not read return value from guest call {}: {}",
-                function, err
-            ),
-            init_gas_cost,
-        })?;
-
-    // Get remaining gas
-    let remaining_gas = execution_env.get_remaining_gas(&mut store);
-
-    let gc_result = if cfg!(feature = "gas_calibration") {
-        Some(get_gas_calibration_result(
-            &execution_env.instance,
-            &mut store,
-        ))
-    } else {
-        None
-    };
-
-    // Return response
-    Ok((
-        Response {
-            ret,
-            remaining_gas,
-            init_gas_cost,
-            #[cfg(feature = "execution-trace")]
-            trace: execution_env.trace.clone(),
-        },
-        gc_result,
-    ))
 }

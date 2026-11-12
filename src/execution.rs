@@ -2,9 +2,9 @@ use crate::as_execution::{exec_as_module, ASModule};
 use crate::error::VMResult;
 use crate::middlewares::gas_calibration::GasCalibrationResult;
 use crate::types::{Interface, Response};
-use crate::wasmv1_execution::{exec_wasmv1_module, WasmV1Module};
+use crate::wasmv1_execution::WasmV1Module;
 use crate::{settings, CondomLimits};
-use crate::{GasCosts, VMError, MIP_0002_EXECUTION_VERSION};
+use crate::{GasCosts, VMError};
 use anyhow::{anyhow, Result};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
@@ -154,30 +154,14 @@ pub(crate) fn exec(
             gas_costs,
             condom_limits,
         )?,
-        RuntimeModule::WasmV1Module(_)
-            if interface
-                .get_interface_version()
-                .is_ok_and(|v| v >= MIP_0002_EXECUTION_VERSION) =>
-        {
-            // Disabled from massa MIP-0002 on: no wasmv1 contract was ever deployed on mainnet,
-            // and gating on the host's version keeps updated and non-updated nodes in agreement
-            // until activation. A host that cannot report its version keeps executing them.
+        RuntimeModule::WasmV1Module(_) => {
+            // Refused since massa MIP-0002 (execution version 2), which is active on mainnet,
+            // where no wasmv1 contract was ever deployed. Their execution code is removed;
+            // only their compilation is kept (see `wasmv1_execution`).
             return Err(VMError::InstanceError(
                 "wasmv1 modules are no longer supported".to_string(),
             ));
         }
-        RuntimeModule::WasmV1Module(module) => exec_wasmv1_module(
-            interface,
-            module,
-            function,
-            param,
-            limit,
-            gas_costs,
-            condom_limits,
-        )
-        .map_err(|err| {
-            VMError::InstanceError(format!("Failed to execute WasmV1 module: {}", err))
-        })?,
     };
     Ok(response)
 }

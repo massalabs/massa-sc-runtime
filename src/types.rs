@@ -1,6 +1,3 @@
-use massa_proto_rs::massa::model::v1::{
-    AddressCategory, ComparisonResult, NativeAmount, NativeTime, Slot,
-};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -316,78 +313,6 @@ pub struct GasCosts {
     pub assembly_script_transfer_coins_for: u64,
     pub assembly_script_unsafe_random: u64,
     pub assembly_script_validate_address: u64,
-
-    // WasmV1 ABI costs
-    pub abi_abort: u64,
-    pub abi_add_native_amount: u64,
-    pub abi_address_from_public_key: u64,
-    pub abi_append_ds_value: u64,
-    pub abi_base58_check_to_bytes: u64,
-    pub abi_bytes_to_base58_check: u64,
-    pub abi_call: u64,
-    pub abi_caller_has_write_access: u64,
-    pub abi_chain_id: u64,
-    pub abi_check_address: u64,
-    pub abi_check_native_amount: u64,
-    pub abi_check_pubkey: u64,
-    pub abi_check_signature: u64,
-    pub abi_checked_add_native_time: u64,
-    pub abi_checked_div_native_time: u64,
-    pub abi_checked_mul_native_time: u64,
-    pub abi_checked_scalar_div_native_time: u64,
-    pub abi_checked_sub_native_time: u64,
-    pub abi_compare_address: u64,
-    pub abi_compare_native_amount: u64,
-    pub abi_compare_native_time: u64,
-    pub abi_compare_pub_key: u64,
-    pub abi_create_sc: u64,
-    pub abi_deferred_call_cancel: u64,
-    pub abi_deferred_call_exists: u64,
-    pub abi_deferred_call_register: u64,
-    pub abi_delete_ds_entry: u64,
-    pub abi_div_rem_native_amount: u64,
-    pub abi_ds_entry_exists: u64,
-    pub abi_evm_get_address_from_pubkey: u64,
-    pub abi_evm_get_pubkey_from_signature: u64,
-    pub abi_evm_verify_signature: u64,
-    pub abi_function_exists: u64,
-    pub abi_generate_event: u64,
-    pub abi_get_address_category: u64,
-    pub abi_get_address_version: u64,
-    pub abi_get_balance: u64,
-    pub abi_get_bytecode: u64,
-    pub abi_get_call_coins: u64,
-    pub abi_get_call_stack: u64,
-    pub abi_get_current_slot: u64,
-    pub abi_get_deferred_call_quote: u64,
-    pub abi_get_ds_keys: u64,
-    pub abi_get_ds_value: u64,
-    pub abi_get_native_time: u64,
-    pub abi_get_op_data: u64,
-    pub abi_get_op_keys: u64,
-    pub abi_get_origin_operation_id: u64,
-    pub abi_get_owned_addresses: u64,
-    pub abi_get_pubkey_version: u64,
-    pub abi_get_remaining_gas: u64,
-    pub abi_get_signature_version: u64,
-    pub abi_hash_blake3: u64,
-    pub abi_hash_keccak256: u64,
-    pub abi_hash_sha256: u64,
-    pub abi_is_address_eoa: u64,
-    pub abi_local_call: u64,
-    pub abi_local_execution: u64,
-    pub abi_native_amount_from_string: u64,
-    pub abi_native_amount_to_string: u64,
-    pub abi_op_entry_exists: u64,
-    pub abi_scalar_div_rem_native_amount: u64,
-    pub abi_scalar_mul_native_amount: u64,
-    pub abi_send_async_message: u64,
-    pub abi_set_bytecode: u64,
-    pub abi_set_ds_value: u64,
-    pub abi_sub_native_amount: u64,
-    pub abi_transfer_coins: u64,
-    pub abi_unsafe_random: u64,
-    pub abi_verify_signature: u64,
 }
 
 impl GasCosts {
@@ -514,78 +439,6 @@ impl GasCosts {
             assembly_script_transfer_coins_for: get_cost!("assembly_script_transfer_coins_for"),
             assembly_script_unsafe_random: get_cost!("assembly_script_unsafe_random"),
             assembly_script_validate_address: get_cost!("assembly_script_validate_address"),
-
-            // WasmV1 ABI costs
-            abi_abort: get_cost!("abi_abort"),
-            abi_add_native_amount: get_cost!("abi_add_native_amount"),
-            abi_address_from_public_key: get_cost!("abi_address_from_public_key"),
-            abi_append_ds_value: get_cost!("abi_append_ds_value"),
-            abi_base58_check_to_bytes: get_cost!("abi_base58_check_to_bytes"),
-            abi_bytes_to_base58_check: get_cost!("abi_bytes_to_base58_check"),
-            abi_call: get_cost!("abi_call"),
-            abi_caller_has_write_access: get_cost!("abi_caller_has_write_access"),
-            abi_chain_id: get_cost!("abi_chain_id"),
-            abi_check_address: get_cost!("abi_check_address"),
-            abi_check_native_amount: get_cost!("abi_check_native_amount"),
-            abi_check_pubkey: get_cost!("abi_check_pubkey"),
-            abi_check_signature: get_cost!("abi_check_signature"),
-            abi_checked_add_native_time: get_cost!("abi_checked_add_native_time"),
-            abi_checked_div_native_time: get_cost!("abi_checked_div_native_time"),
-            abi_checked_mul_native_time: get_cost!("abi_checked_mul_native_time"),
-            abi_checked_scalar_div_native_time: get_cost!("abi_checked_scalar_div_native_time"),
-            abi_checked_sub_native_time: get_cost!("abi_checked_sub_native_time"),
-            abi_compare_address: get_cost!("abi_compare_address"),
-            abi_compare_native_amount: get_cost!("abi_compare_native_amount"),
-            abi_compare_native_time: get_cost!("abi_compare_native_time"),
-            abi_compare_pub_key: get_cost!("abi_compare_pub_key"),
-            abi_create_sc: get_cost!("abi_create_sc"),
-            abi_deferred_call_cancel: get_cost!("abi_deferred_call_cancel"),
-            abi_deferred_call_exists: get_cost!("abi_deferred_call_exists"),
-            abi_deferred_call_register: get_cost!("abi_deferred_call_register"),
-            abi_delete_ds_entry: get_cost!("abi_delete_ds_entry"),
-            abi_div_rem_native_amount: get_cost!("abi_div_rem_native_amount"),
-            abi_ds_entry_exists: get_cost!("abi_ds_entry_exists"),
-            abi_evm_get_address_from_pubkey: get_cost!("abi_evm_get_address_from_pubkey"),
-            abi_evm_get_pubkey_from_signature: get_cost!("abi_evm_get_pubkey_from_signature"),
-            abi_evm_verify_signature: get_cost!("abi_evm_verify_signature"),
-            abi_function_exists: get_cost!("abi_function_exists"),
-            abi_generate_event: get_cost!("abi_generate_event"),
-            abi_get_address_category: get_cost!("abi_get_address_category"),
-            abi_get_address_version: get_cost!("abi_get_address_version"),
-            abi_get_balance: get_cost!("abi_get_balance"),
-            abi_get_bytecode: get_cost!("abi_get_bytecode"),
-            abi_get_call_coins: get_cost!("abi_get_call_coins"),
-            abi_get_call_stack: get_cost!("abi_get_call_stack"),
-            abi_get_current_slot: get_cost!("abi_get_current_slot"),
-            abi_get_deferred_call_quote: get_cost!("abi_get_deferred_call_quote"),
-            abi_get_ds_keys: get_cost!("abi_get_ds_keys"),
-            abi_get_ds_value: get_cost!("abi_get_ds_value"),
-            abi_get_native_time: get_cost!("abi_get_native_time"),
-            abi_get_op_data: get_cost!("abi_get_op_data"),
-            abi_get_op_keys: get_cost!("abi_get_op_keys"),
-            abi_get_origin_operation_id: get_cost!("abi_get_origin_operation_id"),
-            abi_get_owned_addresses: get_cost!("abi_get_owned_addresses"),
-            abi_get_pubkey_version: get_cost!("abi_get_pubkey_version"),
-            abi_get_remaining_gas: get_cost!("abi_get_remaining_gas"),
-            abi_get_signature_version: get_cost!("abi_get_signature_version"),
-            abi_hash_blake3: get_cost!("abi_hash_blake3"),
-            abi_hash_keccak256: get_cost!("abi_hash_keccak256"),
-            abi_hash_sha256: get_cost!("abi_hash_sha256"),
-            abi_is_address_eoa: get_cost!("abi_is_address_eoa"),
-            abi_local_call: get_cost!("abi_local_call"),
-            abi_local_execution: get_cost!("abi_local_execution"),
-            abi_native_amount_from_string: get_cost!("abi_native_amount_from_string"),
-            abi_native_amount_to_string: get_cost!("abi_native_amount_to_string"),
-            abi_op_entry_exists: get_cost!("abi_op_entry_exists"),
-            abi_scalar_div_rem_native_amount: get_cost!("abi_scalar_div_rem_native_amount"),
-            abi_scalar_mul_native_amount: get_cost!("abi_scalar_mul_native_amount"),
-            abi_send_async_message: get_cost!("abi_send_async_message"),
-            abi_set_bytecode: get_cost!("abi_set_bytecode"),
-            abi_set_ds_value: get_cost!("abi_set_ds_value"),
-            abi_sub_native_amount: get_cost!("abi_sub_native_amount"),
-            abi_transfer_coins: get_cost!("abi_transfer_coins"),
-            abi_unsafe_random: get_cost!("abi_unsafe_random"),
-            abi_verify_signature: get_cost!("abi_verify_signature"),
         })
     }
 }
@@ -675,78 +528,6 @@ impl Default for GasCosts {
             assembly_script_transfer_coins_for: 1190,
             assembly_script_unsafe_random: 790,
             assembly_script_validate_address: 890,
-
-            // WasmV1 ABI costs
-            abi_abort: 0,
-            abi_add_native_amount: 2415,
-            abi_address_from_public_key: 2410,
-            abi_append_ds_value: 2130,
-            abi_base58_check_to_bytes: 13380,
-            abi_bytes_to_base58_check: 31550,
-            abi_call: 85637,
-            abi_caller_has_write_access: 1360,
-            abi_chain_id: 1505,
-            abi_check_address: 1800,
-            abi_check_native_amount: 1765,
-            abi_check_pubkey: 1880,
-            abi_check_signature: 1985,
-            abi_checked_add_native_time: 2060,
-            abi_checked_div_native_time: 2310,
-            abi_checked_mul_native_time: 1750,
-            abi_checked_scalar_div_native_time: 2200,
-            abi_checked_sub_native_time: 2065,
-            abi_compare_address: 2050,
-            abi_compare_native_amount: 1955,
-            abi_compare_native_time: 2130,
-            abi_compare_pub_key: 2660,
-            abi_create_sc: 2395,
-            abi_deferred_call_cancel: 3750,
-            abi_deferred_call_exists: 2215,
-            abi_deferred_call_register: 3725,
-            abi_delete_ds_entry: 1115,
-            abi_div_rem_native_amount: 2315,
-            abi_ds_entry_exists: 1870,
-            abi_evm_get_address_from_pubkey: 2180,
-            abi_evm_get_pubkey_from_signature: 16275,
-            abi_evm_verify_signature: 14195,
-            abi_function_exists: 2380,
-            abi_generate_event: 2105,
-            abi_get_address_category: 1800,
-            abi_get_address_version: 1695,
-            abi_get_balance: 1765,
-            abi_get_bytecode: 1465,
-            abi_get_call_coins: 1590,
-            abi_get_call_stack: 2015,
-            abi_get_current_slot: 1505,
-            abi_get_deferred_call_quote: 2080,
-            abi_get_ds_keys: 1825,
-            abi_get_ds_value: 2440,
-            abi_get_native_time: 1625,
-            abi_get_op_data: 1805,
-            abi_get_op_keys: 23185,
-            abi_get_origin_operation_id: 1310,
-            abi_get_owned_addresses: 2035,
-            abi_get_pubkey_version: 1920,
-            abi_get_remaining_gas: 1455,
-            abi_get_signature_version: 1755,
-            abi_hash_blake3: 2705,
-            abi_hash_keccak256: 2620,
-            abi_hash_sha256: 2725,
-            abi_is_address_eoa: 1720,
-            abi_local_call: 83348,
-            abi_local_execution: 86310,
-            abi_native_amount_from_string: 1615,
-            abi_native_amount_to_string: 1880,
-            abi_op_entry_exists: 1860,
-            abi_scalar_div_rem_native_amount: 2320,
-            abi_scalar_mul_native_amount: 2200,
-            abi_send_async_message: 40000000,
-            abi_set_bytecode: 238,
-            abi_set_ds_value: 2020,
-            abi_sub_native_amount: 2130,
-            abi_transfer_coins: 2250,
-            abi_unsafe_random: 2010,
-            abi_verify_signature: 5960,
         }
     }
 }
@@ -776,10 +557,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
         self.init_call(address, raw_coins).map(|_| ())
     }
 
-    /// Prepare the execution of a module at the given address and transfer a
-    /// given amount of coins
-    fn init_call_wasmv1(&self, address: &str, raw_coins: NativeAmount) -> Result<Vec<u8>>;
-
     /// Finish a call
     fn finish_call(&self) -> Result<()>;
 
@@ -790,8 +567,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Get the SCE ledger balance for an address.
     /// Defaults to zero if the address is not found.
     fn get_balance_for(&self, address: &str) -> Result<u64>;
-
-    fn get_balance_wasmv1(&self, address: Option<String>) -> Result<NativeAmount>;
 
     /// Transfer an amount from the address on the current call stack to a
     /// target address.
@@ -805,13 +580,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
         raw_amount: u64,
     ) -> Result<()>;
 
-    fn transfer_coins_wasmv1(
-        &self,
-        to_address: String,
-        raw_amount: NativeAmount,
-        from_address: Option<String>,
-    ) -> Result<()>;
-
     /// Get the amount of coins that have been made available for use by the
     /// caller of the currently executing code.
     fn get_call_coins(&self) -> Result<u64> {
@@ -820,10 +588,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
         ))
     }
 
-    /// Get the native amount of coins that have been made available for use by
-    /// the caller of the currently executing code.
-    fn get_call_coins_wasmv1(&self) -> Result<NativeAmount>;
-
     /// Sets the executable bytecode at a current address.
     fn raw_set_bytecode(&self, bytecode: &[u8]) -> Result<()>;
 
@@ -831,8 +595,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// The target address must exist and the current context must have access
     /// rights.
     fn raw_set_bytecode_for(&self, address: &str, bytecode: &[u8]) -> Result<()>;
-
-    fn set_bytecode_wasmv1(&self, bytecode: &[u8], address: Option<String>) -> Result<()>;
 
     /// Requires a new address that contains the sent &[u8]
     fn create_module(&self, module: &[u8]) -> Result<String>;
@@ -881,27 +643,17 @@ pub trait Interface: Send + Sync + InterfaceClone {
         count: u32,
     ) -> Result<BTreeSet<Vec<u8>>>;
 
-    fn get_ds_keys_wasmv1(
-        &self,
-        prefix: &[u8],
-        address: Option<String>,
-    ) -> Result<BTreeSet<Vec<u8>>>;
-
     /// Return the datastore value of the corresponding key
     fn raw_get_data(&self, key: &[u8]) -> Result<Vec<u8>>;
 
     /// Requires the data at the address
     fn raw_get_data_for(&self, address: &str, key: &[u8]) -> Result<Vec<u8>>;
 
-    fn get_ds_value_wasmv1(&self, key: &[u8], address: Option<String>) -> Result<Vec<u8>>;
-
     /// Set the datastore value for the corresponding key
     fn raw_set_data(&self, key: &[u8], value: &[u8]) -> Result<()>;
 
     /// Set the datastore value for the corresponding key of the given address
     fn raw_set_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()>;
-
-    fn set_ds_value_wasmv1(&self, key: &[u8], value: &[u8], address: Option<String>) -> Result<()>;
 
     /// Append a value to the current datastore value for the corresponding key
     fn raw_append_data(&self, key: &[u8], value: &[u8]) -> Result<()>;
@@ -910,20 +662,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// and the given address
     fn raw_append_data_for(&self, address: &str, key: &[u8], value: &[u8]) -> Result<()>;
 
-    fn append_ds_value_wasmv1(
-        &self,
-        key: &[u8],
-        value: &[u8],
-        address: Option<String>,
-    ) -> Result<()>;
-
     /// Delete a datastore entry
     fn raw_delete_data(&self, key: &[u8]) -> Result<()>;
 
     /// Delete a datastore entry at of the given address
     fn raw_delete_data_for(&self, address: &str, key: &[u8]) -> Result<()>;
-
-    fn delete_ds_entry_wasmv1(&self, key: &[u8], address: Option<String>) -> Result<()>;
 
     /// Requires to replace the data in the current address
     ///
@@ -935,20 +678,14 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Check if a datastore entry exists
     fn has_data_for(&self, address: &str, key: &[u8]) -> Result<bool>;
 
-    fn ds_entry_exists_wasmv1(&self, key: &[u8], address: Option<String>) -> Result<bool>;
-
     /// Returns bytecode of the current address
     fn raw_get_bytecode(&self) -> Result<Vec<u8>>;
 
     /// Returns bytecode of the target address
     fn raw_get_bytecode_for(&self, address: &str) -> Result<Vec<u8>>;
 
-    fn get_bytecode_wasmv1(&self, address: Option<String>) -> Result<Vec<u8>>;
-
     /// Return operation datastore keys
     fn get_op_keys(&self, prefix: Option<&[u8]>) -> Result<Vec<Vec<u8>>>;
-
-    fn get_op_keys_wasmv1(&self, prefix: &[u8]) -> Result<Vec<Vec<u8>>>;
 
     /// Check if operation in datastore exists
     fn op_entry_exists(&self, key: &[u8]) -> Result<bool>;
@@ -961,9 +698,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     /// Hash data
     fn hash(&self, data: &[u8]) -> Result<[u8; 32]>;
-
-    /// Returns the blake3 hash of the given bytes
-    fn hash_blake3(&self, bytes: &[u8]) -> Result<[u8; 32]>;
 
     /// Verify signature
     fn signature_verify(&self, data: &[u8], signature: &str, public_key: &str) -> Result<bool>;
@@ -1001,17 +735,11 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Returns a random number (unsafe: can be predicted and manipulated)
     fn unsafe_random_f64(&self) -> Result<f64>;
 
-    /// Returns a random number (unsafe: can be predicted and manipulated)
-    fn unsafe_random_wasmv1(&self, num_bytes: u64) -> Result<Vec<u8>>;
-
     /// Returns the period of the current execution slot
     fn get_current_period(&self) -> Result<u64>;
 
     /// Returns the thread of the current execution slot
     fn get_current_thread(&self) -> Result<u8>;
-
-    /// Returns the current execution slot
-    fn get_current_slot(&self) -> Result<Slot>;
 
     /// Expect to return a list of owned addresses
     ///
@@ -1027,9 +755,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     /// Generate a smart contract event
     fn generate_event(&self, _event: String) -> Result<()>;
-
-    /// Generate a smart contract event
-    fn generate_event_wasmv1(&self, _event: Vec<u8>) -> Result<()>;
 
     /// For the given bytecode:
     ///
@@ -1120,102 +845,6 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     // Cancel a deferred call (will return the coins)
     fn deferred_call_cancel(&self, id: &str) -> Result<()>;
-
-    fn native_amount_from_str_wasmv1(&self, amount: &str) -> Result<NativeAmount>;
-
-    fn native_amount_to_string_wasmv1(&self, amount: &NativeAmount) -> Result<String>;
-
-    fn check_native_amount_wasmv1(&self, amount: &NativeAmount) -> Result<bool>;
-
-    fn add_native_amount_wasmv1(
-        &self,
-        amount1: &NativeAmount,
-        amount2: &NativeAmount,
-    ) -> Result<NativeAmount>;
-
-    fn sub_native_amount_wasmv1(
-        &self,
-        amount1: &NativeAmount,
-        amount2: &NativeAmount,
-    ) -> Result<NativeAmount>;
-
-    fn scalar_mul_native_amount_wasmv1(
-        &self,
-        amount: &NativeAmount,
-        factor: u64,
-    ) -> Result<NativeAmount>;
-
-    fn scalar_div_rem_native_amount_wasmv1(
-        &self,
-        dividend: &NativeAmount,
-        divisor: u64,
-    ) -> Result<(NativeAmount, NativeAmount)>;
-
-    fn div_rem_native_amount_wasmv1(
-        &self,
-        dividend: &NativeAmount,
-        divisor: &NativeAmount,
-    ) -> Result<(u64, NativeAmount)>;
-
-    fn check_address_wasmv1(&self, to_check: &str) -> Result<bool>;
-
-    fn check_pubkey_wasmv1(&self, to_check: &str) -> Result<bool>;
-
-    fn check_signature_wasmv1(&self, to_check: &str) -> Result<bool>;
-
-    fn get_address_category_wasmv1(&self, to_check: &str) -> Result<AddressCategory>;
-
-    fn get_address_version_wasmv1(&self, address: &str) -> Result<u64>;
-
-    fn get_pubkey_version_wasmv1(&self, pubkey: &str) -> Result<u64>;
-
-    fn get_signature_version_wasmv1(&self, signature: &str) -> Result<u64>;
-
-    fn checked_add_native_time_wasmv1(
-        &self,
-        time1: &NativeTime,
-        time2: &NativeTime,
-    ) -> Result<NativeTime>;
-
-    fn checked_sub_native_time_wasmv1(
-        &self,
-        time1: &NativeTime,
-        time2: &NativeTime,
-    ) -> Result<NativeTime>;
-
-    fn checked_mul_native_time_wasmv1(&self, time: &NativeTime, factor: u64) -> Result<NativeTime>;
-
-    fn checked_scalar_div_native_time_wasmv1(
-        &self,
-        dividend: &NativeTime,
-        divisor: u64,
-    ) -> Result<(NativeTime, NativeTime)>;
-
-    fn checked_div_native_time_wasmv1(
-        &self,
-        dividend: &NativeTime,
-        divisor: &NativeTime,
-    ) -> Result<(u64, NativeTime)>;
-
-    fn base58_check_to_bytes_wasmv1(&self, s: &str) -> Result<Vec<u8>>;
-
-    fn bytes_to_base58_check_wasmv1(&self, bytes: &[u8]) -> String;
-
-    fn compare_address_wasmv1(&self, left: &str, right: &str) -> Result<ComparisonResult>;
-
-    fn compare_native_amount_wasmv1(
-        &self,
-        left: &NativeAmount,
-        right: &NativeAmount,
-    ) -> Result<ComparisonResult>;
-
-    fn compare_native_time_wasmv1(
-        &self,
-        left: &NativeTime,
-        right: &NativeTime,
-    ) -> Result<ComparisonResult>;
-
-    fn compare_pub_key_wasmv1(&self, left: &str, right: &str) -> Result<ComparisonResult>;
 
     fn save_gas_remaining_before_subexecution(&self, gas_used_until: u64);
 }

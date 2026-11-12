@@ -2,7 +2,6 @@ use crate::as_execution::ASModule;
 use crate::types::{Interface, InterfaceClone, Result};
 use crate::{Compiler, CondomLimits, GasCosts, RuntimeModule};
 
-use massa_proto_rs::massa::model::v1::*;
 use sha2::{Digest, Sha256};
 use sha3::Keccak256;
 use std::collections::{BTreeMap, BTreeSet};
@@ -73,10 +72,6 @@ impl Interface for TestInterface {
         Ok(INTERFACE_VERSION.load(std::sync::atomic::Ordering::SeqCst))
     }
 
-    fn init_call_wasmv1(&self, _address: &str, _raw_coins: NativeAmount) -> Result<Vec<u8>> {
-        Ok(vec![])
-    }
-
     fn finish_call(&self) -> Result<()> {
         Ok(())
     }
@@ -91,16 +86,6 @@ impl Interface for TestInterface {
         _to_address: &str,
         _raw_amount: u64,
     ) -> Result<()> {
-        Ok(())
-    }
-
-    fn transfer_coins_wasmv1(
-        &self,
-        _to_address: String,
-        _raw_amount: NativeAmount,
-        from_address: Option<String>,
-    ) -> Result<()> {
-        if let Some(_from_address) = from_address {}
         Ok(())
     }
 
@@ -122,13 +107,6 @@ impl Interface for TestInterface {
 
     fn get_current_thread(&self) -> Result<u8> {
         Ok(0)
-    }
-
-    fn get_current_slot(&self) -> Result<Slot> {
-        Ok(Slot {
-            period: 0,
-            thread: 0,
-        })
     }
 
     fn get_module(&self, bytecode: &[u8], gas_limit: u64) -> Result<RuntimeModule> {
@@ -169,26 +147,8 @@ impl Interface for TestInterface {
         Ok(false)
     }
 
-    fn ds_entry_exists_wasmv1(&self, _key: &[u8], address: Option<String>) -> Result<bool> {
-        if let Some(_address) = address {}
-        Ok(false)
-    }
-
     fn hash(&self, _data: &[u8]) -> Result<[u8; 32]> {
         Ok([0; 32])
-    }
-
-    fn get_bytecode_wasmv1(&self, _address: Option<String>) -> Result<Vec<u8>> {
-        Ok(vec![])
-    }
-
-    fn get_ds_keys_wasmv1(
-        &self,
-        _prefix: &[u8],
-        address: Option<String>,
-    ) -> Result<BTreeSet<Vec<u8>>> {
-        if let Some(_address) = address {}
-        Ok(BTreeSet::new())
     }
 
     fn raw_append_data(&self, _key: &[u8], _value: &[u8]) -> Result<()> {
@@ -196,16 +156,6 @@ impl Interface for TestInterface {
     }
 
     fn raw_append_data_for(&self, _address: &str, _key: &[u8], _value: &[u8]) -> Result<()> {
-        Ok(())
-    }
-
-    fn append_ds_value_wasmv1(
-        &self,
-        _key: &[u8],
-        _value: &[u8],
-        address: Option<String>,
-    ) -> Result<()> {
-        if let Some(_address) = address {}
         Ok(())
     }
 
@@ -217,21 +167,11 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn delete_ds_entry_wasmv1(&self, _key: &[u8], address: Option<String>) -> Result<()> {
-        if let Some(_address) = address {}
-        Ok(())
-    }
-
     fn raw_get_data(&self, _key: &[u8]) -> Result<Vec<u8>> {
         Ok(vec![])
     }
 
     fn raw_get_data_for(&self, _address: &str, _key: &[u8]) -> Result<Vec<u8>> {
-        Ok(vec![])
-    }
-
-    fn get_ds_value_wasmv1(&self, _key: &[u8], address: Option<String>) -> Result<Vec<u8>> {
-        if let Some(_address) = address {}
         Ok(vec![])
     }
 
@@ -243,27 +183,12 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn set_ds_value_wasmv1(
-        &self,
-        _key: &[u8],
-        _value: &[u8],
-        address: Option<String>,
-    ) -> Result<()> {
-        if let Some(_address) = address {}
-        Ok(())
-    }
-
     fn signature_verify(&self, _data: &[u8], _signature: &str, _public_key: &str) -> Result<bool> {
         Ok(false)
     }
 
     fn unsafe_random(&self) -> Result<i64> {
         Ok(0)
-    }
-
-    fn unsafe_random_wasmv1(&self, num_bytes: u64) -> Result<Vec<u8>> {
-        let bytes = vec![0; num_bytes as usize];
-        Ok(bytes)
     }
 
     fn get_balance(&self) -> Result<u64> {
@@ -274,14 +199,6 @@ impl Interface for TestInterface {
         Ok(0)
     }
 
-    fn get_balance_wasmv1(&self, address: Option<String>) -> Result<NativeAmount> {
-        if let Some(_address) = address {}
-        Ok(NativeAmount {
-            mantissa: 0,
-            scale: 1,
-        })
-    }
-
     fn raw_set_bytecode(&self, _bytecode: &[u8]) -> Result<()> {
         Ok(())
     }
@@ -290,25 +207,8 @@ impl Interface for TestInterface {
         Ok(())
     }
 
-    fn set_bytecode_wasmv1(&self, _bytecode: &[u8], address: Option<String>) -> Result<()> {
-        if let Some(_address) = address {}
-        Ok(())
-    }
-
-    /// Generate a smart contract event
-    fn generate_event_wasmv1(&self, _event: Vec<u8>) -> Result<()> {
-        Ok(())
-    }
-
     fn get_call_coins(&self) -> Result<u64> {
         Ok(0)
-    }
-
-    fn get_call_coins_wasmv1(&self) -> Result<NativeAmount> {
-        Ok(NativeAmount {
-            mantissa: 0,
-            scale: 0,
-        })
     }
 
     fn create_module(&self, module: &[u8]) -> Result<String> {
@@ -362,14 +262,6 @@ impl Interface for TestInterface {
         }
     }
 
-    fn get_op_keys_wasmv1(&self, _prefix: &[u8]) -> Result<Vec<Vec<u8>>> {
-        Ok(vec![
-            vec![0, 1, 2, 3, 4, 5, 6, 11],
-            vec![127, 128],
-            vec![254, 255],
-        ])
-    }
-
     fn op_entry_exists(&self, key: &[u8]) -> Result<bool> {
         let ds: BTreeMap<Vec<u8>, Vec<u8>> = BTreeMap::from([
             (vec![0, 1, 2, 3, 4, 5, 6, 11], vec![65]),
@@ -421,233 +313,6 @@ impl Interface for TestInterface {
         let hash = hasher.finalize().into();
 
         Ok(hash)
-    }
-
-    /// Returns the blake3 hash of the given bytes
-    fn hash_blake3(&self, _bytes: &[u8]) -> Result<[u8; 32]> {
-        Ok([0u8; 32])
-    }
-
-    fn native_amount_from_str_wasmv1(&self, amount: &str) -> Result<NativeAmount> {
-        let mantissa = amount.parse::<u64>().unwrap();
-        Ok(NativeAmount { mantissa, scale: 0 })
-    }
-
-    fn native_amount_to_string_wasmv1(&self, _amount: &NativeAmount) -> Result<String> {
-        Ok("string amount".to_string())
-    }
-
-    fn check_native_amount_wasmv1(&self, _amount: &NativeAmount) -> Result<bool> {
-        Ok(true)
-    }
-
-    fn add_native_amount_wasmv1(
-        &self,
-        _amount1: &NativeAmount,
-        _amount2: &NativeAmount,
-    ) -> Result<NativeAmount> {
-        Ok(NativeAmount {
-            mantissa: 100,
-            scale: 0,
-        })
-    }
-
-    fn sub_native_amount_wasmv1(
-        &self,
-        _amount1: &NativeAmount,
-        _amount2: &NativeAmount,
-    ) -> Result<NativeAmount> {
-        Ok(NativeAmount {
-            mantissa: 100,
-            scale: 0,
-        })
-    }
-
-    fn scalar_mul_native_amount_wasmv1(
-        &self,
-        _amount: &NativeAmount,
-        _factor: u64,
-    ) -> Result<NativeAmount> {
-        Ok(NativeAmount {
-            mantissa: 100,
-            scale: 0,
-        })
-    }
-
-    fn scalar_div_rem_native_amount_wasmv1(
-        &self,
-        _dividend: &NativeAmount,
-        _divisor: u64,
-    ) -> Result<(NativeAmount, NativeAmount)> {
-        Ok((
-            NativeAmount {
-                mantissa: 100,
-                scale: 0,
-            },
-            NativeAmount {
-                mantissa: 0,
-                scale: 0,
-            },
-        ))
-    }
-
-    fn div_rem_native_amount_wasmv1(
-        &self,
-        _dividend: &NativeAmount,
-        _divisor: &NativeAmount,
-    ) -> Result<(u64, NativeAmount)> {
-        Ok((
-            1,
-            NativeAmount {
-                mantissa: 0,
-                scale: 0,
-            },
-        ))
-    }
-
-    fn check_address_wasmv1(&self, _to_check: &str) -> Result<bool> {
-        Ok(true)
-    }
-
-    fn check_pubkey_wasmv1(&self, _to_check: &str) -> Result<bool> {
-        Ok(true)
-    }
-
-    fn check_signature_wasmv1(&self, _to_check: &str) -> Result<bool> {
-        Ok(true)
-    }
-
-    fn get_address_category_wasmv1(&self, _to_check: &str) -> Result<AddressCategory> {
-        Ok(AddressCategory::ScAddress)
-    }
-
-    fn get_address_version_wasmv1(&self, _address: &str) -> Result<u64> {
-        Ok(1)
-    }
-
-    fn get_pubkey_version_wasmv1(&self, _pubkey: &str) -> Result<u64> {
-        Ok(1)
-    }
-
-    fn get_signature_version_wasmv1(&self, _signature: &str) -> Result<u64> {
-        Ok(1)
-    }
-
-    fn checked_add_native_time_wasmv1(
-        &self,
-        time1: &NativeTime,
-        time2: &NativeTime,
-    ) -> Result<NativeTime> {
-        Ok(NativeTime {
-            milliseconds: time1.milliseconds + time2.milliseconds,
-        })
-    }
-
-    fn checked_sub_native_time_wasmv1(
-        &self,
-        _time1: &NativeTime,
-        _time2: &NativeTime,
-    ) -> Result<NativeTime> {
-        Ok(NativeTime { milliseconds: 0 })
-    }
-
-    fn checked_mul_native_time_wasmv1(
-        &self,
-        _time: &NativeTime,
-        _factor: u64,
-    ) -> Result<NativeTime> {
-        Ok(NativeTime { milliseconds: 0 })
-    }
-
-    fn checked_scalar_div_native_time_wasmv1(
-        &self,
-        _dividend: &NativeTime,
-        _divisor: u64,
-    ) -> Result<(NativeTime, NativeTime)> {
-        Ok((
-            NativeTime { milliseconds: 0 },
-            NativeTime { milliseconds: 0 },
-        ))
-    }
-
-    fn checked_div_native_time_wasmv1(
-        &self,
-        _dividend: &NativeTime,
-        _divisor: &NativeTime,
-    ) -> Result<(u64, NativeTime)> {
-        Ok((1, NativeTime { milliseconds: 0 }))
-    }
-
-    fn base58_check_to_bytes_wasmv1(&self, s: &str) -> Result<Vec<u8>> {
-        Ok(s.to_string().into_bytes())
-    }
-
-    fn bytes_to_base58_check_wasmv1(&self, _bytes: &[u8]) -> String {
-        "bs58checked".to_string()
-    }
-
-    fn compare_address_wasmv1(&self, left: &str, right: &str) -> Result<ComparisonResult> {
-        let left: String = left.chars().skip(1).collect();
-        let right: String = right.chars().skip(1).collect();
-        let left = bs58::decode(left).with_check(None).into_vec();
-        let right = bs58::decode(right).with_check(None).into_vec();
-
-        match (left, right) {
-            (Ok(left), Ok(right)) => {
-                let res = match left.cmp(&right) {
-                    std::cmp::Ordering::Less => ComparisonResult::Lower,
-                    std::cmp::Ordering::Equal => ComparisonResult::Equal,
-                    std::cmp::Ordering::Greater => ComparisonResult::Greater,
-                };
-                Ok(res)
-            }
-            _ => Ok(ComparisonResult::Equal),
-        }
-    }
-
-    fn compare_native_amount_wasmv1(
-        &self,
-        left: &NativeAmount,
-        right: &NativeAmount,
-    ) -> Result<ComparisonResult> {
-        let res = match left.mantissa.cmp(&right.mantissa) {
-            std::cmp::Ordering::Less => ComparisonResult::Lower,
-            std::cmp::Ordering::Equal => ComparisonResult::Equal,
-            std::cmp::Ordering::Greater => ComparisonResult::Greater,
-        };
-        Ok(res)
-    }
-
-    fn compare_native_time_wasmv1(
-        &self,
-        left: &NativeTime,
-        right: &NativeTime,
-    ) -> Result<ComparisonResult> {
-        let res = match left.milliseconds.cmp(&right.milliseconds) {
-            std::cmp::Ordering::Less => ComparisonResult::Lower,
-            std::cmp::Ordering::Equal => ComparisonResult::Equal,
-            std::cmp::Ordering::Greater => ComparisonResult::Greater,
-        };
-        Ok(res)
-    }
-
-    fn compare_pub_key_wasmv1(&self, left: &str, right: &str) -> Result<ComparisonResult> {
-        let left: String = left.chars().skip(1).collect();
-        let right: String = right.chars().skip(1).collect();
-        let left = bs58::decode(left).with_check(None).into_vec();
-        let right = bs58::decode(right).with_check(None).into_vec();
-
-        match (left, right) {
-            (Ok(left), Ok(right)) => {
-                let res = match left.cmp(&right) {
-                    std::cmp::Ordering::Less => ComparisonResult::Lower,
-                    std::cmp::Ordering::Equal => ComparisonResult::Equal,
-                    std::cmp::Ordering::Greater => ComparisonResult::Greater,
-                };
-                Ok(res)
-            }
-            _ => Ok(ComparisonResult::Equal),
-        }
     }
 
     fn get_keys(&self, _prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>> {

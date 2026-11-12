@@ -16,152 +16,6 @@ use crate::{AbiTrace, AbiTraceType, AbiTraceValue};
 
 #[test]
 #[serial]
-#[ignore]
-/// Test exhaustive smart contract
-fn test_exhaustive_smart_contract() {
-    let interface = TestInterface;
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_exhaustive_smart_contract.wasm_add"
-    ));
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-    run_main(
-        &interface,
-        runtime_module,
-        100_000_000,
-        gas_costs,
-        condom_limits,
-    )
-    .unwrap();
-}
-
-#[test]
-#[serial]
-/// Test native time arithmetic ABI calls
-fn test_native_time_arithmetic_abis() {
-    let interface = TestInterface;
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_native_time_arithmetic.wasm_add"
-    ));
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-    run_main(
-        &interface,
-        runtime_module,
-        100_000_000,
-        gas_costs,
-        condom_limits,
-    )
-    .unwrap();
-}
-
-#[test]
-#[serial]
-/// Test structs check and version ABI calls
-fn test_structs_check_and_version_abis() {
-    let interface = TestInterface;
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_structs_check_and_version.wasm_add"
-    ));
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-    run_main(
-        &interface,
-        runtime_module,
-        100_000_000,
-        gas_costs,
-        condom_limits,
-    )
-    .unwrap();
-}
-
-#[test]
-#[serial]
-/// Test datastore ABI calls
-fn test_datastore_abis() {
-    let interface = TestInterface;
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_datastore.wasm_add"
-    ));
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-    run_main(
-        &interface,
-        runtime_module,
-        100_000_000,
-        gas_costs,
-        condom_limits,
-    )
-    .unwrap();
-}
-
-#[test]
-#[serial]
-/// Test ledger and op keys ABI calls
-fn test_ledger_op_keys_abis() {
-    let interface = TestInterface;
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_ledger_op_keys.wasm_add"
-    ));
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-    run_main(
-        &interface,
-        runtime_module,
-        100_000_000,
-        gas_costs,
-        condom_limits,
-    )
-    .unwrap();
-}
-
-#[test]
-#[serial]
 /// Test that overriding the metering globals is not possible
 fn test_metering_safety() {
     let interface = TestInterface;
@@ -287,110 +141,10 @@ fn test_run_main_get_execution_traces() {
 
 #[test]
 #[serial]
-fn test_run_register_wasmv1() {
-    // let gas_costs = GasCosts::default();
-    // let condom_limits = CondomLimits::default();
-    // let interface: Box<dyn Interface> =
-    //     Box::new(TestInterface);
-    // let module = include_bytes!(concat!(
-    //     env!("CARGO_MANIFEST_DIR"),
-    //     "/../abi_as/build/release.wasm_add"
-    // ));
-
-    // let runtime_module =
-    //     RuntimeModule::new(module, gas_costs.clone(),
-    // Compiler::SP, condom_limits.clone()))?;.unwrap();
-
-    // match runtime_module.clone() {
-    //     RuntimeModule::ASModule(_) => {
-    //         println!("Module type ASModule");
-    //     }
-    //     RuntimeModule::WasmV1Module(_) => {
-    //         println!("Module type WasmV1Module");
-    //     }
-    // }
-
-    // let res = run_function(
-    //     &*interface,
-    //     runtime_module,
-    //     "initialize",
-    //     b"",
-    //     100_000,
-    //     gas_costs,
-    // )
-    // .unwrap();
-    // println!("{:?}", res);
-}
-
-// #[test]
-// #[serial]
-/// Test basic main-only SC execution
-// fn test_run_main_wasmv1() {
-//     let gas_costs = GasCosts::default();
-//     let interface: Box<dyn Interface> = Box::new(TestInterface);
-//     let module = include_bytes!(concat!(
-//         env!("CARGO_MANIFEST_DIR"),
-//         "/wasm/dmain.wasm_add"
-//     ));
-
-//     let runtime_module =
-//         RuntimeModule::new(module, gas_costs.clone(), Compiler::SP, condom_limits.clone())?;
-//             .unwrap();
-
-//     match runtime_module.clone() {
-//         RuntimeModule::ASModule(_) => {
-//             println!("Module type ASModule");
-//         }
-//         RuntimeModule::WasmV1Module(_) => {
-//             println!("Module type WasmV1Module");
-//         }
-//     }
-//     run_main(&*interface, runtime_module, 100_000_000, gas_costs, condom_limits).unwrap();
-// }
-
-#[test]
-#[serial]
-/// Test test_get_current_period_and_thread
-fn test_get_current_period_and_thread_wasmv1_as() {
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-    let interface: Box<dyn Interface> = Box::new(TestInterface);
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_period_thread.wasm_add"
-    ));
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-
-    match runtime_module.clone() {
-        RuntimeModule::ASModule(_) => {
-            panic!("Error: Module type ASModule, expected WasmV1Module!");
-        }
-        RuntimeModule::WasmV1Module(_) => {
-            println!("Module type WasmV1Module");
-        }
-    }
-    run_main(
-        &*interface,
-        runtime_module,
-        100_000_000,
-        gas_costs,
-        condom_limits,
-    )
-    .unwrap();
-}
-
-#[test]
-#[serial]
-/// wasmv1 modules run below MIP_0002_EXECUTION_VERSION and are refused from it on,
-/// while AssemblyScript modules keep running.
-fn test_wasmv1_runtime_disabled_at_version() {
+/// wasmv1 modules still compile and expose their exports, as before the removal of
+/// their execution code, but are refused at every execution version, while
+/// AssemblyScript modules keep running.
+fn test_wasmv1_modules_compile_but_never_run() {
     use crate::MIP_0002_EXECUTION_VERSION;
     use std::sync::atomic::Ordering;
 
@@ -402,388 +156,49 @@ fn test_wasmv1_runtime_disabled_at_version() {
         "/wasm/test_period_thread.wasm_add"
     ));
     let as_module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/wasm/basic_main.wasm"));
-    let run = |bytecode: &[u8], limit: u64| {
-        let module = RuntimeModule::new(
+    let compile = |bytecode: &[u8]| {
+        RuntimeModule::new(
             bytecode,
             gas_costs.clone(),
             Compiler::SP,
             condom_limits.clone(),
         )
-        .unwrap();
+        .expect("module compiles")
+    };
+    let run = |bytecode: &[u8], limit: u64| {
         run_main(
             &*interface,
-            module,
+            compile(bytecode),
             limit,
             gas_costs.clone(),
             condom_limits.clone(),
         )
     };
 
-    INTERFACE_VERSION.store(MIP_0002_EXECUTION_VERSION - 1, Ordering::SeqCst);
-    let before = run(wasmv1, 100_000_000);
+    // compilation and export lookup are unchanged: `function_exists` and the module
+    // cache still treat wasmv1 bytecode as a valid module
+    let module = compile(wasmv1);
+    assert!(matches!(module, RuntimeModule::WasmV1Module(_)));
+    assert!(module.function_exists("main"));
+    assert!(!module.function_exists("missing_function"));
+
+    for version in [
+        0,
+        MIP_0002_EXECUTION_VERSION - 1,
+        MIP_0002_EXECUTION_VERSION,
+    ] {
+        INTERFACE_VERSION.store(version, Ordering::SeqCst);
+        let err =
+            run(wasmv1, 100_000_000).expect_err("wasmv1 modules are refused at every version");
+        assert!(err
+            .to_string()
+            .contains("wasmv1 modules are no longer supported"));
+    }
 
     INTERFACE_VERSION.store(MIP_0002_EXECUTION_VERSION, Ordering::SeqCst);
-    let after = run(wasmv1, 100_000_000);
     let as_after = run(as_module, 100_000);
-
     INTERFACE_VERSION.store(0, Ordering::SeqCst);
-
-    before.expect("wasmv1 modules run before the removal version");
-    let err = after.expect_err("wasmv1 modules are refused from the removal version on");
-    assert!(err
-        .to_string()
-        .contains("wasmv1 modules are no longer supported"));
     as_after.expect("AssemblyScript modules are not affected");
-}
-
-#[test]
-#[serial]
-/// Test test_native_hash
-fn test_native_hash_wasmv1_as() {
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-    let interface: Box<dyn Interface> = Box::new(TestInterface);
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_hash.wasm_add"
-    ));
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-
-    match runtime_module.clone() {
-        RuntimeModule::ASModule(_) => {
-            panic!("Error: Module type ASModule, expected WasmV1Module!");
-        }
-        RuntimeModule::WasmV1Module(_) => {
-            println!("Module type WasmV1Module");
-        }
-    }
-    run_main(
-        &*interface,
-        runtime_module,
-        100_000_000,
-        gas_costs,
-        condom_limits,
-    )
-    .unwrap();
-}
-
-#[test]
-#[serial]
-/// This test call the main function of a SC that calls generate_event abi
-fn test_generate_event_wasmv1_as() {
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-    let interface: Box<dyn Interface> = Box::new(TestInterface);
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_generate_event.wasm_add"
-    ));
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-
-    match runtime_module.clone() {
-        RuntimeModule::ASModule(_) => {
-            panic!("Must be WasmV1Module");
-        }
-        RuntimeModule::WasmV1Module(_) => {
-            println!("Module type WasmV1Module");
-        }
-    }
-    run_main(
-        &*interface,
-        runtime_module,
-        100_000_000,
-        gas_costs,
-        condom_limits,
-    )
-    .unwrap();
-}
-
-#[test]
-#[serial]
-/// This test arithmetic operations on native amount
-fn test_native_amount_arithmetic_wasmv1_as() {
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-    let interface: Box<dyn Interface> = Box::new(TestInterface);
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_native_amount_arithmetic.wasm_add"
-    ));
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-
-    match runtime_module.clone() {
-        RuntimeModule::ASModule(_) => {
-            panic!("Must be WasmV1Module");
-        }
-        RuntimeModule::WasmV1Module(_) => {
-            println!("Module type WasmV1Module");
-        }
-    }
-    run_main(
-        &*interface,
-        runtime_module,
-        100_000_000,
-        gas_costs,
-        condom_limits,
-    )
-    .unwrap();
-}
-
-#[test]
-#[serial]
-/// This test call the main function of a SC that will abort
-fn test_abort_wasmv1_as() {
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-    let interface: Box<dyn Interface> = Box::new(TestInterface);
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_abort.wasm_add"
-    ));
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-
-    match runtime_module.clone() {
-        RuntimeModule::ASModule(_) => {
-            panic!("Must be WasmV1Module");
-        }
-        RuntimeModule::WasmV1Module(_) => {
-            println!("Module type WasmV1Module");
-        }
-    }
-
-    let res = run_main(
-        &*interface,
-        runtime_module,
-        5_000_000, // Increased for operator_cost=23 (was 100_000 with operator_cost=1)
-        gas_costs,
-        condom_limits,
-    );
-
-    match res {
-        Err(e) if e.to_string().contains("abort test message") => {
-            println!("Ok abort: {:?}", e);
-            return;
-        }
-        Err(e) => {
-            println!("Test failed: {:?}", e);
-            panic!("Expected abort");
-        }
-        Ok(_) => {
-            panic!("Err expected");
-        }
-    }
-}
-
-#[test]
-#[serial]
-/// This test call the main function of a SC that will abort
-fn test_assert_in_release_wasmv1_as() {
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-    let interface: Box<dyn Interface> = Box::new(TestInterface);
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_assert_in_release.wasm_add"
-    ));
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-
-    match runtime_module.clone() {
-        RuntimeModule::ASModule(_) => {
-            panic!("Must be WasmV1Module");
-        }
-        RuntimeModule::WasmV1Module(_) => {
-            println!("Module type WasmV1Module");
-        }
-    }
-
-    let res = run_main(
-        &*interface,
-        runtime_module,
-        100_000_000,
-        gas_costs,
-        condom_limits,
-    );
-
-    match res {
-        Err(e) if e.to_string().contains("expected assert") => {
-            println!("Ok program must assert: {:?}", e);
-            return;
-        }
-        Err(e) => {
-            println!("Test failed: {:?}", e);
-            panic!("Expected abort");
-        }
-        Ok(_) => {
-            panic!("Err expected");
-        }
-    }
-}
-
-#[test]
-#[serial]
-/// This test call the main function of a SC that calls transfer_coins abi
-fn test_transfer_coins_wasmv1_as() {
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-    let interface: Box<dyn Interface> = Box::new(TestInterface);
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_transfer_coins.wasm_add"
-    ));
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-
-    match runtime_module.clone() {
-        RuntimeModule::ASModule(_) => {
-            panic!("Must be WasmV1Module");
-        }
-        RuntimeModule::WasmV1Module(_) => {
-            println!("Module type WasmV1Module");
-        }
-    }
-
-    let _resp = run_main(
-        &*interface,
-        runtime_module,
-        5_000_000, // Increased for operator_cost=23 (was 100_000 with operator_cost=1)
-        gas_costs,
-        condom_limits,
-    )
-    .unwrap();
-
-    #[cfg(feature = "execution-trace")]
-    {
-        assert!(!_resp.trace.is_empty());
-        let trace_1 = _resp.trace.first().unwrap();
-        assert_eq!(trace_1.name, "abi_transfer_coins");
-        assert_eq!(
-            trace_1.params,
-            vec![
-                ("target_address", "abcd".to_string()).into(),
-                ("amount", 100i64).into(),
-                ("sender_address", "efgh".to_string()).into(),
-            ]
-        );
-        assert_eq!(trace_1.return_value, AbiTraceType::None);
-        assert_eq!(trace_1.sub_calls, None);
-    }
-}
-
-#[test]
-#[serial]
-/// This test call the main function of a SC that calls bs58 encode/decode abi
-fn test_bs58_to_from_wasmv1_as() {
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-    let interface: Box<dyn Interface> = Box::new(TestInterface);
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_bs58_to_from.wasm_add"
-    ));
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-
-    match runtime_module.clone() {
-        RuntimeModule::ASModule(_) => {
-            panic!("Must be WasmV1Module");
-        }
-        RuntimeModule::WasmV1Module(_) => {
-            println!("Module type WasmV1Module");
-        }
-    }
-    run_main(
-        &*interface,
-        runtime_module,
-        100_000_000,
-        gas_costs,
-        condom_limits,
-    )
-    .unwrap();
-}
-
-#[test]
-#[serial]
-/// This test call the main function of a SC that calls comparisons abis
-fn test_compare_wasmv1_as() {
-    let gas_costs = GasCosts::default();
-    let condom_limits = CondomLimits::default();
-    let interface: Box<dyn Interface> = Box::new(TestInterface);
-    let module = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/wasm/test_compare.wasm_add"
-    ));
-
-    let runtime_module = RuntimeModule::new(
-        module,
-        gas_costs.clone(),
-        Compiler::SP,
-        condom_limits.clone(),
-    )
-    .unwrap();
-
-    match runtime_module.clone() {
-        RuntimeModule::ASModule(_) => {
-            panic!("Must be WasmV1Module");
-        }
-        RuntimeModule::WasmV1Module(_) => {
-            println!("Module type WasmV1Module");
-        }
-    }
-    run_main(
-        &*interface,
-        runtime_module,
-        100_000_000,
-        gas_costs,
-        condom_limits,
-    )
-    .unwrap();
 }
 
 #[test]
@@ -912,46 +327,6 @@ fn test_run_empty_main() {
     .expect("Failed to run empty_main.wasm");
     // Between 2 calls, the metering cost should be the difference
     assert_eq!(a.remaining_gas - b.remaining_gas, cost);
-}
-
-#[test]
-#[serial]
-/// Even if our SC is empty there is still an initial and minimum metering cost,
-/// because we have a memory allocator to init.
-///
-/// This test ensure that this initial cost is correctly debited.
-fn test_run_main_rust_wasmv1() {
-    // let mut gas_costs = GasCosts::default();
-    // let interface: Box<dyn Interface> =
-    //     Box::new(TestInterface);
-    // let module = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"),
-    //     "/../massa-rust-sc-examples/target/wasm32-unknown-unknown/debug/
-    // massa_rust_sc_deploy_sc.wasm_add")); gas_costs.launch_cost = 0;
-    // let runtime_module =
-    //     RuntimeModule::new(module, gas_costs.clone(), Compiler::SP, condom_limits.clone())?;
-    //         .unwrap();
-
-    // let a = match run_main(
-    //     &*interface,
-    //     runtime_module.clone(),
-    //     10_000_000,
-    //     gas_costs.clone(),
-    // ) { Ok(a) => a, Err(e) => { println!("e: {}", e); panic!("Failed to run
-    //   main") }
-    // };
-
-    // // Here we avoid hard-coding a value (that can change in future wasmer
-    // // release)
-    // assert!(a.remaining_gas > 0);
-
-    // let mut rng = rand::thread_rng();
-    // let cost = rng.gen_range(1..1_000_000);
-    // gas_costs.launch_cost = cost;
-    // let b = run_main(&*interface, runtime_module, 10_000_000, gas_costs)
-    //     .expect("Failed to run empty_main.wasm");
-    // dbg!(b.ret);
-    // // Between 2 calls, the metering cost should be the difference
-    // // assert_eq!(a.remaining_gas - b.remaining_gas, cost);
 }
 
 #[test]
