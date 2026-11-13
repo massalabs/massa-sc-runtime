@@ -7,11 +7,6 @@ use sha3::Keccak256;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Mutex;
 
-/// Execution component version reported by `TestInterface`. Tests changing it
-/// must be `#[serial]` and restore it to 0.
-pub(crate) static INTERFACE_VERSION: std::sync::atomic::AtomicU32 =
-    std::sync::atomic::AtomicU32::new(0);
-
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum PaginatedKeysCall {
     Current {
@@ -69,7 +64,7 @@ impl Interface for TestInterface {
     }
 
     fn get_interface_version(&self) -> Result<u32> {
-        Ok(INTERFACE_VERSION.load(std::sync::atomic::Ordering::SeqCst))
+        Ok(0)
     }
 
     fn finish_call(&self) -> Result<()> {

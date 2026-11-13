@@ -1,5 +1,5 @@
 use crate::as_execution::{ASContext, ASModule};
-use crate::tests::{TestInterface, INTERFACE_VERSION};
+use crate::tests::TestInterface;
 use crate::{
     run_function, run_main,
     types::{GasCosts, Interface},
@@ -142,12 +142,9 @@ fn test_run_main_get_execution_traces() {
 #[test]
 #[serial]
 /// wasmv1 modules still compile and expose their exports, as before the removal of
-/// their execution code, but are refused at every execution version, while
-/// AssemblyScript modules keep running.
+/// their execution code, but are refused at execution, while AssemblyScript modules
+/// keep running.
 fn test_wasmv1_modules_compile_but_never_run() {
-    use crate::MIP_0002_EXECUTION_VERSION;
-    use std::sync::atomic::Ordering;
-
     let gas_costs = GasCosts::default();
     let condom_limits = CondomLimits::default();
     let interface: Box<dyn Interface> = Box::new(TestInterface);
@@ -182,23 +179,12 @@ fn test_wasmv1_modules_compile_but_never_run() {
     assert!(module.function_exists("main"));
     assert!(!module.function_exists("missing_function"));
 
-    for version in [
-        0,
-        MIP_0002_EXECUTION_VERSION - 1,
-        MIP_0002_EXECUTION_VERSION,
-    ] {
-        INTERFACE_VERSION.store(version, Ordering::SeqCst);
-        let err =
-            run(wasmv1, 100_000_000).expect_err("wasmv1 modules are refused at every version");
-        assert!(err
-            .to_string()
-            .contains("wasmv1 modules are no longer supported"));
-    }
+    let err = run(wasmv1, 100_000_000).expect_err("wasmv1 modules are refused");
+    assert!(err
+        .to_string()
+        .contains("wasmv1 modules are no longer supported"));
 
-    INTERFACE_VERSION.store(MIP_0002_EXECUTION_VERSION, Ordering::SeqCst);
-    let as_after = run(as_module, 100_000);
-    INTERFACE_VERSION.store(0, Ordering::SeqCst);
-    as_after.expect("AssemblyScript modules are not affected");
+    run(as_module, 100_000).expect("AssemblyScript modules are not affected");
 }
 
 #[test]

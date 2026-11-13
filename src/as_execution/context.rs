@@ -289,64 +289,30 @@ impl ASContext {
             },
         };
 
-        // MIP-0002 ABIs. Register them only once the host reports an execution
-        // version at or past their activation, so an updated node rejects the
-        // imports before activation exactly like a non-updated node. A host
-        // that cannot report its version fails closed (old behavior).
-        if self
-            .env
-            .interface
-            .get_interface_version()
-            .is_ok_and(paginated_ds_keys_enabled)
-        {
-            imports.define(
-                "massa",
-                "assembly_script_get_keys_paginated",
-                Function::new_typed_with_env(store, &fenv, assembly_script_get_keys_paginated),
-            );
-            imports.define(
-                "massa",
-                "assembly_script_get_keys_for_paginated",
-                Function::new_typed_with_env(store, &fenv, assembly_script_get_keys_for_paginated),
-            );
-        }
+        imports.define(
+            "massa",
+            "assembly_script_get_keys_paginated",
+            Function::new_typed_with_env(store, &fenv, assembly_script_get_keys_paginated),
+        );
+        imports.define(
+            "massa",
+            "assembly_script_get_keys_for_paginated",
+            Function::new_typed_with_env(store, &fenv, assembly_script_get_keys_for_paginated),
+        );
 
         (imports, fenv)
     }
-}
-
-/// Whether the paginated datastore-key ABIs are exposed for a host reporting
-/// this execution component version.
-fn paginated_ds_keys_enabled(interface_version: u32) -> bool {
-    interface_version >= crate::MIP_0002_EXECUTION_VERSION
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::tests::{
-        PaginatedKeysCall, TestInterface, INTERFACE_VERSION, PAGINATED_KEYS_CALLS,
-        PAGINATED_KEYS_FIXTURE,
+        PaginatedKeysCall, TestInterface, PAGINATED_KEYS_CALLS, PAGINATED_KEYS_FIXTURE,
     };
-    use crate::{CondomLimits, GasCosts, MIP_0002_EXECUTION_VERSION};
+    use crate::{CondomLimits, GasCosts};
     use serial_test::serial;
-    use std::sync::atomic::Ordering;
     use wasmer::{wat2wasm, Instance, Module, Store};
-
-    struct InterfaceVersionGuard;
-
-    impl InterfaceVersionGuard {
-        fn set(version: u32) -> Self {
-            INTERFACE_VERSION.store(version, Ordering::SeqCst);
-            Self
-        }
-    }
-
-    impl Drop for InterfaceVersionGuard {
-        fn drop(&mut self) {
-            INTERFACE_VERSION.store(0, Ordering::SeqCst);
-        }
-    }
 
     fn instantiate_wat(
         interface: &dyn crate::Interface,
@@ -442,19 +408,10 @@ mod tests {
             call $get_keys))
     "#;
 
-    #[test]
-    fn test_paginated_ds_keys_gate_boundaries() {
-        assert!(!paginated_ds_keys_enabled(0));
-        assert!(!paginated_ds_keys_enabled(MIP_0002_EXECUTION_VERSION - 1));
-        assert!(paginated_ds_keys_enabled(MIP_0002_EXECUTION_VERSION));
-        assert!(paginated_ds_keys_enabled(u32::MAX));
-    }
-
-    /// The new imports follow the execution version. The deprecated ones stay
-    /// registered either way, so existing modules still instantiate.
+    /// The paginated imports always resolve.
     #[test]
     #[serial]
-    fn test_paginated_ds_keys_imports_follow_execution_version() {
+    fn test_paginated_ds_keys_imports_resolve() {
         let current_address_wat = r#"
             (module
               (import "massa" "assembly_script_get_keys_paginated"
@@ -469,26 +426,8 @@ mod tests {
               (memory (export "memory") 1)
               (func (export "main")))
         "#;
-        let interface = TestInterface;
-
-        for (wat, import_name) in [
-            (current_address_wat, "assembly_script_get_keys_paginated"),
-            (
-                explicit_address_wat,
-                "assembly_script_get_keys_for_paginated",
-            ),
-        ] {
-            let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION - 1);
-            let error = run_wat(&interface, wat, "main").unwrap_err();
-            assert!(
-                error.to_string().contains(import_name),
-                "expected unresolved import {import_name}, got: {error}"
-            );
-        }
-
         for wat in [current_address_wat, explicit_address_wat] {
-            let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION);
-            run_wat(&interface, wat, "main").unwrap();
+            run_wat(&TestInterface, wat, "main").unwrap();
         }
     }
 
@@ -504,12 +443,7 @@ mod tests {
               (memory (export "memory") 1)
               (func (export "main")))
         "#;
-        let interface = TestInterface;
-
-        for version in [0, MIP_0002_EXECUTION_VERSION] {
-            let _version = InterfaceVersionGuard::set(version);
-            run_wat(&interface, wat, "main").unwrap();
-        }
+        run_wat(&TestInterface, wat, "main").unwrap();
     }
 
     #[test]
@@ -531,7 +465,6 @@ mod tests {
                 i32.const 8 i32.const 8 i32.const 1 call $get_keys drop
                 i32.const 16 i32.const 8 i32.const 8 i32.const 1 call $get_keys_for))
         "#;
-        let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION);
         let response = run_wat(&TestInterface, wat, "invoke").unwrap();
 
         assert_eq!(response.ret, Vec::<u8>::new());
@@ -541,7 +474,6 @@ mod tests {
     #[serial]
     fn test_paginated_ds_keys_counts_are_validated_before_backend() {
         let _fixture = PaginatedFixtureGuard::set(Vec::new());
-        let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION);
 
         for function in ["current", "for_address"] {
             for count in [-1_i32, 0, 501] {
@@ -595,7 +527,6 @@ mod tests {
             .map(|index| format!("p{index:04}").into_bytes())
             .collect::<Vec<_>>();
         let _fixture = PaginatedFixtureGuard::set(keys.clone());
-        let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION);
 
         let first_page = run_wat_with_param(
             &TestInterface,
@@ -654,7 +585,6 @@ mod tests {
     #[test]
     #[serial]
     fn test_paginated_ds_keys_direct_handler_debits_exact_abi_cost() {
-        let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION);
         let full_keys = (500..1000)
             .map(|index| format!("p{index:04}").into_bytes())
             .collect::<Vec<_>>();
@@ -711,7 +641,6 @@ mod tests {
     #[test]
     #[serial]
     fn test_paginated_ds_keys_guest_control_isolates_exact_abi_cost() {
-        let _version = InterfaceVersionGuard::set(MIP_0002_EXECUTION_VERSION);
         let full_keys = (500..1000)
             .map(|index| format!("p{index:04}").into_bytes())
             .collect::<Vec<_>>();

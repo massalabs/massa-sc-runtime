@@ -539,10 +539,9 @@ pub trait Interface: Send + Sync + InterfaceClone {
     fn decrement_recursion_counter(&self) -> Result<()>;
 
     /// Execution component version active at the current slot, as reported by
-    /// the host. Version-gated changes are decided on it, so that an updated
-    /// node behaves exactly like a non-updated one before activation. A host
-    /// that cannot report it must return an error: gated changes then keep
-    /// their pre-activation behaviour.
+    /// the host. The runtime can gate behavior changes on it, so that an updated
+    /// node behaves like a non-updated one before a MIP activates. No change is
+    /// gated on it at the moment.
     fn get_interface_version(&self) -> Result<u32>;
 
     /// Prepare the execution of a module at the given address and transfer a
@@ -605,21 +604,16 @@ pub trait Interface: Send + Sync + InterfaceClone {
     /// Return datastore keys.
     /// Only keys with the given prefix are returned when one is provided.
     ///
-    /// Superseded, from [`crate::MIP_0002_EXECUTION_VERSION`], by
-    /// [`Interface::get_keys_paginated`].
+    /// Superseded by [`Interface::get_keys_paginated`].
     fn get_keys(&self, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>>;
 
     /// Return datastore keys for an address.
     /// Only keys with the given prefix are returned when one is provided.
     ///
-    /// Superseded, from [`crate::MIP_0002_EXECUTION_VERSION`], by
-    /// [`Interface::get_keys_for_paginated`].
+    /// Superseded by [`Interface::get_keys_for_paginated`].
     fn get_keys_for(&self, address: &str, prefix: Option<&[u8]>) -> Result<BTreeSet<Vec<u8>>>;
 
     /// Return one page of datastore keys for the current address.
-    ///
-    /// Guest modules can call this only from [`crate::MIP_0002_EXECUTION_VERSION`]
-    /// (massa MIP-0002). The AssemblyScript import is omitted before that version.
     ///
     /// * `prefix`: only keys with this prefix. `None` matches every key.
     /// * `start_key`: exclusive resume cursor. `None` starts at the beginning of
