@@ -63,6 +63,10 @@ impl Interface for TestInterface {
         Ok(vec![])
     }
 
+    fn get_interface_version(&self) -> Result<u32> {
+        Ok(0)
+    }
+
     fn finish_call(&self) -> Result<()> {
         Ok(())
     }

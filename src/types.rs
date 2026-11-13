@@ -538,6 +538,12 @@ pub trait Interface: Send + Sync + InterfaceClone {
 
     fn decrement_recursion_counter(&self) -> Result<()>;
 
+    /// Execution component version active at the current slot, as reported by
+    /// the host. The runtime can gate behavior changes on it, so that an updated
+    /// node behaves like a non-updated one before a MIP activates. No change is
+    /// gated on it at the moment.
+    fn get_interface_version(&self) -> Result<u32>;
+
     /// Prepare the execution of a module at the given address and transfer a
     /// given amount of coins
     fn init_call(&self, address: &str, raw_coins: u64) -> Result<Vec<u8>>;
